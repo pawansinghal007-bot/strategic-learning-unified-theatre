@@ -12,22 +12,57 @@
     "start": "node ./src/cli.js",
     "test": "vitest run",
     "tray": "electron ./electron-tray/main.js",
-    "install-service": "node ./scripts/install.js"
+    "install-service": "node ./scripts/install.js",
+    "ui:dev": "vite renderer",
+    "ui:build": "vite build renderer",
+    "electron:dev": "cross-env NODE_ENV=development electron ./electron-ui/main.cjs",
+    "electron:build": "npm run ui:build && electron-builder"
   },
   "engines": {
     "node": ">=18"
   },
+  "build": {
+    "appId": "com.vscode.rotator",
+    "productName": "VSCode Rotator",
+    "extraMetadata": {
+      "main": "electron-ui/main.cjs"
+    },
+    "files": [
+      "electron-ui/dist/**/*",
+      "electron-ui/main.cjs",
+      "electron-ui/preload.cjs",
+      "electron-ui/ipc/**/*",
+      "src/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "output": "dist_electron"
+    },
+    "win": {
+      "target": ["nsis"]
+    }
+  },
   "dependencies": {
     "chalk": "^5.3.0",
     "commander": "^12.1.0",
+    "electron-store": "^10.0.0",
     "fflate": "^0.8.2",
     "keytar": "^7.9.0",
+    "marked": "^12.0.0",
     "nanoid": "^5.0.7",
     "ora": "^8.0.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@vitejs/plugin-react": "^4.0.0",
+    "autoprefixer": "^10.4.0",
+    "cross-env": "^7.0.3",
     "electron": "^42.1.0",
+    "electron-builder": "^26.8.1",
+    "tailwindcss": "^3.4.0",
+    "vite": "^8.0.13",
     "vitest": "^4.1.6"
   }
 }

@@ -5,3 +5,7 @@
 *.log
 .env
 
+
+dist_electron/
+electron-ui/dist/
+
