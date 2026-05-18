@@ -1,0 +1,33 @@
+{
+  "name": "vscode-rotator",
+  "version": "0.1.0",
+  "description": "Hands-free VS Code account rotation with OS secret storage, tray UI, daemon service, and profile management.",
+  "type": "module",
+  "main": "./src/cli.js",
+  "electron": "./electron-tray/main.js",
+  "bin": {
+    "vscode-rotator": "./src/cli.js"
+  },
+  "scripts": {
+    "start": "node ./src/cli.js",
+    "test": "vitest run",
+    "tray": "electron ./electron-tray/main.js",
+    "install-service": "node ./scripts/install.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^12.1.0",
+    "fflate": "^0.8.2",
+    "keytar": "^7.9.0",
+    "nanoid": "^5.0.7",
+    "ora": "^8.0.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "electron": "^42.1.0",
+    "vitest": "^4.1.6"
+  }
+}
