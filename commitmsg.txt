@@ -1,0 +1,1 @@
+Initial commit: VS Code Agent - secure store, keychain, tray, daemon, installer  
