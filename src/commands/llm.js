@@ -1,11 +1,17 @@
-﻿import readline from "node:readline/promises";
+﻿import path from "node:path";
+import os from "node:os";
+import readline from "node:readline/promises";
 import { stdin, stdout } from "node:process";
 
 import chalk from "chalk";
 import ora from "ora";
 
 import { ExperienceDb } from "../llm/experience-db.js";
+import { PromptGenerator } from "../llm/prompt-generator.js";
+import { buildGraph } from "../llm/knowledge-graph.js";
 import { MistakeTracker } from "../llm/mistake-tracker.js";
+import { DocumentIngester } from "../llm/document-ingester.js";
+import { sendPrompt, listResponses, ensureBrowserDirs } from "../browser-bridge.js";
 import {
   addMistake,
   askLocalLlm,
@@ -104,6 +110,185 @@ export async function bindLlmCommands(program) {
         });
         spinner.succeed(`Generated prompt #${result.history.id}`);
         console.log(result.prompt);
+      } catch (err) {
+        spinner.stop();
+        console.error(chalk.red(String(err?.message ?? err)));
+        process.exitCode = 1;
+      }
+    });
+
+  llm
+    .command("topics")
+    .description("Run k-means topic clustering on document embeddings")
+    .option("--k <number>", "Number of clusters", "5")
+    .option("--json", "Output JSON")
+    .action(async (options) => {
+      const spinner = ora("Clustering documents...").start();
+      try {
+        const db = new ExperienceDb();
+        await db.open();
+        const k = Number.parseInt(options.k, 10) || 5;
+        const { clusterDocuments } = await import("../llm/embeddings.js");
+        const clusters = await clusterDocuments(db, k);
+        if (clusters.length < k) {
+          spinner.stop();
+          console.warn(`Warning: only ${clusters.length} cluster(s) were produced because there are fewer documents with embeddings than requested clusters (${k}).`);
+          if (options.json) {
+            console.log(JSON.stringify({ clusters }, null, 2));
+          } else {
+            clusters.forEach((cluster, index) => {
+              console.log(`Cluster ${index + 1}:`);
+              cluster.snippets.forEach((snippet) => console.log(`  - ${snippet}`));
+              console.log("");
+            });
+          }
+          return;
+        }
+        spinner.stop();
+        if (options.json) {
+          console.log(JSON.stringify({ clusters }, null, 2));
+          return;
+        }
+        clusters.forEach((cluster, index) => {
+          console.log(`Cluster ${index + 1}:`);
+          cluster.snippets.slice(0, 3).forEach((snippet) => console.log(`  - ${snippet}`));
+          console.log("");
+        });
+      } catch (err) {
+        spinner.stop();
+        console.error(chalk.red(String(err?.message ?? err)));
+        process.exitCode = 1;
+      }
+    });
+
+  llm
+    .command("related")
+    .description("Find related past documents, sprints, and prompt history")
+    .requiredOption("--to <question>", "Question to relate to")
+    .option("--json", "Output raw JSON")
+    .action(async (options) => {
+      const spinner = ora("Finding related experience...").start();
+      try {
+        const generator = new PromptGenerator();
+        const result = await generator.findRelated(options.to);
+        spinner.stop();
+        if (options.json) {
+          console.log(JSON.stringify(result.raw, null, 2));
+        } else {
+          console.log(result.report);
+        }
+      } catch (err) {
+        spinner.stop();
+        console.error(chalk.red(String(err?.message ?? err)));
+        process.exitCode = 1;
+      }
+    });
+
+  llm
+    .command("export-knowledge-graph")
+    .description("Export the local knowledge graph as JSON")
+    .option("--out <path>", "Output file path")
+    .action(async (options) => {
+      const spinner = ora("Exporting knowledge graph...").start();
+      try {
+        const db = new ExperienceDb();
+        await db.open();
+        const ideaDir = path.join(os.homedir(), ".vscode-rotator", "ideas");
+        const outPath = options.out ? path.resolve(options.out) : path.join(os.homedir(), ".vscode-rotator", "knowledge-graph.json");
+        const result = await buildGraph(db, ideaDir, outPath);
+        spinner.stop();
+        console.log(`Knowledge graph exported to ${result.outputPath} — ${result.nodeCount} nodes, ${result.edgeCount} edges`);
+      } catch (err) {
+        spinner.stop();
+        console.error(chalk.red(String(err?.message ?? err)));
+        process.exitCode = 1;
+      }
+    });
+
+  llm
+    .command("enhance")
+    .description("Generate an enhancement prompt and optionally send it to an online LLM")
+    .requiredOption("--goal <goal>", "Enhancement goal")
+    .option("--platform <name>", "Platform (chatgpt|claude|perplexity|gemini)", "chatgpt")
+    .option("--project <name>", "Project name")
+    .option("--auto", "Send prompt automatically via browser bridge", false)
+    .option("--rate", "Ask for response quality rating after capture", false)
+    .option("--base-dir <dir>", "Local storage base directory")
+    .action(async (options) => {
+      const spinner = ora("Generating enhancement prompt...").start();
+      try {
+        const result = await generatePrompt({
+          goal: options.goal,
+          platform: options.platform,
+          project: options.project,
+          baseDir: options.baseDir,
+          skipHistory: true
+        });
+
+        spinner.succeed("Prompt generated");
+        console.log(result.prompt);
+
+        let responseFile = null;
+        const platform = options.platform;
+
+        if (options.auto) {
+          await ensureBrowserDirs();
+          spinner.start(`Sending prompt to ${platform}...`);
+
+          const sendResult = await sendPrompt({
+            platform,
+            prompt: result.prompt,
+            browserType: "chromium",
+            headless: false,
+            dryRun: false
+          });
+
+          responseFile = sendResult.responsePath;
+          const ingester = new DocumentIngester({ baseDir: options.baseDir });
+          await ingester.ingestFile(responseFile, { source_type: "llm-response", platform });
+          spinner.succeed(`Response captured to ${responseFile}`);
+        } else {
+          const previous = await listResponses({ platform, limit: 1 });
+          const previousFilename = previous[0]?.filename;
+
+          console.log(chalk.yellow("Prompt copied to clipboard. Send it to the target platform and save the response file to ~/.vscode-rotator/browser-responses/."));
+          await prompt("Press Enter when the response file is available...");
+
+          const latest = await listResponses({ platform, limit: 1 });
+          if (!latest[0]) {
+            throw new Error("No response detected. Ensure a response file exists in ~/.vscode-rotator/browser-responses/.");
+          }
+          if (latest[0].filename === previousFilename) {
+            throw new Error("No new response detected. Please save a new response file before continuing.");
+          }
+
+          responseFile = latest[0].filepath;
+          const ingester = new DocumentIngester({ baseDir: options.baseDir });
+          await ingester.ingestFile(responseFile, { source_type: "llm-response", platform });
+          spinner.succeed(`Detected response file ${latest[0].filename}`);
+        }
+
+        const db = new ExperienceDb({ baseDir: options.baseDir });
+        await db.open();
+        const history = await db.logEnhanceCycle({
+          goal: options.goal,
+          platform,
+          promptText: result.prompt,
+          responseFile,
+          cycleTs: new Date().toISOString(),
+          rating: null
+        });
+
+        if (options.rate) {
+          const ratingValue = await prompt("Rate this response 1–5 (or press Enter to skip): ");
+          if (ratingValue) {
+            const rating = parseRating(ratingValue);
+            await db.ratePromptHistory(history.id, rating);
+          }
+        }
+
+        await db.close();
+        console.log(chalk.green(`Logged enhancement cycle #${history.id}`));
       } catch (err) {
         spinner.stop();
         console.error(chalk.red(String(err?.message ?? err)));

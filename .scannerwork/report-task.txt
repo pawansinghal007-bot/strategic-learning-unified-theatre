@@ -1,0 +1,6 @@
+projectKey=VS_CODE_AGENT
+serverUrl=http://localhost:9000
+serverVersion=26.5.0.122743
+dashboardUrl=http://localhost:9000/dashboard?id=VS_CODE_AGENT
+ceTaskId=883b66c6-ba2b-461c-a12c-8fe4d8b3c802
+ceTaskUrl=http://localhost:9000/api/ce/task?id=883b66c6-ba2b-461c-a12c-8fe4d8b3c802

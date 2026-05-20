@@ -61,6 +61,42 @@ export class WatcherDaemon extends EventEmitter {
       this.emit("git_warn", evt);
     });
 
+    // Enhancement scheduling loop
+    const enhanceConfig = cfg?.enhanceSchedule;
+    if (enhanceConfig?.enabled &&
+        Array.isArray(enhanceConfig.goals) &&
+        enhanceConfig.goals.length > 0) {
+
+      const intervalMs = enhanceConfig.intervalMs ?? 604800000;
+      let lastEnhanceTs = 0;
+
+      this.enhanceTimer = setInterval(async () => {
+        if (!this.running) return;
+        const now = Date.now();
+        if (now - lastEnhanceTs < intervalMs) return;
+        lastEnhanceTs = now;
+
+        for (const goal of enhanceConfig.goals) {
+          const platform = enhanceConfig.platform ?? 'chatgpt';
+          try {
+            this.emit('enhance_cycle', {
+              goal,
+              platform,
+              timestamp: new Date().toISOString()
+            });
+            await this._spawnEnhance(goal, platform);
+          } catch (err) {
+            await this.journal.append({
+              type: 'ENHANCE_ERR',
+              detail: `${goal} | ${err?.message ?? err}`
+            });
+          }
+        }
+      }, 60000); // polls every 60 s; intervalMs controls actual cadence
+
+      this.enhanceTimer.unref?.();
+    }
+
     const tick = async () => {
       if (!this.running) return;
 
@@ -142,10 +178,34 @@ export class WatcherDaemon extends EventEmitter {
     await loop();
   }
 
+  async _spawnEnhance(goal, platform) {
+    const { spawn } = await import("node:child_process");
+    return new Promise((resolve, reject) => {
+      const child = spawn(
+        process.execPath,
+        ['src/cli.js', 'llm', 'enhance',
+         '--goal', goal,
+         '--auto',
+         '--platform', platform],
+        {
+          cwd: new URL('.', import.meta.url).pathname,
+          stdio: 'inherit',
+          detached: false
+        }
+      );
+      child.on('close', code => code === 0 ? resolve() : reject(new Error(`enhance exited ${code}`)));
+      child.on('error', reject);
+    });
+  }
+
   async stop() {
     this.running = false;
     if (this.timer) clearTimeout(this.timer);
     this.timer = null;
+    if (this.enhanceTimer) {
+      clearInterval(this.enhanceTimer);
+      this.enhanceTimer = null;
+    }
     this.gitMonitor.stop();
   }
 }

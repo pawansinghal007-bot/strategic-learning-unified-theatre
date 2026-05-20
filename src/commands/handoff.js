@@ -10,7 +10,8 @@ import {
   addBlocker,
   closeSprint,
   setTokenBudget,
-  getActiveSprint
+  getActiveSprint,
+  generateResumePrompt
 } from "../agent-handoff.js";
 
 function parseInteger(value) {
@@ -137,7 +138,8 @@ export function bindHandoffCommands(program) {
     .action(async (sprintId) => {
       try {
         const sprint = await loadSprint(sprintId);
-        process.stdout.write(sprint.resumePrompt + "\n");
+        const resumePrompt = sprint.resumePrompt || generateResumePrompt(sprint);
+        process.stdout.write(resumePrompt + "\n");
       } catch (err) {
         console.error(chalk.red(String(err?.message ?? err)));
         process.exitCode = 1;

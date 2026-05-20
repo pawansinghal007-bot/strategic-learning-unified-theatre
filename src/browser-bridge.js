@@ -74,9 +74,10 @@ async function tagResponse(filename, { quality, notes } = {}) {
 
   let mistakeCreated = false;
   const noteText = notes?.trim() ? notes.trim() : null;
-  if (normalized === "bad" && noteText) {
+  if (normalized === "bad") {
     const tracker = new MistakeTracker();
-    await tracker.addMistake({ description: noteText, category: "llm-response", fix: "" });
+    const description = noteText || `Low-quality browser response: ${filename}`;
+    await tracker.addMistake({ description, category: "llm-response", fix: "" });
     mistakeCreated = true;
   }
 
@@ -310,7 +311,23 @@ ${prompt}
 ${response}
 `;
 
-    await fs.writeFile(responsePath, responseContent, "utf8");
+    const tmpPath = `${responsePath}.${process.pid}.${Date.now()}.tmp`;
+    await fs.writeFile(tmpPath, responseContent, { encoding: "utf8", mode: 0o600 });
+    const fh = await fs.open(tmpPath, "r+");
+    try {
+      await fh.sync();
+    } finally {
+      await fh.close();
+    }
+
+    try {
+      await fs.rename(tmpPath, responsePath);
+    } catch {
+      await fs.unlink(responsePath).catch(() => null);
+      await fs.rename(tmpPath, responsePath);
+    }
+
+    await fs.chmod(responsePath, 0o600);
 
     try {
       await ingestBrowserResponseFile(responsePath);
@@ -407,6 +424,7 @@ export async function comparePrompts(options) {
   }
 
   // Generate comparison report
+  // Note: compare reports are not treated as individual browser responses and are not ingested
   const timestamp = getTimestamp();
   const reportPath = path.join(browserResponsesDir(), `${timestamp}-compare.md`);
 
@@ -742,6 +760,14 @@ async function captureThread(platform, { outputDir = null } = {}) {
       throw new Error(`No conversation turns found. Check threadSelectors for ${platform} in browser-selectors.json`);
     }
 
+    const roles = new Set(turns.map((turn) => String(turn.role || "unknown").toLowerCase()));
+    if (!roles.has("user") || !roles.has("assistant")) {
+      throw new Error(
+        `Incomplete conversation thread: expected both user and assistant turns for ${platform}. ` +
+          `Found roles: ${Array.from(roles).join(", ")}`
+      );
+    }
+
     // Format as thread file
     const timestamp = getTimestamp();
     const filename = `${timestamp}-${platform}-thread.md`;
@@ -749,9 +775,9 @@ async function captureThread(platform, { outputDir = null } = {}) {
 
     const frontmatter = `---
 platform: ${platform}
-captured: ${now()}
+captured_at: ${now()}
 type: thread
-turns: ${turns.length}
+turn_count: ${turns.length}
 ---
 
 `;
@@ -764,16 +790,45 @@ turns: ${turns.length}
       content += `${turn.content}\n\n`;
     });
 
-    // Atomic write
+    // Atomic write with fsync: write to tmp, fsync file and directory, then rename
     const dir = path.dirname(filepath);
     await fs.mkdir(dir, { recursive: true, mode: 0o700 });
     const tmpFile = `${filepath}.${process.pid}.${Date.now()}.tmp`;
+    // write tmp file
     await fs.writeFile(tmpFile, content, { encoding: "utf8", mode: 0o600 });
+    // ensure data is flushed to disk
     try {
-      await fs.rename(tmpFile, filepath);
-    } catch {
-      await fs.unlink(filepath).catch(() => null);
-      await fs.rename(tmpFile, filepath);
+      const fh = await fs.open(tmpFile, "r+");
+      try {
+        await fh.sync();
+      } finally {
+        await fh.close();
+      }
+      // rename into place
+      try {
+        await fs.rename(tmpFile, filepath);
+      } catch {
+        await fs.unlink(filepath).catch(() => null);
+        await fs.rename(tmpFile, filepath);
+      }
+      // sync containing directory to ensure directory entry is persisted
+      const dirHandle = await fs.open(dir, "r");
+      try {
+        try {
+          await dirHandle.sync();
+        } catch (syncErr) {
+          // Some platforms (notably Windows) may not allow directory sync on open handles.
+          // Ignore best-effort directory sync failures and continue.
+        }
+      } finally {
+        await dirHandle.close();
+      }
+    } catch (err) {
+      // best-effort cleanup
+      try {
+        await fs.unlink(tmpFile).catch(() => null);
+      } catch {}
+      throw err;
     }
 
     return {

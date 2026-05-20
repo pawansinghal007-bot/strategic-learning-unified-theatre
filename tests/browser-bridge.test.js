@@ -1,7 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { Command } from "commander";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import * as browserBridge from "../src/browser-bridge.js";
 
 import {
   loadPromptLibrary,
@@ -17,8 +19,46 @@ import {
   getBrowserResponsePlatform,
   ingestBrowserResponseFile,
   tagResponse,
-  captureThread
+  captureThread,
+  sendPrompt,
+  comparePrompts,
+  sendPrompt,
+  comparePrompts
 } from "../src/browser-bridge.js";
+
+vi.mock("playwright", () => {
+  const fakeMessage = {
+    evaluate: vi.fn(async () => "Mock browser response")
+  };
+
+  const fakePage = {
+    goto: vi.fn(async () => {}),
+    waitForLoadState: vi.fn(async () => {}),
+    $(selector) {
+      return Promise.resolve({});
+    },
+    fill: vi.fn(async () => {}),
+    click: vi.fn(async () => {}),
+    waitForSelector: vi.fn(async () => {}),
+    $$: vi.fn(async () => [fakeMessage]),
+    waitForTimeout: vi.fn(async () => {})
+  };
+
+  const fakeContext = {
+    newPage: vi.fn(async () => fakePage),
+    close: vi.fn(async () => {})
+  };
+
+  const fakeBrowser = {
+    newContext: vi.fn(async () => fakeContext),
+    close: vi.fn(async () => {})
+  };
+
+  return {
+    chromium: { launch: vi.fn(async () => fakeBrowser) },
+    firefox: { launch: vi.fn(async () => fakeBrowser) }
+  };
+});
 import { ExperienceDb } from "../src/llm/experience-db.js";
 import { MistakeTracker } from "../src/llm/mistake-tracker.js";
 import { StorageMonitor } from "../src/storage-monitor.js";
@@ -213,6 +253,62 @@ describe("Browser Bridge", () => {
       expect(responses[0].filename).toContain("chatgpt");
     });
 
+    it("writes browser responses atomically with tmp → fsync → rename → chmod", async () => {
+      await ensureBrowserDirs();
+      const writeFileSpy = vi.spyOn(fs, "writeFile");
+      const openSpy = vi.spyOn(fs, "open");
+      const renameSpy = vi.spyOn(fs, "rename");
+      const chmodSpy = vi.spyOn(fs, "chmod");
+
+      const fakeMessage = {
+        evaluate: vi.fn(async () => "Mock browser response")
+      };
+
+      const fakePage = {
+        goto: vi.fn(async () => {}),
+        waitForLoadState: vi.fn(async () => {}),
+        $(selector) {
+          return Promise.resolve({});
+        },
+        fill: vi.fn(async () => {}),
+        click: vi.fn(async () => {}),
+        waitForSelector: vi.fn(async () => {}),
+        $$: vi.fn(async () => [fakeMessage]),
+        waitForTimeout: vi.fn(async () => {})
+      };
+
+      const fakeContext = {
+        newPage: vi.fn(async () => fakePage),
+        close: vi.fn(async () => {})
+      };
+
+      const launchSpy = vi.spyOn(browserBridge, "launchBrowser").mockResolvedValue(fakeContext);
+
+      const response = await sendPrompt({
+        platform: "chatgpt",
+        prompt: "Test prompt",
+        browserType: "chromium",
+        headless: true,
+        dryRun: false
+      });
+
+      const tmpCall = writeFileSpy.mock.calls.find(([filePath]) => filePath.endsWith(".tmp"));
+      expect(tmpCall).toBeDefined();
+      const tmpPath = tmpCall[0];
+      expect(openSpy).toHaveBeenCalledWith(tmpPath, "r+");
+      expect(renameSpy).toHaveBeenCalledWith(tmpPath, response.responsePath);
+      expect(chmodSpy).toHaveBeenCalledWith(response.responsePath, 0o600);
+
+      await expect(fs.stat(tmpPath)).rejects.toThrow();
+      expect(await fs.stat(response.responsePath)).toBeTruthy();
+
+      launchSpy.mockRestore();
+      writeFileSpy.mockRestore();
+      openSpy.mockRestore();
+      renameSpy.mockRestore();
+      chmodSpy.mockRestore();
+    });
+
     it("clears old responses", async () => {
       await ensureBrowserDirs();
       
@@ -250,6 +346,33 @@ describe("Browser Bridge", () => {
 
       const chatgptOnly = await listResponses({ platform: "chatgpt" });
       expect(chatgptOnly.length).toBeGreaterThan(0);
+    });
+
+    it("does not ingest compare report files", async () => {
+      await ensureBrowserDirs();
+
+      const sendPromptSpy = vi.spyOn(browserBridge, "sendPrompt").mockResolvedValue({
+        platform: "chatgpt",
+        prompt: "Test prompt",
+        response: "Mock response",
+        responsePath: path.join(tempDir, ".vscode-rotator", "browser-responses", "2026-05-19T10-00-00-chatgpt.md"),
+        timestamp: "2026-05-19T10:00:00"
+      });
+      const ingestSpy = vi.spyOn(browserBridge, "ingestBrowserResponseFile").mockResolvedValue(null);
+
+      const result = await comparePrompts({
+        prompt: "Compare this prompt",
+        platforms: ["chatgpt"],
+        browserType: "chromium",
+        headless: true,
+        dryRun: false
+      });
+
+      expect(result.reportPath).toContain("-compare.md");
+      expect(ingestSpy.mock.calls.every(([filePath]) => !filePath.endsWith("-compare.md"))).toBe(true);
+
+      sendPromptSpy.mockRestore();
+      ingestSpy.mockRestore();
     });
 
     it("respects limit parameter", async () => {
@@ -413,6 +536,46 @@ describe("Browser Bridge", () => {
       const mistakeEntries = db2.state.mistakes.filter((m) => m.description === "Wrong API used");
       await db2.close();
       expect(mistakeEntries.length).toBeGreaterThan(0);
+    });
+
+    it("tags a response as bad without notes and creates a default mistake record", async () => {
+      await ensureBrowserDirs();
+      const responsePath = path.join(tempDir, ".vscode-rotator", "browser-responses", "2026-05-19T10-30-45-chatgpt.md");
+      await fs.writeFile(responsePath, "# Response\n\nBad response", "utf8");
+
+      const db = new ExperienceDb({ baseDir: path.join(tempDir, ".vscode-rotator") });
+      await db.open();
+      await db.replaceDocumentsForFile(responsePath, [
+        {
+          content: "Bad response",
+          embedding: Array.from({ length: 768 }, () => 0),
+          source_type: "llm-response",
+          platform: "chatgpt",
+          file_ts: "2026-05-19T10:30:45.000Z"
+        }
+      ]);
+      await db.close();
+
+      const trackerSpy = vi.spyOn(MistakeTracker.prototype, "addMistake");
+
+      const result = await tagResponse("2026-05-19T10-30-45-chatgpt.md", {
+        quality: "bad"
+      });
+
+      expect(result).toMatchObject({
+        filename: "2026-05-19T10-30-45-chatgpt.md",
+        quality: "bad",
+        notes: null,
+        mistakeCreated: true
+      });
+      expect(trackerSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          description: expect.stringContaining("2026-05-19T10-30-45-chatgpt.md"),
+          category: "llm-response"
+        })
+      );
+
+      trackerSpy.mockRestore();
     });
 
     it("tags a response as partial without notes — no mistake created", async () => {
@@ -613,12 +776,18 @@ describe("Browser Bridge", () => {
       const result = await captureThread("chatgpt", { outputDir: responsesDir });
 
       expect(result).toHaveProperty("filename");
+      expect(result.filename).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-chatgpt-thread\.md$/);
       expect(result).toHaveProperty("turns");
       expect(Array.isArray(result.turns)).toBe(true);
       expect(result.turns.length).toBe(2);
       expect(result.turns[0]).toHaveProperty("role");
       expect(result.turns[0]).toHaveProperty("content");
       expect(result.platform).toBe("chatgpt");
+
+      const fileContents = await fs.readFile(result.filePath, "utf8");
+      expect(fileContents).toContain("platform: chatgpt");
+      expect(fileContents).toContain("captured_at:");
+      expect(fileContents).toContain("turn_count: 2");
     });
 
     it("handles default thread selectors for known platforms", () => {
@@ -673,7 +842,7 @@ describe("Browser Bridge", () => {
       const result = await captureAndIngest("chatgpt", path.join(tempDir, ".vscode-rotator", "browser-responses"));
 
       // Simulate CLI message printing as the command would
-      console.log(`Captured ${result.turns.length} turns from ${result.platform}. Ingested ${result.ingestResult.chunks} chunks.`);
+      console.log(`Captured ${result.turns.length} turns from ${result.platform}. Ingested ${result.chunksIngested} chunks.`);
 
       expect(logSpy).toHaveBeenCalled();
       const calledWith = logSpy.mock.calls.flat().join(" ");
@@ -684,6 +853,75 @@ describe("Browser Bridge", () => {
       mockCapture.mockRestore();
       ingestSpy.mockRestore();
       logSpy.mockRestore();
+    });
+
+    it("executes browser capture --platform chatgpt --thread via CLI smoke test", async () => {
+      vi.doMock("playwright", () => ({
+        chromium: {
+          launch: vi.fn(async () => ({
+            newContext: vi.fn(async () => ({
+              newPage: vi.fn(async () => ({
+                goto: vi.fn(async () => {}),
+                waitForTimeout: vi.fn(async () => {}),
+                evaluate: vi.fn(async () => [
+                  { role: "user", content: "Hello" },
+                  { role: "assistant", content: "Hi there!" }
+                ]),
+                close: vi.fn(async () => {})
+              })),
+              close: vi.fn(async () => {})
+            })),
+            close: vi.fn(async () => {})
+          }))
+        },
+        firefox: {
+          launch: vi.fn(async () => ({
+            newContext: vi.fn(async () => ({
+              newPage: vi.fn(async () => ({
+                goto: vi.fn(async () => {}),
+                waitForTimeout: vi.fn(async () => {}),
+                evaluate: vi.fn(async () => [
+                  { role: "user", content: "Hello" },
+                  { role: "assistant", content: "Hi there!" }
+                ]),
+                close: vi.fn(async () => {})
+              })),
+              close: vi.fn(async () => {})
+            })),
+            close: vi.fn(async () => {})
+          }))
+        }
+      }));
+
+      const { bindBrowserCommands } = await import("../src/commands/browser.js");
+      const program = new Command();
+      bindBrowserCommands(program);
+      program.exitOverride();
+
+      const responsesDir = path.join(tempDir, ".vscode-rotator", "browser-responses");
+      await fs.mkdir(responsesDir, { recursive: true, mode: 0o700 });
+
+      const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+      await program.parseAsync([
+        "browser",
+        "capture",
+        "--platform",
+        "chatgpt",
+        "--thread",
+        "--output-dir",
+        responsesDir
+      ], { from: "user" });
+
+      expect(errorSpy).not.toHaveBeenCalled();
+      expect(logSpy).toHaveBeenCalled();
+
+      const files = await fs.readdir(responsesDir);
+      expect(files.some((file) => file.endsWith("-chatgpt-thread.md"))).toBe(true);
+
+      logSpy.mockRestore();
+      errorSpy.mockRestore();
     });
   });
 
@@ -711,7 +949,7 @@ describe("Browser Bridge", () => {
       expect(docs[0].metadata).toBeDefined();
       expect(docs[0].metadata.turn).toBeDefined();
       expect(docs[0].metadata.role).toBeDefined();
-      expect(docs[0].metadata.threadFile).toContain("thread.md");
+      expect(docs[0].metadata.thread_file).toContain("thread.md");
     });
   });
 });

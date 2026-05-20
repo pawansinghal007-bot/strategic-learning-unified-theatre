@@ -32,15 +32,127 @@ function fallbackEmbedding(text) {
   return normalizeVector(vector);
 }
 
+function toFloat32Array(vector) {
+  if (vector instanceof Float32Array) return vector;
+  if (!Array.isArray(vector)) return new Float32Array(0);
+  return new Float32Array(vector);
+}
+
+export function kMeans(vectors, k, maxIter = 50) {
+  if (!Array.isArray(vectors) || vectors.length === 0) {
+    return { clusters: [] };
+  }
+  const n = vectors.length;
+  if (k <= 0) {
+    throw new Error(`Invalid cluster count: ${k}`);
+  }
+  const floatVectors = vectors.map(toFloat32Array);
+  const dim = floatVectors[0].length;
+  if (dim === 0) {
+    throw new Error("Vectors must have positive dimensionality.");
+  }
+  const chooseInitial = () => {
+    const chosen = new Set();
+    while (chosen.size < Math.min(k, n)) {
+      chosen.add(Math.floor(Math.random() * n));
+    }
+    return Array.from(chosen);
+  };
+  let centroidIndices = chooseInitial();
+  let centroids = centroidIndices.map((index) => floatVectors[index].slice());
+  let assignments = new Array(n).fill(-1);
+  let changed = true;
+
+  const cosineDistance = (a, b) => 1 - cosineSimilarity(a, b);
+
+  for (let iter = 0; iter < maxIter && changed; iter += 1) {
+    changed = false;
+    for (let i = 0; i < n; i += 1) {
+      const vector = floatVectors[i];
+      let bestIndex = 0;
+      let bestDistance = Infinity;
+      for (let j = 0; j < centroids.length; j += 1) {
+        const distance = cosineDistance(vector, centroids[j]);
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          bestIndex = j;
+        }
+      }
+      if (assignments[i] !== bestIndex) {
+        assignments[i] = bestIndex;
+        changed = true;
+      }
+    }
+
+    const sums = Array.from({ length: centroids.length }, () => new Float32Array(dim));
+    const counts = new Array(centroids.length).fill(0);
+    for (let i = 0; i < n; i += 1) {
+      const clusterIndex = assignments[i];
+      const vector = floatVectors[i];
+      const sum = sums[clusterIndex];
+      for (let d = 0; d < dim; d += 1) {
+        sum[d] += vector[d];
+      }
+      counts[clusterIndex] += 1;
+    }
+
+    for (let j = 0; j < centroids.length; j += 1) {
+      if (counts[j] === 0) {
+        const randomIndex = Math.floor(Math.random() * n);
+        centroids[j] = floatVectors[randomIndex].slice();
+        centroidIndices[j] = randomIndex;
+        continue;
+      }
+      const sum = sums[j];
+      const centroid = new Float32Array(dim);
+      for (let d = 0; d < dim; d += 1) {
+        centroid[d] = sum[d] / counts[j];
+      }
+      centroids[j] = normalizeVector(Array.from(centroid));
+    }
+  }
+
+  const clusters = Array.from({ length: Math.min(k, n) }, (_, index) => ({ centroidIndex: centroidIndices[index], indices: [] }));
+  for (let i = 0; i < n; i += 1) {
+    const clusterIndex = assignments[i] >= 0 ? assignments[i] : 0;
+    clusters[clusterIndex].indices.push(i);
+  }
+  return { clusters };
+}
+
+export async function clusterDocuments(db, k) {
+  if (!db) throw new Error("ExperienceDb instance is required.");
+  await db.open();
+  const documents = Array.isArray(db.state?.documents) ? db.state.documents : [];
+  const docsWithEmbedding = documents
+    .map((doc, index) => ({ doc, index }))
+    .filter(({ doc }) => doc && doc.embedding);
+  const vectorData = docsWithEmbedding.map(({ doc }) => toFloat32Array(decodeEmbedding(doc.embedding)));
+  if (vectorData.length === 0) {
+    return { clusters: [] };
+  }
+  const { clusters } = kMeans(vectorData, k);
+  return clusters.map((cluster) => ({
+    indices: cluster.indices,
+    snippets: cluster.indices.slice(0, 3).map((vectorIndex) => {
+      const source = docsWithEmbedding[vectorIndex]?.doc;
+      const snippet = source?.content ? String(source.content).slice(0, 80).replace(/\s+/g, " ").trim() : "";
+      return snippet;
+    })
+  }));
+}
+
 export function cosineSimilarity(a, b) {
-  if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return 0;
+  if (!a || !b || typeof a.length !== "number" || typeof b.length !== "number" || a.length !== b.length) return 0;
   let dot = 0;
   let an = 0;
   let bn = 0;
   for (let i = 0; i < a.length; i++) {
-    dot += a[i] * b[i];
-    an += a[i] * a[i];
-    bn += b[i] * b[i];
+    const ai = Number(a[i] ?? 0);
+    const bi = Number(b[i] ?? 0);
+    dot += ai * bi;
+    an += ai * ai;
+    bn += bi * bi;
   }
   if (!an || !bn) return 0;
   return dot / (Math.sqrt(an) * Math.sqrt(bn));

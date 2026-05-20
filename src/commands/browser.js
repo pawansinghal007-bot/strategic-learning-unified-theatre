@@ -27,7 +27,7 @@ export async function captureAndIngest(platform, outputDir) {
   const result = await captureThread(platform, { outputDir });
   const ingester = new DocumentIngester();
   const ingestResult = await ingester.ingestThread(result.filePath, { platform: result.platform });
-  return { filename: result.filename, turns: result.turns, platform: result.platform, ingestResult };
+  return { filename: result.filename, turns: result.turns, platform: result.platform, filePath: result.filePath, chunksIngested: ingestResult.chunks };
 }
 
 function accumulate(value, previous) {
@@ -315,6 +315,33 @@ export function bindBrowserCommands(program) {
       }
     });
 
+  browser
+    .command("capture")
+    .description("Capture a full conversation thread from a browser tab")
+    .requiredOption("--platform <name>", "Platform (chatgpt|claude|perplexity|gemini)")
+    .option("--thread", "Capture a full thread", false)
+    .option("--output-dir <path>", "Directory to save thread file")
+    .action(async (options) => {
+      const spinner = ora(`Capturing conversation thread from ${options.platform}...`).start();
+      try {
+        if (!options.thread) {
+          throw new Error("--thread is required for browser capture");
+        }
+
+        const { filename, turns, platform, chunksIngested } = await captureAndIngest(
+          options.platform,
+          options.outputDir || undefined
+        );
+
+        spinner.succeed(`Captured ${turns.length} turns from ${platform}.`);
+        console.log(chalk.green(`Ingested ${chunksIngested} chunks.`));
+      } catch (err) {
+        spinner.stop();
+        console.error(chalk.red(String(err?.message ?? err)));
+        process.exitCode = 1;
+      }
+    });
+
   // Responses command
   const responses = browser.command("responses").description("Manage captured responses");
 
@@ -419,13 +446,13 @@ export function bindBrowserCommands(program) {
     .action(async (options) => {
       const spinner = ora(`Capturing conversation thread from ${options.platform}...`).start();
       try {
-        const { filename, turns, platform, filePath } = await captureAndIngest(
+        const { filename, turns, platform, chunksIngested } = await captureAndIngest(
           options.platform,
           options.outputDir || undefined
         );
 
         spinner.succeed(`Captured ${turns.length} turns from ${platform}.`);
-        console.log(chalk.green(`Ingested ${turns.length} chunks.`));
+        console.log(chalk.green(`Ingested ${chunksIngested} chunks.`));
       } catch (err) {
         spinner.stop();
         console.error(chalk.red(String(err?.message ?? err)));

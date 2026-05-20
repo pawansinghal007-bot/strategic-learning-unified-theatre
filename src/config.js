@@ -24,7 +24,8 @@ export const DEFAULT_CONFIG = {
   gitPollIntervalMs: 30000,
   storagePaths: [],
   storageIndexMaxAgeDays: 30,
-  browserResponsesIngest: true
+  browserResponsesIngest: true,
+  enhanceSchedule: null
 };
 
 export async function loadConfig() {

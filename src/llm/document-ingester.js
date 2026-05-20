@@ -125,7 +125,7 @@ function parseFrontmatter(content) {
   }
 }
 
-function chunkThread(content, { fileTs, platform, threadFile } = {}) {
+function chunkThread(content, { fileTs, platform, thread_file } = {}) {
   const { data: frontmatter, body } = parseFrontmatter(content);
 
   if (frontmatter.type !== "thread") {
@@ -166,9 +166,12 @@ function chunkThread(content, { fileTs, platform, threadFile } = {}) {
     file_ts: fileTs,
     turn_index: turn.turn_index,
     metadata: {
+      type: "thread",
+      captured_at: frontmatter.captured_at ?? null,
+      turn_count: Number.isFinite(Number(frontmatter.turn_count)) ? Number(frontmatter.turn_count) : turns.length,
       turn: turn.turn_index,
       role: turn.role,
-      threadFile: threadFile || null
+      thread_file: thread_file || null
     }
   }));
 }
@@ -198,7 +201,7 @@ export class DocumentIngester {
     // Check if this is a thread file
     let threadChunks = null;
     if (text.includes("type: thread")) {
-      threadChunks = chunkThread(text, { fileTs: ts, platform, threadFile: path.basename(absolute) });
+      threadChunks = chunkThread(text, { fileTs: ts, platform, thread_file: path.basename(absolute) });
     }
 
     let chunks;
@@ -238,9 +241,32 @@ export class DocumentIngester {
     await this.initialize();
     const absolute = path.resolve(filePath);
     if (!(await exists(absolute))) return { path: absolute, chunks: 0, skipped: true };
-    // Reuse ingestFile logic which now handles thread files and metadata
+
+    const log = await this.db.getIngestionLog();
+    if (log.has(absolute)) {
+      console.info(`[document-ingester] ingestThread skipped; already ingested: ${absolute}`);
+      await this.db.close();
+      return { path: absolute, chunks: 0, skipped: true };
+    }
+
+    const text = await readDocumentText(absolute);
+    const { data: frontmatter } = parseFrontmatter(text);
     const stat = await fs.stat(absolute);
-    const result = await this.ingestFile(absolute, { fileTs: stat.mtime.toISOString(), source_type: "thread-turn", platform });
+    const result = await this.ingestFile(absolute, {
+      fileTs: stat.mtime.toISOString(),
+      source_type: "thread-turn",
+      platform
+    });
+
+    if (!result.skipped && result.chunks > 0) {
+      await this.db.insertThread({
+        platform,
+        captured_at: frontmatter.captured_at ?? stat.mtime.toISOString(),
+        turn_count: Number.isFinite(Number(frontmatter.turn_count)) ? Number(frontmatter.turn_count) : result.chunks,
+        file_path: absolute
+      });
+    }
+
     await this.db.close();
     return result;
   }

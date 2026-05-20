@@ -1,0 +1,27 @@
+{
+  "name": "vscode-rotator-extension",
+  "displayName": "VSCode Rotator Assistant",
+  "description": "A small VS Code extension scaffold for the VSCode Rotator project.",
+  "version": "0.0.1",
+  "publisher": "vscode-rotator",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "main": "extension.js",
+  "activationEvents": [
+    "onCommand:vscode-rotator.showKnowledgeGraph",
+    "onCommand:vscode-rotator.openLlmPanel"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "vscode-rotator.showKnowledgeGraph",
+        "title": "VSCode Rotator: Export Knowledge Graph"
+      },
+      {
+        "command": "vscode-rotator.openLlmPanel",
+        "title": "VSCode Rotator: Open LLM Assistant Panel"
+      }
+    ]
+  }
+}

@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
-import { cosineSimilarity, decodeEmbedding, encodeEmbedding } from "./embeddings.js";
+import { cosineSimilarity, decodeEmbedding, encodeEmbedding, EmbeddingProvider } from "./embeddings.js";
 
 function appBaseDir(baseDir) {
   const home = process.env.HOME || os.homedir();
@@ -17,11 +17,13 @@ function defaultState() {
     documents: [],
     ingestion_log: [],
     prompt_history: [],
+    conversation_threads: [],
     counters: {
       mistakes: 0,
       rubric_rules: 0,
       documents: 0,
-      prompt_history: 0
+      prompt_history: 0,
+      conversation_threads: 0
     }
   };
 }
@@ -200,6 +202,29 @@ export class ExperienceDb {
     return row;
   }
 
+  async insertThread({ platform, captured_at, turn_count, file_path }) {
+    await this.ensureOpen();
+    const row = {
+      id: nextId(this.state, "conversation_threads"),
+      platform: platform ?? null,
+      captured_at: captured_at ?? new Date().toISOString(),
+      turn_count: Number.isFinite(Number(turn_count)) ? Number(turn_count) : 0,
+      file_path,
+      created_at: new Date().toISOString()
+    };
+    this.state.conversation_threads.push(row);
+    await this.save();
+    return row;
+  }
+
+  async getThreads(limit = 20) {
+    await this.ensureOpen();
+    return this.state.conversation_threads
+      .slice()
+      .sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at))
+      .slice(0, limit);
+  }
+
   async listRubricRules({ activeOnly = false } = {}) {
     await this.ensureOpen();
     return this.state.rubric_rules.filter((rule) => !activeOnly || Number(rule.active) === 1);
@@ -275,12 +300,51 @@ export class ExperienceDb {
       .slice(0, limit);
   }
 
+  async relatedTo(queryEmbedding, opts = {}) {
+    await this.ensureOpen();
+    const topDocs = Number.isFinite(Number(opts.topDocs)) ? Number(opts.topDocs) : 5;
+    const documents = await this.vectorSearchDocuments(queryEmbedding, topDocs);
+
+    const sprints = Array.isArray(this.state.sprints)
+      ? this.state.sprints
+          .slice()
+          .sort((a, b) => Date.parse(b.date) - Date.parse(a.date))
+          .slice(0, 5)
+          .map((sprint) => ({
+            ...sprint,
+            startedAt: sprint.date
+          }))
+      : [];
+
+    const promptHistory = Array.isArray(this.state.prompt_history)
+      ? this.state.prompt_history
+          .slice()
+          .sort((a, b) => Date.parse(b.date) - Date.parse(a.date))
+          .slice(0, 5)
+      : [];
+
+    return { documents, sprints, promptHistory };
+  }
+
   async recentLlmResponseChunks(platform, limit = 3) {
     await this.ensureOpen();
+    const getPriority = (quality) => {
+      if (quality === "good") return 1;
+      if (quality == null) return 2;
+      if (quality === "partial") return 3;
+      if (quality === "bad") return 4;
+      return 5;
+    };
+
     return this.state.documents
       .filter((doc) => doc.source_type === "llm-response" && doc.platform === platform)
       .slice()
-      .sort((a, b) => Number(b.id) - Number(a.id))
+      .sort((a, b) => {
+        const priorityA = getPriority(a.quality);
+        const priorityB = getPriority(b.quality);
+        if (priorityA !== priorityB) return priorityA - priorityB;
+        return Number(b.id) - Number(a.id);
+      })
       .slice(0, limit)
       .map((doc) => ({
         ...doc,
@@ -324,6 +388,41 @@ export class ExperienceDb {
     return result;
   }
 
+  async getThreadContext(query, platform = null, limit = 3) {
+    await this.ensureOpen();
+    if (!query || !String(query).trim()) {
+      return [];
+    }
+
+    const provider = new EmbeddingProvider();
+    await provider.initialize();
+    const queryEmbedding = await provider.embed(String(query));
+
+    const threadDocs = this.state.documents
+      .filter((doc) => doc.source_type === "thread-turn" && (!platform || doc.platform === platform))
+      .map((doc) => ({
+        ...doc,
+        metadata: doc.metadata ? JSON.parse(doc.metadata) : null,
+        embedding: decodeEmbedding(doc.embedding)
+      }));
+
+    if (threadDocs.length === 0) {
+      return [];
+    }
+
+    return threadDocs
+      .map((doc) => ({
+        ...doc,
+        score: cosineSimilarity(queryEmbedding, doc.embedding)
+      }))
+      .sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score;
+        if (a.filename !== b.filename) return a.filename.localeCompare(b.filename);
+        return Number(a.turn_index) - Number(b.turn_index);
+      })
+      .slice(0, limit);
+  }
+
   async getIngestionLog() {
     await this.ensureOpen();
     return new Map(this.state.ingestion_log.map((row) => [row.path, row]));
@@ -352,27 +451,75 @@ export class ExperienceDb {
 
   async addPromptHistory(prompt) {
     await this.ensureOpen();
+    const now = new Date().toISOString();
     const row = {
       id: nextId(this.state, "prompt_history"),
-      date: prompt.date ?? new Date().toISOString(),
+      date: prompt.date ?? now,
+      goal: String(prompt.goal ?? ""),
       platform: prompt.platform ?? "chatgpt",
-      prompt: prompt.prompt ?? "",
+      prompt: prompt.prompt ?? prompt.prompt_text ?? "",
+      prompt_text: prompt.prompt_text ?? prompt.prompt ?? "",
+      response_file: prompt.response_file ?? null,
+      cycle_ts: prompt.cycle_ts ?? null,
       response_summary: prompt.response_summary ?? prompt.responseSummary ?? "",
       sprint_id: prompt.sprint_id ?? prompt.sprintId ?? null,
       tokens_estimated: Number(prompt.tokens_estimated ?? prompt.tokensEstimated ?? 0),
-      quality_rating: prompt.quality_rating ?? null
+      rating: prompt.rating ?? prompt.quality_rating ?? null,
+      quality_rating: prompt.quality_rating ?? prompt.rating ?? null
     };
     this.state.prompt_history.push(row);
     await this.save();
     return row;
   }
 
-  async ratePrompt(id, rating) {
+  async logEnhanceCycle({ goal, platform, promptText, responseFile, cycleTs = null, rating = null, sprintId = null } = {}) {
+    await this.ensureOpen();
+    return this.addPromptHistory({
+      goal,
+      platform,
+      prompt_text: promptText,
+      prompt: promptText,
+      response_file: responseFile,
+      cycle_ts: cycleTs ?? new Date().toISOString(),
+      rating,
+      quality_rating: rating,
+      sprint_id: sprintId
+    });
+  }
+
+  async _updatePromptRating(id, rating) {
     await this.ensureOpen();
     const row = this.state.prompt_history.find((prompt) => prompt.id === Number(id));
     if (!row) throw new Error(`Prompt history not found: ${id}`);
+    row.rating = Number(rating);
     row.quality_rating = Number(rating);
     await this.save();
+
+    if (Number(rating) <= 2) {
+      const description = row.goal
+        ? `Low-quality response for goal: ${row.goal}`
+        : `Low-quality response for historic prompt #${row.id}`;
+
+      await this.addMistake({
+        description,
+        category: "llm-response-quality",
+        fix: "Review the prompt and response to improve quality.",
+        recurrence_count: 1
+      });
+      await this.addRubricRule({
+        rule: `Avoid low-quality responses for goal: ${row.goal || "unnamed goal"}.`,
+        category: "llm-response-quality"
+      });
+    }
+
     return row;
+  }
+
+  async ratePrompt(id, rating) {
+    return this._updatePromptRating(id, rating);
+  }
+
+  async ratePromptHistory(id, rating) {
+    return this._updatePromptRating(id, rating);
   }
 }

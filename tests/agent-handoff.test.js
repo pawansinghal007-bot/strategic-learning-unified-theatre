@@ -12,7 +12,8 @@ import {
   addBlocker,
   closeSprint,
   setTokenBudget,
-  getActiveSprint
+  getActiveSprint,
+  generateResumePrompt
 } from "../src/agent-handoff.js";
 
 describe("Agent Handoff Tracker", () => {
@@ -92,5 +93,24 @@ describe("Agent Handoff Tracker", () => {
     expect(closed.resumePrompt.length).toBeLessThanOrEqual(800);
     expect(closed.resumePrompt).toContain("- Implement handoff CLI");
     expect(closed.resumePrompt).toContain("- Missing helper text");
+  });
+
+  it("generates a resume prompt for a closed sprint", async () => {
+    const baseDir = await fs.mkdtemp(path.join(os.tmpdir(), "handoff-"));
+    const sprint = await createSprint({
+      agent: "gemini",
+      model: "gemini-pro",
+      goal: "Review closed sprint resume",
+      tokensLimit: 500,
+      baseDir
+    });
+
+    const closed = await closeSprint(sprint.sprintId, "complete", { baseDir });
+    expect(closed.status).toBe("complete");
+    expect(closed.resumePrompt).toBe("");
+
+    const prompt = generateResumePrompt(closed);
+    expect(prompt).toContain("Review closed sprint resume");
+    expect(prompt).toContain("You are continuing sprint");
   });
 });
