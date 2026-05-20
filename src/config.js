@@ -2,6 +2,10 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
+function homeDir() {
+  return process.env.HOME || os.homedir();
+}
+
 async function exists(p) {
   try {
     await fs.stat(p);
@@ -12,18 +16,26 @@ async function exists(p) {
 }
 
 export function configPath() {
-  return path.join(os.homedir(), ".vscode-rotator", "config.json");
+  return path.join(homeDir(), ".vscode-rotator", "config.json");
 }
+
+export const DEFAULT_CONFIG = {
+  watchedRepos: [],
+  gitPollIntervalMs: 30000,
+  storagePaths: [],
+  storageIndexMaxAgeDays: 30,
+  browserResponsesIngest: true
+};
 
 export async function loadConfig() {
   const p = configPath();
-  if (!(await exists(p))) return {};
+  if (!(await exists(p))) return { ...DEFAULT_CONFIG };
   const raw = await fs.readFile(p, "utf8");
   try {
     const json = JSON.parse(raw);
-    return json && typeof json === "object" ? json : {};
+    return json && typeof json === "object" ? { ...DEFAULT_CONFIG, ...json } : { ...DEFAULT_CONFIG };
   } catch {
-    return {};
+    return { ...DEFAULT_CONFIG };
   }
 }
 
@@ -44,4 +56,3 @@ export async function saveConfig(next) {
     await fs.rename(tmp, p);
   }
 }
-

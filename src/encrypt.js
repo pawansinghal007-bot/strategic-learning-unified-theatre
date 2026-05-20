@@ -14,7 +14,7 @@ function getMachineId() {
     try {
       const out = execSync(
         "powershell -NoProfile -Command \"(Get-CimInstance Win32_ComputerSystemProduct).UUID\"",
-        { stdio: ["ignore", "pipe", "ignore"] }
+        { stdio: ["ignore", "pipe", "ignore"], timeout: 1000 }
       )
         .toString("utf8")
         .trim();
@@ -26,7 +26,8 @@ function getMachineId() {
 
     try {
       const out = execSync("wmic csproduct get uuid", {
-        stdio: ["ignore", "pipe", "ignore"]
+        stdio: ["ignore", "pipe", "ignore"],
+        timeout: 1000
       })
         .toString("utf8")
         .split(/\r?\n/g)
@@ -44,7 +45,7 @@ function getMachineId() {
     try {
       const out = execSync(
         "ioreg -rd1 -c IOPlatformExpertDevice | awk -F\\\" '/IOPlatformUUID/{print $(NF-1)}'",
-        { stdio: ["ignore", "pipe", "ignore"] }
+        { stdio: ["ignore", "pipe", "ignore"], timeout: 1000 }
       )
         .toString("utf8")
         .trim();

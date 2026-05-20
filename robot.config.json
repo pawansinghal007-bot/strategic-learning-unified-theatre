@@ -1,0 +1,6 @@
+{
+  "pythonCmd": "python",
+  "tddGraceMs": 60000,
+  "blockCiOnFailure": true,
+  "outputDir": "robot-results"
+}

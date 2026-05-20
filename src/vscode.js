@@ -58,6 +58,14 @@ async function sleep(ms) {
 }
 
 export async function gracefulClose(pid) {
+  if (process.platform === "win32") {
+    try {
+      await execFileAsync("taskkill", ["/PID", String(pid), "/T", "/F"]);
+    } catch {
+      // Fall back below if taskkill fails.
+    }
+  }
+
   try {
     process.kill(pid, "SIGTERM");
   } catch {}

@@ -10,12 +10,18 @@
   },
   "scripts": {
     "start": "node ./src/cli.js",
-    "test": "vitest run",
+    "test": "cross-env VSCODE_ROTATOR_MOCK_LLM=1 NODE_OPTIONS=--max-old-space-size=8192 vitest run",
+    "test:serial": "node run-tests.cjs",
+    "test:robot:functional": "node ./src/test-runner.js suite --suite functional",
+    "test:robot:nonfunctional": "node ./src/test-runner.js suite --suite non_functional",
+    "test:robot:regression": "node ./src/test-runner.js suite --suite regression",
+    "test:robot:all": "node ./src/test-runner.js suite --suite all",
+    "test:tdd": "node ./src/test-runner.js tdd-check",
     "tray": "electron ./electron-tray/main.js",
     "install-service": "node ./scripts/install.js",
-    "ui:dev": "vite renderer",
-    "ui:build": "vite build renderer",
-    "electron:dev": "cross-env NODE_ENV=development electron ./electron-ui/main.cjs",
+    "ui:dev": "vite",
+    "ui:build": "vite build",
+    "electron:dev": "npm run ui:build && cross-env NODE_ENV=development electron ./electron-ui/main.cjs",
     "electron:build": "npm run ui:build && electron-builder"
   },
   "engines": {
@@ -39,21 +45,34 @@
       "output": "dist_electron"
     },
     "win": {
-      "target": ["nsis"]
-    }
+      "target": [
+        "nsis"
+      ],
+      "icon": "build/icon.ico"
+    },
+    "icon": "build/icon.ico"
   },
   "dependencies": {
     "chalk": "^5.3.0",
+    "chokidar": "^4.0.3",
     "commander": "^12.1.0",
     "electron-store": "^10.0.0",
     "fflate": "^0.8.2",
+    "gray-matter": "^4.0.3",
     "keytar": "^7.9.0",
     "marked": "^12.0.0",
     "nanoid": "^5.0.7",
     "ora": "^8.0.1",
+    "playwright": "^1.48.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "zod": "^3.23.8"
+  },
+  "optionalDependencies": {
+    "mammoth": "^1.8.0",
+    "node-llama-cpp": "^3.14.0",
+    "onnxruntime-node": "^1.20.1",
+    "pdf-parse": "^1.1.1"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.0.0",
@@ -64,5 +83,6 @@
     "tailwindcss": "^3.4.0",
     "vite": "^8.0.13",
     "vitest": "^4.1.6"
-  }
+  },
+  "author": "Pawan Singhal"
 }

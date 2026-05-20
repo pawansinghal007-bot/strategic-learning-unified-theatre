@@ -92,15 +92,26 @@ export class SwitcherService {
       emit.success("Account loaded");
 
       emit.start("Resolving auth path");
-      const authPath = await this.resolveAuthPath(account.agentType);
+      const authPath = await this.resolveAuthPath(account.agentType, {
+        profileName: account.profileName ?? account.id
+      });
       emit.success("Auth path resolved");
 
       emit.start("Resolving auth secret");
       const secretStore = new SecretStore();
-      const authBlob =
-        typeof account.authBlob === "string" && account.authBlob.length > 0
-          ? account.authBlob
-          : await secretStore.get(accountId);
+      let authBlob = null;
+
+      if (typeof account.authBlob === "string" && account.authBlob.length > 0) {
+        authBlob = account.authBlob;
+        await secretStore.set(accountId, authBlob);
+        try {
+          await this.store.update(accountId, { authBlob: null });
+        } catch {
+          // Best effort: migrate the legacy auth blob into the secure store.
+        }
+      } else {
+        authBlob = await secretStore.get(accountId);
+      }
 
       if (!authBlob) {
         throw new Error("Missing auth blob for account");

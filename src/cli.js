@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 import readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 import os from "node:os";
@@ -23,6 +22,11 @@ import { Journal } from "./journal.js";
 import { GitMonitor } from "./git-monitor.js";
 import { Reporter } from "./reporter.js";
 import { SecretStore } from "./secret-store.js";
+import { bindHandoffCommands } from "./commands/handoff.js";
+import { bindIdeaCommands } from "./commands/idea.js";
+import { bindBrowserCommands } from "./commands/browser.js";
+import { bindStorageCommands } from "./commands/storage.js";
+import { bindLlmCommands } from "./commands/llm.js";
 
 const program = new Command();
 
@@ -494,6 +498,12 @@ profileCmd
       process.exitCode = 1;
     }
   });
+
+bindHandoffCommands(program);
+bindIdeaCommands(program);
+bindBrowserCommands(program);
+bindStorageCommands(program);
+bindLlmCommands(program);
 
 profileCmd
   .command("import")

@@ -7,7 +7,7 @@ const DateOrNull = z.preprocess((v) => {
   return v;
 }, z.date().nullable());
 
-export const AgentTypeSchema = z.enum(["vscode", "codex", "trae", "other"]);
+export const AgentTypeSchema = z.enum(["vscode", "github", "codex", "trae", "other"]);
 export const AccountStatusSchema = z.enum(["active", "cooldown", "retired"]);
 
 export const AccountSchema = z.object({

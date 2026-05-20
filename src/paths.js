@@ -17,38 +17,93 @@ function homedirPath(...parts) {
   return path.join(os.homedir(), ...parts);
 }
 
-function resolveVSCodeGlobalStorageDir() {
+function resolveVSCodeUserDir() {
   const platform = process.platform;
 
   if (platform === "win32") {
     const appData = process.env.APPDATA;
-    if (appData) return path.join(appData, "Code", "User", "globalStorage");
-    return homedirPath("AppData", "Roaming", "Code", "User", "globalStorage");
+    if (appData) return path.join(appData, "Code", "User");
+    return homedirPath("AppData", "Roaming", "Code", "User");
   }
 
   if (platform === "darwin") {
-    return homedirPath(
-      "Library",
-      "Application Support",
-      "Code",
-      "User",
-      "globalStorage"
-    );
+    return homedirPath("Library", "Application Support", "Code", "User");
   }
 
   const xdg = process.env.XDG_CONFIG_HOME ?? homedirPath(".config");
-  return path.join(xdg, "Code", "User", "globalStorage");
+  return path.join(xdg, "Code", "User");
 }
 
-export async function resolveAuthPath(agentType) {
+function resolveVSCodeGlobalStorageDir() {
+  return path.join(resolveVSCodeUserDir(), "globalStorage");
+}
+
+export async function resolveAuthPath(agentType, { profileName = null, preferExisting = false } = {}) {
+  const config = await loadConfig();
+  const configuredPath =
+    config?.authPaths?.[agentType] ??
+    config?.agents?.[agentType]?.authPath ??
+    config?.[`${agentType}AuthPath`];
+
+  if (typeof configuredPath === "string" && configuredPath.trim()) {
+    return configuredPath.trim();
+  }
+
   if (agentType === "codex") return homedirPath(".codex", "auth.json");
   if (agentType === "trae") return homedirPath(".trae", "auth.json");
 
-  if (agentType === "vscode") {
-    return path.join(resolveVSCodeGlobalStorageDir(), "saml.secret");
+  if (agentType === "github") {
+    const userDir = resolveVSCodeUserDir();
+    const normalizedProfile = profileName ? String(profileName).trim() : null;
+    const candidates = [];
+
+    if (normalizedProfile) {
+      candidates.push(
+        path.join(userDir, "profiles", normalizedProfile, "globalStorage", "github.copilot", "auth.json")
+      );
+      candidates.push(
+        path.join(userDir, "profiles", normalizedProfile, "github.copilot", "auth.json")
+      );
+    }
+
+    candidates.push(
+      path.join(resolveVSCodeGlobalStorageDir(), "github.copilot", "auth.json")
+    );
+    candidates.push(homedirPath(".github-copilot", "auth.json"));
+
+    if (preferExisting) {
+      for (const candidate of candidates) {
+        if (await exists(candidate)) return candidate;
+      }
+    }
+
+    return candidates[0];
   }
 
-  const config = await loadConfig();
+  if (agentType === "vscode") {
+    const userDir = resolveVSCodeUserDir();
+    const candidates = [];
+    const normalizedProfile = profileName ? String(profileName).trim() : null;
+
+    if (normalizedProfile) {
+      candidates.push(
+        path.join(userDir, "profiles", normalizedProfile, "globalStorage", "saml.secret")
+      );
+      candidates.push(path.join(userDir, "profiles", normalizedProfile, "saml.secret"));
+    }
+
+    candidates.push(path.join(resolveVSCodeGlobalStorageDir(), "saml.secret"));
+    candidates.push(path.join(os.homedir(), ".vscode", "argv.json"));
+
+    if (preferExisting) {
+      for (const candidate of candidates) {
+        if (await exists(candidate)) return candidate;
+      }
+    }
+
+    return candidates[0];
+  }
+
   const configured =
     config?.authPaths?.other ??
     config?.agents?.other?.authPath ??

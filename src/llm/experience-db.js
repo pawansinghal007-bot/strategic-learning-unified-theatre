@@ -1,0 +1,378 @@
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+
+import { cosineSimilarity, decodeEmbedding, encodeEmbedding } from "./embeddings.js";
+
+function appBaseDir(baseDir) {
+  const home = process.env.HOME || os.homedir();
+  return baseDir ?? path.join(home, ".vscode-rotator");
+}
+
+function defaultState() {
+  return {
+    sprints: [],
+    mistakes: [],
+    rubric_rules: [],
+    documents: [],
+    ingestion_log: [],
+    prompt_history: [],
+    counters: {
+      mistakes: 0,
+      rubric_rules: 0,
+      documents: 0,
+      prompt_history: 0
+    }
+  };
+}
+
+async function readJson(filePath, fallback) {
+  try {
+    return JSON.parse(await fs.readFile(filePath, "utf8"));
+  } catch {
+    return fallback;
+  }
+}
+
+async function writeJson(filePath, value) {
+  await fs.mkdir(path.dirname(filePath), { recursive: true, mode: 0o700 });
+  const tmp = `${filePath}.${process.pid}.${Date.now()}.tmp`;
+  await fs.writeFile(tmp, JSON.stringify(value, null, 2), { encoding: "utf8", mode: 0o600 });
+  try {
+    await fs.rename(tmp, filePath);
+  } catch {
+    try {
+      await fs.unlink(filePath);
+    } catch {}
+    await fs.rename(tmp, filePath);
+  }
+}
+
+function nextId(state, table) {
+  state.counters[table] = Number(state.counters[table] ?? 0) + 1;
+  return state.counters[table];
+}
+
+function toJson(value) {
+  return JSON.stringify(value ?? []);
+}
+
+function fromJson(value, fallback = []) {
+  if (Array.isArray(value)) return value;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return fallback;
+  }
+}
+
+export class ExperienceDb {
+  constructor({ baseDir, dbPath } = {}) {
+    // If tests are running, avoid loading the user's real data directory by
+    // redirecting the baseDir to a temporary test-specific folder when a
+    // baseDir was not explicitly provided.
+    const inferredBase = appBaseDir(baseDir);
+    // Only override the baseDir when tests are running and HOME was not
+    // explicitly redirected by the test harness. If `HOME` is set (the
+    // tests set it to a temporary folder), use that so other helper
+    // functions (like `rotatorPath`) remain consistent.
+    if (
+      !baseDir &&
+      (process.env.VITEST || process.env.VITEST_WORKER_ID || process.env.NODE_ENV === "test") &&
+      (process.env.HOME == null || process.env.HOME === os.homedir())
+    ) {
+      const tmpdir = os.tmpdir ? os.tmpdir() : (process.env.TEMP || process.env.TMP || os.homedir());
+      // Use a per-process temp directory to avoid cross-worker collisions
+      this.baseDir = path.join(tmpdir, ".vscode-rotator-test-" + process.pid);
+    } else {
+      this.baseDir = inferredBase;
+    }
+    this.dbPath = dbPath ?? path.join(this.baseDir, "experience.db");
+    this.state = null;
+  }
+
+  async open() {
+    const loaded = await readJson(this.dbPath, null);
+    this.state = loaded && typeof loaded === "object" ? { ...defaultState(), ...loaded } : defaultState();
+    this.state.counters = { ...defaultState().counters, ...(this.state.counters ?? {}) };
+    return this;
+  }
+
+  async close() {
+    if (this.state) await writeJson(this.dbPath, this.state);
+  }
+
+  async save() {
+    if (!this.state) await this.open();
+    await writeJson(this.dbPath, this.state);
+  }
+
+  async ensureOpen() {
+    if (!this.state) await this.open();
+  }
+
+  async upsertSprint(sprint) {
+    await this.ensureOpen();
+    const row = {
+      id: sprint.id ?? sprint.sprintId,
+      date: sprint.date ?? new Date().toISOString(),
+      agent: sprint.agent ?? "other",
+      goal: sprint.goal ?? "",
+      tokens_used: Number(sprint.tokens_used ?? sprint.tokensUsed ?? 0),
+      completed_tasks: toJson(sprint.completed_tasks ?? sprint.completedTasks ?? []),
+      pending_tasks: toJson(sprint.pending_tasks ?? sprint.pendingTasks ?? []),
+      files_changed: toJson(
+        sprint.files_changed ?? sprint.filesChanged ?? [...(sprint.filesCreated ?? []), ...(sprint.filesModified ?? [])]
+      ),
+      tests_failed: toJson(sprint.tests_failed ?? sprint.testsFailed ?? []),
+      status: sprint.status ?? "active"
+    };
+    const index = this.state.sprints.findIndex((item) => item.id === row.id);
+    if (index >= 0) this.state.sprints[index] = row;
+    else this.state.sprints.push(row);
+    await this.save();
+    return row;
+  }
+
+  async recentSprints(limit = 3) {
+    await this.ensureOpen();
+    return this.state.sprints
+      .slice()
+      .sort((a, b) => Date.parse(b.date) - Date.parse(a.date))
+      .slice(0, limit)
+      .map((sprint) => ({
+        ...sprint,
+        completed_tasks: fromJson(sprint.completed_tasks),
+        pending_tasks: fromJson(sprint.pending_tasks),
+        files_changed: fromJson(sprint.files_changed),
+        tests_failed: fromJson(sprint.tests_failed)
+      }));
+  }
+
+  async addMistake(mistake) {
+    await this.ensureOpen();
+    const row = {
+      id: nextId(this.state, "mistakes"),
+      date: mistake.date ?? new Date().toISOString(),
+      sprint_id: mistake.sprint_id ?? mistake.sprintId ?? null,
+      description: String(mistake.description ?? ""),
+      root_cause: String(mistake.root_cause ?? mistake.rootCause ?? ""),
+      fix_applied: String(mistake.fix_applied ?? mistake.fix ?? mistake.fixApplied ?? ""),
+      category: String(mistake.category ?? "general"),
+      recurrence_count: Number(mistake.recurrence_count ?? 0),
+      embedding: mistake.embedding ? encodeEmbedding(mistake.embedding) : null
+    };
+    this.state.mistakes.push(row);
+    await this.save();
+    return row;
+  }
+
+  async listMistakes() {
+    await this.ensureOpen();
+    return this.state.mistakes.map((mistake) => ({
+      ...mistake,
+      embedding: decodeEmbedding(mistake.embedding)
+    }));
+  }
+
+  async incrementMistake(id) {
+    await this.ensureOpen();
+    const row = this.state.mistakes.find((mistake) => mistake.id === id);
+    if (!row) return null;
+    row.recurrence_count = Number(row.recurrence_count ?? 0) + 1;
+    await this.save();
+    return row;
+  }
+
+  async addRubricRule({ rule, category = "general", created_from_mistake_id = null, active = 1 }) {
+    await this.ensureOpen();
+    const existing = this.state.rubric_rules.find((item) => item.rule === rule);
+    if (existing) return existing;
+    const row = {
+      id: nextId(this.state, "rubric_rules"),
+      rule,
+      category,
+      created_from_mistake_id,
+      active: active ? 1 : 0
+    };
+    this.state.rubric_rules.push(row);
+    await this.save();
+    return row;
+  }
+
+  async listRubricRules({ activeOnly = false } = {}) {
+    await this.ensureOpen();
+    return this.state.rubric_rules.filter((rule) => !activeOnly || Number(rule.active) === 1);
+  }
+
+  async setRubricActive(id, active) {
+    await this.ensureOpen();
+    const row = this.state.rubric_rules.find((rule) => rule.id === Number(id));
+    if (!row) throw new Error(`Rubric rule not found: ${id}`);
+    row.active = active ? 1 : 0;
+    await this.save();
+    return row;
+  }
+
+  async replaceDocumentsForFile(filename, chunks) {
+    await this.ensureOpen();
+    console.info(`[experience-db] replaceDocumentsForFile start - heapUsed: ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)} MB`);
+    this.state.documents = this.state.documents.filter((doc) => doc.filename !== filename);
+    const now = new Date().toISOString();
+    const rows = chunks.map((chunk, index) => ({
+      id: nextId(this.state, "documents"),
+      filename,
+      chunk_index: index,
+      content: chunk.content,
+      embedding: encodeEmbedding(chunk.embedding),
+      source_type: chunk.source_type ?? null,
+      platform: chunk.platform ?? null,
+      metadata: chunk.metadata ? toJson(chunk.metadata) : null,
+      quality: chunk.quality ?? null,
+      notes: chunk.notes ?? null,
+      turn_index: chunk.turn_index ?? null,
+      last_ingested: now,
+      file_ts: chunk.file_ts
+    }));
+    this.state.documents.push(...rows);
+    console.info(`[experience-db] replaceDocumentsForFile after push - heapUsed: ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)} MB`);
+    await this.save();
+    console.info(`[experience-db] replaceDocumentsForFile after save - heapUsed: ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)} MB`);
+    return rows;
+  }
+
+  async getDocumentsByFile(filename) {
+    await this.ensureOpen();
+    return this.state.documents
+      .filter((doc) => doc.filename === filename)
+      .map((doc) => ({
+        ...doc,
+        embedding: decodeEmbedding(doc.embedding)
+      }))
+      .map((doc) => ({
+        ...doc,
+        metadata: doc.metadata ? JSON.parse(doc.metadata) : null,
+        embedding: decodeEmbedding(doc.embedding)
+      }));
+  }
+
+  async deleteDocumentsForFile(filename) {
+    await this.ensureOpen();
+    this.state.documents = this.state.documents.filter((doc) => doc.filename !== filename);
+    await this.save();
+  }
+
+  async vectorSearchDocuments(queryEmbedding, limit = 5) {
+    await this.ensureOpen();
+    console.info(`[experience-db] vectorSearchDocuments start - heapUsed: ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)} MB`);
+    return this.state.documents
+      .map((doc) => ({
+        ...doc,
+        embedding: decodeEmbedding(doc.embedding),
+        score: cosineSimilarity(queryEmbedding, decodeEmbedding(doc.embedding))
+      }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, limit);
+  }
+
+  async recentLlmResponseChunks(platform, limit = 3) {
+    await this.ensureOpen();
+    return this.state.documents
+      .filter((doc) => doc.source_type === "llm-response" && doc.platform === platform)
+      .slice()
+      .sort((a, b) => Number(b.id) - Number(a.id))
+      .slice(0, limit)
+      .map((doc) => ({
+        ...doc,
+        embedding: decodeEmbedding(doc.embedding)
+      }));
+  }
+
+  async getThreadsByPlatform(platform) {
+    await this.ensureOpen();
+    const threadsMap = new Map();
+    
+    // Group documents by filename and turn_index
+    for (const doc of this.state.documents) {
+      if (doc.source_type === "thread-turn" && doc.platform === platform) {
+        if (!threadsMap.has(doc.filename)) {
+          threadsMap.set(doc.filename, []);
+        }
+        threadsMap.get(doc.filename).push({
+          ...doc,
+          metadata: doc.metadata ? JSON.parse(doc.metadata) : null,
+          embedding: decodeEmbedding(doc.embedding)
+        });
+      }
+    }
+    
+    // Sort each thread by turn_index
+    const result = [];
+    for (const [filename, docs] of threadsMap.entries()) {
+      docs.sort((a, b) => Number(a.turn_index) - Number(b.turn_index));
+      result.push(...docs);
+    }
+    
+    // Final sort by filename and turn_index
+    result.sort((a, b) => {
+      if (a.filename !== b.filename) {
+        return a.filename.localeCompare(b.filename);
+      }
+      return Number(a.turn_index) - Number(b.turn_index);
+    });
+    
+    return result;
+  }
+
+  async getIngestionLog() {
+    await this.ensureOpen();
+    return new Map(this.state.ingestion_log.map((row) => [row.path, row]));
+  }
+
+  async upsertIngestionLog(row) {
+    await this.ensureOpen();
+    const next = {
+      path: row.path,
+      file_ts: row.file_ts,
+      chunk_count: Number(row.chunk_count ?? 0),
+      last_run: row.last_run ?? new Date().toISOString()
+    };
+    const index = this.state.ingestion_log.findIndex((item) => item.path === next.path);
+    if (index >= 0) this.state.ingestion_log[index] = next;
+    else this.state.ingestion_log.push(next);
+    await this.save();
+    return next;
+  }
+
+  async deleteIngestionLog(filePath) {
+    await this.ensureOpen();
+    this.state.ingestion_log = this.state.ingestion_log.filter((row) => row.path !== filePath);
+    await this.save();
+  }
+
+  async addPromptHistory(prompt) {
+    await this.ensureOpen();
+    const row = {
+      id: nextId(this.state, "prompt_history"),
+      date: prompt.date ?? new Date().toISOString(),
+      platform: prompt.platform ?? "chatgpt",
+      prompt: prompt.prompt ?? "",
+      response_summary: prompt.response_summary ?? prompt.responseSummary ?? "",
+      sprint_id: prompt.sprint_id ?? prompt.sprintId ?? null,
+      tokens_estimated: Number(prompt.tokens_estimated ?? prompt.tokensEstimated ?? 0),
+      quality_rating: prompt.quality_rating ?? null
+    };
+    this.state.prompt_history.push(row);
+    await this.save();
+    return row;
+  }
+
+  async ratePrompt(id, rating) {
+    await this.ensureOpen();
+    const row = this.state.prompt_history.find((prompt) => prompt.id === Number(id));
+    if (!row) throw new Error(`Prompt history not found: ${id}`);
+    row.quality_rating = Number(rating);
+    await this.save();
+    return row;
+  }
+}

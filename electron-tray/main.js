@@ -1,12 +1,13 @@
 import path from "node:path";
 import os from "node:os";
 import { fileURLToPath } from "node:url";
-import { app, Menu, Tray, nativeImage, shell } from "electron";
+import { app, Menu, Tray, nativeImage, shell, clipboard } from "electron";
 
 import { AccountStore } from "../src/store.js";
 import { WatcherDaemon } from "../src/watcher.js";
 import { SwitcherService } from "../src/switcher.js";
 import { CooldownScheduler } from "../src/scheduler.js";
+import { getActiveSprint } from "../src/agent-handoff.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const logPath = path.join(os.homedir(), ".vscode-rotator", "daemon.log");
@@ -20,6 +21,7 @@ let tray = null;
 let currentStatus = "ok";
 let currentAccounts = [];
 let currentAccount = null;
+let currentSprint = null;
 
 const store = new AccountStore();
 const switcher = new SwitcherService({ store });
@@ -39,6 +41,12 @@ function getStateFromAccounts(accounts) {
   return "ok";
 }
 
+function truncate(text, limit) {
+  const value = String(text || "");
+  if (value.length <= limit) return value;
+  return `${value.slice(0, limit - 1)}…`;
+}
+
 function pickCurrentAccount(accounts) {
   const active = accounts.filter((a) => a.status !== "retired");
   if (active.length === 0) return null;
@@ -56,14 +64,19 @@ async function refreshAccounts() {
     currentAccounts = await store.list();
     currentAccount = pickCurrentAccount(currentAccounts);
     currentStatus = getStateFromAccounts(currentAccounts);
+    currentSprint = await getActiveSprint();
   } catch {
     currentAccounts = [];
     currentAccount = null;
     currentStatus = "warn";
+    currentSprint = null;
   }
 }
 
 function buildMenu() {
+  const activeSprintLabel = currentSprint
+    ? `Active sprint: ${truncate(currentSprint.goal, 30)}`
+    : "Active sprint: none";
   const activeLabel = currentAccount
     ? `Active: ${currentAccount.email}`
     : "Active: none";
@@ -85,6 +98,27 @@ function buildMenu() {
     }));
 
   return Menu.buildFromTemplate([
+    {
+      label: activeSprintLabel,
+      type: "normal",
+      enabled: Boolean(currentSprint),
+      click: async () => {
+        if (currentSprint) {
+          await shell.openPath(logPath);
+        }
+      }
+    },
+    {
+      label: "Copy resume prompt",
+      type: "normal",
+      enabled: Boolean(currentSprint?.resumePrompt),
+      click: () => {
+        if (currentSprint?.resumePrompt) {
+          clipboard.writeText(currentSprint.resumePrompt);
+        }
+      }
+    },
+    { type: "separator" },
     { label: activeLabel, enabled: false },
     { type: "separator" },
     {

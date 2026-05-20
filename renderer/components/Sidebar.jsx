@@ -3,6 +3,10 @@ import React, { useEffect, useState } from 'react'
 const items = [
   { id: 'dashboard', label: 'Dashboard' },
   { id: 'accounts', label: 'Accounts' },
+  { id: 'llm', label: 'Local LLM' },
+  { id: 'browser', label: 'Browser Automation' },
+  { id: 'prompts', label: 'Prompt Templates' },
+  { id: 'robot', label: 'Robot Framework' },
   { id: 'live', label: 'Live Feed' },
   { id: 'git', label: 'Git Monitor' },
   { id: 'progress', label: 'Progress Log' },

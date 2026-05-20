@@ -62,8 +62,11 @@ function deriveHealthFromExpiry(expiry) {
 
 export async function probeAccount(account, { secretStore } = {}) {
   try {
-    if (account.agentType === "codex" || account.agentType === "vscode") {
-      const p = await resolveAuthPath(account.agentType);
+    if (["codex", "vscode", "github"].includes(account.agentType)) {
+      const p = await resolveAuthPath(account.agentType, {
+        profileName: account.profileName ?? account.id,
+        preferExisting: true
+      });
       if (await exists(p)) {
         const raw = await fs.readFile(p, "utf8");
         const json = parseTokenLikeJson(raw);
@@ -94,6 +97,10 @@ export async function probeAccount(account, { secretStore } = {}) {
       typeof account?.authBlob === "string" && account.authBlob.length > 0
         ? account.authBlob
         : await ss.get(account.id);
+
+    if (typeof account?.authBlob === "string" && account.authBlob.length > 0 && !await ss.get(account.id)) {
+      await ss.set(account.id, account.authBlob);
+    }
 
     if (!blob) {
       return { valid: false, remainingRequests: null, resetAt: null, error: "Missing secret" };
