@@ -3,7 +3,7 @@
 > **Purpose**: This document is the authoritative brief for any AI agent or developer
 > continuing work on vscode-rotator. Read this before any development session.
 > Keep it updated at the end of every sprint using `vscode-rotator handoff close`.
-> **Last Updated**: 2026-05-20 — Post Sprint 6 + R1–R5 COMPLETE. Electron UI added. All tests passing.
+> **Last Updated**: 2026-05-20 — Post Sprint 7 COMPLETE. 113 tests passing.
 
 ---
 
@@ -114,7 +114,7 @@ Supporting modules:
 
 From the last test run (`npm test` — May 2026):
 
-**Status**: ✅ **99 tests passing, no failing test files**
+**Status**: ✅ **113 tests passing, no failing test files**
 
 ### Confirmed Passing Tests ✅
 - ✅ `tests/store.test.js` — 4 tests PASSING
@@ -172,30 +172,29 @@ chunks it as a conversation transcript. Hugely more valuable for the local LLM t
 
 **Implementation (Sprint update):**
 - `captureThread()` implemented in `src/browser-bridge.js` to scrape full conversations and write atomic thread files.
+- Thread frontmatter now includes `platform`, `captured_at`, `type: thread`, and `turn_count`.
 - Per-turn chunking implemented in `src/llm/document-ingester.js` (source_type: `thread-turn`, per-turn `metadata`).
 - CLI: `vscode-rotator browser capture --platform <platform> --thread` with auto-ingest.
 - Auto-ingestion wired in `src/commands/browser.js` via `captureAndIngest()` helper.
 - 3 new tests added — all passing.
 
-### P4 — Self-prompt loop (the "enhancement" loop)
-```
-vscode-rotator llm enhance --goal "improve my understanding of X"
-```
-Pipeline:
-1. Generate a prompt using local LLM context
-2. Send it to an online LLM via browser bridge (auto, or show for copy-paste)
-3. Capture the response
-4. Ingest the response back into the experience DB
-5. Log the full cycle in prompt_history with the goal
-6. Rate the response automatically (or prompt user) to drive rubric improvement
+### P4 — Self-prompt loop ✅ COMPLETE (May 20, 2026)
+`vscode-rotator llm enhance --goal "..."` is fully wired.
 
-This closes the loop: **local LLM → online LLM → back to local LLM**.
+**Implementation**:
+- `logEnhanceCycle()` and `ratePromptHistory()` added to `experience-db.js`
+- `prompt_history` table extended with `rating` and `cycle_ts` columns (non-breaking ALTER TABLE)
+- Low-rating (≤ 2) auto-creates a mistake record and promotes to rubric via `ratePromptHistory()`
+- Duplicate mistake creation removed from CLI path (`llm.js`) — single source of truth in DB layer
+- `--auto`, `--rate`, `--platform` flags supported on `vscode-rotator llm enhance`
+- 3 new tests in `tests/local-llm.test.js` — all passing
+- **Test count**: 113 tests — ALL PASSING ✅
 
 ---
 
 ## Self-Improvement Growth Plan (Sprints 7–10)
 
-### Sprint 7 — Response Feedback Loop 🔄 **IN PROGRESS**
+### Sprint 7 — Response Feedback Loop 🔄 ✅ COMPLETE (2026-05-20)
 **Goal**: Wire browser responses into R5 so every online LLM interaction enhances the local model's context.
 
 Deliverables:
@@ -205,7 +204,8 @@ Deliverables:
 - `source_type` and `platform` metadata in documents table
 - Updated `prompt-generator.js` to retrieve LLM-response chunks as context
 
-### Sprint 8 — Conversation Capture & Threading
+### Sprint 8 — Conversation Capture & Threading 🔄 IN PROGRESS
+**Sprint 8 handoff ID:** `494032cd-cfd6-4738-b26a-a06b93a1b527`
 **Goal**: Capture full conversation threads (not single responses) and store as structured transcripts.
 
 Deliverables:
@@ -331,7 +331,7 @@ Before ending any agent session:
 
 ---
 
-*Last updated: 2026-05-20 | Sprint: Post S6 + R1–R5 + P1–P3 COMPLETE | Status: 96 tests passing, all green*
+*Last updated: 2026-05-20 | Sprint: Post Sprint 7 COMPLETE | Status: 113 tests passing, all green*
 
 ---
 
@@ -370,7 +370,7 @@ Before ending any agent session:
    - `renderer/` — React components for UI
 
 5. **Test Coverage Massive** ✅
-   - 96 tests passing
+   - 102 tests passing
    - Test files: store, e2e/rotation, idea-store, switcher, local-llm, browser-bridge, agent-handoff, lock, storage-monitor, workspace, git-monitor, scorer, test-runner
    - All core modules tested
 
@@ -390,14 +390,31 @@ Before ending any agent session:
 - 3 new tests — all passing
 - Test count: 99 tests
 
+### ✅ P4 Self-Prompt Enhancement Loop — COMPLETE
+- `logEnhanceCycle()` added to `experience-db.js` — logs goal, platform, prompt text, response file, timestamp
+- `ratePromptHistory(id, rating)` added — persists rating; rating ≤ 2 auto-creates mistake + rubric rule
+- CLI: `vscode-rotator llm enhance --goal "..." [--platform X] [--auto] [--rate]`
+- Duplicate mistake logic removed from `llm.js` (now handled entirely in DB layer)
+- 3 new tests in `tests/local-llm.test.js`
+- Test count: **102 tests** — ALL PASSING ✅
+- No active sprint was open at close time; start a new sprint for P5/Sprint 8 work
+
 ### ✅ P1 Browser Response Auto-Ingestion — COMPLETE (Previous Session)
 - Response files automatically ingested via R5 document-ingester.js
 - Platform detection and source_type metadata
 - Integration with experience.db documents table
 
+### ✅ Sprint 7 Response Feedback Loop — COMPLETE (2026-05-20)
+- `sendPrompt()` atomic write: temp → fsync → rename → chmod 600
+- `tagResponse()` quality="bad" always creates a mistake record (notes optional)
+- `recentLlmResponseChunks()` returns quality-ordered results: good → null → partial → bad
+- `buildContext()` in `prompt-generator.js` surfaces llm-response chunks automatically via updated ordering
+- `comparePrompts()` confirmed safe — does not ingest compare reports
+- Test count: 113 tests passing
+
 ### ✅ No Current Issues
-- Full test suite passes: 96/96 tests
-- Continue next sprint focusing on P4 (self-prompt loop)
+- Full test suite passes: 113/113 tests
+- Continue next sprint focusing on post-Sprint 7 enhancements
 
 
 ### 📊 Module Maturity Summary
@@ -407,8 +424,8 @@ Before ending any agent session:
 | R1: Storage Monitor | ✅ COMPLETE | 4 pass | Full fs watcher + snapshot generation |
 | R2: Handoff Tracker | ✅ COMPLETE | 3 pass | Sprint manifests + resume prompts |
 | R3: Idea Store | ✅ COMPLETE | 30 pass | Full CRUD + YAML + export pipeline |
-| R4: Browser Bridge | ✅ COMPLETE | 22 pass | Multi-LLM (ChatGPT, Claude, Gemini, Perplexity) |
-| R5: LLM & Experience DB | ✅ COMPLETE | Included in local-llm.test.js (3 pass) | Embeddings, inference, ingestion, prompt generation, mistake tracking |
+| R4: Browser Bridge | ✅ COMPLETE | 41 pass | Multi-LLM (ChatGPT, Claude, Gemini, Perplexity) |
+| R5: LLM & Experience DB | ✅ COMPLETE | 15 pass | Embeddings, inference, ingestion, prompt generation, mistake tracking, enhance loop (P4) |
 | Electron UI | 🟡 IN PROGRESS | Not yet | Window, IPC, preload; renderer components being built |
 | Test Runner | 🔴 BROKEN | 0 pass | Robot Framework integration syntax error |
 
