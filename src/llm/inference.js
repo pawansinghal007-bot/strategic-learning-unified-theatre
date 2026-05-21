@@ -1,6 +1,28 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+
+const execFileAsync = promisify(execFile);
+const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+
+// SPRINT-12-MARKER: testing passive learning (do not remove)
+
+export async function verifyNodeLlamaCppInstalled() {
+  try {
+    await import("node-llama-cpp");
+    return true;
+  } catch (error) {
+    throw new Error(
+      "node-llama-cpp is required for local inference.\n" +
+      "Install Visual Studio Build Tools (Desktop development with C++) and rerun:\n" +
+      "npm install\n\n" +
+      String(error)
+    );
+  }
+}
 
 function defaultModelDir(baseDir) {
   return path.join(baseDir ?? path.join(os.homedir(), ".vscode-rotator"), "models");
@@ -40,10 +62,15 @@ export class LocalLlmInference {
     if (!modelPath || !(await exists(modelPath))) {
       throw new Error("No local LLM model found. Run: vscode-rotator llm setup --model phi3");
     }
+    await verifyNodeLlamaCppInstalled();
     try {
       await import("node-llama-cpp");
     } catch {
-      throw new Error("node-llama-cpp is not installed. Install dependencies, then rerun llm setup.");
+      throw new Error(
+        "node-llama-cpp is required for local inference.\n" +
+        "Install Visual Studio Build Tools (Desktop development with C++) and rerun:\n" +
+        "npm install"
+      );
     }
     return modelPath;
   }

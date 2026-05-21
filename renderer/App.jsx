@@ -9,6 +9,7 @@ import ProgressLog from './screens/ProgressLog'
 import Settings from './screens/Settings'
 import LocalLLM from './screens/LocalLLM'
 import BrowserAutomation from './screens/BrowserAutomation'
+import BrowserPanel from './BrowserPanel'
 import PromptTemplates from './screens/PromptTemplates'
 import RobotFramework from './screens/RobotFramework'
 
@@ -62,6 +63,13 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
+  useEffect(() => {
+    const isBrowser = screen === SCREENS.BROWSER
+    if (window.rotator && window.rotator.browser && window.rotator.browser.setVisible) {
+      window.rotator.browser.setVisible(isBrowser).catch(() => {})
+    }
+  }, [screen])
+
   const handleEditTemplate = (template) => {
     setActiveTemplate(template)
     setScreen(SCREENS.PROMPTS)
@@ -75,7 +83,7 @@ export default function App() {
           {screen === SCREENS.DASH && <Dashboard />}
           {screen === SCREENS.ACC && <Accounts />}
           {screen === SCREENS.LLM && <LocalLLM />}
-          {screen === SCREENS.BROWSER && <BrowserAutomation onEditTemplate={handleEditTemplate} />}
+          {screen === SCREENS.BROWSER && <BrowserPanel initialPlatform="chatgpt" />}
           {screen === SCREENS.PROMPTS && <PromptTemplates activePrompt={activeTemplate} />}
           {screen === SCREENS.ROBOT && <RobotFramework />}
           {screen === SCREENS.LIVE && <LiveFeed />}

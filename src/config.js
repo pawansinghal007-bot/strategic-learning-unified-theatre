@@ -25,7 +25,39 @@ export const DEFAULT_CONFIG = {
   storagePaths: [],
   storageIndexMaxAgeDays: 30,
   browserResponsesIngest: true,
-  enhanceSchedule: null
+  enhanceSchedule: null,
+  vscodeLearn: {
+    enabled: false,
+    stagedSignalsDir: null,
+    captureSources: ["diagnostic", "editor", "task", "git"],
+    maxSignalAgeDays: 30,
+    flushIntervalMs: 30000,
+    debounceMs: 600000,
+    maxFileSizeBytes: 102400,
+    excludePatterns: ["**/test/**", "**/fixtures/**"],
+    hardExcludePatterns: [
+      "**/.env*",
+      "**/*.key",
+      "**/*.pem",
+      "**/*.secret",
+      "**/node_modules/**",
+      "**/.git/**",
+      "**/dist/**",
+      "**/build/**"
+    ],
+    allowedExtensions: [
+      ".js",
+      ".ts",
+      ".jsx",
+      ".tsx",
+      ".py",
+      ".md",
+      ".json",
+      ".yaml",
+      ".yml",
+      ".txt"
+    ]
+  }
 };
 
 export async function loadConfig() {
@@ -34,7 +66,17 @@ export async function loadConfig() {
   const raw = await fs.readFile(p, "utf8");
   try {
     const json = JSON.parse(raw);
-    return json && typeof json === "object" ? { ...DEFAULT_CONFIG, ...json } : { ...DEFAULT_CONFIG };
+    if (json && typeof json === "object") {
+      return {
+        ...DEFAULT_CONFIG,
+        ...json,
+        vscodeLearn: {
+          ...DEFAULT_CONFIG.vscodeLearn,
+          ...(json.vscodeLearn ?? {})
+        }
+      };
+    }
+    return { ...DEFAULT_CONFIG };
   } catch {
     return { ...DEFAULT_CONFIG };
   }

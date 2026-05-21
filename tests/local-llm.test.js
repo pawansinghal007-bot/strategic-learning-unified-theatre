@@ -8,6 +8,7 @@ import { ExperienceDb } from "../src/llm/experience-db.js";
 import { MistakeTracker } from "../src/llm/mistake-tracker.js";
 import { PromptGenerator } from "../src/llm/prompt-generator.js";
 import { LocalLlmInference } from "../src/llm/inference.js";
+import { ingestStagedSignalsFromDirectory } from "../src/commands/llm.js";
 
 describe("Local Dev-LLM", () => {
   let tempDir;
@@ -20,6 +21,7 @@ describe("Local Dev-LLM", () => {
   });
 
   afterEach(async () => {
+    vi.restoreAllMocks();
     if (oldMock == null) delete process.env.VSCODE_ROTATOR_MOCK_LLM;
     else process.env.VSCODE_ROTATOR_MOCK_LLM = oldMock;
     await fs.rm(tempDir, { recursive: true, force: true });
@@ -419,6 +421,303 @@ describe("Local Dev-LLM", () => {
     expect(mockDb.getThreadContext).toHaveBeenCalledWith("Ask without platform", null);
   });
 
+  describe("staged VS Code signal ingestion", () => {
+    async function writeStagedFile(name, content) {
+      const stagedDir = path.join(tempDir, "vscode-signals");
+      await fs.mkdir(stagedDir, { recursive: true });
+      const filePath = path.join(stagedDir, name);
+      await fs.writeFile(filePath, content, "utf8");
+      return { stagedDir, filePath };
+    }
+
+    function stagedSignal(frontmatter, body = "Captured signal body") {
+      return `---
+${Object.entries(frontmatter).map(([key, value]) => `${key}: ${JSON.stringify(String(value))}`).join("\n")}
+---
+${body}
+`;
+    }
+
+    it("exits cleanly for an empty staging directory", async () => {
+      const stagedDir = path.join(tempDir, "empty-signals");
+      await fs.mkdir(stagedDir, { recursive: true });
+
+      const results = await ingestStagedSignalsFromDirectory(stagedDir, tempDir);
+
+      expect(results).toEqual([]);
+    });
+
+    it("ingests every chunk in a staged file and deletes it after success", async () => {
+      const { stagedDir, filePath } = await writeStagedFile(
+        "signals.md",
+        [
+          stagedSignal({ type: "signal", signal_type: "vscode-edit", source_type: "vscode-edit", platform: "vscode", captured_at: "2026-05-21T10:00:00.000Z" }, "console.log('one');"),
+          stagedSignal({ type: "signal", signal_type: "vscode-git", source_type: "vscode-git", platform: "vscode", captured_at: "2026-05-21T10:01:00.000Z" }, "commit abc123")
+        ].join("\n---\n")
+      );
+
+      const results = await ingestStagedSignalsFromDirectory(stagedDir, tempDir);
+      const db = new ExperienceDb({ baseDir: tempDir });
+      await db.open();
+      const sourceTypes = db.state.documents.map((doc) => doc.source_type).sort();
+
+      expect(results).toHaveLength(2);
+      expect(sourceTypes).toEqual(["vscode-edit", "vscode-git"]);
+      await expect(fs.access(filePath)).rejects.toThrow();
+      await db.close();
+    });
+
+    it("retains a staged file when one chunk fails and continues non-fatally", async () => {
+      const { stagedDir, filePath } = await writeStagedFile(
+        "failing-signals.md",
+        stagedSignal({ type: "signal", signal_type: "vscode-edit", source_type: "vscode-edit", platform: "vscode" }, "console.log('fail');")
+      );
+      const ingestSpy = vi.spyOn(DocumentIngester.prototype, "ingestFile").mockRejectedValueOnce(new Error("boom"));
+
+      const results = await ingestStagedSignalsFromDirectory(stagedDir, tempDir);
+
+      expect(ingestSpy).toHaveBeenCalledTimes(1);
+      expect(results[0]).toMatchObject({ chunks: 0, skipped: true });
+      expect(results[0].error).toContain("boom");
+      await expect(fs.access(filePath)).resolves.toBeUndefined();
+    });
+
+    it("creates a mistake for recurring diagnostic chunks", async () => {
+      const mistakeSpy = vi.spyOn(MistakeTracker.prototype, "addMistake").mockResolvedValue({
+        mistake: { id: 1, description: "Cannot find name x" },
+        matched: false,
+        promoted: false
+      });
+      const { stagedDir } = await writeStagedFile(
+        "diagnostic-signals.md",
+        stagedSignal(
+          {
+            type: "signal",
+            signal_type: "vscode-diagnostic-recurring",
+            source_type: "vscode-diagnostic-recurring",
+            platform: "vscode",
+            recurring: "true",
+            message: "Cannot find name x"
+          },
+          "Cannot find name x"
+        )
+      );
+
+      const results = await ingestStagedSignalsFromDirectory(stagedDir, tempDir);
+
+      expect(results).toHaveLength(1);
+      expect(mistakeSpy).toHaveBeenCalledWith(expect.objectContaining({
+        category: "vscode-diagnostic",
+        description: "Cannot find name x"
+      }));
+    });
+
+    it("stores editor/file-save tags for vscode-edit chunks", async () => {
+      const { stagedDir } = await writeStagedFile(
+        "edit-signals.md",
+        stagedSignal({ type: "signal", signal_type: "vscode-edit", source_type: "vscode-edit", platform: "vscode" }, "const edited = true;")
+      );
+
+      await ingestStagedSignalsFromDirectory(stagedDir, tempDir);
+      const db = new ExperienceDb({ baseDir: tempDir });
+      await db.open();
+      const editDoc = db.state.documents.find((doc) => doc.source_type === "vscode-edit");
+      const metadata = JSON.parse(editDoc.metadata);
+
+      expect(metadata.tags).toEqual(["editor", "file-save"]);
+      await db.close();
+    });
+
+    it("stores editor/diagnostic tags for vscode-diagnostic chunks", async () => {
+      const { stagedDir } = await writeStagedFile(
+        "diagnostic-signals.md",
+        stagedSignal({ type: "signal", signal_type: "vscode-diagnostic", source_type: "vscode-diagnostic", platform: "vscode", message: "Type error" }, "Type error in file")
+      );
+
+      await ingestStagedSignalsFromDirectory(stagedDir, tempDir);
+      const db = new ExperienceDb({ baseDir: tempDir });
+      await db.open();
+      const diagDoc = db.state.documents.find((doc) => doc.source_type === "vscode-diagnostic");
+      const metadata = JSON.parse(diagDoc.metadata);
+
+      expect(metadata.tags).toEqual(["editor", "diagnostic"]);
+      await db.close();
+    });
+
+    it("stores editor/git tags for vscode-git chunks", async () => {
+      const { stagedDir } = await writeStagedFile(
+        "git-signals.md",
+        stagedSignal({ type: "signal", signal_type: "vscode-git", source_type: "vscode-git", platform: "vscode" }, "Git commit message")
+      );
+
+      await ingestStagedSignalsFromDirectory(stagedDir, tempDir);
+      const db = new ExperienceDb({ baseDir: tempDir });
+      await db.open();
+      const gitDoc = db.state.documents.find((doc) => doc.source_type === "vscode-git");
+      const metadata = JSON.parse(gitDoc.metadata);
+
+      expect(metadata.tags).toEqual(["editor", "git"]);
+      await db.close();
+    });
+
+    it("stores editor/task-error tags for vscode-task-error chunks", async () => {
+      const { stagedDir } = await writeStagedFile(
+        "task-signals.md",
+        stagedSignal({ type: "signal", signal_type: "vscode-task-error", source_type: "vscode-task-error", platform: "vscode" }, "Task error output")
+      );
+
+      await ingestStagedSignalsFromDirectory(stagedDir, tempDir);
+      const db = new ExperienceDb({ baseDir: tempDir });
+      await db.open();
+      const taskDoc = db.state.documents.find((doc) => doc.source_type === "vscode-task-error");
+      const metadata = JSON.parse(taskDoc.metadata);
+
+      expect(metadata.tags).toEqual(["editor", "task-error"]);
+      await db.close();
+    });
+
+    it("preserves captured_at timestamp through ingestion", async () => {
+      const fixedTimestamp = "2026-05-21T14:30:45.123Z";
+      const { stagedDir } = await writeStagedFile(
+        "timestamp-signals.md",
+        stagedSignal({ type: "signal", signal_type: "vscode-edit", source_type: "vscode-edit", platform: "vscode", captured_at: fixedTimestamp }, "content")
+      );
+
+      await ingestStagedSignalsFromDirectory(stagedDir, tempDir);
+      const db = new ExperienceDb({ baseDir: tempDir });
+      await db.open();
+      const doc = db.state.documents.find((d) => d.source_type === "vscode-edit");
+
+      expect(doc.file_ts).toBe(fixedTimestamp);
+      await db.close();
+    });
+
+    it("handles staged file with mixed signal types", async () => {
+      const { stagedDir } = await writeStagedFile(
+        "mixed-signals.md",
+        [
+          stagedSignal({ type: "signal", signal_type: "vscode-edit", source_type: "vscode-edit", platform: "vscode" }, "edit 1"),
+          stagedSignal({ type: "signal", signal_type: "vscode-diagnostic", source_type: "vscode-diagnostic", platform: "vscode", severity: 0, message: "error" }, "diagnostic 1"),
+          stagedSignal({ type: "signal", signal_type: "vscode-git", source_type: "vscode-git", platform: "vscode" }, "git 1"),
+          stagedSignal({ type: "signal", signal_type: "vscode-task-error", source_type: "vscode-task-error", platform: "vscode" }, "task error 1")
+        ].join("\n---\n")
+      );
+
+      const results = await ingestStagedSignalsFromDirectory(stagedDir, tempDir);
+      expect(results).toHaveLength(4);
+
+      const db = new ExperienceDb({ baseDir: tempDir });
+      await db.open();
+      const sourceTypes = db.state.documents.map((d) => d.source_type).sort();
+      expect(sourceTypes).toEqual(["vscode-diagnostic", "vscode-edit", "vscode-git", "vscode-task-error"]);
+      await db.close();
+    });
+
+    it("handles ingestion error on first chunk and continues with rest", async () => {
+      const { stagedDir } = await writeStagedFile(
+        "partial-fail-signals.md",
+        [
+          stagedSignal({ type: "signal", signal_type: "vscode-edit", source_type: "vscode-edit", platform: "vscode" }, "edit 1"),
+          stagedSignal({ type: "signal", signal_type: "vscode-edit", source_type: "vscode-edit", platform: "vscode" }, "edit 2"),
+          stagedSignal({ type: "signal", signal_type: "vscode-edit", source_type: "vscode-edit", platform: "vscode" }, "edit 3")
+        ].join("\n---\n")
+      );
+
+      let callCount = 0;
+      const ingestSpy = vi.spyOn(DocumentIngester.prototype, "ingestFile").mockImplementation(async () => {
+        callCount++;
+        if (callCount === 2) {
+          throw new Error("Second chunk fails");
+        }
+        return { chunks: 1 };
+      });
+
+      const results = await ingestStagedSignalsFromDirectory(stagedDir, tempDir);
+
+      expect(ingestSpy).toHaveBeenCalledTimes(3);
+      expect(results.filter((r) => r.error)).toHaveLength(1);
+      expect(results.filter((r) => !r.error)).toHaveLength(2);
+    });
+
+    it("does not delete staged file when any chunk fails", async () => {
+      const { stagedDir, filePath } = await writeStagedFile(
+        "fail-no-delete.md",
+        [
+          stagedSignal({ type: "signal", signal_type: "vscode-edit", source_type: "vscode-edit", platform: "vscode" }, "edit 1"),
+          stagedSignal({ type: "signal", signal_type: "vscode-edit", source_type: "vscode-edit", platform: "vscode" }, "edit 2")
+        ].join("\n---\n")
+      );
+
+      let callCount = 0;
+      const ingestSpy = vi.spyOn(DocumentIngester.prototype, "ingestFile").mockImplementation(async () => {
+        callCount++;
+        if (callCount === 1) {
+          throw new Error("First chunk fails");
+        }
+        return { chunks: 1 };
+      });
+
+      await ingestStagedSignalsFromDirectory(stagedDir, tempDir);
+
+      // File should still exist because one chunk failed
+      await expect(fs.access(filePath)).resolves.toBeUndefined();
+    });
+
+    it("stores source_type field in database documents", async () => {
+      const { stagedDir } = await writeStagedFile(
+        "source-type-signals.md",
+        stagedSignal({ type: "signal", signal_type: "vscode-edit", source_type: "vscode-edit", platform: "vscode", captured_at: "2026-05-21T10:00:00.000Z" }, "content")
+      );
+
+      await ingestStagedSignalsFromDirectory(stagedDir, tempDir);
+      const db = new ExperienceDb({ baseDir: tempDir });
+      await db.open();
+      const doc = db.state.documents.find((d) => d.source_type === "vscode-edit");
+
+      expect(doc.source_type).toBe("vscode-edit");
+      await db.close();
+    });
+
+    it("handles empty signal files gracefully", async () => {
+      const stagedDir = path.join(tempDir, "empty-file-signals");
+      await fs.mkdir(stagedDir, { recursive: true });
+      await fs.writeFile(path.join(stagedDir, "empty.md"), "", "utf8");
+
+      const results = await ingestStagedSignalsFromDirectory(stagedDir, tempDir);
+      expect(results).toEqual([]);
+    });
+
+    it("creates mistake for vscode-diagnostic-recurring with correct description", async () => {
+      const mistakeSpy = vi.spyOn(MistakeTracker.prototype, "addMistake").mockResolvedValue({
+        mistake: { id: 1, description: "Type mismatch" },
+        matched: false,
+        promoted: false
+      });
+
+      const { stagedDir } = await writeStagedFile(
+        "recurring-diagnostic.md",
+        stagedSignal(
+          {
+            type: "signal",
+            signal_type: "vscode-diagnostic-recurring",
+            source_type: "vscode-diagnostic-recurring",
+            platform: "vscode",
+            message: "Type mismatch: string expected",
+            recurring: "true"
+          },
+          "Type error details"
+        )
+      );
+
+      await ingestStagedSignalsFromDirectory(stagedDir, tempDir);
+
+      expect(mistakeSpy).toHaveBeenCalledWith(expect.objectContaining({
+        category: "vscode-diagnostic",
+        description: "Type mismatch: string expected"
+      }));
+    });
+  });
+
   describe("Conversation thread ingestion", () => {
     it("chunks thread files per-turn with turn_index metadata", async () => {
       const threadFile = path.join(tempDir, "thread.md");
@@ -706,4 +1005,3 @@ Machine learning is a branch of AI that enables systems to learn from data.
     });
   });
 });
-

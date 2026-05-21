@@ -2,7 +2,11 @@ const cp = require("node:child_process");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
+const { pathToFileURL } = require("node:url");
 const vscode = require("vscode");
+
+let collectorInstance = null;
+let collectorDisposable = null;
 
 function activate(context) {
   const output = vscode.window.createOutputChannel("VSCode Rotator");
@@ -11,6 +15,9 @@ function activate(context) {
   const projectRoot = path.join(context.extensionPath, "..");
   const cliPath = path.join(projectRoot, "src", "cli.js");
   const outPath = path.join(os.homedir(), ".vscode-rotator", "knowledge-graph.json");
+
+  // Initialize and activate the collector
+  initializeCollector(context, projectRoot, output);
 
   function runNodeCli(scriptPath, args, cwd) {
     return new Promise((resolve, reject) => {
@@ -51,6 +58,37 @@ function activate(context) {
     vscode.commands.registerCommand("vscode-rotator.showKnowledgeGraph", exportKnowledgeGraph)
   );
 
+  async function flushStagedSignals() {
+    output.show(true);
+    output.appendLine("Flushing staged VS Code learning signals...");
+
+    try {
+      if (collectorInstance && typeof collectorInstance.flush === "function") {
+        const results = await collectorInstance.flush();
+        const ingested = results.filter((row) => !row.skipped).length;
+        output.appendLine(`Flushed ${results.length} staged signals, ingested ${ingested}.`);
+        vscode.window.showInformationMessage(`Flushed ${results.length} staged signals`);
+      } else {
+        output.appendLine("Collector not initialized; creating new instance...");
+        const configModuleUrl = pathToFileURL(path.join(projectRoot, "src", "config.js")).href;
+        const collectorModuleUrl = pathToFileURL(path.join(context.extensionPath, "collector.js")).href;
+        const { loadConfig } = await import(configModuleUrl);
+        const { VscodeContextCollector } = await import(collectorModuleUrl);
+        const config = await loadConfig();
+        const collector = new VscodeContextCollector(output, { ...config, cliPath });
+        const collectorDisposable = collector.activate(context);
+        const results = await collector.flush();
+        collectorDisposable?.dispose?.();
+        const ingested = results.filter((row) => !row.skipped).length;
+        output.appendLine(`Flushed ${results.length} staged signals, ingested ${ingested}.`);
+        vscode.window.showInformationMessage(`Flushed ${results.length} staged signals`);
+      }
+    } catch (err) {
+      output.appendLine(`Error flushing staged signals: ${String(err.message)}`);
+      vscode.window.showErrorMessage(`Flush failed: ${String(err.message)}`);
+    }
+  }
+
   context.subscriptions.push(
     vscode.commands.registerCommand("vscode-rotator.openLlmPanel", async () => {
       const panel = vscode.window.createWebviewPanel(
@@ -71,9 +109,73 @@ function activate(context) {
       });
     })
   );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand("vscode-rotator.ingestStagedSignals", flushStagedSignals)
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand("vscode-rotator.togglePassiveLearning", async () => {
+      output.show(true);
+      output.appendLine("Toggling passive learning...");
+      const configModuleUrl = pathToFileURL(path.join(projectRoot, "src", "config.js")).href;
+      const { loadConfig, saveConfig } = await import(configModuleUrl);
+      const config = await loadConfig();
+      const next = {
+        ...config,
+        vscodeLearn: {
+          ...config.vscodeLearn,
+          enabled: !Boolean(config.vscodeLearn?.enabled)
+        }
+      };
+      await saveConfig(next);
+      const status = next.vscodeLearn.enabled ? "enabled" : "disabled";
+      output.appendLine(`[vscode-learn] passive learning ${status}`);
+      vscode.window.showInformationMessage(`Passive learning ${status}. Restart extension to apply.`);
+    })
+  );
+
+  // Register disposable for collector cleanup
+  context.subscriptions.push({
+    dispose: () => {
+      if (collectorDisposable && typeof collectorDisposable.dispose === "function") {
+        collectorDisposable.dispose();
+      }
+      if (collectorInstance && typeof collectorInstance.deactivate === "function") {
+        collectorInstance.deactivate();
+      }
+    }
+  });
 }
 
-function deactivate() {}
+async function initializeCollector(context, projectRoot, output) {
+  try {
+    const configModuleUrl = pathToFileURL(path.join(projectRoot, "src", "config.js")).href;
+    const collectorModuleUrl = pathToFileURL(path.join(context.extensionPath, "collector.js")).href;
+
+    const { loadConfig } = await import(configModuleUrl);
+    const { VscodeContextCollector } = await import(collectorModuleUrl);
+
+    const config = await loadConfig();
+    collectorInstance = new VscodeContextCollector(output, { ...config, cliPath });
+
+    // Activate the collector with VS Code event handlers
+    collectorDisposable = collectorInstance.activate(context);
+
+    output.appendLine("[vscode-learn] Collector initialized and activated");
+  } catch (err) {
+    output.appendLine(`[vscode-learn] Failed to initialize collector: ${String(err.message)}`);
+  }
+}
+
+function deactivate() {
+  if (collectorInstance && typeof collectorInstance.deactivate === "function") {
+    collectorInstance.deactivate();
+  }
+  if (collectorDisposable && typeof collectorDisposable.dispose === "function") {
+    collectorDisposable.dispose();
+  }
+}
 
 function getWebviewContent(outPath) {
   return `<!DOCTYPE html>

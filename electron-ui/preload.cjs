@@ -53,7 +53,15 @@ contextBridge.exposeInMainWorld('rotator', {
     addPrompt: (prompt) => ipcRenderer.invoke('browser:addPrompt', prompt),
     updatePrompt: (id, updates) => ipcRenderer.invoke('browser:updatePrompt', id, updates),
     deletePrompt: (id) => ipcRenderer.invoke('browser:deletePrompt', id),
-    runPrompt: (opts) => ipcRenderer.invoke('browser:runPrompt', opts)
+    runPrompt: (opts) => ipcRenderer.invoke('browser:runPrompt', opts),
+    // Sprint 11 Embedded browser pane APIs
+    switchPlatform: (name) => ipcRenderer.invoke('browser:switchPlatform', name),
+    navigate: (url) => ipcRenderer.invoke('browser:navigate', url),
+     setVisible: (visible) => ipcRenderer.invoke('browser:setVisible', visible),
+    onCapture: (cb) => ipcRenderer.on('capture:done', (_, payload) => cb(payload)),
+    offCapture: (cb) => ipcRenderer.removeListener('capture:done', cb),
+    onNavigation: (cb) => ipcRenderer.on('browser:navigation', (_, payload) => cb(payload)),
+    offNavigation: (cb) => ipcRenderer.removeListener('browser:navigation', cb)
   },
   robot: {
     runSuite: (opts) => ipcRenderer.invoke('robot:runSuite', opts),

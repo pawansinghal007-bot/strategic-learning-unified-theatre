@@ -1,0 +1,1 @@
+const __SPRINT12_test_error: number = "wrong";

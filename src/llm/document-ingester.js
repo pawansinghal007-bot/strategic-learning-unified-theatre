@@ -4,6 +4,7 @@ import path from "node:path";
 
 import { ExperienceDb } from "./experience-db.js";
 import { EmbeddingProvider } from "./embeddings.js";
+import { parseFrontmatter } from "../vscode-learn-utils.js";
 
 const SUPPORTED_EXTENSIONS = new Set([".pdf", ".md", ".txt", ".docx"]);
 
@@ -104,27 +105,6 @@ export function chunkText(text, { tokens = 512, overlap = 64 } = {}) {
   return chunks;
 }
 
-function parseFrontmatter(content) {
-  const match = content.match(/^---\n([\s\S]*?)\n---\n/);
-  if (!match) return { data: {}, body: content };
-  try {
-    const lines = match[1].split("\n");
-    const data = {};
-    for (const line of lines) {
-      if (!line.trim()) continue;
-      const [key, ...valueParts] = line.split(":");
-      if (key && valueParts.length > 0) {
-        const value = valueParts.join(":").trim();
-        data[key.trim()] = value.replace(/^["']|["']$/g, "");
-      }
-    }
-    const body = content.slice(match[0].length);
-    return { data, body };
-  } catch {
-    return { data: {}, body: content };
-  }
-}
-
 function chunkThread(content, { fileTs, platform, thread_file } = {}) {
   const { data: frontmatter, body } = parseFrontmatter(content);
 
@@ -191,7 +171,7 @@ export class DocumentIngester {
     return this;
   }
 
-  async ingestFile(filePath, { fileTs, source_type, platform } = {}) {
+  async ingestFile(filePath, { fileTs, source_type, platform, metadata, tags } = {}) {
     const absolute = path.resolve(filePath);
     if (!isSupported(absolute) || !(await exists(absolute))) return { path: absolute, chunks: 0, skipped: true };
     const stat = await fs.stat(absolute);
@@ -216,7 +196,8 @@ export class DocumentIngester {
         content,
         source_type: source_type ?? sourceType(absolute),
         platform: inferredPlatform,
-        file_ts: ts
+        file_ts: ts,
+        metadata: metadata ?? (tags ? { tags } : undefined)
       }));
     }
 

@@ -9,6 +9,7 @@ import { StorageMonitor } from "./storage-monitor.js";
 import { DocumentIngester } from "./llm/document-ingester.js";
 import { ExperienceDb } from "./llm/experience-db.js";
 import { MistakeTracker } from "./llm/mistake-tracker.js";
+import { parseFrontmatter } from "./vscode-learn-utils.js";
 
 async function loadPlaywright() {
   const { chromium, firefox } = await import("playwright");
@@ -691,25 +692,7 @@ export async function clearResponses(options = {}) {
   return { deleted };
 }
 
-async function parseFrontmatter(content) {
-  const match = content.match(/^---\n([\s\S]*?)\n---\n/);
-  if (!match) return { data: {}, body: content };
-  try {
-    const lines = match[1].split("\n");
-    const data = {};
-    for (const line of lines) {
-      const [key, ...valueParts] = line.split(":");
-      if (key && valueParts.length > 0) {
-        const value = valueParts.join(":").trim();
-        data[key.trim()] = value.replace(/^["']|["']$/g, "");
-      }
-    }
-    const body = content.slice(match[0].length);
-    return { data, body };
-  } catch {
-    return { data: {}, body: content };
-  }
-}
+
 
 async function captureThread(platform, { outputDir = null } = {}) {
   if (!["chatgpt", "claude", "perplexity", "gemini"].includes(platform)) {

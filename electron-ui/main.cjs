@@ -5,6 +5,8 @@ const { pathToFileURL } = require('node:url');
 const { readFile } = require('node:fs/promises');
 const ElectronStore = require('electron-store');
 const Store = ElectronStore.default || ElectronStore;
+const { BrowserPane } = require('./browser-pane.cjs');
+const { registerCaptureHandlers } = require('./ipc/capture-handlers.cjs');
 
 app.setPath('cache', path.join(os.tmpdir(), 'vscode-rotator-cache'));
 app.commandLine.appendSwitch('disk-cache-dir', path.join(os.tmpdir(), 'vscode-rotator-cache'));
@@ -90,6 +92,7 @@ if (!app.requestSingleInstanceLock()) {
 
 let mainWindow = null;
 let watcher = null;
+let browserPane = null;
 
 app.on('second-instance', () => {
   if (mainWindow) {
@@ -139,6 +142,71 @@ app.whenReady().then(async () => {
     }
   } catch (err) {
     console.error('IPC handlers failed to register', err);
+  }
+
+  // Initialize browser pane for embedded browser views
+  try {
+    console.log('[main] initializing browser pane');
+    browserPane = new BrowserPane(mainWindow, {
+      platform: 'chatgpt',
+      preloadPath: path.join(__dirname, 'preload-browser.cjs')
+    });
+    await browserPane.attachToWindow();
+    browserPane.detachView(browserPane.currentView);
+    console.log('[main] browser pane attached');
+  } catch (err) {
+    console.error('[main] browser pane initialization failed:', err);
+  }
+
+  // Register capture handlers
+  try {
+    console.log('[main] registering capture handlers');
+    // Import DocumentIngester to pass to capture handlers
+    const { DocumentIngester } = await import(require('url').pathToFileURL(path.join(__dirname, '..', 'src', 'llm', 'document-ingester.js')).href);
+    const ingester = new DocumentIngester();
+    await registerCaptureHandlers(ipcMain, ingester, mainWindow);
+    console.log('[main] capture handlers registered');
+  } catch (err) {
+    console.error('[main] capture handlers registration failed:', err);
+  }
+
+  // Register browser pane IPC handlers
+  try {
+    ipcMain.handle('browser:switchPlatform', async (event, platformName) => {
+      if (!browserPane) {
+        throw new Error('Browser pane not initialized');
+      }
+      await browserPane.switchPlatform(platformName);
+      return { success: true };
+    });
+
+    ipcMain.handle('browser:setVisible', async (event, visible) => {
+      if (!browserPane || !browserPane.currentView) return { success: true };
+      try {
+        const { view, type } = browserPane.currentView;
+        if (visible) {
+          const bounds = browserPane.getBounds();
+          view.setBounds(bounds);
+        } else {
+          view.setBounds({ x: -9999, y: -9999, width: 1, height: 1 });
+        }
+      } catch (err) {
+        console.error('[browser:setVisible] error:', err);
+      }
+      return { success: true };
+    });
+
+    ipcMain.handle('browser:navigate', async (event, url) => {
+      if (!browserPane) {
+        throw new Error('Browser pane not initialized');
+      }
+      await browserPane.navigate(url);
+      return { success: true };
+    });
+
+    console.log('[main] browser pane IPC handlers registered');
+  } catch (err) {
+    console.error('[main] browser pane IPC handler registration failed:', err);
   }
 
   app.on('activate', async () => {

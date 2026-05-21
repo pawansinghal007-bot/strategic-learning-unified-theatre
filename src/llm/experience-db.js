@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -38,7 +39,7 @@ async function readJson(filePath, fallback) {
 
 async function writeJson(filePath, value) {
   await fs.mkdir(path.dirname(filePath), { recursive: true, mode: 0o700 });
-  const tmp = `${filePath}.${process.pid}.${Date.now()}.tmp`;
+  const tmp = `${filePath}.${process.pid}.${Date.now()}.${crypto.randomUUID()}.tmp`;
   await fs.writeFile(tmp, JSON.stringify(value, null, 2), { encoding: "utf8", mode: 0o600 });
   try {
     await fs.rename(tmp, filePath);
@@ -91,6 +92,13 @@ export class ExperienceDb {
     }
     this.dbPath = dbPath ?? path.join(this.baseDir, "experience.db");
     this.state = null;
+    // Serialize writes to avoid concurrent rename/copy issues on Windows.
+    this._writeLock = Promise.resolve();
+  }
+
+  async _serializeWrite(task) {
+    this._writeLock = this._writeLock.catch(() => {}).then(() => task());
+    return this._writeLock;
   }
 
   async open() {
@@ -101,12 +109,12 @@ export class ExperienceDb {
   }
 
   async close() {
-    if (this.state) await writeJson(this.dbPath, this.state);
+    if (this.state) await this._serializeWrite(() => writeJson(this.dbPath, this.state));
   }
 
   async save() {
     if (!this.state) await this.open();
-    await writeJson(this.dbPath, this.state);
+    await this._serializeWrite(() => writeJson(this.dbPath, this.state));
   }
 
   async ensureOpen() {
@@ -241,7 +249,6 @@ export class ExperienceDb {
 
   async replaceDocumentsForFile(filename, chunks) {
     await this.ensureOpen();
-    console.info(`[experience-db] replaceDocumentsForFile start - heapUsed: ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)} MB`);
     this.state.documents = this.state.documents.filter((doc) => doc.filename !== filename);
     const now = new Date().toISOString();
     const rows = chunks.map((chunk, index) => ({
@@ -260,9 +267,7 @@ export class ExperienceDb {
       file_ts: chunk.file_ts
     }));
     this.state.documents.push(...rows);
-    console.info(`[experience-db] replaceDocumentsForFile after push - heapUsed: ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)} MB`);
     await this.save();
-    console.info(`[experience-db] replaceDocumentsForFile after save - heapUsed: ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)} MB`);
     return rows;
   }
 
@@ -289,7 +294,6 @@ export class ExperienceDb {
 
   async vectorSearchDocuments(queryEmbedding, limit = 5) {
     await this.ensureOpen();
-    console.info(`[experience-db] vectorSearchDocuments start - heapUsed: ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)} MB`);
     return this.state.documents
       .map((doc) => ({
         ...doc,

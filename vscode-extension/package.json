@@ -10,7 +10,9 @@
   "main": "extension.js",
   "activationEvents": [
     "onCommand:vscode-rotator.showKnowledgeGraph",
-    "onCommand:vscode-rotator.openLlmPanel"
+    "onCommand:vscode-rotator.openLlmPanel",
+    "onCommand:vscode-rotator.ingestStagedSignals",
+    "onCommand:vscode-rotator.togglePassiveLearning"
   ],
   "contributes": {
     "commands": [
@@ -21,6 +23,14 @@
       {
         "command": "vscode-rotator.openLlmPanel",
         "title": "VSCode Rotator: Open LLM Assistant Panel"
+      },
+      {
+        "command": "vscode-rotator.ingestStagedSignals",
+        "title": "VSCode Rotator: Flush Staged Learning Signals"
+      },
+      {
+        "command": "vscode-rotator.togglePassiveLearning",
+        "title": "VSCode Rotator: Toggle Passive Learning"
       }
     ]
   }

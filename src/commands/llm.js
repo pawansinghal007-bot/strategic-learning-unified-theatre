@@ -1,4 +1,5 @@
-ï»¿import path from "node:path";
+import fs from "node:fs/promises";
+import path from "node:path";
 import os from "node:os";
 import readline from "node:readline/promises";
 import { stdin, stdout } from "node:process";
@@ -12,6 +13,100 @@ import { buildGraph } from "../llm/knowledge-graph.js";
 import { MistakeTracker } from "../llm/mistake-tracker.js";
 import { DocumentIngester } from "../llm/document-ingester.js";
 import { sendPrompt, listResponses, ensureBrowserDirs } from "../browser-bridge.js";
+import { defaultStagedSignalsDir, parseFrontmatter, splitStagedSignalDocuments } from "../vscode-learn-utils.js";
+
+async function loadConfigForLlm(options) {
+  const { loadConfig } = await import("../config.js");
+  const config = await loadConfig();
+  if (options?.baseDir) {
+    return { ...config, baseDir: path.resolve(options.baseDir) };
+  }
+  return config;
+}
+
+export async function listStagedFiles(stagingDir) {
+  try {
+    const files = await fs.readdir(stagingDir, { withFileTypes: true });
+    return files.filter((entry) => entry.isFile() && entry.name.endsWith(".md")).map((entry) => path.join(stagingDir, entry.name));
+  } catch {
+    return [];
+  }
+}
+
+function tagsForStagedSignal(sourceType) {
+  if (sourceType === "vscode-edit") return ["editor", "file-save"];
+  if (sourceType === "vscode-diagnostic" || sourceType === "vscode-diagnostic-recurring") return ["editor", "diagnostic"];
+  if (sourceType === "vscode-git") return ["editor", "git"];
+  if (sourceType === "vscode-task-error") return ["editor", "task-error"];
+  return ["editor"];
+}
+
+async function writeTempStagedDocument(stageFile, index, documentText) {
+  const tempPath = path.join(
+    path.dirname(stageFile),
+    `${path.basename(stageFile, ".md")}-${index + 1}-${Date.now()}.signal.md`
+  );
+  await fs.writeFile(tempPath, documentText, { encoding: "utf8", mode: 0o600 });
+  return tempPath;
+}
+
+export async function ingestStagedSignalsFromDirectory(stageRoot, baseDir) {
+  const files = await listStagedFiles(stageRoot);
+  const ingester = new DocumentIngester({ baseDir });
+  await ingester.initialize();
+  const tracker = new MistakeTracker({ baseDir });
+  const results = [];
+  for (const filePath of files) {
+    let fileFailed = false;
+    try {
+      const raw = await fs.readFile(filePath, "utf8");
+      const documents = splitStagedSignalDocuments(raw);
+      for (let index = 0; index < documents.length; index += 1) {
+        const documentText = documents[index];
+        const { data } = parseFrontmatter(documentText);
+        const sourceType = data.source_type || data.signal_type || "vscode-signal";
+        const platform = data.platform || "vscode";
+        const signalType = data.signal_type || "vscode-signal";
+        const tempPath = await writeTempStagedDocument(filePath, index, documentText);
+        try {
+          const result = await ingester.ingestFile(tempPath, {
+            source_type: sourceType,
+            platform,
+            fileTs: data.captured_at,
+            tags: tagsForStagedSignal(sourceType),
+            metadata: {
+              tags: tagsForStagedSignal(sourceType),
+              staged_file: path.basename(filePath),
+              signal_type: signalType,
+              source_file: data.file_path || null
+            }
+          });
+          if (signalType === "vscode-diagnostic-recurring" || (sourceType === "vscode-diagnostic-recurring" && data.recurring === "true")) {
+            await tracker.addMistake({
+              description: data.message || data.description || `Recurring diagnostic detected in ${path.basename(filePath)}`,
+              category: "vscode-diagnostic",
+              fix_applied: data.fix_applied || "Resolve the recurring diagnostic and update the root cause.",
+              root_cause: data.root_cause || data.message || "Recurring diagnostic marker"
+            });
+          }
+          results.push({ file: filePath, chunkPath: tempPath, ...result });
+        } catch (error) {
+          fileFailed = true;
+          results.push({ file: filePath, chunkPath: tempPath, chunks: 0, skipped: true, error: String(error?.message ?? error) });
+        } finally {
+          await fs.rm(tempPath, { force: true });
+        }
+      }
+      if (!fileFailed) {
+        await fs.rm(filePath, { force: true });
+      }
+    } catch (error) {
+      results.push({ file: filePath, chunks: 0, skipped: true, error: String(error) });
+    }
+  }
+  await ingester.db.close();
+  return results;
+}
 import {
   addMistake,
   askLocalLlm,
@@ -21,6 +116,7 @@ import {
   setupModel
 } from "../local-llm.js";
 
+import { verifyNodeLlamaCppInstalled } from "../llm/inference.js";
 function parseRating(value) {
   const rating = Number.parseInt(String(value), 10);
   if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
@@ -48,6 +144,13 @@ export async function bindLlmCommands(program) {
     .option("--model-path <path>", "Path to an existing .gguf model")
     .option("--base-dir <dir>", "Local storage base directory")
     .action(async (options) => {
+      try {
+        await verifyNodeLlamaCppInstalled();
+      } catch (err) {
+        console.error(chalk.red(String(err?.message ?? err)));
+        process.exitCode = 1;
+        return;
+      }
       const spinner = ora("Preparing local model...").start();
       try {
         const result = await setupModel({
@@ -75,6 +178,13 @@ export async function bindLlmCommands(program) {
     .option("--base-dir <dir>", "Local storage base directory")
     .argument("<question>", "Question to ask")
     .action(async (question, options) => {
+      try {
+        await verifyNodeLlamaCppInstalled();
+      } catch (err) {
+        console.error(chalk.red(String(err?.message ?? err)));
+        process.exitCode = 1;
+        return;
+      }
       const spinner = ora("Thinking locally...").start();
       try {
         const response = await askLocalLlm({
@@ -167,6 +277,13 @@ export async function bindLlmCommands(program) {
     .requiredOption("--to <question>", "Question to relate to")
     .option("--json", "Output raw JSON")
     .action(async (options) => {
+      try {
+        await verifyNodeLlamaCppInstalled();
+      } catch (err) {
+        console.error(chalk.red(String(err?.message ?? err)));
+        process.exitCode = 1;
+        return;
+      }
       const spinner = ora("Finding related experience...").start();
       try {
         const generator = new PromptGenerator();
@@ -197,7 +314,7 @@ export async function bindLlmCommands(program) {
         const outPath = options.out ? path.resolve(options.out) : path.join(os.homedir(), ".vscode-rotator", "knowledge-graph.json");
         const result = await buildGraph(db, ideaDir, outPath);
         spinner.stop();
-        console.log(`Knowledge graph exported to ${result.outputPath} â€” ${result.nodeCount} nodes, ${result.edgeCount} edges`);
+        console.log(`Knowledge graph exported to ${result.outputPath} — ${result.nodeCount} nodes, ${result.edgeCount} edges`);
       } catch (err) {
         spinner.stop();
         console.error(chalk.red(String(err?.message ?? err)));
@@ -280,7 +397,7 @@ export async function bindLlmCommands(program) {
         });
 
         if (options.rate) {
-          const ratingValue = await prompt("Rate this response 1â€“5 (or press Enter to skip): ");
+          const ratingValue = await prompt("Rate this response 1–5 (or press Enter to skip): ");
           if (ratingValue) {
             const rating = parseRating(ratingValue);
             await db.ratePromptHistory(history.id, rating);
@@ -316,6 +433,37 @@ export async function bindLlmCommands(program) {
         } else {
           console.table(result.actions.map((row) => ({ type: row.type, path: row.path, chunks: row.chunks })));
         }
+      } catch (err) {
+        spinner.stop();
+        console.error(chalk.red(String(err?.message ?? err)));
+        process.exitCode = 1;
+      }
+    });
+
+  llm
+    .command("ingest-staged")
+    .description("Ingest staged VS Code learning signals from markdown files")
+    .argument("[stagedDir]", "Optional path to the staged signals directory")
+    .option("--base-dir <dir>", "Local storage base directory")
+    .action(async (stagedDir, options) => {
+      try {
+        await verifyNodeLlamaCppInstalled();
+      } catch (err) {
+        console.error(chalk.red(String(err?.message ?? err)));
+        process.exitCode = 1;
+        return;
+      }
+      const spinner = ora("Ingesting staged VS Code signals...").start();
+      try {
+        const config = await loadConfigForLlm(options);
+        const stageRoot = stagedDir ? path.resolve(stagedDir) : defaultStagedSignalsDir(config);
+        const results = await ingestStagedSignalsFromDirectory(stageRoot, options.baseDir);
+        spinner.succeed(`Ingested staged signals from ${stageRoot}`);
+        if (results.length === 0) {
+          console.log(`No staged signals found in ${stageRoot}`);
+          return;
+        }
+        console.table(results.map((row) => ({ path: row.file, chunks: row.chunks, skipped: row.skipped ?? false, error: row.error ?? "" })));
       } catch (err) {
         spinner.stop();
         console.error(chalk.red(String(err?.message ?? err)));
@@ -460,6 +608,7 @@ export function registerStatus(parent) {
       console.log(`Status    : ${models.length > 0 ? 'ready' : 'no model downloaded - run: llm setup'}`);
     });
 }
+
 
 
 
