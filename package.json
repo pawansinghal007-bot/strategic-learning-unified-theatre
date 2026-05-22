@@ -1,10 +1,11 @@
 {
-  "name": "vs-code-agent",
+  "name": "strategic-learning-unified-theatre",
   "version": "1.0.0",
-  "description": "",
+  "description": "Strategic Learning Unified Theatre local development intelligence project.",
   "main": "vite.config.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:solution": "npm --prefix ./Solution test"
   },
   "keywords": [],
   "author": "",

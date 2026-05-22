@@ -1,23 +1,25 @@
-# vscode-rotator — Master Instructions & Vision Guide
+# strategic-learning-unified-theatre — Master Instructions & Vision Guide
 
 > **Purpose**: This document is the authoritative brief for any AI agent or developer
-> continuing work on vscode-rotator. Read this before any development session.
-> Keep it updated at the end of every sprint using `vscode-rotator handoff close`.
+> continuing work on strategic-learning-unified-theatre. Read this before any development session.
+> Keep it updated at the end of every sprint using `strategic-learning-unified-theatre handoff close`.
 > **Last Updated**: 2026-05-22 — Sprint 12 Complete. 244 tests passing.
 
-> **2026-05-22 — Rebranding Note:** The project brand has been renamed to
-> **Strategic Learning Unified Theatre**. This file is retained for historical
-> continuity and MUST NOT have its history removed. The CLI/package names have
-> been updated to `strategic-learning-unified-theatre` where appropriate. For
-> runtime compatibility the persistent local storage directory remains
-> `~/.vscode-rotator` (do not change this path unless you intend to migrate
-> runtime data).
+## Deployed (Archived)
 
+The following features and changes have been confirmed deployed and are preserved here for history; they are kept in place for auditability and must not be removed.
+
+- Sprint 12 — VS Code Passive Learning: `VscodeContextCollector` implemented and wired in `vscode-extension/collector.js` (captures file saves, diagnostics, git commits, task errors).  (Deployed: 2026-05-19)
+- New CLI commands: `strategic-learning-unified-theatre llm ingest-staged`, `strategic-learning-unified-theatre.togglePassiveLearning` (Deployed: 2026-05-19)
+- Atomic staging pipeline: 30s flush, atomic tmp->rename with secure perms (Deployed: 2026-05-19)
+- Master instructions: handoff snapshot pattern added (Deployed: 2026-05-19)
+
+> Notes: These entries are archived (kept for history). Use the `handoff` commands and snapshots to track active sprint state; remove items from active TODO lists in other sprint docs rather than deleting history here.
 ---
 
 ## Vision Statement
 
-**vscode-rotator is becoming a self-improving local development intelligence portal.**
+**strategic-learning-unified-theatre is becoming a self-improving local development intelligence portal.**
 
 The long-term goal is a system where:
 
@@ -44,7 +46,7 @@ Electron UI for VS Code integration started.
 E:\VS Code Agent\Solution\
 ```
 
-All source files live here. The tool is installed via `npm link` and runs as `vscode-rotator`.
+All source files live here. The tool is installed via `npm link` and runs as `strategic-learning-unified-theatre`.
 
 ---
 
@@ -75,6 +77,10 @@ VS Code Editor (file saves · diagnostics · git commits · task errors)
   - Python <= 3.11 preferred
   - CMake tools
 
+> **Hardware constraint note:** Current local inference on this machine is the only valid path for now, even if it takes 30 minutes to several hours per response. Do not pause the work or reset the sprint because of slow local inference—treat it as an acceptable cost until the hardware is upgraded.
+>
+> The team will continue with the local-only workflow and document latency impacts in sprint notes rather than delaying progress for better hardware.
+
 Online LLMs (ChatGPT · Claude · Gemini · Perplexity)
         ↕  [R4 Browser Bridge — src/browser-bridge.js]
         ↓
@@ -102,12 +108,12 @@ Online LLMs (ChatGPT · Claude · Gemini · Perplexity)
 
 ### ⚠️ MANDATORY FOR ALL FUTURE DEVELOPMENT
 
-**Starting May 2026: All handoffs MUST use `vscode-rotator ai snapshot` instead of rereading master instructions or markdown files.**
+**Starting May 2026: All handoffs MUST use `strategic-learning-unified-theatre ai snapshot` instead of rereading master instructions or markdown files.**
 
 ```bash
 # Instead of: Read persistent AI memory foundation.md (8,000+ tokens)
 # Use this:
-vscode-rotator ai snapshot
+strategic-learning-unified-theatre ai snapshot
 ```
 
 ---
@@ -115,9 +121,49 @@ vscode-rotator ai snapshot
 ## ✅ Sprint 12 — VS Code Passive Learning — COMPLETE (2026-05-21)
 
 - Implemented `VscodeContextCollector` in `vscode-extension/collector.js` to capture file saves (`vscode-edit`), diagnostics (`vscode-diagnostic` / `vscode-diagnostic-recurring`), git commits (`vscode-git`), and task exit errors (`vscode-task-error`).
-  Project: vscode-rotator at C:\SW Development\VS Code Agent\Solution
+  Project: strategic-learning-unified-theatre at C:\SW Development\VS Code Agent\Solution
   Instructions: Read C:\SW Development\VS Code Agent\Solution\docs\README.md and
-            C:\SW Development\VS Code Agent\vscode-rotator-master-instructions.md
+            C:\SW Development\VS Code Agent\strategic-learning-unified-theatre-master-instructions.md
+- E2E smoke verification: `smoke-test-sprint12.js` executed locally — 12/12 smoke checks passed.
+- Privacy: unit tests verify `.env` and `*.key` are not staged; `.gitignore` includes `.env` and config includes hard-exclude patterns.
+- Test baseline: **BLOCKED — 26 failing test suites as of 2026-05-23**. Must fix before Sprint 13 begins.
+
+---
+
+## ⛔ CURRENT BLOCKER: Test Suite Regression
+
+**Status**: 26 test suites failing (as of 2026-05-23, end of Sprint 12 work session).  
+**Impact**: Sprint 13 cannot begin until the full test suite passes.  
+**Root cause**: Unknown — full test suite run shows failures in unrelated suites (not Sprint 11 or 12 tests).  
+**Hardware note**: Local inference on this machine can take 30 min–several hours per response. Do not pause progress due to latency; treat it as a cost until hardware upgrade.
+
+**Required before Sprint 13 analysis starts**:
+1. Run full test suite and categorize 26 failures
+2. Triage each failure (unrelated to Sprint 12, or regression?)
+3. Fix regressions or document as out-of-scope
+4. Restore to 244+ passing baseline
+5. Update `strategic-learning-unified-theatre-master-instructions.md` with new baseline
+
+---
+
+## 📋 Sprint 13 Readiness Checklist
+
+| Item | Status | Notes |
+|------|--------|-------|
+| Test baseline verified (244 passing) | ❌ **BLOCKED** | 26 suites failing — must fix first |
+| Sprint 12 complete | ✅ Yes | Passive learning collector deployed |
+| experience.db data readiness check | ❓ Not done yet | Will do after test fix |
+| SPRINT-13-ANALYSIS.md written | ❌ Not started | After test fix + db check |
+| Any Sprint 13 code written | ❌ Correctly not started | Analysis first, then code |
+
+---
+
+✅ Sprint 12 — VS Code Passive Learning — COMPLETE (2026-05-21)
+
+- Implemented `VscodeContextCollector` in `vscode-extension/collector.js` to capture file saves (`vscode-edit`), diagnostics (`vscode-diagnostic` / `vscode-diagnostic-recurring`), git commits (`vscode-git`), and task exit errors (`vscode-task-error`).
+  Project: strategic-learning-unified-theatre at C:\SW Development\VS Code Agent\Solution
+  Instructions: Read C:\SW Development\VS Code Agent\Solution\docs\README.md and
+            C:\SW Development\VS Code Agent\strategic-learning-unified-theatre-master-instructions.md
 - E2E smoke verification: `smoke-test-sprint12.js` executed locally — 12/12 smoke checks passed.
 - Privacy: unit tests verify `.env` and `*.key` are not staged; `.gitignore` includes `.env` and config includes hard-exclude patterns.
 - Test baseline: 244 tests passing (local baseline after Sprint 12 commits).
@@ -140,8 +186,8 @@ Refer to `Solution/sprints/SPRINT-12-CODING-LOG.md` for full E2E details and the
 
 ### How It Works
 
-1. **During sprint**: Commands like `vscode-rotator ai decisions add` and `vscode-rotator ai lessons add` store state in SQLite.
-2. **At handoff**: `vscode-rotator ai snapshot` queries the DB and prints a compact summary.
+1. **During sprint**: Commands like `strategic-learning-unified-theatre ai decisions add` and `strategic-learning-unified-theatre ai lessons add` store state in SQLite.
+2. **At handoff**: `strategic-learning-unified-theatre ai snapshot` queries the DB and prints a compact summary.
 3. **Next session**: Copy the snapshot into the prompt context instead of the entire master instructions.
 4. **Result**: Token budget freed up for actual work context instead of baseline overhead.
 
@@ -149,7 +195,7 @@ Refer to `Solution/sprints/SPRINT-12-CODING-LOG.md` for full E2E details and the
 
 ## Recommended Next Architecture: Persistent AI Project Memory
 
-Keep `vscode-rotator-master-instructions.md` small and stable:
+Keep `strategic-learning-unified-theatre-master-instructions.md` small and stable:
 - architecture
 - coding standards
 - command conventions
@@ -199,7 +245,7 @@ Move dynamic state into local DB tables:
 
 Change the handoff/resume flow:
 - OLD: AI rereads huge markdown files.
-- NEW: `vscode-rotator handoff resume` generates a compact state snapshot from DB:
+- NEW: `strategic-learning-unified-theatre handoff resume` generates a compact state snapshot from DB:
   - active sprint
   - current architecture decisions
   - current blockers
@@ -317,7 +363,7 @@ With it, every response from ChatGPT or Claude becomes training context for futu
 ### P2 — Response quality tagging ✅ COMPLETE (May 20, 2026)
 After ingesting a browser response, prompt the user to tag it:
 ```
-vscode-rotator browser responses tag <filename> --quality good|bad|partial --notes "..."
+strategic-learning-unified-theatre browser responses tag <filename> --quality good|bad|partial --notes "..."
 ```
 Store this in `documents` table as metadata. Use quality=bad to automatically create a mistake record.
 
@@ -332,7 +378,7 @@ Store this in `documents` table as metadata. Use quality=bad to automatically cr
 ### P3 — Conversation thread ingestion ✅ COMPLETE
 Currently only single responses are captured. Add:
 ```
-vscode-rotator browser capture --platform chatgpt --thread
+strategic-learning-unified-theatre browser capture --platform chatgpt --thread
 ```
 This captures the full back-and-forth of a conversation (not just one response) and
 chunks it as a conversation transcript. Hugely more valuable for the local LLM than single responses.
@@ -341,19 +387,19 @@ chunks it as a conversation transcript. Hugely more valuable for the local LLM t
 - `captureThread()` implemented in `src/browser-bridge.js` to scrape full conversations and write atomic thread files.
 - Thread frontmatter now includes `platform`, `captured_at`, `type: thread`, and `turn_count`.
 - Per-turn chunking implemented in `src/llm/document-ingester.js` (source_type: `thread-turn`, per-turn `metadata`).
-- CLI: `vscode-rotator browser capture --platform <platform> --thread` with auto-ingest.
+- CLI: `strategic-learning-unified-theatre browser capture --platform <platform> --thread` with auto-ingest.
 - Auto-ingestion wired in `src/commands/browser.js` via `captureAndIngest()` helper.
 - 3 new tests added — all passing.
 
 ### P4 — Self-prompt loop ✅ COMPLETE (May 20, 2026)
-`vscode-rotator llm enhance --goal "..."` is fully wired.
+`strategic-learning-unified-theatre llm enhance --goal "..."` is fully wired.
 
 **Implementation**:
 - `logEnhanceCycle()` and `ratePromptHistory()` added to `experience-db.js`
 - `prompt_history` table extended with `rating` and `cycle_ts` columns (non-breaking ALTER TABLE)
 - Low-rating (≤ 2) auto-creates a mistake record and promotes to rubric via `ratePromptHistory()`
 - Duplicate mistake creation removed from CLI path (`llm.js`) — single source of truth in DB layer
-- `--auto`, `--rate`, `--platform` flags supported on `vscode-rotator llm enhance`
+- `--auto`, `--rate`, `--platform` flags supported on `strategic-learning-unified-theatre llm enhance`
 - 3 new tests in `tests/local-llm.test.js` — all passing
 - **Test count**: 113 tests — ALL PASSING ✅
 
@@ -371,7 +417,7 @@ chunks it as a conversation transcript. Hugely more valuable for the local LLM t
   - Recommended order: Option A first, then Option B, then Option C.
 - **Sprint 15 — Persistent AI Project Memory**
   - Move sprint_state, architectural_decisions, implementation_memory, handoff_state, test_baselines, important_commands, and ai_lessons_learned into DB.
-  - Implement `vscode-rotator handoff resume` snapshot generation from DB state.
+  - Implement `strategic-learning-unified-theatre handoff resume` snapshot generation from DB state.
   - Keep master instructions focused on architecture, conventions, module map, and long-term rules.
 
 ### Next priority
@@ -512,7 +558,7 @@ Constraints:
 | Data | Path |
 |------|------|
 | Account store | `~/.vscode-rotator/accounts.enc` |
-| OS secrets | OS keychain (keytar), service `vscode-rotator` |
+| OS secrets | OS keychain (keytar), service `strategic-learning-unified-theatre` |
 | Daemon log | `~/.vscode-rotator/daemon.log` |
 | Progress journal | `~/.vscode-rotator/PROGRESS.md` |
 | Sprint manifests | `~/.vscode-rotator/sprints/` |
@@ -549,20 +595,20 @@ Constraints:
 Paste this block at the top of your prompt:
 
 ```
-Project: vscode-rotator at E:\VS Code Agent\Solution
+Project: strategic-learning-unified-theatre at E:\VS Code Agent\Solution
 Instructions: Read E:\VS Code Agent\Solution\docs\README.md and
-              E:\VS Code Agent\vscode-rotator-master-instructions.md
+              E:\VS Code Agent\strategic-learning-unified-theatre-master-instructions.md
               before writing any code.
 Architecture: 6 core sprints complete + 5 enhancement modules (R1–R5).
 Failing tests: none — full suite passing.
 Current priority: [PASTE SPRINT GOAL HERE]
-Active sprint: [PASTE FROM: vscode-rotator handoff list]
+Active sprint: [PASTE FROM: strategic-learning-unified-theatre handoff list]
 ```
 ### Example Sprint 13 Prompt
 ```
-Project: vscode-rotator at E:\VS Code Agent\Solution
+Project: strategic-learning-unified-theatre at E:\VS Code Agent\Solution
 Instructions: Read E:\VS Code Agent\Solution\docs\README.md and
-              E:\VS Code Agent\vscode-rotator-master-instructions.md
+              E:\VS Code Agent\strategic-learning-unified-theatre-master-instructions.md
               before writing any code.
 Architecture: 6 core sprints complete + 5 enhancement modules (R1–R5).
 Failing tests: none — full suite passing.
@@ -572,9 +618,9 @@ Active sprint: Sprint 13 — LoRA Fine-Tuning Pipeline
 
 ### Example Sprint 14 Prompt
 ```
-Project: vscode-rotator at E:\VS Code Agent\Solution
+Project: strategic-learning-unified-theatre at E:\VS Code Agent\Solution
 Instructions: Read E:\VS Code Agent\Solution\docs\README.md and
-              E:\VS Code Agent\vscode-rotator-master-instructions.md
+              E:\VS Code Agent\strategic-learning-unified-theatre-master-instructions.md
               before writing any code.
 Architecture: 6 core sprints complete + 5 enhancement modules (R1–R5).
 Failing tests: none — full suite passing.
@@ -588,11 +634,11 @@ Active sprint: Sprint 14 — Adapter Quality Improvement / Sidebar Views
 Before ending any agent session:
 
 1. `npm test` — confirm no new failures
-2. `vscode-rotator handoff update <id> --tokens-used <n>`
-3. `vscode-rotator handoff close <id> --status paused|complete`
-4. `vscode-rotator log show --tail 20` — verify events journaled
+2. `strategic-learning-unified-theatre handoff update <id> --tokens-used <n>`
+3. `strategic-learning-unified-theatre handoff close <id> --status paused|complete`
+4. `strategic-learning-unified-theatre log show --tail 20` — verify events journaled
 5. Update this file if any architecture changed
-6. Copy the `resumePrompt` from `vscode-rotator handoff resume <id>` — paste at the start of the next session
+6. Copy the `resumePrompt` from `strategic-learning-unified-theatre handoff resume <id>` — paste at the start of the next session
 
 ---
 
@@ -631,11 +677,11 @@ Before ending any agent session:
      - `llm/mistake-tracker.js` — mistake capture + auto-promotion to rubric at recurrence ≥ 2
 
 3. **CLI Commands Now Complete** ✅
-   - `vscode-rotator handoff` — sprint management, resume prompts
-   - `vscode-rotator idea` — create, list, tag, export ideas
-   - `vscode-rotator browser` — capture, send, compare LLM responses
-   - `vscode-rotator storage` — monitor and index local storage
-   - `vscode-rotator llm` — inference, ingest, generate, mistakes
+   - `strategic-learning-unified-theatre handoff` — sprint management, resume prompts
+   - `strategic-learning-unified-theatre idea` — create, list, tag, export ideas
+   - `strategic-learning-unified-theatre browser` — capture, send, compare LLM responses
+   - `strategic-learning-unified-theatre storage` — monitor and index local storage
+   - `strategic-learning-unified-theatre llm` — inference, ingest, generate, mistakes
 
 4. **Electron UI Layer Added** ✅
    - `electron-ui/main.cjs` — new UI framework (cross-platform window, IPC bridge)
@@ -651,7 +697,7 @@ Before ending any agent session:
 
 ### ✅ P2 Response Quality Tagging — COMPLETE
 - `tagResponse()` added to browser-bridge.js with validation (good|bad|partial)
-- CLI: `vscode-rotator browser responses tag <filename> --quality X --notes "..."`
+- CLI: `strategic-learning-unified-theatre browser responses tag <filename> --quality X --notes "..."`
 - Quality metadata stored in `documents` table
 - Automatic mistake record creation when quality=bad
 - 5 new tests covering tagging, persistence, and mistake creation
@@ -660,7 +706,7 @@ Before ending any agent session:
 ### ✅ P3 Conversation Thread Ingestion — COMPLETE
 - `captureThread()` in `src/browser-bridge.js` (Playwright, full turn scraping)
 - Per-turn chunking in `src/llm/document-ingester.js` (source_type: thread-turn)
-- CLI: `vscode-rotator browser capture --platform <platform> --thread`
+- CLI: `strategic-learning-unified-theatre browser capture --platform <platform> --thread`
 - Auto-ingestion after capture wired in `src/commands/browser.js`
 - 3 new tests — all passing
 - Test count: 99 tests
@@ -673,7 +719,7 @@ Before ending any agent session:
 ### ✅ P4 Self-Prompt Enhancement Loop — COMPLETE
 - `logEnhanceCycle()` added to `experience-db.js` — logs goal, platform, prompt text, response file, timestamp
 - `ratePromptHistory(id, rating)` added — persists rating; rating ≤ 2 auto-creates mistake + rubric rule
-- CLI: `vscode-rotator llm enhance --goal "..." [--platform X] [--auto] [--rate]`
+- CLI: `strategic-learning-unified-theatre llm enhance --goal "..." [--platform X] [--auto] [--rate]`
 - Duplicate mistake logic removed from `llm.js` (now handled entirely in DB layer)
 - 3 new tests in `tests/local-llm.test.js`
 - Test count: **118 tests** — ALL PASSING ✅
@@ -713,7 +759,7 @@ Buffer signals in memory, flush to YAML staging files, ingest via `llm ingest-st
 - `vscode-extension/extension.js` — wired collector initialization and event activation (152 lines)
   - Persistent collector instance created on extension activate
   - Disposable pattern for cleanup on deactivate
-  - Manual flush via `vscode-rotator.ingestStagedSignals` command
+  - Manual flush via `strategic-learning-unified-theatre.ingestStagedSignals` command
 - `src/commands/llm.js` — `llm ingest-staged` now parses multi-signal YAML staging files, deletes successful staged files, retains failed staged files, and exports testable helpers.
 - Recurring diagnostics auto-route to `MistakeTracker.addMistake()` during staged ingestion.
 - `DocumentIngester.ingestFile()` preserves staged signal metadata and tags.
@@ -736,4 +782,5 @@ Buffer signals in memory, flush to YAML staging files, ingest via `llm ingest-st
 | Test Runner | 🔴 BROKEN | 0 pass | Robot Framework integration syntax error |
 
 ---
+
 

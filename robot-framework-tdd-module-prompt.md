@@ -1,4 +1,4 @@
-# Agent Prompt: Robot Framework Testing Module for vscode-rotator
+# Agent Prompt: Robot Framework Testing Module for strategic-learning-unified-theatre
 ## Sprint R6 — Automated Quality Gate with TDD Enforcement
 
 ---
@@ -6,17 +6,17 @@
 ## Session Bootstrap
 
 ```
-Project: vscode-rotator at E:\VS Code Agent\Solution
+Project: strategic-learning-unified-theatre at E:\VS Code Agent\Solution
 Architecture: 6 core sprints complete + 5 enhancement modules (R1–R5).
 Failing tests: store.test.js timeout, e2e/rotation.test.js timeout — fix first.
 Active sprint: R6 — Robot Framework Testing Module
 Goal: Build a fully automated, 100% coverage testing module using Robot Framework
       for functional, non-functional, and regression testing, with TDD enforcement
-      baked into the vscode-rotator CLI and daemon.
+      baked into the strategic-learning-unified-theatre CLI and daemon.
 ```
 
 Read `E:\VS Code Agent\Solution\docs\README.md` and
-`E:\VS Code Agent\vscode-rotator-master-instructions.md` before writing any code.
+`E:\VS Code Agent\strategic-learning-unified-theatre-master-instructions.md` before writing any code.
 
 ---
 
@@ -26,10 +26,10 @@ Build `src/test-runner.js` and its supporting Robot Framework suite as a new
 **R6 module** that:
 
 1. Runs **Robot Framework** (via a Python subprocess bridge) for all functional
-   and non-functional tests against vscode-rotator's CLI and modules.
+   and non-functional tests against strategic-learning-unified-theatre's CLI and modules.
 2. Provides a **regression gate** — no new feature code is accepted unless the
    full Robot suite is green.
-3. Enforces **TDD mindset** by blocking `vscode-rotator` commands unless a
+3. Enforces **TDD mindset** by blocking `strategic-learning-unified-theatre` commands unless a
    corresponding `.robot` test file exists and was written *before* the
    implementation file's last-modified timestamp.
 4. Integrates cleanly alongside the existing **vitest** unit tests, which remain
@@ -213,8 +213,8 @@ Library    Collections
 Library    DateTime
 
 *** Variables ***
-${CLI}              vscode-rotator
-${TEMP_DIR}         %{TEMP}/vscode-rotator-robot
+${CLI}              strategic-learning-unified-theatre
+${TEMP_DIR}         %{TEMP}/strategic-learning-unified-theatre-robot
 ${BASE_DIR}         ${TEMP_DIR}
 
 *** Keywords ***
@@ -230,7 +230,7 @@ Suite Teardown With Temp Dir
 
 Run CLI
     [Arguments]    @{args}
-    [Documentation]    Runs the vscode-rotator CLI and returns result.
+    [Documentation]    Runs the strategic-learning-unified-theatre CLI and returns result.
     ${result}=    Run Process    ${CLI}    @{args}
     ...           env:VSCODE_ROTATOR_BASE_DIR=${BASE_DIR}
     ...           env:VSCODE_ROTATOR_MOCK_LLM=1
@@ -494,7 +494,7 @@ Generate Prompt Contains Rubric And Sprint Context
     CLI Should Succeed    llm    mistake    add
     ...    --desc    Always check nulls    --category    safety
     ${r}=    CLI Should Succeed    llm    generate
-    ...    --goal    Add REST endpoint    --project    vscode-rotator
+    ...    --goal    Add REST endpoint    --project    strategic-learning-unified-theatre
     Should Contain    ${r.stdout}    Always check nulls
 
 *** Keywords ***
@@ -816,21 +816,21 @@ Add these subcommands to the existing CLI. They must integrate with the current
 commander-based CLI structure.
 
 ```
-vscode-rotator test [suite]
+strategic-learning-unified-theatre test [suite]
   --suite <name>      all|functional|non_functional|regression  (default: all)
   --tags <tags>       comma-separated Robot --include tags
   --dry-run           pass --dryrun to Robot; no DB write
   --tdd-check         run enforceTdd on all src/*.js before testing
 
-vscode-rotator test tdd-check [file]
+strategic-learning-unified-theatre test tdd-check [file]
   With no argument, checks all src/**/*.js files.
   Prints: PASS | FAIL for each, then exits 1 if any violations exist.
 
-vscode-rotator test skeleton <src-file>
+strategic-learning-unified-theatre test skeleton <src-file>
   Generates a skeleton .robot file for the given source file if missing.
   Prints the path of the generated file.
 
-vscode-rotator test history [--limit N]
+strategic-learning-unified-theatre test history [--limit N]
   Reads the test_runs table from experience DB and prints a summary table
   of recent robot suite runs: date, suite, passed/failed, duration.
 ```
@@ -912,12 +912,12 @@ npm run test:all
 ```
 
 ### Level 2 — CLI guard (for new feature commands)
-Any `vscode-rotator` command that touches a source file modified more recently
+Any `strategic-learning-unified-theatre` command that touches a source file modified more recently
 than its robot test file will print a yellow warning:
 
 ```
 ⚠ TDD VIOLATION: src/my-module.js was modified after robot/functional/my_module.robot
-  Run: vscode-rotator test tdd-check src/my-module.js
+  Run: strategic-learning-unified-theatre test tdd-check src/my-module.js
   Fix: update the robot test to cover your changes, then rerun.
 ```
 
@@ -936,7 +936,7 @@ All of the following must be true before closing this sprint:
 - [ ] `npm run test:tdd src/new-file.js` exits 1 when no robot file exists
 - [ ] `npm test` still exits 0 (no regressions in vitest unit layer)
 - [ ] `experience.db` contains a `test_runs` table with at least one row after any robot run
-- [ ] `vscode-rotator test history` prints the last test run without error
+- [ ] `strategic-learning-unified-theatre test history` prints the last test run without error
 - [ ] `robot-results/report.html` is generated after every `npm run test:robot`
 - [ ] No test file commits any plaintext secret to git
 - [ ] Known failing tests (store.test.js, rotation.test.js) are fixed first
@@ -946,10 +946,10 @@ All of the following must be true before closing this sprint:
 ## End-of-Sprint Checklist (R6-specific)
 
 1. `npm run test:all` — must be green
-2. `vscode-rotator handoff update <id> --tokens-used <n>`
-3. `vscode-rotator handoff close <id> --status complete`
-4. `vscode-rotator log show --tail 20`
-5. Update `vscode-rotator-master-instructions.md`:
+2. `strategic-learning-unified-theatre handoff update <id> --tokens-used <n>`
+3. `strategic-learning-unified-theatre handoff close <id> --status complete`
+4. `strategic-learning-unified-theatre log show --tail 20`
+5. Update `strategic-learning-unified-theatre-master-instructions.md`:
    - Add `src/test-runner.js` to the Module Map
    - Add `robot/` to the Architecture section
    - Update Known Failing Tests section (mark fixed)
@@ -959,3 +959,4 @@ All of the following must be true before closing this sprint:
 ---
 
 *Prompt authored: 2026-05-19 | Target sprint: R6 | Module: Robot Framework Testing*
+

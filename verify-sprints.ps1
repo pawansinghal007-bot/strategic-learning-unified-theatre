@@ -1,6 +1,6 @@
-# vscode-rotator Sprint Verification Script
+# Strategic Learning Unified Theatre Sprint Verification Script
 # Tests: R2 Agent Handoff | R3 Idea Store | R4 Browser Bridge | R1 Storage Monitor | R5 Local Dev-LLM
-# Drop into E:\VS Code Agent and run:
+# Drop into C:\SW Development\VS Code Agent and run:
 #   .\verify-sprints.ps1
 #   .\verify-sprints.ps1 -Sprint R5
 #   .\verify-sprints.ps1 -Sprint R1,R5
@@ -9,7 +9,7 @@ param(
     [string[]]$Sprint = @('R2','R3','R4','R1','R5')
 )
 
-$root  = "E:\VS Code Agent\Solution"
+$root  = "C:\SW Development\VS Code Agent\Solution"
 $cli   = "$root\src\cli.js"
 $store = "$HOME\.vscode-rotator"
 
@@ -37,7 +37,7 @@ function Invoke-CLI {
     }
 }
 
-Write-Host "`nvscode-rotator Sprint Verification" -ForegroundColor White
+Write-Host "`nStrategic Learning Unified Theatre Sprint Verification" -ForegroundColor White
 Write-Host "Root  : $root"
 Write-Host "CLI   : $cli"
 Write-Host "Store : $store"
@@ -48,7 +48,7 @@ if (-not (Test-Path $cli))  { Write-Host "[ERROR] cli.js not found: $cli" -Foreg
 
 HDR "CLI Smoke Test"
 $smokeOut = Invoke-CLI "--help"
-if ($smokeOut -match 'vscode-rotator|Usage|handoff|idea|browser|storage') {
+if ($smokeOut -match 'strategic-learning-unified-theatre|Usage|handoff|idea|browser|storage') {
     OK "node cli.js --help responded correctly"
     Write-Host "    $($smokeOut.Split([Environment]::NewLine)[0])" -ForegroundColor Gray
 } else {
