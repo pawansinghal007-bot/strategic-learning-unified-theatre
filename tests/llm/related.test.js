@@ -3,7 +3,7 @@ process.env.VSCODE_ROTATOR_MOCK_LLM = "1";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach } from "vitest";
 
 import { ExperienceDb } from "../../src/llm/experience-db.js";
 import { PromptGenerator } from "../../src/llm/prompt-generator.js";

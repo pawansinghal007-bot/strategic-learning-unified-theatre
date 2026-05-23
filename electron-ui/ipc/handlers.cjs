@@ -19,7 +19,7 @@ module.exports = async function register({ ipcMain, dialog, watcher, app }) {
   const { Journal } = await import(resolveModule('../../src/journal.js'));
   const { loadConfig, saveConfig } = await import(resolveModule('../../src/config.js'));
   const { probeAccount } = await import(resolveModule('../../src/health.js'));
-  const { setupModel, askLocalLlm } = await import(resolveModule('../../src/local-llm.js'));
+  const { getLlmStatus, setupModel, askLocalLlm } = await import(resolveModule('../../src/local-llm.js'));
   const browserBridge = await import(resolveModule('../../src/browser-bridge.js'));
   const testRunner = await import(resolveModule('../../src/test-runner.js'));
 
@@ -213,18 +213,7 @@ module.exports = async function register({ ipcMain, dialog, watcher, app }) {
   });
 
   ipcMain.handle('llm:status', async () => {
-    const modelDir = path.join(os.homedir(), '.vscode-rotator', 'models');
-    try {
-      const files = await fs.readdir(modelDir);
-      const models = files.filter((file) => file.endsWith('.gguf'));
-      return {
-        available: models.length > 0,
-        models,
-        modelPath: models.length > 0 ? path.join(modelDir, models[0]) : null
-      };
-    } catch {
-      return { available: false, models: [], modelPath: null };
-    }
+    return await getLlmStatus();
   });
 
   ipcMain.handle('llm:setup', async (e, payload) => {

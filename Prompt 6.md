@@ -20,15 +20,15 @@ installer: npm link + launchd (macOS) / systemd (Linux) / Task Scheduler (Window
 security audit: review file permissions, lock file cleanup on crash, no plaintext secrets in logs
 final README: architecture diagram, quickstart, FAQ, troubleshooting section
 sprint prompt
-Continue "vscode-rotator". Sprints 1–5 complete. This is the final hardening sprint.
+Continue "strategic-learning-unified-theatre". Sprints 1–5 complete. This is the final hardening sprint.
 
 SPRINT 6 SCOPE — GUI tray, OS secret storage, e2e tests, installer.
 
 New deliverables:
 1. src/secret-store.js
    — SecretStore class replacing file-based authBlob storage
-     set(accountId, blob): keytar.setPassword('vscode-rotator', accountId, blob)
-     get(accountId): keytar.getPassword('vscode-rotator', accountId)
+     set(accountId, blob): keytar.setPassword('strategic-learning-unified-theatre', accountId, blob)
+     get(accountId): keytar.getPassword('strategic-learning-unified-theatre', accountId)
      delete(accountId): keytar.deletePassword(...)
    — Migration helper: migrateLegacy(): reads existing accounts.enc, moves each authBlob to keytar, wipes field from file
    — Dependency: keytar@^7 (native module; document node-gyp prerequisites)
@@ -74,7 +74,7 @@ To address all issues (including breaking changes), run:
 Run `npm audit` for details.
 PS E:\VS Code Agent\Solution> npm test
 
-> vscode-rotator@0.1.0 test
+> strategic-learning-unified-theatre@0.1.0 test
 > vitest run
 
 

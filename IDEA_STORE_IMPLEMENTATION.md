@@ -2,7 +2,7 @@
 
 ## Overview
 
-Successfully implemented a complete Idea Store system for vscode-rotator that stores ideas as structured local Markdown files with YAML front-matter. The system is readable by any text editor or agent without special tooling.
+Successfully implemented a complete Idea Store system for strategic-learning-unified-theatre that stores ideas as structured local Markdown files with YAML front-matter. The system is readable by any text editor or agent without special tooling.
 
 ## Files Created/Modified
 
@@ -26,12 +26,12 @@ Successfully implemented a complete Idea Store system for vscode-rotator that st
 ### 3. `src/commands/idea.js` (Fixed)
 - **Fixed**: Added missing `promptForValue()` helper function
 - **CLI subcommands**:
-  - `vscode-rotator idea add [--project <name>] [--tag <tag>] [--priority 1]`
-  - `vscode-rotator idea list [--project <name>] [--tag <tag>] [--status inbox]`
-  - `vscode-rotator idea view <id>`
-  - `vscode-rotator idea link <id> --sprint <sprintId>`
-  - `vscode-rotator idea done <id>`
-  - `vscode-rotator idea export [--project <name>] [--status active]`
+  - `strategic-learning-unified-theatre idea add [--project <name>] [--tag <tag>] [--priority 1]`
+  - `strategic-learning-unified-theatre idea list [--project <name>] [--tag <tag>] [--status inbox]`
+  - `strategic-learning-unified-theatre idea view <id>`
+  - `strategic-learning-unified-theatre idea link <id> --sprint <sprintId>`
+  - `strategic-learning-unified-theatre idea done <id>`
+  - `strategic-learning-unified-theatre idea export [--project <name>] [--status active]`
 
 ### 4. `src/cli.js` (Updated)
 - Imported `bindIdeaCommands` from `./commands/idea.js`
@@ -59,7 +59,7 @@ Successfully implemented a complete Idea Store system for vscode-rotator that st
   - Future VS Code extension integration guide
 
 ### 7. `README.md` (Updated)
-- Added `vscode-rotator idea add|list|view|link|done|export` to CLI commands list
+- Added `strategic-learning-unified-theatre idea add|list|view|link|done|export` to CLI commands list
 - Updated documentation reference to "Sprint 2+" guide
 
 ## YAML Front-Matter Format
@@ -105,7 +105,7 @@ Bug details...
 ## CLI Verification
 
 ✅ Confirmed:
-- `vscode-rotator idea --help` displays all subcommands
+- `strategic-learning-unified-theatre idea --help` displays all subcommands
 - Commands properly bound in CLI
 - No import errors
 
@@ -129,3 +129,4 @@ Bug details...
 ## Status
 
 ✅ **Complete** - All requirements met, tests passing, CLI functional, documentation complete.
+

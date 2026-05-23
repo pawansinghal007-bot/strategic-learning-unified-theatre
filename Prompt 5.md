@@ -20,7 +20,7 @@ CLI commands: log show [--tail N], log clear, git-status [path], report generate
 hook into WatcherDaemon events to auto-journal switch/cooldown/recovery events
 configurable: watch multiple repo paths via config.json "watchedRepos" array
 sprint prompt
-Continue "vscode-rotator". Sprints 1–4 complete.
+Continue "strategic-learning-unified-theatre". Sprints 1–4 complete.
 
 SPRINT 5 SCOPE — progress tracker, MD journal, git monitor.
 
@@ -55,4 +55,5 @@ New deliverables:
 6. src/config.js — load/save ~/.vscode-rotator/config.json; add "watchedRepos": string[] field
 
 Write tests for git-monitor parsing real git output fixtures (use vitest with fixture files).
+
 

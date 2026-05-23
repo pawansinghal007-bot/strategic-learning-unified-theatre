@@ -5,6 +5,7 @@ import { probeAccount as probeAccountDefault } from "./health.js";
 import { pickBest } from "./scorer.js";
 import { CooldownScheduler } from "./scheduler.js";
 import { loadConfig } from "./config.js";
+import { captureThread } from "./browser-bridge.js";
 import { Journal } from "./journal.js";
 import { GitMonitor } from "./git-monitor.js";
 
@@ -97,6 +98,37 @@ export class WatcherDaemon extends EventEmitter {
       this.enhanceTimer.unref?.();
     }
 
+    // Platform capture scheduling (periodic headless captures)
+    const captureConfig = cfg?.captureSchedule;
+    const platformTriggers = cfg?.platformTriggers && typeof cfg.platformTriggers === 'object' ? cfg.platformTriggers : {};
+    if (captureConfig?.enabled && Object.keys(platformTriggers).length > 0) {
+      const intervalMs = Number.isFinite(Number(captureConfig.intervalMs)) ? Number(captureConfig.intervalMs) : 15 * 60 * 1000;
+      let lastCaptureTs = 0;
+
+      this.captureTimer = setInterval(async () => {
+        if (!this.running) return;
+        const nowTs = Date.now();
+        if (nowTs - lastCaptureTs < intervalMs) return;
+        lastCaptureTs = nowTs;
+
+        // Determine unique platforms from triggers mapping
+        const platforms = Array.from(new Set(Object.values(platformTriggers).filter(Boolean)));
+        for (const platform of platforms) {
+          try {
+            this.emit('capture_start', { platform, timestamp: new Date().toISOString() });
+            const result = await captureThread(platform, { headless: true, timeout: captureConfig.timeoutMs ?? 60000 });
+            await this.journal.append({ type: 'CAPTURE', detail: `${platform} | ${result.filename ?? result.filePath ?? 'no-file'}` });
+          } catch (err) {
+            try {
+              await this.journal.append({ type: 'CAPTURE_ERR', detail: `${platform} | ${String(err?.message ?? err)}` });
+            } catch {}
+          }
+        }
+      }, 60000);
+
+      this.captureTimer.unref?.();
+    }
+
     const tick = async () => {
       if (!this.running) return;
 
@@ -170,7 +202,6 @@ export class WatcherDaemon extends EventEmitter {
       } finally {
         if (this.running) {
           this.timer = setTimeout(loop, interval);
-          this.timer.unref?.();
         }
       }
     };
@@ -205,6 +236,10 @@ export class WatcherDaemon extends EventEmitter {
     if (this.enhanceTimer) {
       clearInterval(this.enhanceTimer);
       this.enhanceTimer = null;
+    }
+    if (this.captureTimer) {
+      clearInterval(this.captureTimer);
+      this.captureTimer = null;
     }
     this.gitMonitor.stop();
   }

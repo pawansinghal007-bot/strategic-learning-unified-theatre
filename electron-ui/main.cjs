@@ -8,14 +8,14 @@ const Store = ElectronStore.default || ElectronStore;
 const { BrowserPane } = require('./browser-pane.cjs');
 const { registerCaptureHandlers } = require('./ipc/capture-handlers.cjs');
 
-app.setPath('cache', path.join(os.tmpdir(), 'vscode-rotator-cache'));
-app.commandLine.appendSwitch('disk-cache-dir', path.join(os.tmpdir(), 'vscode-rotator-cache'));
+app.setPath('cache', path.join(os.tmpdir(), 'strategic-learning-unified-theatre-cache'));
+app.commandLine.appendSwitch('disk-cache-dir', path.join(os.tmpdir(), 'strategic-learning-unified-theatre-cache'));
 
 const isDev = !!process.env.VITE_DEV_SERVER_URL;
 
 async function createWindow() {
   console.log('[main] createWindow() starting');
-  const store = new Store({ name: 'vscode-rotator-ui' });
+  const store = new Store({ name: 'strategic-learning-unified-theatre-ui' });
   const saved = store.get('windowBounds');
 
   const opts = {
@@ -61,12 +61,11 @@ async function createWindow() {
     win.webContents.openDevTools({ mode: 'detach' });
   } else {
     const indexPath = path.join(__dirname, 'dist', 'index.html');
-    const indexUrl = pathToFileURL(indexPath).toString();
-    console.log('[main] loading prod URL', indexUrl);
+    console.log('[main] loading prod file', indexPath);
     try {
-      await win.loadURL(indexUrl);
+      await win.loadFile(indexPath);
     } catch (err) {
-      console.error('[main] loadURL prod failed, falling back to data URL', err);
+      console.error('[main] loadFile prod failed, falling back to data URL', err);
       const html = await readFile(indexPath, 'utf8');
       const baseUrl = pathToFileURL(path.join(__dirname, 'dist') + path.sep).toString();
       await win.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`, {
@@ -144,32 +143,6 @@ app.whenReady().then(async () => {
     console.error('IPC handlers failed to register', err);
   }
 
-  // Initialize browser pane for embedded browser views
-  try {
-    console.log('[main] initializing browser pane');
-    browserPane = new BrowserPane(mainWindow, {
-      platform: 'chatgpt',
-      preloadPath: path.join(__dirname, 'preload-browser.cjs')
-    });
-    await browserPane.attachToWindow();
-    browserPane.detachView(browserPane.currentView);
-    console.log('[main] browser pane attached');
-  } catch (err) {
-    console.error('[main] browser pane initialization failed:', err);
-  }
-
-  // Register capture handlers
-  try {
-    console.log('[main] registering capture handlers');
-    // Import DocumentIngester to pass to capture handlers
-    const { DocumentIngester } = await import(require('url').pathToFileURL(path.join(__dirname, '..', 'src', 'llm', 'document-ingester.js')).href);
-    const ingester = new DocumentIngester();
-    await registerCaptureHandlers(ipcMain, ingester, mainWindow);
-    console.log('[main] capture handlers registered');
-  } catch (err) {
-    console.error('[main] capture handlers registration failed:', err);
-  }
-
   // Register browser pane IPC handlers
   try {
     ipcMain.handle('browser:switchPlatform', async (event, platformName) => {
@@ -207,6 +180,32 @@ app.whenReady().then(async () => {
     console.log('[main] browser pane IPC handlers registered');
   } catch (err) {
     console.error('[main] browser pane IPC handler registration failed:', err);
+  }
+
+  // Initialize browser pane for embedded browser views
+  try {
+    console.log('[main] initializing browser pane');
+    browserPane = new BrowserPane(mainWindow, {
+      platform: 'chatgpt',
+      preloadPath: path.join(__dirname, 'preload-browser.cjs')
+    });
+    await browserPane.attachToWindow();
+    browserPane.detachView(browserPane.currentView);
+    console.log('[main] browser pane attached');
+  } catch (err) {
+    console.error('[main] browser pane initialization failed:', err);
+  }
+
+  // Register capture handlers
+  try {
+    console.log('[main] registering capture handlers');
+    // Import DocumentIngester to pass to capture handlers
+    const { DocumentIngester } = await import(require('url').pathToFileURL(path.join(__dirname, '..', 'src', 'llm', 'document-ingester.js')).href);
+    const ingester = new DocumentIngester();
+    await registerCaptureHandlers(ipcMain, ingester, mainWindow);
+    console.log('[main] capture handlers registered');
+  } catch (err) {
+    console.error('[main] capture handlers registration failed:', err);
   }
 
   app.on('activate', async () => {

@@ -382,7 +382,7 @@ function collectJsFiles(dir) {
 }
 
 const program = new Command();
-program.name("vscode-rotator-test-runner").description("Robot Framework test runner and TDD helper for vscode-rotator");
+program.name("strategic-learning-unified-theatre-test-runner").description("Robot Framework test runner and TDD helper for strategic-learning-unified-theatre");
 
 program
   .command("suite")
@@ -466,3 +466,4 @@ program
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   program.parse(process.argv);
 }
+

@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 import { listSprints } from "./agent-handoff.js";
 import { DocumentIngester } from "./llm/document-ingester.js";
 import { ExperienceDb } from "./llm/experience-db.js";
-import { LocalLlmInference } from "./llm/inference.js";
+import { LocalLlmInference, resolvePreferredLlmProvider, installOllamaModel, isOllamaAvailable, listOllamaModels } from "./llm/inference.js";
 import { MistakeTracker } from "./llm/mistake-tracker.js";
 import { PromptGenerator } from "./llm/prompt-generator.js";
 
@@ -24,6 +24,11 @@ export const MODEL_REGISTRY = {
     url: "https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/resolve/main/tinyllama-1.1b-chat-v1.0.Q3_K_S.gguf",
     sha256: null
   }
+};
+
+export const OLLAMA_MODEL_REGISTRY = {
+  phi3: "phi3:mini",
+  tinyllama: "tinyllama"
 };
 
 export function llmBaseDir(baseDir) {
@@ -66,7 +71,50 @@ function download(url, target) {
   });
 }
 
+export async function getLlmStatus({ baseDir } = {}) {
+  const dir = modelDir(baseDir);
+  let ggufModels = [];
+  try {
+    const files = await fs.readdir(dir);
+    ggufModels = files.filter((file) => file.endsWith(".gguf"));
+  } catch {
+    ggufModels = [];
+  }
+
+  let ollamaModels = [];
+  const ollamaAvailable = await isOllamaAvailable();
+  if (ollamaAvailable) {
+    ollamaModels = await listOllamaModels().catch(() => []);
+  }
+
+  const models = [...ggufModels, ...ollamaModels];
+  return {
+    available: models.length > 0,
+    models,
+    modelPath:
+      ggufModels.length > 0
+        ? path.join(dir, ggufModels[0])
+        : ollamaModels.length > 0
+        ? ollamaModels[0]
+        : null,
+    provider: ggufModels.length > 0 ? "node-llama-cpp" : ollamaModels.length > 0 ? "ollama" : null,
+    ollamaAvailable
+  };
+}
+
 export async function setupModel({ model = "phi3", modelPath, baseDir } = {}) {
+  const provider = await resolvePreferredLlmProvider();
+  if (provider === "ollama") {
+    const requestedModel = modelPath
+      ? String(modelPath).trim()
+      : OLLAMA_MODEL_REGISTRY[model] ?? OLLAMA_MODEL_REGISTRY.phi3;
+    if (!requestedModel) {
+      throw new Error("Ollama model name is required for setup.");
+    }
+    await installOllamaModel(requestedModel);
+    return { provider: "ollama", modelPath: requestedModel };
+  }
+
   const dir = modelDir(baseDir);
   await fs.mkdir(dir, { recursive: true, mode: 0o700 });
   if (model === "custom" && !modelPath) {

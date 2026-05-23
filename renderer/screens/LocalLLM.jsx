@@ -49,7 +49,7 @@ export default function LocalLLM() {
     setAnswer('')
     setMessage('Querying local LLM...')
     try {
-      const response = await window.rotator.llm.ask({ question })
+      const response = await window.rotator.llm.ask({ question, modelPath: status.modelPath })
       setAnswer(typeof response === 'string' ? response : JSON.stringify(response, null, 2))
       setMessage('Answer received')
     } catch (err) {

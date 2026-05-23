@@ -13,7 +13,7 @@ describe('capture-handlers.cjs', () => {
 
   beforeEach(async () => {
     // Setup temp directory
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'vscode-rotator-capture-'));
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'strategic-learning-unified-theatre-capture-'));
 
     // Mock ipcMain
     mockIpcMain = {

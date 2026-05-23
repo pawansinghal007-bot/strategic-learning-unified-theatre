@@ -9,7 +9,7 @@ let collectorInstance = null;
 let collectorDisposable = null;
 
 function activate(context) {
-  const output = vscode.window.createOutputChannel("VSCode Rotator");
+  const output = vscode.window.createOutputChannel("Strategic Learning Unified Theatre");
   context.subscriptions.push(output);
 
   const projectRoot = path.join(context.extensionPath, "..");
@@ -55,7 +55,7 @@ function activate(context) {
   }
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("vscode-rotator.showKnowledgeGraph", exportKnowledgeGraph)
+    vscode.commands.registerCommand("strategic-learning-unified-theatre.showKnowledgeGraph", exportKnowledgeGraph)
   );
 
   async function flushStagedSignals() {
@@ -90,10 +90,10 @@ function activate(context) {
   }
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("vscode-rotator.openLlmPanel", async () => {
+    vscode.commands.registerCommand("strategic-learning-unified-theatre.openLlmPanel", async () => {
       const panel = vscode.window.createWebviewPanel(
-        "vscodeRotatorAssistant",
-        "VSCode Rotator Assistant",
+        "strategicLearningUnifiedTheatreAssistant",
+        "Strategic Learning Unified Theatre Assistant",
         vscode.ViewColumn.One,
         {
           enableScripts: true,
@@ -111,11 +111,11 @@ function activate(context) {
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("vscode-rotator.ingestStagedSignals", flushStagedSignals)
+    vscode.commands.registerCommand("strategic-learning-unified-theatre.ingestStagedSignals", flushStagedSignals)
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("vscode-rotator.togglePassiveLearning", async () => {
+    vscode.commands.registerCommand("strategic-learning-unified-theatre.togglePassiveLearning", async () => {
       output.show(true);
       output.appendLine("Toggling passive learning...");
       const configModuleUrl = pathToFileURL(path.join(projectRoot, "src", "config.js")).href;
@@ -183,7 +183,7 @@ function getWebviewContent(outPath) {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VSCode Rotator Assistant</title>
+  <title>Strategic Learning Unified Theatre Assistant</title>
   <style>
     body { font-family: sans-serif; padding: 16px; }
     button { padding: 10px 14px; font-size: 14px; }
@@ -191,7 +191,7 @@ function getWebviewContent(outPath) {
   </style>
 </head>
 <body>
-  <h1>VSCode Rotator Assistant</h1>
+  <h1>Strategic Learning Unified Theatre Assistant</h1>
   <p>Export your local knowledge graph or run basic LLM assistant commands from VS Code.</p>
   <button id="export">Export Knowledge Graph</button>
   <div class="status">Default output path: <code>${outPath}</code></div>

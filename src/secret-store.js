@@ -5,7 +5,7 @@ import path from "node:path";
 import { decrypt, encrypt } from "./encrypt.js";
 import { AccountStore } from "./store.js";
 
-const SERVICE = "vscode-rotator";
+const SERVICE = "strategic-learning-unified-theatre";
 
 class FileSecretAdapter {
   constructor(filePath) {
@@ -136,3 +136,4 @@ export class SecretStore {
 export function defaultProgressPath() {
   return path.join(os.homedir(), ".vscode-rotator", "PROGRESS.md");
 }
+

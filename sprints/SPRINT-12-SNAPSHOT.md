@@ -24,12 +24,13 @@ Files of interest:
 - src/llm/document-ingester.js
 - smoke-test-sprint12.js
 - Solution/sprints/SPRINT-12-CODING-LOG.md
-- vscode-rotator-master-instructions.md
+- strategic-learning-unified-theatre-master-instructions.md
 
 Next steps / Recommendation (Sprint 13):
 - Priority: Option A — Sidebar Views / Related Context panel to expose passive learning results.
 - Defer model fine-tuning until Phi3/local model availability and document count verification.
 
 Notes:
-- Use `vscode-rotator ai snapshot` in future handoffs to provide compact (~500-token) context instead of full master instructions.
+- Use `strategic-learning-unified-theatre ai snapshot` in future handoffs to provide compact (~500-token) context instead of full master instructions.
 - This snapshot file is a concise handoff artifact for the next session.
+

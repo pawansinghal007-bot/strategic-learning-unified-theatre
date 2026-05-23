@@ -20,7 +20,7 @@ export/import profile snapshot as a portable .zip for sharing
 update SwitcherService to pass --profile flag on VS Code launch
 documentation: setup guide for first-time profile creation
 sprint prompt
-Continue "vscode-rotator". Sprints 1–3 complete.
+Continue "strategic-learning-unified-theatre". Sprints 1–3 complete.
 
 SPRINT 4 SCOPE — VS Code profile management + workspace binding.
 
@@ -50,4 +50,5 @@ New deliverables:
    apply : reads account from store, creates profile if missing, binds workspace, opens VS Code
 
 Write tests for workspace JSON patch (valid JSON round-trip, missing file error).
+
 

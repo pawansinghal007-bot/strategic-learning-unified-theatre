@@ -1,4 +1,4 @@
-﻿# Sprint 12 Analysis — VS Code Passive Learning
+# Sprint 12 Analysis — VS Code Passive Learning
 
 ## Q1 — Experience DB Ingestion Contract
 
@@ -298,3 +298,4 @@ Hard exclude these patterns without exception:
 - **Verdict: YES — safe to proceed.**
 - The repo already supports a batched signal collector.
 - The remaining work is to implement the capture contracts and wire them into the existing ingestion pipeline.
+

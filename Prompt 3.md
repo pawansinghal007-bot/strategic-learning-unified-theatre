@@ -17,10 +17,10 @@ cooldown manager: mark account cooldown with TTL, auto-clear on resetAt
 watcher loop: poll every N seconds, detect auth errors from log file tailing or exit codes
 auto-switch trigger: if active account fails health probe → score → switch to best
 CLI commands: daemon start/stop/status; watch (attach to running daemon output)
-daemon runs as detached child process, logs to ~/.vscode-rotator/daemon.log
-config file: ~/.vscode-rotator/config.json with poll interval, thresholds, agent paths
+daemon runs as detached child process, logs to ~/.vscode-rotator/daemon.log (Strategic Learning Unified Theatre runtime)
+config file: ~/.vscode-rotator/config.json (Strategic Learning Unified Theatre configuration) with poll interval, thresholds, agent paths
 sprint prompt
-Continue "vscode-rotator". Sprints 1+2 complete (store, encrypt, switcher, lock, vscode process control).
+Continue "strategic-learning-unified-theatre". Sprints 1+2 complete (store, encrypt, switcher, lock, vscode process control).
 
 SPRINT 3 SCOPE — watcher daemon + auto-rotation.
 
@@ -57,4 +57,5 @@ New deliverables:
 6. cli: add commands "daemon start | stop | status | watch" + "health" (one-shot probe all accounts)
 
 Write tests for scorer edge cases (all accounts on cooldown → throw with helpful message).
+
 

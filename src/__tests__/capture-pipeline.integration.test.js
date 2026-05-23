@@ -13,7 +13,7 @@ describe('Capture Pipeline Integration', () => {
 
   beforeEach(async () => {
     // Create temp directories
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'vscode-rotator-capture-int-'));
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'strategic-learning-unified-theatre-capture-int-'));
     const browserResponsesDir = path.join(tempDir, '.vscode-rotator', 'browser-responses');
     await fs.mkdir(browserResponsesDir, { recursive: true });
 

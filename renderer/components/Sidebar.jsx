@@ -22,7 +22,7 @@ export default function Sidebar({ active, onSelect }) {
 
   return (
     <div className="w-52 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
-      <div className="p-4 font-semibold">VSCode Rotator</div>
+      <div className="p-4 font-semibold">Strategic Learning Unified Theatre</div>
       <nav className="flex-1">
         {items.map((it) => (
           <button

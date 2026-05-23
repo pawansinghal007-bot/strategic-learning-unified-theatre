@@ -1,36 +1,36 @@
 {
-  "name": "vscode-rotator-extension",
-  "displayName": "VSCode Rotator Assistant",
-  "description": "A small VS Code extension scaffold for the VSCode Rotator project.",
+  "name": "strategic-learning-unified-theatre-extension",
+  "displayName": "Strategic Learning Unified Theatre Assistant",
+  "description": "A VS Code extension scaffold for the Strategic Learning Unified Theatre project.",
   "version": "0.0.1",
-  "publisher": "vscode-rotator",
+  "publisher": "strategic-learning-unified-theatre",
   "engines": {
     "vscode": "^1.80.0"
   },
   "main": "extension.js",
   "activationEvents": [
-    "onCommand:vscode-rotator.showKnowledgeGraph",
-    "onCommand:vscode-rotator.openLlmPanel",
-    "onCommand:vscode-rotator.ingestStagedSignals",
-    "onCommand:vscode-rotator.togglePassiveLearning"
+    "onCommand:strategic-learning-unified-theatre.showKnowledgeGraph",
+    "onCommand:strategic-learning-unified-theatre.openLlmPanel",
+    "onCommand:strategic-learning-unified-theatre.ingestStagedSignals",
+    "onCommand:strategic-learning-unified-theatre.togglePassiveLearning"
   ],
   "contributes": {
     "commands": [
       {
-        "command": "vscode-rotator.showKnowledgeGraph",
-        "title": "VSCode Rotator: Export Knowledge Graph"
+        "command": "strategic-learning-unified-theatre.showKnowledgeGraph",
+        "title": "Strategic Learning Unified Theatre: Export Knowledge Graph"
       },
       {
-        "command": "vscode-rotator.openLlmPanel",
-        "title": "VSCode Rotator: Open LLM Assistant Panel"
+        "command": "strategic-learning-unified-theatre.openLlmPanel",
+        "title": "Strategic Learning Unified Theatre: Open LLM Assistant Panel"
       },
       {
-        "command": "vscode-rotator.ingestStagedSignals",
-        "title": "VSCode Rotator: Flush Staged Learning Signals"
+        "command": "strategic-learning-unified-theatre.ingestStagedSignals",
+        "title": "Strategic Learning Unified Theatre: Flush Staged Learning Signals"
       },
       {
-        "command": "vscode-rotator.togglePassiveLearning",
-        "title": "VSCode Rotator: Toggle Passive Learning"
+        "command": "strategic-learning-unified-theatre.togglePassiveLearning",
+        "title": "Strategic Learning Unified Theatre: Toggle Passive Learning"
       }
     ]
   }

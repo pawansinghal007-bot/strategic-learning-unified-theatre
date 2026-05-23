@@ -51,8 +51,8 @@ describe("VscodeSignalCollector", () => {
       const commands = extensionPackage.contributes.commands.map((command) => command.command);
       const activationEvents = extensionPackage.activationEvents;
 
-      expect(commands).toContain("vscode-rotator.ingestStagedSignals");
-      expect(activationEvents).toContain("onCommand:vscode-rotator.ingestStagedSignals");
+      expect(commands).toContain("strategic-learning-unified-theatre.ingestStagedSignals");
+      expect(activationEvents).toContain("onCommand:strategic-learning-unified-theatre.ingestStagedSignals");
     });
   });
 

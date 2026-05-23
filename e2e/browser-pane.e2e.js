@@ -7,7 +7,7 @@ describe('E2E: Browser Pane Integration', () => {
   let tempDir;
 
   beforeEach(async () => {
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'vscode-rotator-e2e-'));
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'strategic-learning-unified-theatre-e2e-'));
     process.env.HOME = tempDir;
   });
 
@@ -19,7 +19,7 @@ describe('E2E: Browser Pane Integration', () => {
 
   describe('BrowserPane class', () => {
     it('initializes with correct defaults', async () => {
-      const { BrowserPane } = await import('../../electron-ui/browser-pane.cjs');
+      const { BrowserPane } = await import('../electron-ui/browser-pane.cjs');
 
       const mockWindow = {
         getContentBounds: () => ({ width: 1000, height: 600 }),
@@ -43,7 +43,7 @@ describe('E2E: Browser Pane Integration', () => {
     });
 
     it('supports all four platforms', async () => {
-      const { BrowserPane } = await import('../../electron-ui/browser-pane.cjs');
+      const { BrowserPane } = await import('../electron-ui/browser-pane.cjs');
 
       const mockWindow = {
         getContentBounds: () => ({ width: 1000, height: 600 }),
@@ -61,7 +61,7 @@ describe('E2E: Browser Pane Integration', () => {
     });
 
     it('computes bounds correctly', async () => {
-      const { BrowserPane } = await import('../../electron-ui/browser-pane.cjs');
+      const { BrowserPane } = await import('../electron-ui/browser-pane.cjs');
 
       const mockWindow = {
         getContentBounds: () => ({ width: 1200, height: 800 }),
@@ -71,14 +71,14 @@ describe('E2E: Browser Pane Integration', () => {
       const pane = new BrowserPane(mockWindow);
       const bounds = pane.getBounds();
 
-      expect(bounds.x).toBe(0);
+      expect(bounds.x).toBe(220);
       expect(bounds.y).toBe(80); // toolbar height
-      expect(bounds.width).toBe(1200);
+      expect(bounds.width).toBe(980);
       expect(bounds.height).toBe(720); // 800 - 80
     });
 
     it('validates platform names', async () => {
-      const { BrowserPane } = await import('../../electron-ui/browser-pane.cjs');
+      const { BrowserPane } = await import('../electron-ui/browser-pane.cjs');
 
       const mockWindow = {
         getContentBounds: () => ({ width: 1000, height: 600 }),
@@ -97,7 +97,7 @@ describe('E2E: Browser Pane Integration', () => {
 
   describe('Capture handlers integration', () => {
     it('registers capture:response handler', async () => {
-      const { registerCaptureHandlers } = await import('../../electron-ui/ipc/capture-handlers.cjs');
+      const { registerCaptureHandlers } = await import('../electron-ui/ipc/capture-handlers.cjs');
 
       const handlers = {};
       const mockIpcMain = {
@@ -119,7 +119,7 @@ describe('E2E: Browser Pane Integration', () => {
     });
 
     it('validates all required fields in payload', async () => {
-      const { registerCaptureHandlers } = await import('../../electron-ui/ipc/capture-handlers.cjs');
+      const { registerCaptureHandlers } = await import('../electron-ui/ipc/capture-handlers.cjs');
 
       const handlers = {};
       const mockIpcMain = {
@@ -171,7 +171,7 @@ describe('E2E: Browser Pane Integration', () => {
 
   describe('Browser selectors', () => {
     it('exports all four platform selectors', async () => {
-      const { SELECTORS } = await import('../../src/browser-selectors.js');
+      const { SELECTORS } = await import('../src/browser-selectors.js');
 
       expect(SELECTORS).toHaveProperty('chatgpt');
       expect(SELECTORS).toHaveProperty('claude');
@@ -180,7 +180,7 @@ describe('E2E: Browser Pane Integration', () => {
     });
 
     it('each selector has required properties', async () => {
-      const { SELECTORS } = await import('../../src/browser-selectors.js');
+      const { SELECTORS } = await import('../src/browser-selectors.js');
 
       for (const platform of Object.keys(SELECTORS)) {
         const selector = SELECTORS[platform];
@@ -193,7 +193,7 @@ describe('E2E: Browser Pane Integration', () => {
     });
 
     it('loadOverrides works with runtime config', async () => {
-      const { loadOverrides, SELECTORS } = await import('../../src/browser-selectors.js');
+      const { loadOverrides, SELECTORS } = await import('../src/browser-selectors.js');
 
       const overridesPath = path.join(tempDir, 'selectors.json');
       const overrides = {
@@ -245,7 +245,7 @@ describe('E2E: Browser Pane Integration', () => {
 
   describe('IPC event flow', () => {
     it('emits capture:done with correct payload shape', async () => {
-      const { registerCaptureHandlers } = await import('../../electron-ui/ipc/capture-handlers.cjs');
+      const { registerCaptureHandlers } = await import('../electron-ui/ipc/capture-handlers.cjs');
 
       const handlers = {};
       const mockIpcMain = {
@@ -293,7 +293,7 @@ describe('E2E: Browser Pane Integration', () => {
 
   describe('File system operations', () => {
     it('creates browser-responses directory if missing', async () => {
-      const { registerCaptureHandlers } = await import('../../electron-ui/ipc/capture-handlers.cjs');
+      const { registerCaptureHandlers } = await import('../electron-ui/ipc/capture-handlers.cjs');
 
       const handlers = {};
       const mockIpcMain = {

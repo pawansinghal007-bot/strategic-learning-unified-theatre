@@ -110,7 +110,7 @@ describe("Local Dev-LLM", () => {
     });
     const result = await generator.generate({
       goal: "Add REST endpoint for account health",
-      project: "vscode-rotator",
+      project: "strategic-learning-unified-theatre",
       platform: "chatgpt"
     });
 
@@ -157,7 +157,7 @@ describe("Local Dev-LLM", () => {
     };
 
     const generator = new PromptGenerator({ baseDir: tempDir, inference: mockInference, embeddings: mockEmbeddings });
-    await generator.generate({ goal: "Leverage recent chatgpt response", project: "vscode-rotator", platform: "chatgpt" });
+    await generator.generate({ goal: "Leverage recent chatgpt response", project: "strategic-learning-unified-theatre", platform: "chatgpt" });
 
     expect(mockInference.generate).toHaveBeenCalled();
     const systemPrompt = mockInference.generate.mock.calls[0][0].system;
@@ -292,7 +292,7 @@ describe("Local Dev-LLM", () => {
     };
 
     const generator = new PromptGenerator({ baseDir: tempDir, inference: mockInference, embeddings: mockEmbeddings });
-    const context = await generator.buildContext({ goal: "test goal", project: "vscode-rotator", platform: "chatgpt" });
+    const context = await generator.buildContext({ goal: "test goal", project: "strategic-learning-unified-theatre", platform: "chatgpt" });
 
     expect(context.system).toContain("Helpful LLM response content.");
     expect(context.system).toContain("Project documentation content.");
@@ -315,7 +315,7 @@ describe("Local Dev-LLM", () => {
     };
 
     const generator = new PromptGenerator({ db: mockDb, inference: mockInference, embeddings: mockEmbeddings });
-    await generator.buildContext({ goal: "Use browser thread", project: "vscode-rotator", platform: "chatgpt" });
+    await generator.buildContext({ goal: "Use browser thread", project: "strategic-learning-unified-theatre", platform: "chatgpt" });
 
     expect(mockDb.getThreadContext).toHaveBeenCalledWith("Use browser thread", "chatgpt");
   });
@@ -347,7 +347,7 @@ describe("Local Dev-LLM", () => {
     };
 
     const generator = new PromptGenerator({ db: mockDb, inference: mockInference, embeddings: mockEmbeddings });
-    const context = await generator.buildContext({ goal: "test goal", project: "vscode-rotator", platform: "chatgpt" });
+    const context = await generator.buildContext({ goal: "test goal", project: "strategic-learning-unified-theatre", platform: "chatgpt" });
 
     const threadIndex = context.system.indexOf("Thread chunk content.");
     const responseIndex = context.system.indexOf("LLM response content.");
@@ -388,7 +388,7 @@ describe("Local Dev-LLM", () => {
     };
 
     const generator = new PromptGenerator({ db: mockDb, inference: mockInference, embeddings: mockEmbeddings });
-    const context = await generator.buildContext({ goal: "relevant thread", project: "vscode-rotator", platform: "chatgpt" });
+    const context = await generator.buildContext({ goal: "relevant thread", project: "strategic-learning-unified-theatre", platform: "chatgpt" });
 
     const threadIndex = context.system.indexOf("Relevant thread chunk content.");
     const docIndex = context.system.indexOf("Unrelated documentation content.");
@@ -414,7 +414,7 @@ describe("Local Dev-LLM", () => {
     };
 
     const generator = new PromptGenerator({ db: mockDb, inference: mockInference, embeddings: mockEmbeddings });
-    const context = await generator.buildContext({ goal: "Ask without platform", project: "vscode-rotator" });
+    const context = await generator.buildContext({ goal: "Ask without platform", project: "strategic-learning-unified-theatre" });
 
     expect(context.system).toContain("You are an expert software developer");
     expect(context.system).toContain("Target platform: chatgpt");
@@ -922,7 +922,7 @@ Machine learning is a branch of AI that enables systems to learn from data.
 
       const mockInference = { generate: vi.fn().mockResolvedValue("generated prompt") };
       const generator = new PromptGenerator({ baseDir: tempDir, inference: mockInference });
-      await generator.generate({ goal: "machine learning", project: "vscode-rotator", platform: "chatgpt" });
+      await generator.generate({ goal: "machine learning", project: "strategic-learning-unified-theatre", platform: "chatgpt" });
 
       const systemPrompt = mockInference.generate.mock.calls[0][0].system;
       expect(systemPrompt).toContain("## Past conversation context");
@@ -995,7 +995,7 @@ Machine learning is a branch of AI that enables systems to learn from data.
       const generator = new PromptGenerator({ baseDir: tempDir, inference: mockInference });
       const result = await generator.generate({
         goal: "understand X",
-        project: "vscode-rotator",
+        project: "strategic-learning-unified-theatre",
         platform: "chatgpt"
       });
 
@@ -1005,3 +1005,4 @@ Machine learning is a branch of AI that enables systems to learn from data.
     });
   });
 });
+

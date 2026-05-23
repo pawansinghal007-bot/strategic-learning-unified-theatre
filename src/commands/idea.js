@@ -51,7 +51,7 @@ async function getBodyWithEditor(template) {
   const editor = process.env.EDITOR;
   if (!editor) return null;
 
-  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "vscode-rotator-idea-"));
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "strategic-learning-unified-theatre-idea-"));
   const tempFile = path.join(tempDir, "idea.md");
   await fs.writeFile(tempFile, template, "utf8");
 

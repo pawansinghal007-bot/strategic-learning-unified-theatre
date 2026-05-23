@@ -25,7 +25,7 @@ describe("encrypt/decrypt", () => {
 
 describe("AccountStore", () => {
   it("adds, lists, and removes accounts with persistence", async () => {
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "vscode-rotator-"));
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "strategic-learning-unified-theatre-"));
     const storePath = path.join(dir, "accounts.enc");
 
     const store1 = new AccountStore({ storePath });
@@ -54,7 +54,7 @@ describe("AccountStore", () => {
   });
 
   it("updates an account by id", async () => {
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "vscode-rotator-"));
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "strategic-learning-unified-theatre-"));
     const storePath = path.join(dir, "accounts.enc");
 
     const store = new AccountStore({ storePath });

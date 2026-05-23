@@ -165,7 +165,7 @@ test("stageSignal rejects diagnostics with severity > 0 (Warnings)", async () =>
 test("flush creates a staging file and returns results", async () => {
   const { VscodeSignalCollector } = await import("./vscode-extension/collector.js");
 
-  const tmpDir = path.join(os.tmpdir(), `vscode-rotator-test-${Date.now()}`);
+  const tmpDir = path.join(os.tmpdir(), `strategic-learning-unified-theatre-test-${Date.now()}`);
   const mockOutput = { appendLine: () => {} };
   const collector = new VscodeSignalCollector(mockOutput, {
     vscodeLearn: { enabled: true, stagedSignalsDir: tmpDir, flushIntervalMs: 30000 }

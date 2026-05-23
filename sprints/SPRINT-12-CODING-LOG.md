@@ -28,7 +28,7 @@
 - Persistent collector instance created during activate()
 - Event listeners registered via collector.activate(vscode)
 - Disposable pattern for cleanup on deactivate()
-- Manual flush command: `vscode-rotator.ingestStagedSignals`
+- Manual flush command: `strategic-learning-unified-theatre.ingestStagedSignals`
 - Fallback: Creates ad-hoc collector if persistent instance unavailable
 
 ### Signal Types Implemented
@@ -102,7 +102,7 @@ Status: No regressions detected
 1. **vscode-extension/collector.js** — Added activate() method with event listeners
 2. **vscode-extension/extension.js** — Added persistent collector initialization
 3. **smoke-test-sprint12.js** (new) — 12 comprehensive smoke tests
-4. **vscode-rotator-master-instructions.md** — Updated with Sprint 12 progress
+4. **strategic-learning-unified-theatre-master-instructions.md** — Updated with Sprint 12 progress
 
 ## Next Steps (Testing Phase)
 
@@ -149,7 +149,7 @@ Rationale: Sprint 12 now captures passive learning signals, but the highest imme
 ### Sprint 13 Resume Prompt
 
 ```text
-You are continuing sprint 5e37736e-d51c-48e5-9df3-25e199c457bb on vscode-rotator.
+You are continuing sprint 5e37736e-d51c-48e5-9df3-25e199c457bb on strategic-learning-unified-theatre.
 Goal: Sprint 12 - VS Code Passive Learning
 Completed:
 - None
@@ -169,7 +169,7 @@ Start by fixing the failing tests, then continue with pending tasks in priority 
 - Implemented `VscodeContextCollector` in `vscode-extension/collector.js` and preserved compatibility by exporting `VscodeSignalCollector` as an alias.
 - Updated `collector.flush()` to write staging files atomically with temporary `.tmp` files and rename, then chmod `600`.
 - Added optional `cliPath` support so the collector can call `node src/cli.js llm ingest-staged` after flushing.
-- Added `vscode-rotator.togglePassiveLearning` to `vscode-extension/extension.js` and `vscode-extension/package.json`.
+- Added `strategic-learning-unified-theatre.togglePassiveLearning` to `vscode-extension/extension.js` and `vscode-extension/package.json`.
 - Extended `src/config.js` with `excludePatterns` and `hardExcludePatterns` for passive VS Code learning.
 - Kept the existing `llm ingest-staged` CLI command path intact while Wiring the collector into extension activation.
 
@@ -190,8 +190,9 @@ Start by fixing the failing tests, then continue with pending tasks in priority 
 
 ## Files Updated in this pass
 
-- `vscode-rotator-master-instructions.md` — appended Sprint 12 summary and updated Last Updated test count.
+- `strategic-learning-unified-theatre-master-instructions.md` — appended Sprint 12 summary and updated Last Updated test count.
 - `Solution/sprints/SPRINT-12-SNAPSHOT.md` — new snapshot file (hand-off concise summary).
 - `Solution/sprints/SPRINT-12-CODING-LOG.md` — appended post-verification notes (this change).
+
 
 

@@ -9,7 +9,7 @@ import { CooldownScheduler } from "../../src/scheduler.js";
 
 describe("e2e rotation", () => {
   it("switches to the next best account when current fails health probe", async () => {
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "vscode-rotator-e2e-"));
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "strategic-learning-unified-theatre-e2e-"));
     const storePath = path.join(dir, "accounts.enc");
     const cooldownPath = path.join(dir, "cooldowns.json");
 

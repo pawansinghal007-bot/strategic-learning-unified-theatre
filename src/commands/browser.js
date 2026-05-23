@@ -22,12 +22,19 @@ import {
 } from "../browser-bridge.js";
 import { DocumentIngester } from "../llm/document-ingester.js";
 
-export async function captureAndIngest(platform, outputDir) {
+export async function captureAndIngest(platform, options = {}) {
+  const { outputDir = null, headless = false, timeout = 60000 } = options;
   await ensureBrowserDirs();
-  const result = await captureThread(platform, { outputDir });
+  const result = await captureThread(platform, { outputDir, headless, timeout });
   const ingester = new DocumentIngester();
   const ingestResult = await ingester.ingestThread(result.filePath, { platform: result.platform });
-  return { filename: result.filename, turns: result.turns, platform: result.platform, filePath: result.filePath, chunksIngested: ingestResult.chunks };
+  return {
+    filename: result.filename,
+    turns: result.turns,
+    platform: result.platform,
+    filePath: result.filePath,
+    chunksIngested: ingestResult.chunks
+  };
 }
 
 function accumulate(value, previous) {
@@ -56,7 +63,7 @@ export function bindBrowserCommands(program) {
     .requiredOption("--platform <name>", "Platform (chatgpt|claude|perplexity|gemini)")
     .option("--prompt <text>", "Prompt text")
     .option("--file <path>", "Read prompt from file")
-    .option("--browser <type>", "Browser type (chromium|firefox)", "chromium")
+    .option("--browser <type>", "Browser type (chromium|firefox|brave)", "chromium")
     .option("--headless", "Run in headless mode", false)
     .option("--dry-run", "Show what would be sent without opening browser", false)
     .action(async (options) => {
@@ -105,7 +112,7 @@ export function bindBrowserCommands(program) {
     .description("Send same prompt to multiple platforms and compare")
     .requiredOption("--prompt <text>", "Prompt text")
     .requiredOption("--platforms <list>", "Comma-separated platform list (chatgpt,claude,perplexity,gemini)")
-    .option("--browser <type>", "Browser type (chromium|firefox)", "chromium")
+    .option("--browser <type>", "Browser type (chromium|firefox|brave)", "chromium")
     .option("--headless", "Run in headless mode", false)
     .option("--dry-run", "Show what would be sent", false)
     .action(async (options) => {
@@ -294,7 +301,7 @@ export function bindBrowserCommands(program) {
     .command("login")
     .description("Log in to a platform and save credentials")
     .requiredOption("--platform <name>", "Platform (chatgpt|claude|perplexity|gemini)")
-    .option("--browser <type>", "Browser type (chromium|firefox)", "chromium")
+    .option("--browser <type>", "Browser type (chromium|firefox|brave)", "chromium")
     .option("--timeout <ms>", "Max wait time", "60000")
     .action(async (options) => {
       const spinner = ora("Launching browser...").start();
@@ -316,6 +323,46 @@ export function bindBrowserCommands(program) {
     });
 
   browser
+    .command("login-capture")
+    .description("Log in to a platform and then capture a full thread in one flow")
+    .requiredOption("--platform <name>", "Platform (chatgpt|claude|perplexity|gemini)")
+    .option("--browser <type>", "Browser type (chromium|firefox|brave)", "chromium")
+    .option("--timeout <ms>", "Max wait time for login and capture", "60000")
+    .option("--output-dir <path>", "Directory to save captured thread")
+    .option("--headless", "Run capture headless after login", false)
+    .action(async (options) => {
+      const spinner = ora("Starting login+capture flow...").start();
+      try {
+        await ensureBrowserDirs();
+
+        spinner.text = `Logging in to ${options.platform}...`;
+        await loginToPage({
+          platform: options.platform,
+          browserType: options.browser,
+          timeout: parseInt(options.timeout, 10)
+        });
+
+        spinner.text = `Capturing thread from ${options.platform}...`;
+        const { filename, turns, platform, chunksIngested } = await captureAndIngest(
+          options.platform,
+          {
+            outputDir: options.outputDir,
+            headless: Boolean(options.headless),
+            timeout: parseInt(options.timeout, 10)
+          }
+        );
+
+        spinner.succeed(`Captured ${turns.length} turns from ${platform}.`);
+        console.log(chalk.green(`Response saved to ${filename}`));
+        console.log(chalk.green(`Ingested ${chunksIngested} chunks.`));
+      } catch (err) {
+        spinner.stop();
+        console.error(chalk.red(String(err?.message ?? err)));
+        process.exitCode = 1;
+      }
+    });
+
+  browser
     .command("capture")
     .description("Capture a full conversation thread from a browser tab")
     .requiredOption("--platform <name>", "Platform (chatgpt|claude|perplexity|gemini)")
@@ -330,7 +377,10 @@ export function bindBrowserCommands(program) {
 
         const { filename, turns, platform, chunksIngested } = await captureAndIngest(
           options.platform,
-          options.outputDir || undefined
+          {
+            outputDir: options.outputDir,
+            headless: false
+          }
         );
 
         spinner.succeed(`Captured ${turns.length} turns from ${platform}.`);

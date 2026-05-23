@@ -12,7 +12,7 @@ describe("e2e response feedback", () => {
   let originalHome;
 
   beforeEach(async () => {
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "vscode-rotator-e2e-"));
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "strategic-learning-unified-theatre-e2e-"));
     originalHome = process.env.HOME;
     process.env.HOME = tempDir;
   });
@@ -98,7 +98,7 @@ describe("e2e response feedback", () => {
     };
 
     const generator = new PromptGenerator({ db, inference: mockInference, embeddings: mockEmbeddings });
-    const context = await generator.buildContext({ goal: "test flow", project: "vscode-rotator", platform: "chatgpt" });
+    const context = await generator.buildContext({ goal: "test flow", project: "strategic-learning-unified-theatre", platform: "chatgpt" });
 
     const firstIndex = context.system.indexOf("High quality response content.");
     const secondIndex = context.system.indexOf("Low quality response content.");
@@ -108,3 +108,4 @@ describe("e2e response feedback", () => {
     expect(firstIndex).toBeLessThan(secondIndex);
   });
 });
+

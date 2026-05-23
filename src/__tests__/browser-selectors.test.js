@@ -66,7 +66,7 @@ describe('browser-selectors.js', () => {
     let tempDir;
 
     beforeEach(async () => {
-      tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'vscode-rotator-selectors-'));
+      tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'strategic-learning-unified-theatre-selectors-'));
     });
 
     afterEach(async () => {

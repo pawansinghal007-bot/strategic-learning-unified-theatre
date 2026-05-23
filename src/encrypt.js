@@ -83,7 +83,7 @@ function getMachineId() {
 function getKey() {
   if (keyCache) return keyCache;
   const machineId = getMachineId();
-  keyCache = crypto.scryptSync(machineId, "vscode-rotator", 32);
+  keyCache = crypto.scryptSync(machineId, "strategic-learning-unified-theatre", 32);
   return keyCache;
 }
 
@@ -129,3 +129,4 @@ export function decrypt({ iv, tag, ciphertext }) {
 
   return plaintext.toString("utf8");
 }
+

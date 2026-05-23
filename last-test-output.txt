@@ -1,0 +1,1071 @@
+
+> strategic-learning-unified-theatre@0.1.0 test
+> cross-env VSCODE_ROTATOR_MOCK_LLM=1 NODE_OPTIONS=--max-old-space-size=8192 vitest run
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.7 [39m[90mC:/SW Development/VS Code Agent/Solution[39m
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mhappy path: capture event triggers atomic write, ingestion, and emission
+[22m[39m[capture-handlers] registering handlers
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mhappy path: capture event triggers atomic write, ingestion, and emission
+[22m[39m[capture:response] received payload from https://claude.ai/
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mhappy path: capture event triggers atomic write, ingestion, and emission
+[22m[39m[capture:response] wrote file: C:\Users\PAWANS~1\AppData\Local\Temp\strategic-learning-unified-theatre-capture-int-L9HvFq\.vscode-rotator\browser-responses\2026-05-23T19-38-14-893Z-claude.md
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mhappy path: capture event triggers atomic write, ingestion, and emission
+[22m[39m[capture:response] ingestion result: {
+  path: [32m'C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-L9HvFq\\.vscode-rotator\\browser-responses\\2026-05-23T19-38-14-893Z-claude.md'[39m,
+  chunks: [33m1[39m,
+  skipped: [33mfalse[39m
+}
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mduplicate ingestion: second capture overwrites file and detects duplicate
+[22m[39m[capture-handlers] registering handlers
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mduplicate ingestion: second capture overwrites file and detects duplicate
+[22m[39m[capture:response] received payload from https://gemini.google.com/
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mduplicate ingestion: second capture overwrites file and detects duplicate
+[22m[39m[capture:response] wrote file: C:\Users\PAWANS~1\AppData\Local\Temp\strategic-learning-unified-theatre-capture-int-Lb5Sif\.vscode-rotator\browser-responses\2001-09-09T01-46-40-000Z-gemini.md
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mduplicate ingestion: second capture overwrites file and detects duplicate
+[22m[39m[capture:response] ingestion result: {
+  path: [32m'C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-Lb5Sif\\.vscode-rotator\\browser-responses\\2001-09-09T01-46-40-000Z-gemini.md'[39m,
+  chunks: [33m1[39m,
+  skipped: [33mfalse[39m
+}
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mduplicate ingestion: second capture overwrites file and detects duplicate
+[22m[39m[capture:response] received payload from https://gemini.google.com/
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mduplicate ingestion: second capture overwrites file and detects duplicate
+[22m[39m[capture:response] wrote file: C:\Users\PAWANS~1\AppData\Local\Temp\strategic-learning-unified-theatre-capture-int-Lb5Sif\.vscode-rotator\browser-responses\2001-09-09T01-46-40-000Z-gemini.md
+
+[90mstdout[2m | tests/browser-bridge.test.js[2m > [22m[2mBrowser Bridge[2m > [22m[2mResponse management[2m > [22m[2mwrites browser responses atomically with tmp ÔåÆ fsync ÔåÆ rename ÔåÆ chmod
+[22m[39m[browser-bridge] ingested 2026-05-24T01-08-15-chatgpt.md ÔåÆ 1 chunks
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mduplicate ingestion: second capture overwrites file and detects duplicate
+[22m[39m[capture:response] ingestion result: {
+  path: [32m'C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-Lb5Sif\\.vscode-rotator\\browser-responses\\2001-09-09T01-46-40-000Z-gemini.md'[39m,
+  chunks: [33m1[39m,
+  skipped: [33mfalse[39m
+}
+
+[90mstdout[2m | tests/browser-bridge.test.js[2m > [22m[2mBrowser Bridge[2m > [22m[2mResponse management[2m > [22m[2mdoes not ingest compare report files
+[22m[39m[browser-bridge] ingested 2026-05-24T01-08-15-chatgpt.md ÔåÆ 1 chunks
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mmultiple platforms: captures to different files and ingests independently
+[22m[39m[capture-handlers] registering handlers
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mmultiple platforms: captures to different files and ingests independently
+[22m[39m[capture:response] received payload from https://test.com/
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mmultiple platforms: captures to different files and ingests independently
+[22m[39m[capture:response] wrote file: C:\Users\PAWANS~1\AppData\Local\Temp\strategic-learning-unified-theatre-capture-int-PviWBY\.vscode-rotator\browser-responses\2026-05-23T19-38-15-585Z-chatgpt.md
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mmultiple platforms: captures to different files and ingests independently
+[22m[39m[capture:response] ingestion result: {
+  path: [32m'C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-PviWBY\\.vscode-rotator\\browser-responses\\2026-05-23T19-38-15-585Z-chatgpt.md'[39m,
+  chunks: [33m1[39m,
+  skipped: [33mfalse[39m
+}
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mmultiple platforms: captures to different files and ingests independently
+[22m[39m[capture:response] received payload from https://test.com/
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mmultiple platforms: captures to different files and ingests independently
+[22m[39m[capture:response] wrote file: C:\Users\PAWANS~1\AppData\Local\Temp\strategic-learning-unified-theatre-capture-int-PviWBY\.vscode-rotator\browser-responses\2026-05-23T19-38-15-586Z-claude.md
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mmultiple platforms: captures to different files and ingests independently
+[22m[39m[capture:response] ingestion result: {
+  path: [32m'C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-PviWBY\\.vscode-rotator\\browser-responses\\2026-05-23T19-38-15-586Z-claude.md'[39m,
+  chunks: [33m1[39m,
+  skipped: [33mfalse[39m
+}
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mmultiple platforms: captures to different files and ingests independently
+[22m[39m[capture:response] received payload from https://test.com/
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mmultiple platforms: captures to different files and ingests independently
+[22m[39m[capture:response] wrote file: C:\Users\PAWANS~1\AppData\Local\Temp\strategic-learning-unified-theatre-capture-int-PviWBY\.vscode-rotator\browser-responses\2026-05-23T19-38-15-587Z-gemini.md
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mmultiple platforms: captures to different files and ingests independently
+[22m[39m[capture:response] ingestion result: {
+  path: [32m'C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-PviWBY\\.vscode-rotator\\browser-responses\\2026-05-23T19-38-15-587Z-gemini.md'[39m,
+  chunks: [33m1[39m,
+  skipped: [33mfalse[39m
+}
+
+stderr | tests/browser-bridge.test.js > Browser Bridge > Response ingestion hook > does not throw when ingestion fails
+[browser-bridge] browser response ingestion failed: ingest failure
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mmultiple platforms: captures to different files and ingests independently
+[22m[39m[capture:response] received payload from https://test.com/
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mmultiple platforms: captures to different files and ingests independently
+[22m[39m[capture:response] wrote file: C:\Users\PAWANS~1\AppData\Local\Temp\strategic-learning-unified-theatre-capture-int-PviWBY\.vscode-rotator\browser-responses\2026-05-23T19-38-15-588Z-perplexity.md
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mmultiple platforms: captures to different files and ingests independently
+[22m[39m[capture:response] ingestion result: {
+  path: [32m'C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-PviWBY\\.vscode-rotator\\browser-responses\\2026-05-23T19-38-15-588Z-perplexity.md'[39m,
+  chunks: [33m1[39m,
+  skipped: [33mfalse[39m
+}
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mmalformed payload: discarded without file creation or ingestion
+[22m[39m[capture-handlers] registering handlers
+
+stderr | src/__tests__/capture-pipeline.integration.test.js > Capture Pipeline Integration > malformed payload: discarded without file creation or ingestion
+[capture:response] invalid payload shape: { platform: 'claude', text: 'Missing html' }
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mmalformed payload: discarded without file creation or ingestion
+[22m[39m[capture:response] received payload from https://test.com/
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mmalformed payload: discarded without file creation or ingestion
+[22m[39m[capture:response] received payload from https://test.com/
+
+stderr | src/__tests__/capture-pipeline.integration.test.js > Capture Pipeline Integration > malformed payload: discarded without file creation or ingestion
+[capture:response] invalid payload shape: { platform: 'claude', html: '<div></div>', url: 'test' }
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mmalformed payload: discarded without file creation or ingestion
+[22m[39m[capture:response] received payload from https://test.com/
+
+stderr | src/__tests__/capture-pipeline.integration.test.js > Capture Pipeline Integration > malformed payload: discarded without file creation or ingestion
+[capture:response] invalid payload shape: { html: '<div></div>', text: 'Test' }
+
+[90mstdout[2m | tests/local-llm.test.js[2m > [22m[2mLocal Dev-LLM[2m > [22m[2mgenerates prompts with document, sprint, idea, and rubric context
+[22m[39mLIST IDEA DIR: C:\SW Development\VS Code Agent\Solution\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/local-llm.test.js[2m > [22m[2mLocal Dev-LLM[2m > [22m[2mgenerates prompts with document, sprint, idea, and rubric context
+[22m[39mDIR DOES NOT EXIST
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mmalformed payload: discarded without file creation or ingestion
+[22m[39m[capture:response] received payload from https://test.com/
+
+stderr | src/__tests__/capture-pipeline.integration.test.js > Capture Pipeline Integration > malformed payload: discarded without file creation or ingestion
+[capture:response] invalid payload shape: null
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mmalformed payload: discarded without file creation or ingestion
+[22m[39m[capture:response] received payload from https://test.com/
+
+stderr | src/__tests__/capture-pipeline.integration.test.js > Capture Pipeline Integration > malformed payload: discarded without file creation or ingestion
+[capture:response] invalid payload shape: undefined
+
+[90mstdout[2m | tests/local-llm.test.js[2m > [22m[2mLocal Dev-LLM[2m > [22m[2mpersists source_type and platform and prepends recent LLM responses
+[22m[39mLIST IDEA DIR: C:\SW Development\VS Code Agent\Solution\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/local-llm.test.js[2m > [22m[2mLocal Dev-LLM[2m > [22m[2mpersists source_type and platform and prepends recent LLM responses
+[22m[39mDIR DOES NOT EXIST
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mlarge response text: ingested correctly with multiple chunks
+[22m[39m[capture-handlers] registering handlers
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mlarge response text: ingested correctly with multiple chunks
+[22m[39m[capture:response] received payload from https://www.perplexity.ai/
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mlarge response text: ingested correctly with multiple chunks
+[22m[39m[capture:response] wrote file: C:\Users\PAWANS~1\AppData\Local\Temp\strategic-learning-unified-theatre-capture-int-E1j1NA\.vscode-rotator\browser-responses\2026-05-23T19-38-16-516Z-perplexity.md
+
+[90mstdout[2m | tests/local-llm.test.js[2m > [22m[2mLocal Dev-LLM[2m > [22m[2mbuildContext includes llm-response chunk content
+[22m[39mLIST IDEA DIR: C:\SW Development\VS Code Agent\Solution\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/local-llm.test.js[2m > [22m[2mLocal Dev-LLM[2m > [22m[2mbuildContext includes llm-response chunk content
+[22m[39mDIR DOES NOT EXIST
+
+[90mstdout[2m | tests/local-llm.test.js[2m > [22m[2mLocal Dev-LLM[2m > [22m[2mqueries topic-aware thread context with goal and platform
+[22m[39mLIST IDEA DIR: C:\SW Development\VS Code Agent\Solution\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/local-llm.test.js[2m > [22m[2mLocal Dev-LLM[2m > [22m[2mqueries topic-aware thread context with goal and platform
+[22m[39mDIR DOES NOT EXIST
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mlarge response text: ingested correctly with multiple chunks
+[22m[39m[capture:response] ingestion result: {
+  path: [32m'C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-E1j1NA\\.vscode-rotator\\browser-responses\\2026-05-23T19-38-16-516Z-perplexity.md'[39m,
+  chunks: [33m6[39m,
+  skipped: [33mfalse[39m
+}
+
+[90mstdout[2m | tests/local-llm.test.js[2m > [22m[2mLocal Dev-LLM[2m > [22m[2mrenders thread chunks before recent LLM responses in the system prompt
+[22m[39mLIST IDEA DIR: C:\SW Development\VS Code Agent\Solution\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/local-llm.test.js[2m > [22m[2mLocal Dev-LLM[2m > [22m[2mrenders thread chunks before recent LLM responses in the system prompt
+[22m[39mDIR DOES NOT EXIST
+
+[90mstdout[2m | tests/local-llm.test.js[2m > [22m[2mLocal Dev-LLM[2m > [22m[2mincludes thread chunks before unrelated document chunks in buildContext
+[22m[39mLIST IDEA DIR: C:\SW Development\VS Code Agent\Solution\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/local-llm.test.js[2m > [22m[2mLocal Dev-LLM[2m > [22m[2mincludes thread chunks before unrelated document chunks in buildContext
+[22m[39mDIR DOES NOT EXIST
+
+[90mstdout[2m | tests/local-llm.test.js[2m > [22m[2mLocal Dev-LLM[2m > [22m[2mfalls back gracefully when no platform is specified
+[22m[39mLIST IDEA DIR: C:\SW Development\VS Code Agent\Solution\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/local-llm.test.js[2m > [22m[2mLocal Dev-LLM[2m > [22m[2mfalls back gracefully when no platform is specified
+[22m[39mDIR DOES NOT EXIST
+
+stderr | tests/browser-bridge.test.js > Browser Bridge > Conversation thread capture > returns correct thread capture result structure
+[browser-bridge] No thread selectors for chatgpt; using defaults
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mrapid successive captures: all processed and files created
+[22m[39m[capture-handlers] registering handlers
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mrapid successive captures: all processed and files created
+[22m[39m[capture:response] received payload from https://test.com/
+[capture:response] received payload from https://test.com/
+[capture:response] received payload from https://test.com/
+[capture:response] received payload from https://test.com/
+[capture:response] received payload from https://test.com/
+[capture:response] received payload from https://test.com/
+[capture:response] received payload from https://test.com/
+[capture:response] received payload from https://test.com/
+[capture:response] received payload from https://test.com/
+[capture:response] received payload from https://test.com/
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mrapid successive captures: all processed and files created
+[22m[39m[capture:response] wrote file: C:\Users\PAWANS~1\AppData\Local\Temp\strategic-learning-unified-theatre-capture-int-invaSv\.vscode-rotator\browser-responses\2026-05-23T19-38-16-815Z-claude.md
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mrapid successive captures: all processed and files created
+[22m[39m[capture:response] wrote file: C:\Users\PAWANS~1\AppData\Local\Temp\strategic-learning-unified-theatre-capture-int-invaSv\.vscode-rotator\browser-responses\2026-05-23T19-38-16-819Z-claude.md
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mrapid successive captures: all processed and files created
+[22m[39m[capture:response] wrote file: C:\Users\PAWANS~1\AppData\Local\Temp\strategic-learning-unified-theatre-capture-int-invaSv\.vscode-rotator\browser-responses\2026-05-23T19-38-16-817Z-claude.md
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mrapid successive captures: all processed and files created
+[22m[39m[capture:response] wrote file: C:\Users\PAWANS~1\AppData\Local\Temp\strategic-learning-unified-theatre-capture-int-invaSv\.vscode-rotator\browser-responses\2026-05-23T19-38-16-812Z-claude.md
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mrapid successive captures: all processed and files created
+[22m[39m[capture:response] wrote file: C:\Users\PAWANS~1\AppData\Local\Temp\strategic-learning-unified-theatre-capture-int-invaSv\.vscode-rotator\browser-responses\2026-05-23T19-38-16-814Z-claude.md
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mrapid successive captures: all processed and files created
+[22m[39m[capture:response] wrote file: C:\Users\PAWANS~1\AppData\Local\Temp\strategic-learning-unified-theatre-capture-int-invaSv\.vscode-rotator\browser-responses\2026-05-23T19-38-16-818Z-claude.md
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mrapid successive captures: all processed and files created
+[22m[39m[capture:response] wrote file: C:\Users\PAWANS~1\AppData\Local\Temp\strategic-learning-unified-theatre-capture-int-invaSv\.vscode-rotator\browser-responses\2026-05-23T19-38-16-813Z-claude.md
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mrapid successive captures: all processed and files created
+[22m[39m[capture:response] wrote file: C:\Users\PAWANS~1\AppData\Local\Temp\strategic-learning-unified-theatre-capture-int-invaSv\.vscode-rotator\browser-responses\2026-05-23T19-38-16-821Z-claude.md
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mrapid successive captures: all processed and files created
+[22m[39m[capture:response] wrote file: C:\Users\PAWANS~1\AppData\Local\Temp\strategic-learning-unified-theatre-capture-int-invaSv\.vscode-rotator\browser-responses\2026-05-23T19-38-16-816Z-claude.md
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mrapid successive captures: all processed and files created
+[22m[39m[capture:response] wrote file: C:\Users\PAWANS~1\AppData\Local\Temp\strategic-learning-unified-theatre-capture-int-invaSv\.vscode-rotator\browser-responses\2026-05-23T19-38-16-820Z-claude.md
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mrapid successive captures: all processed and files created
+[22m[39m[capture:response] ingestion result: {
+  path: [32m'C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-invaSv\\.vscode-rotator\\browser-responses\\2026-05-23T19-38-16-815Z-claude.md'[39m,
+  chunks: [33m1[39m,
+  skipped: [33mfalse[39m
+}
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mrapid successive captures: all processed and files created
+[22m[39m[capture:response] ingestion result: {
+  path: [32m'C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-invaSv\\.vscode-rotator\\browser-responses\\2026-05-23T19-38-16-817Z-claude.md'[39m,
+  chunks: [33m1[39m,
+  skipped: [33mfalse[39m
+}
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mrapid successive captures: all processed and files created
+[22m[39m[capture:response] ingestion result: {
+  path: [32m'C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-invaSv\\.vscode-rotator\\browser-responses\\2026-05-23T19-38-16-819Z-claude.md'[39m,
+  chunks: [33m1[39m,
+  skipped: [33mfalse[39m
+}
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mrapid successive captures: all processed and files created
+[22m[39m[capture:response] ingestion result: {
+  path: [32m'C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-invaSv\\.vscode-rotator\\browser-responses\\2026-05-23T19-38-16-814Z-claude.md'[39m,
+  chunks: [33m1[39m,
+  skipped: [33mfalse[39m
+}
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mrapid successive captures: all processed and files created
+[22m[39m[capture:response] ingestion result: {
+  path: [32m'C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-invaSv\\.vscode-rotator\\browser-responses\\2026-05-23T19-38-16-818Z-claude.md'[39m,
+  chunks: [33m1[39m,
+  skipped: [33mfalse[39m
+}
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mrapid successive captures: all processed and files created
+[22m[39m[capture:response] ingestion result: {
+  path: [32m'C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-invaSv\\.vscode-rotator\\browser-responses\\2026-05-23T19-38-16-812Z-claude.md'[39m,
+  chunks: [33m1[39m,
+  skipped: [33mfalse[39m
+}
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mrapid successive captures: all processed and files created
+[22m[39m[capture:response] ingestion result: {
+  path: [32m'C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-invaSv\\.vscode-rotator\\browser-responses\\2026-05-23T19-38-16-821Z-claude.md'[39m,
+  chunks: [33m1[39m,
+  skipped: [33mfalse[39m
+}
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mrapid successive captures: all processed and files created
+[22m[39m[capture:response] ingestion result: {
+  path: [32m'C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-invaSv\\.vscode-rotator\\browser-responses\\2026-05-23T19-38-16-813Z-claude.md'[39m,
+  chunks: [33m1[39m,
+  skipped: [33mfalse[39m
+}
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mrapid successive captures: all processed and files created
+[22m[39m[capture:response] ingestion result: {
+  path: [32m'C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-invaSv\\.vscode-rotator\\browser-responses\\2026-05-23T19-38-16-820Z-claude.md'[39m,
+  chunks: [33m1[39m,
+  skipped: [33mfalse[39m
+}
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mrapid successive captures: all processed and files created
+[22m[39m[capture:response] ingestion result: {
+  path: [32m'C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-invaSv\\.vscode-rotator\\browser-responses\\2026-05-23T19-38-16-816Z-claude.md'[39m,
+  chunks: [33m1[39m,
+  skipped: [33mfalse[39m
+}
+
+ [32mÔ£ô[39m src/__tests__/capture-pipeline.integration.test.js [2m([22m[2m6 tests[22m[2m)[22m[33m 2440[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m happy path: capture event triggers atomic write, ingestion, and emission [33m 550[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m duplicate ingestion: second capture overwrites file and detects duplicate [33m 434[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m multiple platforms: captures to different files and ingests independently [33m 603[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m malformed payload: discarded without file creation or ingestion [33m 327[2mms[22m[39m
+- Capturing conversation thread from chatgpt...
+stderr | tests/browser-bridge.test.js > Browser Bridge > CLI integration (capture & ingest) > executes browser capture --platform chatgpt --thread via CLI smoke test
+[browser-bridge] No thread selectors for chatgpt; using defaults
+
+Ô£ö Captured 2 turns from chatgpt.
+ [32mÔ£ô[39m tests/browser-bridge.test.js [2m([22m[2m41 tests[22m[2m)[22m[33m 2415[2mms[22m[39m
+       [33m[2mÔ£ô[22m[39m skips ingestion when browserResponsesIngest is false [33m 343[2mms[22m[39m
+       [33m[2mÔ£ô[22m[39m prints summary with turn and chunk counts [33m 458[2mms[22m[39m
+[90mstdout[2m | tests/local-llm.test.js[2m > [22m[2mLocal Dev-LLM[2m > [22m[2mConversation thread ingestion[2m > [22m[2mskips ingesting a thread file twice and preserves existing chunks
+[22m[39m[document-ingester] ingestThread skipped; already ingested: C:\Users\PAWANS~1\AppData\Local\Temp\local-llm-test-AHzc4r\.vscode-rotator\browser-responses\2026-05-20T12-00-00-chatgpt-thread.md
+
+[90mstdout[2m | tests/local-llm.test.js[2m > [22m[2mLocal Dev-LLM[2m > [22m[2mConversation thread ingestion[2m > [22m[2mincludes past conversation context before project documents in generated prompts
+[22m[39mLIST IDEA DIR: C:\SW Development\VS Code Agent\Solution\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/local-llm.test.js[2m > [22m[2mLocal Dev-LLM[2m > [22m[2mConversation thread ingestion[2m > [22m[2mincludes past conversation context before project documents in generated prompts
+[22m[39mDIR DOES NOT EXIST
+
+[90mstdout[2m | tests/local-llm.test.js[2m > [22m[2mLocal Dev-LLM[2m > [22m[2mConversation thread ingestion[2m > [22m[2menhance command generates a prompt with goal context
+[22m[39mLIST IDEA DIR: C:\SW Development\VS Code Agent\Solution\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/local-llm.test.js[2m > [22m[2mLocal Dev-LLM[2m > [22m[2mConversation thread ingestion[2m > [22m[2menhance command generates a prompt with goal context
+[22m[39mDIR DOES NOT EXIST
+
+ [32mÔ£ô[39m tests/local-llm.test.js [2m([22m[2m35 tests[22m[2m)[22m[33m 2532[2mms[22m[39m
+ [32mÔ£ô[39m tests/llm/ollama-inference.test.js [2m([22m[2m4 tests[22m[2m | [22m[33m1 skipped[39m[2m)[22m[33m 988[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m verifies Ollama runtime successfully [33m 975[2mms[22m[39m
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mcreateIdea[2m > [22m[2mcreates an idea with valid metadata
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-uQ9gxv\.vscode-rotator\ideas\2026-05-23-test-idea.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mcreateIdea[2m > [22m[2mextracts title from body
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-vZZVHL\.vscode-rotator\ideas\2026-05-23-my-feature-idea.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mcreateIdea[2m > [22m[2muses default values for optional fields
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-fq9BaA\.vscode-rotator\ideas\2026-05-23-test.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mcreateIdea[2m > [22m[2mnormalizes tags from string or array
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-e2hwBI\.vscode-rotator\ideas\2026-05-23-test.md
+
+ [32mÔ£ô[39m tests/e2e/rotation.test.js [2m([22m[2m1 test[22m[2m)[22m[33m 1198[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m switches to the next best account when current fails health probe [33m 1194[2mms[22m[39m
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mlists all ideas
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-y2auV0\.vscode-rotator\ideas\2026-05-23-idea-1.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mlists all ideas
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-y2auV0\.vscode-rotator\ideas\2026-05-23-idea-2.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mlists all ideas
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-y2auV0\.vscode-rotator\ideas\2026-05-23-idea-3.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mlists all ideas
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-y2auV0\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mlists all ideas
+[22m[39mFOUND FILES: [
+  [32m'2026-05-23-idea-1.md'[39m,
+  [32m'2026-05-23-idea-2.md'[39m,
+  [32m'2026-05-23-idea-3.md'[39m
+]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mfilters ideas by project
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-4o3qaH\.vscode-rotator\ideas\2026-05-23-idea-1.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mfilters ideas by project
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-4o3qaH\.vscode-rotator\ideas\2026-05-23-idea-2.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mfilters ideas by project
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-4o3qaH\.vscode-rotator\ideas\2026-05-23-idea-3.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mfilters ideas by project
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-4o3qaH\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mfilters ideas by project
+[22m[39mFOUND FILES: [
+  [32m'2026-05-23-idea-1.md'[39m,
+  [32m'2026-05-23-idea-2.md'[39m,
+  [32m'2026-05-23-idea-3.md'[39m
+]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mfilters ideas by status
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-g3mn7L\.vscode-rotator\ideas\2026-05-23-idea-1.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mfilters ideas by status
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-g3mn7L\.vscode-rotator\ideas\2026-05-23-idea-2.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mfilters ideas by status
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-g3mn7L\.vscode-rotator\ideas\2026-05-23-idea-3.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mfilters ideas by status
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-g3mn7L\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mfilters ideas by status
+[22m[39mFOUND FILES: [
+  [32m'2026-05-23-idea-1.md'[39m,
+  [32m'2026-05-23-idea-2.md'[39m,
+  [32m'2026-05-23-idea-3.md'[39m
+]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mfilters ideas by tag
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-JKQHFV\.vscode-rotator\ideas\2026-05-23-idea-1.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mfilters ideas by tag
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-JKQHFV\.vscode-rotator\ideas\2026-05-23-idea-2.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mfilters ideas by tag
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-JKQHFV\.vscode-rotator\ideas\2026-05-23-idea-3.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mfilters ideas by tag
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-JKQHFV\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mfilters ideas by tag
+[22m[39mFOUND FILES: [
+  [32m'2026-05-23-idea-1.md'[39m,
+  [32m'2026-05-23-idea-2.md'[39m,
+  [32m'2026-05-23-idea-3.md'[39m
+]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mcombines multiple filters
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-nFvImk\.vscode-rotator\ideas\2026-05-23-idea-1.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mcombines multiple filters
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-nFvImk\.vscode-rotator\ideas\2026-05-23-idea-2.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mcombines multiple filters
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-nFvImk\.vscode-rotator\ideas\2026-05-23-idea-3.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mcombines multiple filters
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-nFvImk\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mcombines multiple filters
+[22m[39mFOUND FILES: [
+  [32m'2026-05-23-idea-1.md'[39m,
+  [32m'2026-05-23-idea-2.md'[39m,
+  [32m'2026-05-23-idea-3.md'[39m
+]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2msorts ideas by creation date (newest first)
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-kqCe2f\.vscode-rotator\ideas\2026-05-23-idea-1.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2msorts ideas by creation date (newest first)
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-kqCe2f\.vscode-rotator\ideas\2026-05-23-idea-2.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2msorts ideas by creation date (newest first)
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-kqCe2f\.vscode-rotator\ideas\2026-05-23-idea-3.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2msorts ideas by creation date (newest first)
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-kqCe2f\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2msorts ideas by creation date (newest first)
+[22m[39mFOUND FILES: [
+  [32m'2026-05-23-idea-1.md'[39m,
+  [32m'2026-05-23-idea-2.md'[39m,
+  [32m'2026-05-23-idea-3.md'[39m
+]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mreturns empty array for non-existent directory
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-y7qsT4\.vscode-rotator\ideas\2026-05-23-idea-1.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mreturns empty array for non-existent directory
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-y7qsT4\.vscode-rotator\ideas\2026-05-23-idea-2.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mreturns empty array for non-existent directory
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-y7qsT4\.vscode-rotator\ideas\2026-05-23-idea-3.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mreturns empty array for non-existent directory
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-y7qsT4\nonexistent\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mreturns empty array for non-existent directory
+[22m[39mDIR DOES NOT EXIST
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mfindIdeaById[2m > [22m[2mfinds an idea by its id
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-5EoMDe\.vscode-rotator\ideas\2026-05-23-test-idea.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mfindIdeaById[2m > [22m[2mfinds an idea by its id
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-5EoMDe\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mfindIdeaById[2m > [22m[2mfinds an idea by its id
+[22m[39mFOUND FILES: [ [32m'2026-05-23-test-idea.md'[39m ]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mfindIdeaById[2m > [22m[2mthrows when idea not found
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-vQ4OnQ\.vscode-rotator\ideas\2026-05-23-test-idea.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mfindIdeaById[2m > [22m[2mthrows when idea not found
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-vQ4OnQ\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mfindIdeaById[2m > [22m[2mthrows when idea not found
+[22m[39mFOUND FILES: [ [32m'2026-05-23-test-idea.md'[39m ]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mupdateIdea[2m > [22m[2mupdates idea status
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-9ei4WI\.vscode-rotator\ideas\2026-05-23-original.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mupdateIdea[2m > [22m[2mupdates idea status
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-9ei4WI\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mupdateIdea[2m > [22m[2mupdates idea status
+[22m[39mFOUND FILES: [ [32m'2026-05-23-original.md'[39m ]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mupdateIdea[2m > [22m[2mupdates idea status
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-9ei4WI\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mupdateIdea[2m > [22m[2mupdates idea status
+[22m[39mFOUND FILES: [ [32m'2026-05-23-original.md'[39m ]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mupdateIdea[2m > [22m[2mupdates idea tags
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-snPSvq\.vscode-rotator\ideas\2026-05-23-original.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mupdateIdea[2m > [22m[2mupdates idea tags
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-snPSvq\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mupdateIdea[2m > [22m[2mupdates idea tags
+[22m[39mFOUND FILES: [ [32m'2026-05-23-original.md'[39m ]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mupdateIdea[2m > [22m[2mupdates idea priority
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-uzP4dm\.vscode-rotator\ideas\2026-05-23-original.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mupdateIdea[2m > [22m[2mupdates idea priority
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-uzP4dm\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mupdateIdea[2m > [22m[2mupdates idea priority
+[22m[39mFOUND FILES: [ [32m'2026-05-23-original.md'[39m ]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mupdateIdea[2m > [22m[2mupdates idea body
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-IuO7EQ\.vscode-rotator\ideas\2026-05-23-original.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mupdateIdea[2m > [22m[2mupdates idea body
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-IuO7EQ\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mupdateIdea[2m > [22m[2mupdates idea body
+[22m[39mFOUND FILES: [ [32m'2026-05-23-original.md'[39m ]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mupdateIdea[2m > [22m[2mupdates idea body
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-IuO7EQ\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mupdateIdea[2m > [22m[2mupdates idea body
+[22m[39mFOUND FILES: [ [32m'2026-05-23-original.md'[39m ]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mupdateIdea[2m > [22m[2mpreserves unmodified fields
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-dnlhuS\.vscode-rotator\ideas\2026-05-23-original.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mupdateIdea[2m > [22m[2mpreserves unmodified fields
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-dnlhuS\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mupdateIdea[2m > [22m[2mpreserves unmodified fields
+[22m[39mFOUND FILES: [ [32m'2026-05-23-original.md'[39m ]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mmarkIdeaDone[2m > [22m[2mmarks an idea as done
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-SEB8xl\.vscode-rotator\ideas\2026-05-23-task.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mmarkIdeaDone[2m > [22m[2mmarks an idea as done
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-SEB8xl\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mmarkIdeaDone[2m > [22m[2mmarks an idea as done
+[22m[39mFOUND FILES: [ [32m'2026-05-23-task.md'[39m ]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mmarkIdeaDone[2m > [22m[2mmarks an idea as done
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-SEB8xl\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mmarkIdeaDone[2m > [22m[2mmarks an idea as done
+[22m[39mFOUND FILES: [ [32m'2026-05-23-task.md'[39m ]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlinkIdeaToSprint[2m > [22m[2mlinks an idea to a sprint
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-mNRz8k\.vscode-rotator\ideas\2026-05-23-sprint-task.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlinkIdeaToSprint[2m > [22m[2mlinks an idea to a sprint
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-mNRz8k\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlinkIdeaToSprint[2m > [22m[2mlinks an idea to a sprint
+[22m[39mFOUND FILES: [ [32m'2026-05-23-sprint-task.md'[39m ]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlinkIdeaToSprint[2m > [22m[2mlinks an idea to a sprint
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-mNRz8k\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlinkIdeaToSprint[2m > [22m[2mlinks an idea to a sprint
+[22m[39mFOUND FILES: [ [32m'2026-05-23-sprint-task.md'[39m ]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlinkIdeaToSprint[2m > [22m[2mallows updating linkedSprint
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-BT8CRl\.vscode-rotator\ideas\2026-05-23-idea.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlinkIdeaToSprint[2m > [22m[2mallows updating linkedSprint
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-BT8CRl\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlinkIdeaToSprint[2m > [22m[2mallows updating linkedSprint
+[22m[39mFOUND FILES: [ [32m'2026-05-23-idea.md'[39m ]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mexports active ideas for project
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-bLYQIn\.vscode-rotator\ideas\2026-05-23-feature-request.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mexports active ideas for project
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-bLYQIn\.vscode-rotator\ideas\2026-05-23-bug-fix.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mexports active ideas for project
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-bLYQIn\.vscode-rotator\ideas\2026-05-23-done-idea.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mexports active ideas for project
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-bLYQIn\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mexports active ideas for project
+[22m[39mFOUND FILES: [
+  [32m'2026-05-23-bug-fix.md'[39m,
+  [32m'2026-05-23-done-idea.md'[39m,
+  [32m'2026-05-23-feature-request.md'[39m
+]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mtrims body to 500 chars if needed
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-pG1BOA\.vscode-rotator\ideas\2026-05-23-feature-request.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mtrims body to 500 chars if needed
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-pG1BOA\.vscode-rotator\ideas\2026-05-23-bug-fix.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mtrims body to 500 chars if needed
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-pG1BOA\.vscode-rotator\ideas\2026-05-23-done-idea.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mtrims body to 500 chars if needed
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-pG1BOA\.vscode-rotator\ideas\2026-05-23-very-long-idea.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mtrims body to 500 chars if needed
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-pG1BOA\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mtrims body to 500 chars if needed
+[22m[39mFOUND FILES: [
+  [32m'2026-05-23-bug-fix.md'[39m,
+  [32m'2026-05-23-done-idea.md'[39m,
+  [32m'2026-05-23-feature-request.md'[39m,
+  [32m'2026-05-23-very-long-idea.md'[39m
+]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mreturns empty string when no ideas match filter
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-jgkpI8\.vscode-rotator\ideas\2026-05-23-feature-request.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mreturns empty string when no ideas match filter
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-jgkpI8\.vscode-rotator\ideas\2026-05-23-bug-fix.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mreturns empty string when no ideas match filter
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-jgkpI8\.vscode-rotator\ideas\2026-05-23-done-idea.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mreturns empty string when no ideas match filter
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-jgkpI8\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mreturns empty string when no ideas match filter
+[22m[39mFOUND FILES: [
+  [32m'2026-05-23-bug-fix.md'[39m,
+  [32m'2026-05-23-done-idea.md'[39m,
+  [32m'2026-05-23-feature-request.md'[39m
+]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mexports with different status filters
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-s7BqU6\.vscode-rotator\ideas\2026-05-23-feature-request.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mexports with different status filters
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-s7BqU6\.vscode-rotator\ideas\2026-05-23-bug-fix.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mexports with different status filters
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-s7BqU6\.vscode-rotator\ideas\2026-05-23-done-idea.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mexports with different status filters
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-s7BqU6\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mexports with different status filters
+[22m[39mFOUND FILES: [
+  [32m'2026-05-23-bug-fix.md'[39m,
+  [32m'2026-05-23-done-idea.md'[39m,
+  [32m'2026-05-23-feature-request.md'[39m
+]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mYAML front-matter[2m > [22m[2mstores and retrieves YAML front-matter correctly
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-SXSWX4\.vscode-rotator\ideas\2026-05-23-test.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mYAML front-matter[2m > [22m[2mstores and retrieves YAML front-matter correctly
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-SXSWX4\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mYAML front-matter[2m > [22m[2mstores and retrieves YAML front-matter correctly
+[22m[39mFOUND FILES: [ [32m'2026-05-23-test.md'[39m ]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mYAML front-matter[2m > [22m[2mpreserves UUID format in round-trip
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-7gTskJ\.vscode-rotator\ideas\2026-05-23-test.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mYAML front-matter[2m > [22m[2mpreserves UUID format in round-trip
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-7gTskJ\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mYAML front-matter[2m > [22m[2mpreserves UUID format in round-trip
+[22m[39mFOUND FILES: [ [32m'2026-05-23-test.md'[39m ]
+
+ [32mÔ£ô[39m tests/idea-store.test.js [2m([22m[2m30 tests[22m[2m)[22m[33m 1688[2mms[22m[39m
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mregisters capture:response handler on ipcMain
+[22m[39m[capture-handlers] registering handlers
+
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mprocesses valid payload: writes file, ingests, and emits capture:done
+[22m[39m[capture-handlers] registering handlers
+
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mprocesses valid payload: writes file, ingests, and emits capture:done
+[22m[39m[capture:response] received payload from https://claude.ai/
+
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mprocesses valid payload: writes file, ingests, and emits capture:done
+[22m[39m[capture:response] wrote file: C:\Users\PAWANS~1\AppData\Local\Temp\strategic-learning-unified-theatre-capture-9KClnr\.vscode-rotator\browser-responses\2021-05-14T13-46-40-000Z-claude.md
+
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mprocesses valid payload: writes file, ingests, and emits capture:done
+[22m[39m[capture:response] ingestion result: {
+  path: [32m'C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-9KClnr\\test.md'[39m,
+  chunks: [33m5[39m,
+  skipped: [33mfalse[39m
+}
+
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mdiscards payload with missing platform field
+[22m[39m[capture-handlers] registering handlers
+
+stderr | electron-ui/__tests__/capture-handlers.test.js > capture-handlers.cjs > discards payload with missing platform field
+[capture:response] invalid payload shape: {
+  html: '<div>Hello</div>',
+  text: 'Hello',
+  url: 'https://claude.ai/',
+  ts: 1621000000000
+}
+
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mdiscards payload with missing platform field
+[22m[39m[capture:response] received payload from https://test.com/
+
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mdiscards payload with missing text field
+[22m[39m[capture-handlers] registering handlers
+
+stderr | electron-ui/__tests__/capture-handlers.test.js > capture-handlers.cjs > discards payload with missing text field
+[capture:response] invalid payload shape: {
+  platform: 'claude',
+  html: '<div>Hello</div>',
+  url: 'https://claude.ai/',
+  ts: 1621000000000
+}
+
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mdiscards payload with missing text field
+[22m[39m[capture:response] received payload from https://test.com/
+
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mdiscards payload with missing html field
+[22m[39m[capture-handlers] registering handlers
+
+stderr | electron-ui/__tests__/capture-handlers.test.js > capture-handlers.cjs > discards payload with missing html field
+[capture:response] invalid payload shape: {
+  platform: 'claude',
+  text: 'Hello',
+  url: 'https://claude.ai/',
+  ts: 1621000000000
+}
+
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mdiscards payload with missing html field
+[22m[39m[capture:response] received payload from https://test.com/
+
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mdiscards payload with missing url field
+[22m[39m[capture-handlers] registering handlers
+
+stderr | electron-ui/__tests__/capture-handlers.test.js > capture-handlers.cjs > discards payload with missing url field
+[capture:response] invalid payload shape: {
+  platform: 'claude',
+  html: '<div>Hello</div>',
+  text: 'Hello',
+  ts: 1621000000000
+}
+
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mdiscards payload with missing url field
+[22m[39m[capture:response] received payload from https://test.com/
+
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mdiscards payload with missing ts field
+[22m[39m[capture-handlers] registering handlers
+
+stderr | electron-ui/__tests__/capture-handlers.test.js > capture-handlers.cjs > discards payload with missing ts field
+[capture:response] invalid payload shape: {
+  platform: 'claude',
+  html: '<div>Hello</div>',
+  text: 'Hello',
+  url: 'https://claude.ai/'
+}
+
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mdiscards payload with missing ts field
+[22m[39m[capture:response] received payload from https://test.com/
+
+ [32mÔ£ô[39m tests/switcher.test.js [2m([22m[2m2 tests[22m[2m)[22m[33m 1445[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m dry-run returns a plan without writing [33m 1422[2mms[22m[39m
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mcatches ingestFile rejection and logs error without crashing
+[22m[39m[capture-handlers] registering handlers
+
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mcatches ingestFile rejection and logs error without crashing
+[22m[39m[capture:response] received payload from https://claude.ai/
+
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mcatches ingestFile rejection and logs error without crashing
+[22m[39m[capture:response] wrote file: C:\Users\PAWANS~1\AppData\Local\Temp\strategic-learning-unified-theatre-capture-PrbaMy\.vscode-rotator\browser-responses\2021-05-14T13-46-40-000Z-claude.md
+
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mwrites file with correct filename pattern browser-responses/<ts>-<platform>.md
+[22m[39m[capture-handlers] registering handlers
+
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mwrites file with correct filename pattern browser-responses/<ts>-<platform>.md
+[22m[39m[capture:response] received payload from https://gemini.google.com/
+
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mwrites file with correct filename pattern browser-responses/<ts>-<platform>.md
+[22m[39m[capture:response] wrote file: C:\Users\PAWANS~1\AppData\Local\Temp\strategic-learning-unified-theatre-capture-yjq05E\.vscode-rotator\browser-responses\2021-05-14T13-46-40-000Z-gemini.md
+
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mwrites file with correct filename pattern browser-responses/<ts>-<platform>.md
+[22m[39m[capture:response] ingestion result: {
+  path: [32m'C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-yjq05E\\test.md'[39m,
+  chunks: [33m5[39m,
+  skipped: [33mfalse[39m
+}
+
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mcapture:done payload contains platform, chunks, and skipped fields
+[22m[39m[capture-handlers] registering handlers
+
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mcapture:done payload contains platform, chunks, and skipped fields
+[22m[39m[capture:response] received payload from https://chat.openai.com/
+
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mcapture:done payload contains platform, chunks, and skipped fields
+[22m[39m[capture:response] wrote file: C:\Users\PAWANS~1\AppData\Local\Temp\strategic-learning-unified-theatre-capture-lT0epS\.vscode-rotator\browser-responses\2021-05-14T13-46-40-000Z-chatgpt.md
+
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mcapture:done payload contains platform, chunks, and skipped fields
+[22m[39m[capture:response] ingestion result: {
+  path: [32m'C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-lT0epS\\test.md'[39m,
+  chunks: [33m3[39m,
+  skipped: [33mfalse[39m
+}
+
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2msets file permissions to 600 on written file
+[22m[39m[capture-handlers] registering handlers
+
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2msets file permissions to 600 on written file
+[22m[39m[capture:response] received payload from https://www.perplexity.ai/
+
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2msets file permissions to 600 on written file
+[22m[39m[capture:response] wrote file: C:\Users\PAWANS~1\AppData\Local\Temp\strategic-learning-unified-theatre-capture-IZok7S\.vscode-rotator\browser-responses\2021-05-14T13-46-40-000Z-perplexity.md
+
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2msets file permissions to 600 on written file
+[22m[39m[capture:response] ingestion result: {
+  path: [32m'C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-IZok7S\\test.md'[39m,
+  chunks: [33m5[39m,
+  skipped: [33mfalse[39m
+}
+
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mformats Markdown content with platform, URL, and timestamp
+[22m[39m[capture-handlers] registering handlers
+
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mformats Markdown content with platform, URL, and timestamp
+[22m[39m[capture:response] received payload from https://claude.ai/chat
+
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mformats Markdown content with platform, URL, and timestamp
+[22m[39m[capture:response] wrote file: C:\Users\PAWANS~1\AppData\Local\Temp\strategic-learning-unified-theatre-capture-LvSjI0\.vscode-rotator\browser-responses\2021-05-14T13-46-40-000Z-claude.md
+
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mformats Markdown content with platform, URL, and timestamp
+[22m[39m[capture:response] ingestion result: {
+  path: [32m'C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-LvSjI0\\test.md'[39m,
+  chunks: [33m5[39m,
+  skipped: [33mfalse[39m
+}
+
+ [32mÔ£ô[39m electron-ui/__tests__/capture-handlers.test.js [2m([22m[2m12 tests[22m[2m)[22m[33m 1305[2mms[22m[39m
+ [32mÔ£ô[39m tests/store.test.js [2m([22m[2m4 tests[22m[2m)[22m[33m 1430[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m round-trips plaintext [33m 1266[2mms[22m[39m
+[90mstdout[2m | e2e/browser-pane.e2e.js[2m > [22m[2mE2E: Browser Pane Integration[2m > [22m[2mBrowserPane class[2m > [22m[2minitializes with correct defaults
+[22m[39m[browser-pane] initialized; WebContentsView available: [33mfalse[39m
+
+[90mstdout[2m | e2e/browser-pane.e2e.js[2m > [22m[2mE2E: Browser Pane Integration[2m > [22m[2mBrowserPane class[2m > [22m[2msupports all four platforms
+[22m[39m[browser-pane] initialized; WebContentsView available: [33mfalse[39m
+[browser-pane] initialized; WebContentsView available: [33mfalse[39m
+[browser-pane] initialized; WebContentsView available: [33mfalse[39m
+[browser-pane] initialized; WebContentsView available: [33mfalse[39m
+
+[90mstdout[2m | e2e/browser-pane.e2e.js[2m > [22m[2mE2E: Browser Pane Integration[2m > [22m[2mBrowserPane class[2m > [22m[2mcomputes bounds correctly
+[22m[39m[browser-pane] initialized; WebContentsView available: [33mfalse[39m
+
+[90mstdout[2m | e2e/browser-pane.e2e.js[2m > [22m[2mE2E: Browser Pane Integration[2m > [22m[2mBrowserPane class[2m > [22m[2mvalidates platform names
+[22m[39m[browser-pane] initialized; WebContentsView available: [33mfalse[39m
+[browser-pane] switching to platform: claude
+
+[90mstdout[2m | e2e/browser-pane.e2e.js[2m > [22m[2mE2E: Browser Pane Integration[2m > [22m[2mBrowserPane class[2m > [22m[2mvalidates platform names
+[22m[39m[browser-pane] switching to platform: unknown-platform
+
+[90mstdout[2m | e2e/browser-pane.e2e.js[2m > [22m[2mE2E: Browser Pane Integration[2m > [22m[2mCapture handlers integration[2m > [22m[2mregisters capture:response handler
+[22m[39m[capture-handlers] registering handlers
+
+[90mstdout[2m | e2e/browser-pane.e2e.js[2m > [22m[2mE2E: Browser Pane Integration[2m > [22m[2mCapture handlers integration[2m > [22m[2mvalidates all required fields in payload
+[22m[39m[capture-handlers] registering handlers
+
+[90mstdout[2m | e2e/browser-pane.e2e.js[2m > [22m[2mE2E: Browser Pane Integration[2m > [22m[2mCapture handlers integration[2m > [22m[2mvalidates all required fields in payload
+[22m[39m[capture:response] received payload from https://test.com/
+
+[90mstdout[2m | e2e/browser-pane.e2e.js[2m > [22m[2mE2E: Browser Pane Integration[2m > [22m[2mCapture handlers integration[2m > [22m[2mvalidates all required fields in payload
+[22m[39m[capture:response] wrote file: C:\Users\PAWANS~1\AppData\Local\Temp\strategic-learning-unified-theatre-e2e-evWAzi\.vscode-rotator\browser-responses\2026-05-23T19-38-35-554Z-claude.md
+
+[90mstdout[2m | e2e/browser-pane.e2e.js[2m > [22m[2mE2E: Browser Pane Integration[2m > [22m[2mCapture handlers integration[2m > [22m[2mvalidates all required fields in payload
+[22m[39m[capture:response] ingestion result: { chunks: [33m1[39m, skipped: [33mfalse[39m }
+
+stderr | e2e/browser-pane.e2e.js > E2E: Browser Pane Integration > Capture handlers integration > validates all required fields in payload
+[capture:response] invalid payload shape: { html: '<div></div>', text: 'Test', url: 'test', ts: 1779565115565 }
+
+[90mstdout[2m | e2e/browser-pane.e2e.js[2m > [22m[2mE2E: Browser Pane Integration[2m > [22m[2mCapture handlers integration[2m > [22m[2mvalidates all required fields in payload
+[22m[39m[capture:response] received payload from https://test.com/
+
+[90mstdout[2m | e2e/browser-pane.e2e.js[2m > [22m[2mE2E: Browser Pane Integration[2m > [22m[2mCapture handlers integration[2m > [22m[2mvalidates all required fields in payload
+[22m[39m[capture:response] received payload from https://test.com/
+
+stderr | e2e/browser-pane.e2e.js > E2E: Browser Pane Integration > Capture handlers integration > validates all required fields in payload
+[capture:response] invalid payload shape: { platform: 'claude', text: 'Test', url: 'test', ts: 1779565115565 }
+
+[90mstdout[2m | e2e/browser-pane.e2e.js[2m > [22m[2mE2E: Browser Pane Integration[2m > [22m[2mCapture handlers integration[2m > [22m[2mvalidates all required fields in payload
+[22m[39m[capture:response] received payload from https://test.com/
+
+stderr | e2e/browser-pane.e2e.js > E2E: Browser Pane Integration > Capture handlers integration > validates all required fields in payload
+[capture:response] invalid payload shape: {
+  platform: 'claude',
+  html: '<div></div>',
+  url: 'test',
+  ts: 1779565115565
+}
+
+[90mstdout[2m | e2e/browser-pane.e2e.js[2m > [22m[2mE2E: Browser Pane Integration[2m > [22m[2mCapture handlers integration[2m > [22m[2mvalidates all required fields in payload
+[22m[39m[capture:response] received payload from https://test.com/
+
+stderr | e2e/browser-pane.e2e.js > E2E: Browser Pane Integration > Capture handlers integration > validates all required fields in payload
+[capture:response] invalid payload shape: {
+  platform: 'claude',
+  html: '<div></div>',
+  text: 'Test',
+  ts: 1779565115565
+}
+
+[90mstdout[2m | e2e/browser-pane.e2e.js[2m > [22m[2mE2E: Browser Pane Integration[2m > [22m[2mIPC event flow[2m > [22m[2memits capture:done with correct payload shape
+[22m[39m[capture-handlers] registering handlers
+
+[90mstdout[2m | e2e/browser-pane.e2e.js[2m > [22m[2mE2E: Browser Pane Integration[2m > [22m[2mIPC event flow[2m > [22m[2memits capture:done with correct payload shape
+[22m[39m[capture:response] received payload from https://test.com/
+
+[90mstdout[2m | e2e/browser-pane.e2e.js[2m > [22m[2mE2E: Browser Pane Integration[2m > [22m[2mIPC event flow[2m > [22m[2memits capture:done with correct payload shape
+[22m[39m[capture:response] wrote file: C:\Users\PAWANS~1\AppData\Local\Temp\strategic-learning-unified-theatre-e2e-LPA7Dd\.vscode-rotator\browser-responses\2026-05-23T19-38-35-664Z-gemini.md
+
+[90mstdout[2m | e2e/browser-pane.e2e.js[2m > [22m[2mE2E: Browser Pane Integration[2m > [22m[2mIPC event flow[2m > [22m[2memits capture:done with correct payload shape
+[22m[39m[capture:response] ingestion result: { chunks: [33m3[39m, skipped: [33mfalse[39m }
+
+[90mstdout[2m | e2e/browser-pane.e2e.js[2m > [22m[2mE2E: Browser Pane Integration[2m > [22m[2mFile system operations[2m > [22m[2mcreates browser-responses directory if missing
+[22m[39m[capture-handlers] registering handlers
+
+[90mstdout[2m | e2e/browser-pane.e2e.js[2m > [22m[2mE2E: Browser Pane Integration[2m > [22m[2mFile system operations[2m > [22m[2mcreates browser-responses directory if missing
+[22m[39m[capture:response] received payload from https://test.com/
+
+[90mstdout[2m | e2e/browser-pane.e2e.js[2m > [22m[2mE2E: Browser Pane Integration[2m > [22m[2mFile system operations[2m > [22m[2mcreates browser-responses directory if missing
+[22m[39m[capture:response] wrote file: C:\Users\PAWANS~1\AppData\Local\Temp\strategic-learning-unified-theatre-e2e-OEhWj0\.vscode-rotator\browser-responses\2026-05-23T19-38-35-797Z-claude.md
+
+[90mstdout[2m | e2e/browser-pane.e2e.js[2m > [22m[2mE2E: Browser Pane Integration[2m > [22m[2mFile system operations[2m > [22m[2mcreates browser-responses directory if missing
+[22m[39m[capture:response] ingestion result: { chunks: [33m1[39m, skipped: [33mfalse[39m }
+
+ [32mÔ£ô[39m e2e/browser-pane.e2e.js [2m([22m[2m13 tests[22m[2m)[22m[33m 502[2mms[22m[39m
+ [32mÔ£ô[39m tests/ai-memory.test.js [2m([22m[2m4 tests[22m[2m)[22m[33m 618[2mms[22m[39m
+ [32mÔ£ô[39m renderer/__tests__/TrainingStatus.test.jsx [2m([22m[2m16 tests[22m[2m)[22m[33m 449[2mms[22m[39m
+ [32mÔ£ô[39m tests/agent-handoff.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 262[2mms[22m[39m
+ [32mÔ£ô[39m tests/vscode-collector.test.js [2m([22m[2m42 tests[22m[2m)[22m[33m 311[2mms[22m[39m
+ [32mÔ£ô[39m tests/storage-monitor.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 215[2mms[22m[39m
+[90mstdout[2m | tests/knowledge-graph.test.js[2m > [22m[2mKnowledge Graph Export[2m > [22m[2mexports a valid graph JSON file
+[22m[39mIDEA ROOT: C:\Users\PAWANS~1\AppData\Local\Temp\kg-export-W7XMV1
+
+[90mstdout[2m | tests/knowledge-graph.test.js[2m > [22m[2mKnowledge Graph Export[2m > [22m[2mexports a valid graph JSON file
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\kg-export-W7XMV1\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/knowledge-graph.test.js[2m > [22m[2mKnowledge Graph Export[2m > [22m[2mexports a valid graph JSON file
+[22m[39mDIR DOES NOT EXIST
+
+[90mstdout[2m | tests/knowledge-graph.test.js[2m > [22m[2mKnowledge Graph Export[2m > [22m[2mexports a valid graph JSON file
+[22m[39mIDEAS: []
+
+[90mstdout[2m | tests/knowledge-graph.test.js[2m > [22m[2mKnowledge Graph Export[2m > [22m[2mcreates a linkedSprint edge for ideas linked to sprints
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\kg-idea-sprint-gSzxts\.vscode-rotator\ideas\2026-05-23-test-idea.md
+
+[90mstdout[2m | tests/knowledge-graph.test.js[2m > [22m[2mKnowledge Graph Export[2m > [22m[2mcreates a linkedSprint edge for ideas linked to sprints
+[22m[39mIDEA ROOT: C:\Users\PAWANS~1\AppData\Local\Temp\kg-idea-sprint-gSzxts
+
+[90mstdout[2m | tests/knowledge-graph.test.js[2m > [22m[2mKnowledge Graph Export[2m > [22m[2mcreates a linkedSprint edge for ideas linked to sprints
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\kg-idea-sprint-gSzxts\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/knowledge-graph.test.js[2m > [22m[2mKnowledge Graph Export[2m > [22m[2mcreates a linkedSprint edge for ideas linked to sprints
+[22m[39mFOUND FILES: [ [32m'2026-05-23-test-idea.md'[39m ]
+
+[90mstdout[2m | tests/knowledge-graph.test.js[2m > [22m[2mKnowledge Graph Export[2m > [22m[2mcreates a linkedSprint edge for ideas linked to sprints
+[22m[39mIDEAS: [
+  {
+    id: [32m'b7ceeab3-dc4b-47c1-be06-55f1bbd25cd6'[39m,
+    created: [32m'2026-05-23T19:38:47.777Z'[39m,
+    project: [32m'kg-idea-sprint-gSzxts'[39m,
+    tags: [],
+    status: [32m'inbox'[39m,
+    priority: [33m3[39m,
+    linkedSprint: [32m'11111111-1111-4111-8111-111111111111'[39m,
+    body: [32m'Test idea'[39m,
+    filePath: [32m'C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\kg-idea-sprint-gSzxts\\.vscode-rotator\\ideas\\2026-05-23-test-idea.md'[39m
+  }
+]
+
+[90mstdout[2m | tests/knowledge-graph.test.js[2m > [22m[2mKnowledge Graph Export[2m > [22m[2mcreates a promotedTo edge when a mistake is promoted to a rubric rule
+[22m[39mIDEA ROOT: C:\Users\PAWANS~1\AppData\Local\Temp\kg-promoted-rule-RookS9
+
+[90mstdout[2m | tests/knowledge-graph.test.js[2m > [22m[2mKnowledge Graph Export[2m > [22m[2mcreates a promotedTo edge when a mistake is promoted to a rubric rule
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\kg-promoted-rule-RookS9\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/knowledge-graph.test.js[2m > [22m[2mKnowledge Graph Export[2m > [22m[2mcreates a promotedTo edge when a mistake is promoted to a rubric rule
+[22m[39mDIR DOES NOT EXIST
+
+[90mstdout[2m | tests/knowledge-graph.test.js[2m > [22m[2mKnowledge Graph Export[2m > [22m[2mcreates a promotedTo edge when a mistake is promoted to a rubric rule
+[22m[39mIDEAS: []
+
+[90mstdout[2m | tests/knowledge-graph.test.js[2m > [22m[2mKnowledge Graph Export[2m > [22m[2mexports a valid ISO 8601 exportedAt timestamp
+[22m[39mIDEA ROOT: C:\Users\PAWANS~1\AppData\Local\Temp\kg-timestamp-y2yHGe
+
+[90mstdout[2m | tests/knowledge-graph.test.js[2m > [22m[2mKnowledge Graph Export[2m > [22m[2mexports a valid ISO 8601 exportedAt timestamp
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\kg-timestamp-y2yHGe\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/knowledge-graph.test.js[2m > [22m[2mKnowledge Graph Export[2m > [22m[2mexports a valid ISO 8601 exportedAt timestamp
+[22m[39mDIR DOES NOT EXIST
+
+[90mstdout[2m | tests/knowledge-graph.test.js[2m > [22m[2mKnowledge Graph Export[2m > [22m[2mexports a valid ISO 8601 exportedAt timestamp
+[22m[39mIDEAS: []
+
+ [32mÔ£ô[39m tests/knowledge-graph.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 221[2mms[22m[39m
+ [32mÔ£ô[39m src/__tests__/browser-selectors.test.js [2m([22m[2m13 tests[22m[2m)[22m[32m 204[2mms[22m[39m
+ [32mÔ£ô[39m tests/llm/related.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 87[2mms[22m[39m
+ [32mÔ£ô[39m tests/llm/embeddings.test.js [2m([22m[2m6 tests[22m[2m)[22m[33m 313[2mms[22m[39m
+[90mstdout[2m | tests/e2e/response-feedback.test.js[2m > [22m[2me2e response feedback[2m > [22m[2msurfaces quality-ordered llm-response chunks in generated prompt context
+[22m[39mLIST IDEA DIR: C:\SW Development\VS Code Agent\Solution\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/e2e/response-feedback.test.js[2m > [22m[2me2e response feedback[2m > [22m[2msurfaces quality-ordered llm-response chunks in generated prompt context
+[22m[39mDIR DOES NOT EXIST
+
+ [32mÔ£ô[39m tests/e2e/response-feedback.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 150[2mms[22m[39m
+ [32mÔ£ô[39m tests/watcher.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 163[2mms[22m[39m
+[90mstdout[2m | tests/e2e/enhance-schedule.test.js[2m > [22m[2me2e enhance schedule[2m > [22m[2mfull enhance cycle: timer fires -> enhance_cycle emitted -> logged
+[22m[39mcalledWith [ [32m'refactor error handling'[39m, [32m'chatgpt'[39m ] events [33m1[39m
+
+[90mstdout[2m | tests/e2e/enhance-schedule.test.js[2m > [22m[2me2e enhance schedule[2m > [22m[2mfull enhance cycle: timer fires -> enhance_cycle emitted -> logged
+[22m[39mprompt_history length [33m0[39m entries []
+
+ [32mÔ£ô[39m tests/e2e/enhance-schedule.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 79[2mms[22m[39m
+ [32mÔ£ô[39m tests/lock.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 43[2mms[22m[39m
+ [32mÔ£ô[39m tests/workspace.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 47[2mms[22m[39m
+ [32mÔ£ô[39m tests/git-monitor.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32mÔ£ô[39m tests/scorer.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32mÔ£ô[39m tests/test-runner.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32mÔ£ô[39m tests/thread.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 4[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m28 passed[39m[22m[90m (28)[39m
+[2m      Tests [22m [1m[32m263 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (264)[39m
+[2m   Start at [22m 01:08:09
+[2m   Duration [22m 59.12s[2m (transform 2.80s, setup 0ms, import 10.05s, tests 19.15s, environment 118.39s)[22m
+

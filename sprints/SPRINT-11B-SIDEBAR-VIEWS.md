@@ -1,6 +1,6 @@
 # Sprint 11B: VS Code Extension — Sidebar Views & Sprint Integration
 
-**Project**: vscode-rotator  
+**Project**: strategic-learning-unified-theatre  
 **Sprint Goal**: Build Ideas and Related Context tree views; integrate with sprint handoff system  
 **Duration**: 1 week  
 **Status**: PLANNING  
@@ -24,7 +24,7 @@ This sprint focuses on **Phase 2** of the extension roadmap: add sidebar views t
 ## Reference Documents
 
 **Always refer to these before coding:**
-- [vscode-rotator-master-instructions.md](../vscode-rotator-master-instructions.md) — Latest project status
+- [strategic-learning-unified-theatre-master-instructions.md](../strategic-learning-unified-theatre-master-instructions.md) — Latest project status
 - [VSCODE-EXTENSION-BLUEPRINT.md](../VSCODE-EXTENSION-BLUEPRINT.md) — Manifest template, sidebar structure
 - [SPRINT-11A-CORE-COMMANDS.md](./SPRINT-11A-CORE-COMMANDS.md) — Ensure core commands are implemented first
 - `Solution/vscode-extension/extension.js` — From Sprint 11A
@@ -100,13 +100,13 @@ This sprint focuses on **Phase 2** of the extension roadmap: add sidebar views t
    - What's the minimal implementation to show a read-only tree?
 
 2. **CLI Output Validation**  
-   - Run `vscode-rotator idea list --export json` locally and capture output  
-   - Run `vscode-rotator llm related --to "async errors" --limit 5` and capture output format  
+   - Run `strategic-learning-unified-theatre idea list --export json` locally and capture output  
+   - Run `strategic-learning-unified-theatre llm related --to "async errors" --limit 5` and capture output format  
    - Is output valid JSON? Can it be parsed directly by extension?  
    - **Document**: Exact JSON schema for both commands
 
 3. **Handoff Get-Active Format**  
-   - Run `vscode-rotator handoff get-active` and capture output  
+   - Run `strategic-learning-unified-theatre handoff get-active` and capture output  
    - Is it plain text, JSON, or structured key-value?  
    - If plain text, design a simple text-to-object parser (regex or split-by-newline)  
    - **Decide**: Should we add `--json` flag to CLI, or parse existing format?
@@ -114,7 +114,7 @@ This sprint focuses on **Phase 2** of the extension roadmap: add sidebar views t
 4. **UI Layout**  
    - Sketch the sidebar layout in text:  
      ```
-     🧠 VSCode Rotator
+     🧠 Strategic Learning Unified Theatre
        📋 Ideas
          - [HIGH] Add retry logic
          - [MED] Refactor async
@@ -211,7 +211,7 @@ This sprint focuses on **Phase 2** of the extension roadmap: add sidebar views t
 
 8. **Smoke Test**  
    - Open VS Code (`F5`)  
-   - Verify "VSCode Rotator" appears in activity bar  
+   - Verify "Strategic Learning Unified Theatre" appears in activity bar  
    - Click to open sidebar → see Ideas tree (populated or empty gracefully)  
    - Create a test idea → watch Ideas tree refresh  
    - Run `findRelatedContext` → watch Related Context tree populate  
@@ -268,7 +268,7 @@ This sprint focuses on **Phase 2** of the extension roadmap: add sidebar views t
    - Note which commands are ready for Sprint 11C automation  
    - List any CLI changes needed (e.g., `--json` output for consistency)
 
-**Deliverable**: `tests/extension-trees.test.js` + `tests/extension-webview.test.js`, 30+ tests, all passing. Updated `vscode-rotator-master-instructions.md`. Ready for Sprint 11C.
+**Deliverable**: `tests/extension-trees.test.js` + `tests/extension-webview.test.js`, 30+ tests, all passing. Updated `strategic-learning-unified-theatre-master-instructions.md`. Ready for Sprint 11C.
 
 ---
 
@@ -328,7 +328,7 @@ Solution/
 - **VS Code TreeDataProvider API**: https://code.visualstudio.com/api/extension-guides/tree-view  
 - **Webview API**: https://code.visualstudio.com/api/extension-guides/webview  
 - **Blueprint**: [VSCODE-EXTENSION-BLUEPRINT.md](../VSCODE-EXTENSION-BLUEPRINT.md)  
-- **Master Instructions**: [vscode-rotator-master-instructions.md](../vscode-rotator-master-instructions.md)  
+- **Master Instructions**: [strategic-learning-unified-theatre-master-instructions.md](../strategic-learning-unified-theatre-master-instructions.md)  
 
 ---
 
@@ -341,4 +341,5 @@ After Sprint 11B closes:
 
 *Sprint Document Generated: May 21, 2026*  
 *To start: Run PROMPT 1 (Analysis) first — do NOT code yet.*
+
 

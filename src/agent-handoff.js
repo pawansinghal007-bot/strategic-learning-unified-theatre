@@ -99,7 +99,7 @@ function buildResumePrompt(sprint) {
     : "- None";
 
   const prompt = [
-    `You are continuing sprint ${sprint.sprintId} on vscode-rotator.`,
+    `You are continuing sprint ${sprint.sprintId} on strategic-learning-unified-theatre.`,
     `Goal: ${sprint.goal}`,
     `Completed:`,
     completed,

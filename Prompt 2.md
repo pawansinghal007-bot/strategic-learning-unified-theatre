@@ -13,7 +13,7 @@ cli (use cmd)
 tasks
 resolve active auth file paths per agent: ~/.codex/auth.json, VS Code globalStorage, TRAE config
 atomic auth swap: write to temp file → fsync → rename (POSIX atomic replace)
-lock file mechanism: ~/.vscode-rotator/switch.lock to prevent concurrent switches
+lock file mechanism: ~/.vscode-rotator/switch.lock (Strategic Learning Unified Theatre runtime storage)
 VS Code process detection via pgrep / tasklist; graceful SIGTERM then force-kill fallback
 VS Code restart with --profile flag piped to selected account profile
 CLI command: use
@@ -21,12 +21,12 @@ CLI command: use
 dry-run flag: --dry-run prints plan without executing
 integration test with mock auth paths
 sprint prompt
-Continue building "vscode-rotator". Sprint 1 is complete (store, CLI, encrypt).
+Continue building "strategic-learning-unified-theatre". Sprint 1 is complete (store, CLI, encrypt).
 
 SPRINT 2 SCOPE — switcher core.
 
 Context from Sprint 1:
-• AccountStore at src/store.js, accounts.enc at ~/.vscode-rotator/
+• AccountStore at src/store.js, accounts.enc at ~/.vscode-rotator/ (Strategic Learning Unified Theatre encrypted store)
 • CLI root at src/cli.js using commander
 • Account has fields: id, email, agentType, authBlob, status, cooldownUntil
 
@@ -63,4 +63,5 @@ New deliverables:
 
 Target platforms: macOS, Linux, Windows (use os.platform() guards).
 Write tests for atomic write and lock contention.
+
 

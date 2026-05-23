@@ -1,6 +1,6 @@
 # Sprint 11 Analysis Report — Embedded Browser Architecture
 
-**Project**: vscode-rotator  
+**Project**: strategic-learning-unified-theatre  
 **Sprint**: Sprint 11 — Embedded Browser & Passive Training Capture  
 **Sprint ID**: `88f877a2-d9cd-42db-91dc-8e8faea7b305`  
 **Status**: Analysis Complete  
@@ -295,5 +295,6 @@ Coding is complete. System is ready for:
 - **Date Completed**: 2026-05-21
 - **Test Result**: Full test suite passed — `183` tests green
 - **Deliverables**: `src/browser-selectors.js`, `electron-ui/preload-browser.cjs`, `electron-ui/browser-pane.cjs`, `electron-ui/ipc/capture-handlers.cjs`, `renderer/BrowserPanel.jsx`, `renderer/TrainingStatus.jsx` — all implemented and wired
-- **Handoff**: Sprint handoff entry recorded; run `vscode-rotator handoff close 88f877a2-d9cd-42db-91dc-8e8faea7b305 --status complete --tokens-used <n>` to finalize
+- **Handoff**: Sprint handoff entry recorded; run `strategic-learning-unified-theatre handoff close 88f877a2-d9cd-42db-91dc-8e8faea7b305 --status complete --tokens-used <n>` to finalize
+
 

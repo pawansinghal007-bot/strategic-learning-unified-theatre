@@ -1,4 +1,4 @@
-# VSCode Rotator Extension — Detailed Blueprint
+# Strategic Learning Unified Theatre Extension — Detailed Blueprint
 
 **Generated**: May 21, 2026  
 **Project Root**: `E:\VS Code Agent\Solution`  
@@ -33,8 +33,8 @@ Solution/vscode-extension/
 
 | Command ID | Title | Activation | Action |
 |-----------|-------|-----------|--------|
-| `vscode-rotator.showKnowledgeGraph` | VSCode Rotator: Export Knowledge Graph | `onCommand` | Exports knowledge graph to `~/.vscode-rotator/knowledge-graph.json` |
-| `vscode-rotator.openLlmPanel` | VSCode Rotator: Open LLM Assistant Panel | `onCommand` | Opens webview with basic UI |
+| `strategic-learning-unified-theatre.showKnowledgeGraph` | Strategic Learning Unified Theatre: Export Knowledge Graph | `onCommand` | Exports knowledge graph to `~/.vscode-rotator/knowledge-graph.json` |
+| `strategic-learning-unified-theatre.openLlmPanel` | Strategic Learning Unified Theatre: Open LLM Assistant Panel | `onCommand` | Opens webview with basic UI |
 
 ### Current Extension Features
 
@@ -54,35 +54,35 @@ Solution/vscode-extension/
 
 ## Available CLI Commands by Namespace
 
-The vscode-rotator CLI (`src/cli.js`) exposes **5 major command namespaces**:
+The strategic-learning-unified-theatre CLI (`src/cli.js`) exposes **5 major command namespaces**:
 
 ### 1. **handoff** — Sprint Manifest & Resume Prompts
 
 **File**: `src/commands/handoff.js`
 
 ```bash
-vscode-rotator handoff create
+strategic-learning-unified-theatre handoff create
   --goal "..."
   --agent [claude|chatgpt|gemini|perplexity|other]
   --model <name>
   --limit <tokens>
   --status [active|paused|complete]
 
-vscode-rotator handoff list
+strategic-learning-unified-theatre handoff list
   [--project <name>]
 
-vscode-rotator handoff get-active
+strategic-learning-unified-theatre handoff get-active
 
-vscode-rotator handoff resume <sprint-id>
+strategic-learning-unified-theatre handoff resume <sprint-id>
 
-vscode-rotator handoff update <sprint-id>
+strategic-learning-unified-theatre handoff update <sprint-id>
   --tokens-used <n>
   --status [paused|complete]
 
-vscode-rotator handoff close <sprint-id>
+strategic-learning-unified-theatre handoff close <sprint-id>
   --status [paused|complete]
 
-vscode-rotator handoff import-sprints <file>
+strategic-learning-unified-theatre handoff import-sprints <file>
 ```
 
 **Key Use Cases**:
@@ -97,29 +97,29 @@ vscode-rotator handoff import-sprints <file>
 **File**: `src/commands/idea.js`
 
 ```bash
-vscode-rotator idea create
+strategic-learning-unified-theatre idea create
   --title "..."
   --body "..."
   [--tags tag1,tag2]
   [--priority high|medium|low]
 
-vscode-rotator idea list
+strategic-learning-unified-theatre idea list
   [--project <name>]
   [--tags "tag1,tag2"]
   [--export json|csv]
 
-vscode-rotator idea view <idea-id>
+strategic-learning-unified-theatre idea view <idea-id>
 
-vscode-rotator idea done <idea-id>
+strategic-learning-unified-theatre idea done <idea-id>
   [--notes "..."]
 
-vscode-rotator idea link-to-sprint <idea-id> <sprint-id>
+strategic-learning-unified-theatre idea link-to-sprint <idea-id> <sprint-id>
 
-vscode-rotator idea export
+strategic-learning-unified-theatre idea export
   --output <path>
   [--format json|csv|yaml]
 
-vscode-rotator idea update <idea-id>
+strategic-learning-unified-theatre idea update <idea-id>
   [--title "..."]
   [--body "..."]
   [--tags "..."]
@@ -137,30 +137,30 @@ vscode-rotator idea update <idea-id>
 **File**: `src/commands/browser.js`
 
 ```bash
-vscode-rotator browser send
+strategic-learning-unified-theatre browser send
   --platform [chatgpt|claude|gemini|perplexity]
   --text "..."
   [--title "..."]
 
-vscode-rotator browser capture
+strategic-learning-unified-theatre browser capture
   --platform <platform>
   [--thread]
   [--auto-ingest]
 
-vscode-rotator browser compare
+strategic-learning-unified-theatre browser compare
   --file1 <path>
   --file2 <path>
   [--output <path>]
 
-vscode-rotator browser list-responses
+strategic-learning-unified-theatre browser list-responses
   [--platform <platform>]
   [--limit 20]
 
-vscode-rotator browser responses tag <filename>
+strategic-learning-unified-theatre browser responses tag <filename>
   --quality [good|bad|partial]
   [--notes "..."]
 
-vscode-rotator browser responses list
+strategic-learning-unified-theatre browser responses list
   [--quality good|bad]
 ```
 
@@ -177,17 +177,17 @@ vscode-rotator browser responses list
 **File**: `src/commands/storage.js`
 
 ```bash
-vscode-rotator storage monitor
+strategic-learning-unified-theatre storage monitor
   --path <directory>
   [--watch]
   [--interval <ms>]
 
-vscode-rotator storage snapshot
+strategic-learning-unified-theatre storage snapshot
   --path <directory>
   [--out <filepath>]
   [--recursive]
 
-vscode-rotator storage export
+strategic-learning-unified-theatre storage export
   --path <directory>
   [--format json]
 ```
@@ -204,47 +204,47 @@ vscode-rotator storage export
 **File**: `src/commands/llm.js`
 
 ```bash
-vscode-rotator llm setup
+strategic-learning-unified-theatre llm setup
   [--model phi3|tinyllama]
   [--model-path <path>]
   [--base-dir <dir>]
 
-vscode-rotator llm ask
+strategic-learning-unified-theatre llm ask
   "<question>"
   [--system "<prompt>"]
   [--model-path <path>]
 
-vscode-rotator llm generate-prompt
+strategic-learning-unified-theatre llm generate-prompt
   --goal "..."
   [--platform claude|chatgpt]
   [--project <name>]
 
-vscode-rotator llm ingest
+strategic-learning-unified-theatre llm ingest
   [--source <path>]
   [--incremental]
 
-vscode-rotator llm enhance
+strategic-learning-unified-theatre llm enhance
   --goal "..."
   [--platform <platform>]
   [--auto]
   [--rate <1-5>]
 
-vscode-rotator llm topics
+strategic-learning-unified-theatre llm topics
   [--k 5]
   [--output json]
 
-vscode-rotator llm related
+strategic-learning-unified-theatre llm related
   --to "..."
   [--limit 10]
 
-vscode-rotator llm export-knowledge-graph
+strategic-learning-unified-theatre llm export-knowledge-graph
   --out <path>
   [--format json|graphml]
 
-vscode-rotator llm mistakes list
+strategic-learning-unified-theatre llm mistakes list
   [--limit 20]
 
-vscode-rotator llm rubric list
+strategic-learning-unified-theatre llm rubric list
 ```
 
 **Key Use Cases**:
@@ -261,15 +261,15 @@ vscode-rotator llm rubric list
 ### **Command 1: Quick LLM Prompt**
 
 ```
-ID: vscode-rotator.llmQuickPrompt
-Title: VSCode Rotator: Ask Local LLM
+ID: strategic-learning-unified-theatre.llmQuickPrompt
+Title: Strategic Learning Unified Theatre: Ask Local LLM
 Keybinding: Ctrl+Shift+L
 Activation: onCommand
 ```
 
 **Behavior**:
 1. Show input box: "Ask the local LLM:"
-2. Run: `vscode-rotator llm ask "<query>"`
+2. Run: `strategic-learning-unified-theatre llm ask "<query>"`
 3. Show response in output channel
 4. Notify user when complete
 
@@ -280,15 +280,15 @@ Activation: onCommand
 ### **Command 2: Generate Implementation Prompt**
 
 ```
-ID: vscode-rotator.generateImplementationPrompt
-Title: VSCode Rotator: Generate Implementation Prompt
+ID: strategic-learning-unified-theatre.generateImplementationPrompt
+Title: Strategic Learning Unified Theatre: Generate Implementation Prompt
 Activation: onCommand
 ```
 
 **Behavior**:
 1. Show input box: "Implementation goal:"
 2. Show quick pick: Select platform (chatgpt, claude, gemini)
-3. Run: `vscode-rotator llm generate-prompt --goal "..." --platform <selected>`
+3. Run: `strategic-learning-unified-theatre llm generate-prompt --goal "..." --platform <selected>`
 4. Copy result to clipboard
 5. Show in output channel
 
@@ -299,13 +299,13 @@ Activation: onCommand
 ### **Command 3: View Active Sprint**
 
 ```
-ID: vscode-rotator.showActiveHandoff
-Title: VSCode Rotator: View Active Sprint
+ID: strategic-learning-unified-theatre.showActiveHandoff
+Title: Strategic Learning Unified Theatre: View Active Sprint
 Activation: onCommand + onStartupFinished (optional)
 ```
 
 **Behavior**:
-1. Run: `vscode-rotator handoff get-active`
+1. Run: `strategic-learning-unified-theatre handoff get-active`
 2. Render in webview panel (two-column layout)
 3. Show: Sprint ID, goal, token budget, status, resume prompt
 4. Add button to copy resume prompt
@@ -317,15 +317,15 @@ Activation: onCommand + onStartupFinished (optional)
 ### **Command 4: Ingest Current Workspace**
 
 ```
-ID: vscode-rotator.ingestCurrentFiles
-Title: VSCode Rotator: Ingest Current Workspace
+ID: strategic-learning-unified-theatre.ingestCurrentFiles
+Title: Strategic Learning Unified Theatre: Ingest Current Workspace
 Activation: onCommand
 ```
 
 **Behavior**:
 1. Detect workspace folder
-2. Run: `vscode-rotator storage snapshot --path <workspace>`
-3. Run: `vscode-rotator llm ingest`
+2. Run: `strategic-learning-unified-theatre storage snapshot --path <workspace>`
+3. Run: `strategic-learning-unified-theatre llm ingest`
 4. Show progress notification
 5. Display doc count + embeddings generated
 
@@ -336,15 +336,15 @@ Activation: onCommand
 ### **Command 5: Send to Browser**
 
 ```
-ID: vscode-rotator.sendPromptToBrowser
-Title: VSCode Rotator: Send Prompt to ChatGPT/Claude
+ID: strategic-learning-unified-theatre.sendPromptToBrowser
+Title: Strategic Learning Unified Theatre: Send Prompt to ChatGPT/Claude
 Activation: onCommand
 ```
 
 **Behavior**:
 1. Quick pick platform (chatgpt, claude, gemini, perplexity)
 2. Input box: "Paste prompt:"
-3. Run: `vscode-rotator browser send --platform <selected> --text "..."`
+3. Run: `strategic-learning-unified-theatre browser send --platform <selected> --text "..."`
 4. Notify: "Check your browser for the response"
 
 **Use Case**: Send refined prompts to online LLMs without manual copy-paste
@@ -354,15 +354,15 @@ Activation: onCommand
 ### **Command 6: Find Related Context**
 
 ```
-ID: vscode-rotator.findRelatedContext
-Title: VSCode Rotator: Find Related Context
+ID: strategic-learning-unified-theatre.findRelatedContext
+Title: Strategic Learning Unified Theatre: Find Related Context
 Keybinding: Ctrl+Shift+R
 Activation: onCommand + onEditorChange (background)
 ```
 
 **Behavior**:
 1. Show input box: "What's your current problem?"
-2. Run: `vscode-rotator llm related --to "..."`
+2. Run: `strategic-learning-unified-theatre llm related --to "..."`
 3. Display results in sidebar tree view:
    - Related sprints (with dates)
    - Related ideas (with tags)
@@ -375,13 +375,13 @@ Activation: onCommand + onEditorChange (background)
 ### **Command 7: List Project Ideas**
 
 ```
-ID: vscode-rotator.listProjectIdeas
-Title: VSCode Rotator: List Project Ideas
+ID: strategic-learning-unified-theatre.listProjectIdeas
+Title: Strategic Learning Unified Theatre: List Project Ideas
 Activation: onCommand + onStartupFinished
 ```
 
 **Behavior**:
-1. Run: `vscode-rotator idea list --export json`
+1. Run: `strategic-learning-unified-theatre idea list --export json`
 2. Render tree view (by priority/tags)
 3. Allow click to view idea details
 4. Show "Mark Done" context menu
@@ -393,15 +393,15 @@ Activation: onCommand + onStartupFinished
 ### **Command 8: Create New Idea**
 
 ```
-ID: vscode-rotator.createNewIdea
-Title: VSCode Rotator: Create Idea
+ID: strategic-learning-unified-theatre.createNewIdea
+Title: Strategic Learning Unified Theatre: Create Idea
 Activation: onCommand
 ```
 
 **Behavior**:
 1. Input: Title, body (multi-line), tags (comma-separated)
 2. Quick pick: Priority (high/medium/low)
-3. Run: `vscode-rotator idea create --title "..." --body "..." --tags "..." --priority ...`
+3. Run: `strategic-learning-unified-theatre idea create --title "..." --body "..." --tags "..." --priority ...`
 4. Auto-open created idea file
 5. Refresh ideas tree view
 
@@ -412,8 +412,8 @@ Activation: onCommand
 ### **Command 9: Export Knowledge Graph**
 
 ```
-ID: vscode-rotator.showKnowledgeGraph
-Title: VSCode Rotator: Export Knowledge Graph
+ID: strategic-learning-unified-theatre.showKnowledgeGraph
+Title: Strategic Learning Unified Theatre: Export Knowledge Graph
 Activation: onCommand + onStartupFinished (optional)
 ```
 
@@ -439,7 +439,7 @@ const path = require("node:path");
 const os = require("node:os");
 
 /**
- * Run a vscode-rotator CLI command and return stdout/stderr
+ * Run a strategic-learning-unified-theatre CLI command and return stdout/stderr
  */
 function runCli(args, cwd = undefined) {
   return new Promise((resolve, reject) => {
@@ -474,14 +474,14 @@ function runCli(args, cwd = undefined) {
 }
 
 async function activate(context) {
-  const output = vscode.window.createOutputChannel("VSCode Rotator");
+  const output = vscode.window.createOutputChannel("Strategic Learning Unified Theatre");
   context.subscriptions.push(output);
 
   // =====================
   // Command 1: Quick Ask
   // =====================
   context.subscriptions.push(
-    vscode.commands.registerCommand("vscode-rotator.llmQuickPrompt", async () => {
+    vscode.commands.registerCommand("strategic-learning-unified-theatre.llmQuickPrompt", async () => {
       const question = await vscode.window.showInputBox({
         prompt: "Ask the local LLM:",
         placeHolder: "Your question...",
@@ -512,7 +512,7 @@ async function activate(context) {
   // =====================
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      "vscode-rotator.generateImplementationPrompt",
+      "strategic-learning-unified-theatre.generateImplementationPrompt",
       async () => {
         const goal = await vscode.window.showInputBox({
           prompt: "Implementation goal:",
@@ -564,7 +564,7 @@ async function activate(context) {
   // =====================
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      "vscode-rotator.showActiveHandoff",
+      "strategic-learning-unified-theatre.showActiveHandoff",
       async () => {
         try {
           const result = await runCli(["handoff", "get-active"]);
@@ -656,7 +656,7 @@ async function activate(context) {
   // =====================
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      "vscode-rotator.ingestCurrentFiles",
+      "strategic-learning-unified-theatre.ingestCurrentFiles",
       async () => {
         const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
         if (!workspaceFolder) {
@@ -709,7 +709,7 @@ async function activate(context) {
   // =====================
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      "vscode-rotator.sendPromptToBrowser",
+      "strategic-learning-unified-theatre.sendPromptToBrowser",
       async () => {
         const platforms = ["chatgpt", "claude", "gemini", "perplexity"];
         const platform = await vscode.window.showQuickPick(platforms, {
@@ -750,7 +750,7 @@ async function activate(context) {
   // =====================
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      "vscode-rotator.findRelatedContext",
+      "strategic-learning-unified-theatre.findRelatedContext",
       async () => {
         const question = await vscode.window.showInputBox({
           prompt: "What's your current problem or question?",
@@ -800,14 +800,14 @@ module.exports = { activate, deactivate };
 
 ```json
 {
-  "name": "vscode-rotator-extension",
-  "displayName": "VSCode Rotator Assistant",
+  "name": "strategic-learning-unified-theatre-extension",
+  "displayName": "Strategic Learning Unified Theatre Assistant",
   "description": "Intelligent local dev assistant: capture LLM responses, ingest project context, generate refined prompts, track sprints.",
   "version": "0.1.0",
-  "publisher": "vscode-rotator",
+  "publisher": "strategic-learning-unified-theatre",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/vscode-rotator.git"
+    "url": "https://github.com/yourusername/strategic-learning-unified-theatre.git"
   },
   "engines": {
     "vscode": "^1.80.0",
@@ -815,74 +815,74 @@ module.exports = { activate, deactivate };
   },
   "main": "extension.js",
   "activationEvents": [
-    "onCommand:vscode-rotator.llmQuickPrompt",
-    "onCommand:vscode-rotator.generateImplementationPrompt",
-    "onCommand:vscode-rotator.showActiveHandoff",
-    "onCommand:vscode-rotator.ingestCurrentFiles",
-    "onCommand:vscode-rotator.sendPromptToBrowser",
-    "onCommand:vscode-rotator.findRelatedContext",
-    "onCommand:vscode-rotator.listProjectIdeas",
-    "onCommand:vscode-rotator.createNewIdea",
-    "onCommand:vscode-rotator.showKnowledgeGraph",
+    "onCommand:strategic-learning-unified-theatre.llmQuickPrompt",
+    "onCommand:strategic-learning-unified-theatre.generateImplementationPrompt",
+    "onCommand:strategic-learning-unified-theatre.showActiveHandoff",
+    "onCommand:strategic-learning-unified-theatre.ingestCurrentFiles",
+    "onCommand:strategic-learning-unified-theatre.sendPromptToBrowser",
+    "onCommand:strategic-learning-unified-theatre.findRelatedContext",
+    "onCommand:strategic-learning-unified-theatre.listProjectIdeas",
+    "onCommand:strategic-learning-unified-theatre.createNewIdea",
+    "onCommand:strategic-learning-unified-theatre.showKnowledgeGraph",
     "onStartupFinished"
   ],
   "contributes": {
     "commands": [
       {
-        "command": "vscode-rotator.llmQuickPrompt",
-        "title": "VSCode Rotator: Ask Local LLM",
-        "category": "VSCode Rotator"
+        "command": "strategic-learning-unified-theatre.llmQuickPrompt",
+        "title": "Strategic Learning Unified Theatre: Ask Local LLM",
+        "category": "Strategic Learning Unified Theatre"
       },
       {
-        "command": "vscode-rotator.generateImplementationPrompt",
-        "title": "VSCode Rotator: Generate Implementation Prompt",
-        "category": "VSCode Rotator"
+        "command": "strategic-learning-unified-theatre.generateImplementationPrompt",
+        "title": "Strategic Learning Unified Theatre: Generate Implementation Prompt",
+        "category": "Strategic Learning Unified Theatre"
       },
       {
-        "command": "vscode-rotator.showActiveHandoff",
-        "title": "VSCode Rotator: View Active Sprint",
-        "category": "VSCode Rotator"
+        "command": "strategic-learning-unified-theatre.showActiveHandoff",
+        "title": "Strategic Learning Unified Theatre: View Active Sprint",
+        "category": "Strategic Learning Unified Theatre"
       },
       {
-        "command": "vscode-rotator.ingestCurrentFiles",
-        "title": "VSCode Rotator: Ingest Current Workspace",
-        "category": "VSCode Rotator"
+        "command": "strategic-learning-unified-theatre.ingestCurrentFiles",
+        "title": "Strategic Learning Unified Theatre: Ingest Current Workspace",
+        "category": "Strategic Learning Unified Theatre"
       },
       {
-        "command": "vscode-rotator.sendPromptToBrowser",
-        "title": "VSCode Rotator: Send Prompt to ChatGPT/Claude",
-        "category": "VSCode Rotator"
+        "command": "strategic-learning-unified-theatre.sendPromptToBrowser",
+        "title": "Strategic Learning Unified Theatre: Send Prompt to ChatGPT/Claude",
+        "category": "Strategic Learning Unified Theatre"
       },
       {
-        "command": "vscode-rotator.findRelatedContext",
-        "title": "VSCode Rotator: Find Related Context",
-        "category": "VSCode Rotator"
+        "command": "strategic-learning-unified-theatre.findRelatedContext",
+        "title": "Strategic Learning Unified Theatre: Find Related Context",
+        "category": "Strategic Learning Unified Theatre"
       },
       {
-        "command": "vscode-rotator.listProjectIdeas",
-        "title": "VSCode Rotator: List Project Ideas",
-        "category": "VSCode Rotator"
+        "command": "strategic-learning-unified-theatre.listProjectIdeas",
+        "title": "Strategic Learning Unified Theatre: List Project Ideas",
+        "category": "Strategic Learning Unified Theatre"
       },
       {
-        "command": "vscode-rotator.createNewIdea",
-        "title": "VSCode Rotator: Create Idea",
-        "category": "VSCode Rotator"
+        "command": "strategic-learning-unified-theatre.createNewIdea",
+        "title": "Strategic Learning Unified Theatre: Create Idea",
+        "category": "Strategic Learning Unified Theatre"
       },
       {
-        "command": "vscode-rotator.showKnowledgeGraph",
-        "title": "VSCode Rotator: Export Knowledge Graph",
-        "category": "VSCode Rotator"
+        "command": "strategic-learning-unified-theatre.showKnowledgeGraph",
+        "title": "Strategic Learning Unified Theatre: Export Knowledge Graph",
+        "category": "Strategic Learning Unified Theatre"
       }
     ],
     "keybindings": [
       {
-        "command": "vscode-rotator.llmQuickPrompt",
+        "command": "strategic-learning-unified-theatre.llmQuickPrompt",
         "key": "ctrl+shift+l",
         "mac": "cmd+shift+l",
         "when": "editorTextFocus || !editorFocus"
       },
       {
-        "command": "vscode-rotator.findRelatedContext",
+        "command": "strategic-learning-unified-theatre.findRelatedContext",
         "key": "ctrl+shift+r",
         "mac": "cmd+shift+r",
         "when": "editorTextFocus"
@@ -891,26 +891,26 @@ module.exports = { activate, deactivate };
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "vscode-rotator-sidebar",
-          "title": "VSCode Rotator",
+          "id": "strategic-learning-unified-theatre-sidebar",
+          "title": "Strategic Learning Unified Theatre",
           "icon": "$(lightbulb)"
         }
       ]
     },
     "views": {
-      "vscode-rotator-sidebar": [
+      "strategic-learning-unified-theatre-sidebar": [
         {
-          "id": "vscode-rotator.ideaView",
+          "id": "strategic-learning-unified-theatre.ideaView",
           "name": "Ideas",
           "type": "tree"
         },
         {
-          "id": "vscode-rotator.relatedView",
+          "id": "strategic-learning-unified-theatre.relatedView",
           "name": "Related Context",
           "type": "tree"
         },
         {
-          "id": "vscode-rotator.sprintView",
+          "id": "strategic-learning-unified-theatre.sprintView",
           "name": "Current Sprint",
           "type": "webview"
         }
@@ -919,14 +919,14 @@ module.exports = { activate, deactivate };
     "menus": {
       "view/title": [
         {
-          "command": "vscode-rotator.createNewIdea",
-          "when": "view == vscode-rotator.ideaView",
+          "command": "strategic-learning-unified-theatre.createNewIdea",
+          "when": "view == strategic-learning-unified-theatre.ideaView",
           "group": "navigation"
         }
       ],
       "view/item/context": [
         {
-          "command": "vscode-rotator.markIdeaDone",
+          "command": "strategic-learning-unified-theatre.markIdeaDone",
           "when": "viewItem == idea",
           "group": "inline"
         }
@@ -1085,5 +1085,6 @@ IPC: stdout/stderr capture via child_process
 
 **Generated**: May 21, 2026  
 **For**: Claude (AI Assistant)  
-**Purpose**: Implement VS Code extension commands that integrate vscode-rotator CLI
+**Purpose**: Implement VS Code extension commands that integrate strategic-learning-unified-theatre CLI
+
 

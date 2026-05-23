@@ -150,13 +150,13 @@ async function updateTray() {
   if (!tray) return;
   await refreshAccounts();
   tray.setImage(loadIcon(currentStatus));
-  tray.setToolTip("vscode-rotator daemon");
+  tray.setToolTip("strategic-learning-unified-theatre daemon");
   tray.setContextMenu(buildMenu());
 }
 
 async function initializeTray() {
   tray = new Tray(loadIcon(currentStatus));
-  tray.setToolTip("vscode-rotator");
+  tray.setToolTip("strategic-learning-unified-theatre");
   tray.on("click", () => {
     tray.popUpContextMenu();
   });
@@ -198,3 +198,4 @@ app.on("ready", async () => {
 app.on("before-quit", async () => {
   await daemon.stop();
 });
+

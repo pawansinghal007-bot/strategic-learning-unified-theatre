@@ -7,7 +7,7 @@ import { bindProfile, getBinding, unbind } from "../src/workspace.js";
 
 describe("workspace binding", () => {
   it("sets, reads, and removes the profile field", async () => {
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "vscode-rotator-ws-"));
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "strategic-learning-unified-theatre-ws-"));
     const wsPath = path.join(dir, "demo.code-workspace");
 
     await fs.writeFile(
@@ -28,7 +28,7 @@ describe("workspace binding", () => {
   });
 
   it("throws a helpful error when workspace file is missing", async () => {
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "vscode-rotator-ws-"));
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "strategic-learning-unified-theatre-ws-"));
     const wsPath = path.join(dir, "missing.code-workspace");
     await expect(getBinding(wsPath)).rejects.toThrow(/workspace/i);
   });

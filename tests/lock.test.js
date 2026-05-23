@@ -7,7 +7,7 @@ import { acquireLock, releaseLock } from "../src/lock.js";
 
 describe("lock", () => {
   it("throws when lock exists for a running process", async () => {
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "vscode-rotator-lock-"));
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "strategic-learning-unified-theatre-lock-"));
     const lockName = "switch";
 
     await acquireLock(lockName, { baseDir: dir });
@@ -18,7 +18,7 @@ describe("lock", () => {
   });
 
   it("re-acquires when lock exists for a non-existent process", async () => {
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "vscode-rotator-lock-"));
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "strategic-learning-unified-theatre-lock-"));
     const lockName = "switch";
     const lockPath = path.join(dir, `${lockName}.lock`);
 

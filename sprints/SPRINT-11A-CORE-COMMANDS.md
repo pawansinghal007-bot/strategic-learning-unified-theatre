@@ -1,6 +1,6 @@
 # Sprint 11A: VS Code Extension — Core Commands & Foundation
 
-**Project**: vscode-rotator  
+**Project**: strategic-learning-unified-theatre  
 **Sprint Goal**: Implement and stabilize the 6 core extension commands with robust CLI integration  
 **Duration**: 1 week  
 **Status**: PLANNING  
@@ -22,7 +22,7 @@ This sprint focuses on **Phase 1** of the extension roadmap: get the 6 core comm
 ## Reference Documents
 
 **Always refer to these before coding:**
-- [vscode-rotator-master-instructions.md](../vscode-rotator-master-instructions.md) — Project status (139 tests, all passing)
+- [strategic-learning-unified-theatre-master-instructions.md](../strategic-learning-unified-theatre-master-instructions.md) — Project status (139 tests, all passing)
 - [VSCODE-EXTENSION-BLUEPRINT.md](../VSCODE-EXTENSION-BLUEPRINT.md) — Command definitions, CLI reference, sample code
 - `Solution/vscode-extension/package.json` — Current manifest
 - `Solution/vscode-extension/extension.js` — Current scaffold
@@ -91,9 +91,9 @@ This sprint focuses on **Phase 1** of the extension roadmap: get the 6 core comm
    - Test that `path.join(__dirname, '..', 'src', 'cli.js')` resolves correctly in your environment.
 
 2. **CLI Commands Validation**  
-   - Run `vscode-rotator handoff get-active` manually and capture output format (plain text? JSON?).  
-   - Run `vscode-rotator idea list --export json` and verify it returns valid JSON.  
-   - Run `vscode-rotator llm ask "test"` and verify local model availability (may fail if not installed — capture error).  
+   - Run `strategic-learning-unified-theatre handoff get-active` manually and capture output format (plain text? JSON?).  
+   - Run `strategic-learning-unified-theatre idea list --export json` and verify it returns valid JSON.  
+   - Run `strategic-learning-unified-theatre llm ask "test"` and verify local model availability (may fail if not installed — capture error).  
    - Document exact command signatures and any flags needed.
 
 3. **VS Code API Check**  
@@ -176,7 +176,7 @@ This sprint focuses on **Phase 1** of the extension roadmap: get the 6 core comm
 2. **E2E Smoke Test** (manual, documented)  
    - Install extension locally (`vsce package` + `code --install-extension`)  
    - Verify all 6 commands work in real VS Code (not just dev host)  
-   - Document any environment setup needed (e.g., `npm link vscode-rotator`)  
+   - Document any environment setup needed (e.g., `npm link strategic-learning-unified-theatre`)  
 
 3. **Regression Test Against CLI**  
    - Run `npm test` on main project (`Solution/`)  
@@ -191,7 +191,7 @@ This sprint focuses on **Phase 1** of the extension roadmap: get the 6 core comm
    - Record any CLI changes needed for future sprints (e.g., `--json` output format)  
    - Create handoff prompt for next sprint
 
-**Deliverable**: `tests/extension.test.js` with 20+ tests, all passing. Updated `vscode-rotator-master-instructions.md`. Ready for Sprint 11B.
+**Deliverable**: `tests/extension.test.js` with 20+ tests, all passing. Updated `strategic-learning-unified-theatre-master-instructions.md`. Ready for Sprint 11B.
 
 ---
 
@@ -243,7 +243,7 @@ Solution/
 ## Links & References
 
 - **Blueprint**: [VSCODE-EXTENSION-BLUEPRINT.md](../VSCODE-EXTENSION-BLUEPRINT.md)  
-- **Master Instructions**: [vscode-rotator-master-instructions.md](../vscode-rotator-master-instructions.md)  
+- **Master Instructions**: [strategic-learning-unified-theatre-master-instructions.md](../strategic-learning-unified-theatre-master-instructions.md)  
 - **CLI Source**: `Solution/src/cli.js` (entry point)  
 - **Command Implementations**: `Solution/src/commands/*.js` (what the CLI calls)  
 
@@ -259,4 +259,5 @@ After Sprint 11A closes:
 
 *Sprint Document Generated: May 21, 2026*  
 *To start: Run PROMPT 1 (Analysis) first — do NOT code yet.*
+
 

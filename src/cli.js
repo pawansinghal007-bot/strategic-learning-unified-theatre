@@ -27,6 +27,7 @@ import { bindIdeaCommands } from "./commands/idea.js";
 import { bindBrowserCommands } from "./commands/browser.js";
 import { bindStorageCommands } from "./commands/storage.js";
 import { bindLlmCommands } from "./commands/llm.js";
+import { bindBc2SyncCommand } from "./commands/bc2-sync.js";
 import { bindAiCommands } from "./commands/ai.js";
 
 const program = new Command();
@@ -56,8 +57,8 @@ function normalizeAgentType(inputValue) {
 }
 
 program
-  .name("vscode-rotator")
-  .description("Hands-free VS Code account rotation with OS secret storage and daemon-based account rotation")
+  .name("strategic-learning-unified-theatre")
+  .description("Local development intelligence with OS secret storage and daemon-based workspace automation")
   .version("0.1.0");
 
 program
@@ -505,6 +506,7 @@ bindIdeaCommands(program);
 bindBrowserCommands(program);
 bindStorageCommands(program);
 bindLlmCommands(program);
+bindBc2SyncCommand(program);
 bindAiCommands(program);
 
 profileCmd
@@ -634,3 +636,4 @@ daemonCmd
   });
 
 program.parseAsync(process.argv);
+

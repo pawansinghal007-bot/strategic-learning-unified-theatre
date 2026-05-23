@@ -1,7 +1,7 @@
 # Sprint 11A — VS Code Extension: Core Commands & Foundation
 ## Three AI Agent Prompts
 
-> **Always read `vscode-rotator-master-instructions.md` before starting any prompt.**
+> **Always read `strategic-learning-unified-theatre-master-instructions.md` before starting any prompt.**
 > Max tokens per prompt: 150K | Project root: `E:\VS Code Agent\Solution\`
 > Current baseline: **139 tests passing**, all green.
 
@@ -17,9 +17,9 @@
 ---
 
 ```
-Project: vscode-rotator at E:\VS Code Agent\Solution
+Project: strategic-learning-unified-theatre at E:\VS Code Agent\Solution
 Read BEFORE doing anything:
-  - E:\VS Code Agent\vscode-rotator-master-instructions.md  (authoritative project state)
+  - E:\VS Code Agent\strategic-learning-unified-theatre-master-instructions.md  (authoritative project state)
   - E:\VS Code Agent\Solution\docs\README.md
   - E:\VS Code Agent\Solution\vscode-extension\package.json  (current manifest)
   - E:\VS Code Agent\Solution\vscode-extension\extension.js  (current scaffold)
@@ -49,12 +49,12 @@ QUESTION 2 — CLI Contract Verification
   and whether a `--json` flag exists or is needed.
 
   Commands to verify:
-    vscode-rotator handoff get-active
-    vscode-rotator idea list --export json
-    vscode-rotator llm ask "test prompt"
-    vscode-rotator llm related --to "test query"
-    vscode-rotator storage snapshot
-    vscode-rotator browser send --platform chatgpt --prompt "test"
+    strategic-learning-unified-theatre handoff get-active
+    strategic-learning-unified-theatre idea list --export json
+    strategic-learning-unified-theatre llm ask "test prompt"
+    strategic-learning-unified-theatre llm related --to "test query"
+    strategic-learning-unified-theatre storage snapshot
+    strategic-learning-unified-theatre browser send --platform chatgpt --prompt "test"
 
   For each: capture example output, note exit codes on success and failure.
 
@@ -119,9 +119,9 @@ DELIVERABLE
 ---
 
 ```
-Project: vscode-rotator at E:\VS Code Agent\Solution
+Project: strategic-learning-unified-theatre at E:\VS Code Agent\Solution
 Read BEFORE doing anything:
-  - E:\VS Code Agent\vscode-rotator-master-instructions.md  (authoritative project state)
+  - E:\VS Code Agent\strategic-learning-unified-theatre-master-instructions.md  (authoritative project state)
   - E:\VS Code Agent\Solution\sprints\SPRINT-11A-ANALYSIS.md  (answers from Prompt 1 — REQUIRED)
   - E:\VS Code Agent\Solution\vscode-extension\extension.js
   - E:\VS Code Agent\Solution\vscode-extension\package.json
@@ -149,7 +149,7 @@ STEP 1 — Implement `runCli(args, cwd, timeoutMs = 30000)`
     - Return: { stdout: string, stderr: string }
 
   Guard: if cli.js path does not exist at startup, show a one-time error toast:
-    "vscode-rotator CLI not found. Run `npm link` in the Solution folder."
+    "strategic-learning-unified-theatre CLI not found. Run `npm link` in the Solution folder."
   Do not crash the extension — degrade gracefully.
 
 STEP 2 — Implement 6 command handlers
@@ -157,7 +157,7 @@ STEP 2 — Implement 6 command handlers
   For every command, follow this template without exception:
     1. Show input box / quick pick (if user input needed)
     2. If user cancels input: return silently (no error)
-    3. outputChannel.appendLine(`[vscode-rotator] Running: node cli.js <args>`)
+    3. outputChannel.appendLine(`[strategic-learning-unified-theatre] Running: node cli.js <args>`)
     4. Call runCli(args, cwd)
     5. On success: vscode.window.showInformationMessage(<concise result>) + log to channel
     6. On error: vscode.window.showErrorMessage(<friendly one-liner>) + log full error to channel
@@ -213,16 +213,16 @@ STEP 2 — Implement 6 command handlers
 
 STEP 3 — Update package.json
   Add to `contributes.commands` (6 entries):
-    { "command": "vscode-rotator.llmQuickPrompt",              "title": "Ask Local LLM" }
-    { "command": "vscode-rotator.generateImplementationPrompt", "title": "Generate Implementation Prompt" }
-    { "command": "vscode-rotator.showActiveHandoff",           "title": "View Active Sprint" }
-    { "command": "vscode-rotator.ingestCurrentFiles",          "title": "Ingest Workspace Files" }
-    { "command": "vscode-rotator.sendPromptToBrowser",         "title": "Send Prompt to Browser" }
-    { "command": "vscode-rotator.findRelatedContext",          "title": "Find Related Context" }
+    { "command": "strategic-learning-unified-theatre.llmQuickPrompt",              "title": "Ask Local LLM" }
+    { "command": "strategic-learning-unified-theatre.generateImplementationPrompt", "title": "Generate Implementation Prompt" }
+    { "command": "strategic-learning-unified-theatre.showActiveHandoff",           "title": "View Active Sprint" }
+    { "command": "strategic-learning-unified-theatre.ingestCurrentFiles",          "title": "Ingest Workspace Files" }
+    { "command": "strategic-learning-unified-theatre.sendPromptToBrowser",         "title": "Send Prompt to Browser" }
+    { "command": "strategic-learning-unified-theatre.findRelatedContext",          "title": "Find Related Context" }
 
   Add to `contributes.keybindings`:
-    { "command": "vscode-rotator.llmQuickPrompt",    "key": "ctrl+shift+l", "mac": "cmd+shift+l" }
-    { "command": "vscode-rotator.findRelatedContext", "key": "ctrl+shift+r", "mac": "cmd+shift+r" }
+    { "command": "strategic-learning-unified-theatre.llmQuickPrompt",    "key": "ctrl+shift+l", "mac": "cmd+shift+l" }
+    { "command": "strategic-learning-unified-theatre.findRelatedContext", "key": "ctrl+shift+r", "mac": "cmd+shift+r" }
 
   Add to `activationEvents` (if not already `onStartupFinished`):
     "onStartupFinished"
@@ -281,9 +281,9 @@ ACCEPTANCE CRITERIA (must all pass before handing off to Prompt 3):
 ---
 
 ```
-Project: vscode-rotator at E:\VS Code Agent\Solution
+Project: strategic-learning-unified-theatre at E:\VS Code Agent\Solution
 Read BEFORE doing anything:
-  - E:\VS Code Agent\vscode-rotator-master-instructions.md  (authoritative — read the FULL file)
+  - E:\VS Code Agent\strategic-learning-unified-theatre-master-instructions.md  (authoritative — read the FULL file)
   - E:\VS Code Agent\Solution\sprints\SPRINT-11A-ANALYSIS.md
   - E:\VS Code Agent\Solution\sprints\SPRINT-11A-CODING-LOG.md
   - E:\VS Code Agent\Solution\vscode-extension\extension.js  (final version from Prompt 2)
@@ -353,14 +353,14 @@ STEP 2 — E2E Smoke Test (Manual, Documented)
   Package the extension:
     cd Solution/vscode-extension
     npx vsce package
-    code --install-extension vscode-rotator-*.vsix
+    code --install-extension strategic-learning-unified-theatre-*.vsix
 
   In a real VS Code window (NOT dev host), verify:
   [ ] Extension activates without errors (check Developer Tools console)
-  [ ] All 6 commands appear in Command Palette under "vscode-rotator"
+  [ ] All 6 commands appear in Command Palette under "strategic-learning-unified-theatre"
   [ ] Ctrl+Shift+L triggers llmQuickPrompt
   [ ] Ctrl+Shift+R triggers findRelatedContext
-  [ ] Output channel "vscode-rotator" appears and logs CLI calls
+  [ ] Output channel "strategic-learning-unified-theatre" appears and logs CLI calls
   [ ] At least one command produces a real result end-to-end:
         Suggested: showActiveHandoff (no model or browser needed)
   [ ] At least one error path shows a user-friendly toast (not a raw stack trace)
@@ -376,7 +376,7 @@ STEP 3 — Regression: Full CLI Suite
   If any test fails, fix it before proceeding. Document in coding log.
 
 STEP 4 — Update Master Instructions
-  File: `E:\VS Code Agent\vscode-rotator-master-instructions.md`
+  File: `E:\VS Code Agent\strategic-learning-unified-theatre-master-instructions.md`
 
   4a. Add entry under "What's Changed" (top of that section):
   ```
@@ -402,13 +402,13 @@ STEP 4 — Update Master Instructions
 
 STEP 5 — Close Sprint & Handoff
   5a. Update sprint token usage:
-    vscode-rotator handoff update <sprint-id> --tokens-used <n>
+    strategic-learning-unified-theatre handoff update <sprint-id> --tokens-used <n>
 
   5b. Close the sprint:
-    vscode-rotator handoff close <sprint-id> --status complete
+    strategic-learning-unified-theatre handoff close <sprint-id> --status complete
 
   5c. Generate resume prompt for Sprint 11B:
-    vscode-rotator handoff resume <sprint-id>
+    strategic-learning-unified-theatre handoff resume <sprint-id>
     Copy the resumePrompt output and paste it at the top of the Sprint 11B prompt document.
 
   5d. Append to `SPRINT-11A-CODING-LOG.md`:
@@ -424,7 +424,7 @@ FINAL ACCEPTANCE GATE (all must be true before declaring Sprint 11A complete):
   ✅ Pre-existing 139 tests still passing (zero regression)
   ✅ Extension packaged with `vsce package` without errors
   ✅ All 6 commands verified in real VS Code window
-  ✅ vscode-rotator-master-instructions.md updated
+  ✅ strategic-learning-unified-theatre-master-instructions.md updated
   ✅ Sprint closed in handoff tracker
   ✅ Resume prompt for Sprint 11B captured
 ```
@@ -433,3 +433,4 @@ FINAL ACCEPTANCE GATE (all must be true before declaring Sprint 11A complete):
 
 *Sprint 11A Prompts Generated: 2026-05-21*
 *Next Sprint: 11B — Sidebar Views (Ideas Tree + Related Context Panel)*
+

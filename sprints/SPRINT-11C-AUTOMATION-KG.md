@@ -1,6 +1,6 @@
 # Sprint 11C: VS Code Extension — Lightweight Automation & Knowledge Graph
 
-**Project**: vscode-rotator  
+**Project**: strategic-learning-unified-theatre  
 **Sprint Goal**: Implement one key auto-action (prompt on workspace open if no recent snapshot); add knowledge graph visualization  
 **Duration**: 1 week  
 **Status**: PLANNING  
@@ -24,7 +24,7 @@ This sprint focuses on **Phase 3 & 4** of the extension roadmap: add minimal but
 ## Reference Documents
 
 **Always refer to these before coding:**
-- [vscode-rotator-master-instructions.md](../vscode-rotator-master-instructions.md) — Latest project status
+- [strategic-learning-unified-theatre-master-instructions.md](../strategic-learning-unified-theatre-master-instructions.md) — Latest project status
 - [VSCODE-EXTENSION-BLUEPRINT.md](../VSCODE-EXTENSION-BLUEPRINT.md) — Command definitions, manifest
 - [SPRINT-11A-CORE-COMMANDS.md](./SPRINT-11A-CORE-COMMANDS.md) — Core commands (dependency)
 - [SPRINT-11B-SIDEBAR-VIEWS.md](./SPRINT-11B-SIDEBAR-VIEWS.md) — Sidebar views (dependency)
@@ -52,20 +52,20 @@ This sprint focuses on **Phase 3 & 4** of the extension roadmap: add minimal but
 
 | Feature | Trigger | Action | User Config |
 |---------|---------|--------|-------------|
-| Stale Workspace Detector | On activation | Prompt if snapshot >7 days | `vscode-rotator.autoIngestOnStartup` (default: true) |
+| Stale Workspace Detector | On activation | Prompt if snapshot >7 days | `strategic-learning-unified-theatre.autoIngestOnStartup` (default: true) |
 
 ### Knowledge Graph Command (1)
 
 | Command | Purpose | Tech |
 |---------|---------|------|
-| `vscode-rotator.showKnowledgeGraph` | Visualize graph of context items | Cytoscape.js + webview |
+| `strategic-learning-unified-theatre.showKnowledgeGraph` | Visualize graph of context items | Cytoscape.js + webview |
 
 ### Settings (2 New)
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `vscode-rotator.autoIngestOnStartup` | boolean | true | Prompt to ingest if snapshot is stale |
-| `vscode-rotator.snapshotMaxAgeDays` | number | 7 | Consider snapshot stale if older than N days |
+| `strategic-learning-unified-theatre.autoIngestOnStartup` | boolean | true | Prompt to ingest if snapshot is stale |
+| `strategic-learning-unified-theatre.snapshotMaxAgeDays` | number | 7 | Consider snapshot stale if older than N days |
 
 ---
 
@@ -91,9 +91,9 @@ This sprint focuses on **Phase 3 & 4** of the extension roadmap: add minimal but
 **Specific questions to answer:**
 
 1. **Snapshot Metadata**  
-   - Run `vscode-rotator storage snapshot --info` and capture output  
+   - Run `strategic-learning-unified-theatre storage snapshot --info` and capture output  
    - Does it include creation timestamp? Format?  
-   - Run `vscode-rotator storage list-snapshots` and see if timestamp is available  
+   - Run `strategic-learning-unified-theatre storage list-snapshots` and see if timestamp is available  
    - **Document**: How to determine if snapshot is stale (>7 days)
 
 2. **Automation Trigger Timing**  
@@ -103,7 +103,7 @@ This sprint focuses on **Phase 3 & 4** of the extension roadmap: add minimal but
    - **Design**: Pseudo-code for activation flow
 
 3. **Knowledge Graph Schema**  
-   - Run `vscode-rotator llm export-knowledge-graph` and capture output  
+   - Run `strategic-learning-unified-theatre llm export-knowledge-graph` and capture output  
    - Is it JSON? What fields? (e.g., `{nodes: [{id, label, type}], edges: [{source, target}]}`)  
    - Can it be visualized directly in Cytoscape.js, or needs transformation?  
    - **Document**: Exact JSON schema expected by Cytoscape
@@ -169,12 +169,12 @@ This sprint focuses on **Phase 3 & 4** of the extension roadmap: add minimal but
 4. **Add Settings to package.json**  
    ```json
    "configuration": {
-     "vscode-rotator.autoIngestOnStartup": {
+     "strategic-learning-unified-theatre.autoIngestOnStartup": {
        "type": "boolean",
        "default": true,
        "description": "Prompt to ingest files if workspace snapshot is stale"
      },
-     "vscode-rotator.snapshotMaxAgeDays": {
+     "strategic-learning-unified-theatre.snapshotMaxAgeDays": {
        "type": "number",
        "default": 7,
        "description": "Days before snapshot is considered stale"
@@ -191,7 +191,7 @@ This sprint focuses on **Phase 3 & 4** of the extension roadmap: add minimal but
    - Verify no hangs or crashes  
 
 6. **Test with Config Disabled**  
-   - Set `vscode-rotator.autoIngestOnStartup` to false  
+   - Set `strategic-learning-unified-theatre.autoIngestOnStartup` to false  
    - Reopen VS Code → auto-ingest prompt should NOT appear  
 
 **Deliverable**: Updated `extension.js` + `package.json`, knowledge graph webview working, automation functional. **Do not write tests yet.**
@@ -260,7 +260,7 @@ This sprint focuses on **Phase 3 & 4** of the extension roadmap: add minimal but
    - List optional enhancements (not in MVP): voice input, team collaboration, persistence  
    - Recommend next project: expand to web app version of extension  
 
-**Deliverable**: `tests/extension-automation.test.js` + `tests/extension-kg.test.js`, 20+ tests, all passing. Updated `vscode-rotator-master-instructions.md`. Architecture summary. Ready for deployment.
+**Deliverable**: `tests/extension-automation.test.js` + `tests/extension-kg.test.js`, 20+ tests, all passing. Updated `strategic-learning-unified-theatre-master-instructions.md`. Architecture summary. Ready for deployment.
 
 ---
 
@@ -331,7 +331,7 @@ Solution/
 - **VS Code Webview API**: https://code.visualstudio.com/api/extension-guides/webview  
 - **VS Code Settings**: https://code.visualstudio.com/api/references/contribution-points#contributes.configuration  
 - **Blueprint**: [VSCODE-EXTENSION-BLUEPRINT.md](../VSCODE-EXTENSION-BLUEPRINT.md)  
-- **Master Instructions**: [vscode-rotator-master-instructions.md](../vscode-rotator-master-instructions.md)  
+- **Master Instructions**: [strategic-learning-unified-theatre-master-instructions.md](../strategic-learning-unified-theatre-master-instructions.md)  
 
 ---
 
@@ -340,7 +340,7 @@ Solution/
 After Sprint 11C closes, extension is ready for MVP release:
 
 ```
-vscode-rotator v1.0.0
+strategic-learning-unified-theatre v1.0.0
 - 6 core commands (Ask LLM, Generate Prompt, Send to Browser, Find Context, Show Sprint, Ingest Files)
 - Sidebar views (Ideas tree, Related Context tree, Active Sprint webview)
 - Auto-ingest automation (prompt if workspace snapshot stale)
@@ -359,4 +359,5 @@ Keybindings:
 *Sprint Document Generated: May 21, 2026*  
 *To start: Run PROMPT 1 (Analysis) first — do NOT code yet.*  
 *IMPORTANT: This is the final core sprint. After 11C, extension is production-ready.*
+
 

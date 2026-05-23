@@ -115,8 +115,9 @@ import {
   ingestDocuments,
   setupModel
 } from "../local-llm.js";
+import { exportTrainingData } from "../llm/training-exporter.js";
 
-import { verifyNodeLlamaCppInstalled } from "../llm/inference.js";
+import { verifyLocalLlmRuntime } from "../llm/inference.js";
 function parseRating(value) {
   const rating = Number.parseInt(String(value), 10);
   if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
@@ -145,7 +146,7 @@ export async function bindLlmCommands(program) {
     .option("--base-dir <dir>", "Local storage base directory")
     .action(async (options) => {
       try {
-        await verifyNodeLlamaCppInstalled();
+        await verifyLocalLlmRuntime();
       } catch (err) {
         console.error(chalk.red(String(err?.message ?? err)));
         process.exitCode = 1;
@@ -179,7 +180,7 @@ export async function bindLlmCommands(program) {
     .argument("<question>", "Question to ask")
     .action(async (question, options) => {
       try {
-        await verifyNodeLlamaCppInstalled();
+        await verifyLocalLlmRuntime();
       } catch (err) {
         console.error(chalk.red(String(err?.message ?? err)));
         process.exitCode = 1;
@@ -278,7 +279,7 @@ export async function bindLlmCommands(program) {
     .option("--json", "Output raw JSON")
     .action(async (options) => {
       try {
-        await verifyNodeLlamaCppInstalled();
+        await verifyLocalLlmRuntime();
       } catch (err) {
         console.error(chalk.red(String(err?.message ?? err)));
         process.exitCode = 1;
@@ -314,7 +315,42 @@ export async function bindLlmCommands(program) {
         const outPath = options.out ? path.resolve(options.out) : path.join(os.homedir(), ".vscode-rotator", "knowledge-graph.json");
         const result = await buildGraph(db, ideaDir, outPath);
         spinner.stop();
-        console.log(`Knowledge graph exported to ${result.outputPath} — ${result.nodeCount} nodes, ${result.edgeCount} edges`);
+        console.log(`Knowledge graph exported to ${result.outputPath} ï¿½ ${result.nodeCount} nodes, ${result.edgeCount} edges`);
+      } catch (err) {
+        spinner.stop();
+        console.error(chalk.red(String(err?.message ?? err)));
+        process.exitCode = 1;
+      }
+    });
+
+  llm
+    .command("export-training")
+    .description("Export JSONL training data from the local experience database")
+    .option("--out <path>", "Output JSONL file path")
+    .option("--since <date>", "Include only documents on or after this date")
+    .option("--platform <name>", "Filter training data by platform")
+    .option("--quality <label>", "Filter training data by quality label")
+    .option("--min-pairs <number>", "Require a minimum number of paired examples", "0")
+    .option("--dry-run", "Preview the export without writing output")
+    .option("--base-dir <dir>", "Local storage base directory")
+    .action(async (options) => {
+      const spinner = ora("Exporting training data...").start();
+      try {
+        const result = await exportTrainingData({
+          baseDir: options.baseDir,
+          outputPath: options.out,
+          since: options.since,
+          platform: options.platform,
+          quality: options.quality,
+          dryRun: Boolean(options.dryRun),
+          minPairs: Number(options.minPairs ?? 0)
+        });
+        spinner.stop();
+        if (result.dryRun) {
+          console.log(`Training export would produce ${result.recordsCount} record(s) to ${result.outputPath}`);
+        } else {
+          console.log(`Training export written to ${result.outputPath}`);
+        }
       } catch (err) {
         spinner.stop();
         console.error(chalk.red(String(err?.message ?? err)));
@@ -397,7 +433,7 @@ export async function bindLlmCommands(program) {
         });
 
         if (options.rate) {
-          const ratingValue = await prompt("Rate this response 1–5 (or press Enter to skip): ");
+          const ratingValue = await prompt("Rate this response 1ï¿½5 (or press Enter to skip): ");
           if (ratingValue) {
             const rating = parseRating(ratingValue);
             await db.ratePromptHistory(history.id, rating);
@@ -447,7 +483,7 @@ export async function bindLlmCommands(program) {
     .option("--base-dir <dir>", "Local storage base directory")
     .action(async (stagedDir, options) => {
       try {
-        await verifyNodeLlamaCppInstalled();
+        await verifyLocalLlmRuntime();
       } catch (err) {
         console.error(chalk.red(String(err?.message ?? err)));
         process.exitCode = 1;

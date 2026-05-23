@@ -42,7 +42,6 @@ const reportTimer = setInterval(() => {
     lastDay = day;
   }
 }, 60_000);
-reportTimer.unref?.();
 
 daemon.on("switch", async (evt) => {
   await appendLogLine(logPath, { type: "switch", ...evt });

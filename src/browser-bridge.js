@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import crypto from "node:crypto";
+import readline from "node:readline/promises";
 import { z } from "zod";
 
 import { loadConfig } from "./config.js";
@@ -190,20 +191,39 @@ export async function launchBrowser(options = {}) {
     browserType = "chromium",
     platform,
     headless = false,
-    timeout = 30000
+    timeout = 30000,
+    executablePath = null
   } = options;
-
+  const config = await loadConfig();
   const { chromium, firefox } = await loadPlaywright();
-  const launcher = browserType === "firefox" ? firefox : chromium;
-  const storageStatePath = platform
-    ? path.join(browserProfilesDir(), platform, "storage-state.json")
-    : null;
 
+  const normalizedType = browserType === "chrome" ? "chromium" : browserType;
+  let launcher;
   const launchOptions = {
     headless,
     timeout,
     args: ["--disable-blink-features=AutomationControlled"]
   };
+
+  if (normalizedType === "firefox") {
+    launcher = firefox;
+    const firefoxPath = executablePath || process.env.FIREFOX_PATH || (config && config.browserPaths && config.browserPaths.firefox);
+    if (firefoxPath) {
+      launchOptions.executablePath = firefoxPath;
+    }
+  } else {
+    launcher = chromium;
+    if (normalizedType === "brave") {
+      const bravePath = executablePath || process.env.BRAVE_PATH || (config && config.browserPaths && config.browserPaths.brave);
+      if (bravePath) {
+        launchOptions.executablePath = bravePath;
+      }
+    }
+  }
+
+  const storageStatePath = platform
+    ? path.join(browserProfilesDir(), platform, "storage-state.json")
+    : null;
 
   const browser = await launcher.launch(launchOptions);
 
@@ -565,13 +585,26 @@ export async function loginToPage(options) {
     const page = await context.newPage();
     await page.goto(adapter.baseUrl);
 
-    // Show user message
     console.log(`\n✓ Browser opened. Please log in manually and close the browser when done.`);
     console.log(`  Platform: ${platform}`);
     console.log(`  URL: ${adapter.baseUrl}`);
+    console.log(`  If you want to keep the browser open, press ENTER after login.`);
 
-    // Wait for user to close browser
-    await context.browserHandle.close();
+    const browserClosed = new Promise((resolve) => {
+      context.browserHandle.once("disconnected", resolve);
+    });
+
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    const promptClosed = rl.question("Press ENTER after login is complete...\n").then(() => {
+      rl.close();
+    });
+
+    await Promise.race([browserClosed, promptClosed]);
+    rl.close();
+
+    if (context.browserHandle.isConnected()) {
+      await context.browserHandle.close();
+    }
 
     console.log(`✓ Storage state saved for ${platform}`);
 
@@ -694,7 +727,7 @@ export async function clearResponses(options = {}) {
 
 
 
-async function captureThread(platform, { outputDir = null } = {}) {
+async function captureThread(platform, { outputDir = null, headless = false, timeout = 60000 } = {}) {
   if (!["chatgpt", "claude", "perplexity", "gemini"].includes(platform)) {
     throw new Error(`Unsupported platform: ${platform}. Expected one of: chatgpt, claude, perplexity, gemini`);
   }
@@ -708,7 +741,7 @@ async function captureThread(platform, { outputDir = null } = {}) {
     console.warn(`[browser-bridge] No thread selectors for ${platform}; using defaults`);
   }
 
-  const context = await launchBrowser({ platform, headless: false });
+  const context = await launchBrowser({ platform, headless, timeout });
 
   try {
     const page = await context.newPage();

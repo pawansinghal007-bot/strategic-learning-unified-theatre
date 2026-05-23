@@ -1,6 +1,6 @@
 # Robot Framework Test Suite
 
-This directory contains Robot Framework integration and regression tests for `vscode-rotator`.
+This directory contains Robot Framework integration and regression tests for `strategic-learning-unified-theatre`.
 
 ## Purpose
 
@@ -35,3 +35,4 @@ Generate a skeleton Robot file for a new source module:
 ```bash
 node ./src/test-runner.js skeleton src/my-module.js
 ```
+

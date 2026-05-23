@@ -1,5 +1,5 @@
 import React from 'react';
-import { describe, expect, it } from 'vitest';
+import { describe, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import TrainingStatus from '../TrainingStatus';
@@ -7,8 +7,8 @@ import TrainingStatus from '../TrainingStatus';
 describe('TrainingStatus.jsx', () => {
   it('renders capture count badge with default zero', () => {
     render(<TrainingStatus />);
-    const badge = screen.getByText('0');
-    expect(badge).toBeInTheDocument();
+    const badge = screen.getByText('captured this session').previousElementSibling;
+    expect(badge).toHaveTextContent('0');
     expect(screen.getByText('captured this session')).toBeInTheDocument();
   });
 
@@ -21,7 +21,8 @@ describe('TrainingStatus.jsx', () => {
 
   it('renders total docs with default zero', () => {
     render(<TrainingStatus />);
-    expect(screen.getByText('0')).toBeInTheDocument();
+    const totalDocsValue = screen.getByText('Total docs:').nextElementSibling;
+    expect(totalDocsValue).toHaveTextContent('0');
     expect(screen.getByText('Total docs:')).toBeInTheDocument();
   });
 

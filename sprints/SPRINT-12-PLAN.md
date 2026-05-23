@@ -14,7 +14,7 @@ Build a passive VS Code signal collector that feeds active editor context into t
   - `tasks.onDidEndTaskProcess`
   - Git commit state via `vscode.extensions.getExtension('vscode.git')` or fallback polling
 - Buffer events and flush them as staging files to `~/.vscode-rotator/vscode-signals/`
-- Add CLI command `vscode-rotator llm ingest-staged`
+- Add CLI command `strategic-learning-unified-theatre llm ingest-staged`
 - Keep the existing extension separate from logic by placing collector code outside `extension.js`
 - Require opt-in via config, and hard-exclude secrets like `.env`, `*.key`, and `*.pem`
 
@@ -56,3 +56,4 @@ Build a passive VS Code signal collector that feeds active editor context into t
 ## Next sprint candidate
 - Sprint 13: LoRA Fine-Tuning Pipeline
 - Precondition: passive learning should be implemented and experience.db should contain quality-tagged data
+

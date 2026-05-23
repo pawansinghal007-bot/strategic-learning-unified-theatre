@@ -58,6 +58,20 @@ export const DEFAULT_CONFIG = {
       ".txt"
     ]
   }
+  ,
+  // Browser integration settings
+  browserPaths: {},
+  platformTriggers: {
+    // domain -> platform mapping example
+    // "chat.openai.com": "chatgpt",
+    // "cloud.ai": "claude",
+    // "perplexity.ai": "perplexity",
+    // "gemini.google.com": "gemini"
+  },
+  captureSchedule: {
+    enabled: false,
+    intervalMs: 15 * 60 * 1000 // default 15 minutes
+  }
 };
 
 export async function loadConfig() {

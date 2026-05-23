@@ -43,7 +43,7 @@ describe("Knowledge Graph Export", () => {
     await fs.mkdir(path.join(baseDir, ".git"), { recursive: true, mode: 0o700 });
     const db = new ExperienceDb({ baseDir });
     await db.open();
-    const sprintId = "11111111-1111-1111-1111-111111111111";
+    const sprintId = "11111111-1111-4111-8111-111111111111";
     await db.upsertSprint({ id: sprintId, goal: "Test sprint", date: "2025-01-01T00:00:00Z", status: "active" });
     const idea = await createIdea({ body: "Test idea", linkedSprint: sprintId, cwd: baseDir });
     const outputPath = path.join(baseDir, "knowledge-graph-linked-sprint.json");

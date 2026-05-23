@@ -8,7 +8,7 @@ import { AccountStore } from "../src/store.js";
 
 describe("atomicWriteFile", () => {
   it("writes full content to destination", async () => {
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "vscode-rotator-atomic-"));
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "strategic-learning-unified-theatre-atomic-"));
     const target = path.join(dir, "auth.json");
     await atomicWriteFile(target, "hello");
     expect(await fs.readFile(target, "utf8")).toBe("hello");
@@ -17,7 +17,7 @@ describe("atomicWriteFile", () => {
 
 describe("SwitcherService", () => {
   it("dry-run returns a plan without writing", async () => {
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "vscode-rotator-switcher-"));
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "strategic-learning-unified-theatre-switcher-"));
     const storePath = path.join(dir, "accounts.enc");
     const authPath = path.join(dir, "auth.json");
 

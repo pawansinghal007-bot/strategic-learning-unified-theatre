@@ -154,7 +154,7 @@ describe("AI Memory Foundation", () => {
       output.push(args.join(" "));
     });
 
-    await makeProgram().parseAsync(["node", "vscode-rotator", "ai", "snapshot"]);
+    await makeProgram().parseAsync(["node", "strategic-learning-unified-theatre", "ai", "snapshot"]);
 
     expect(output.some((line) => line.includes("AI Memory Snapshot"))).toBe(true);
     expect(output.some((line) => line.includes("Current sprint:"))).toBe(true);
@@ -168,7 +168,7 @@ describe("AI Memory Foundation", () => {
 
     await makeProgram().parseAsync([
       "node",
-      "vscode-rotator",
+      "strategic-learning-unified-theatre",
       "ai",
       "commands",
       "add",
@@ -182,7 +182,7 @@ describe("AI Memory Foundation", () => {
 
     await makeProgram().parseAsync([
       "node",
-      "vscode-rotator",
+      "strategic-learning-unified-theatre",
       "ai",
       "commands",
       "list"
@@ -201,7 +201,7 @@ describe("AI Memory Foundation", () => {
 
     await makeProgram().parseAsync([
       "node",
-      "vscode-rotator",
+      "strategic-learning-unified-theatre",
       "ai",
       "baseline",
       "add",
@@ -217,3 +217,4 @@ describe("AI Memory Foundation", () => {
     expect(output.some((line) => line.match(/id: \d+/))).toBe(true);
   });
 });
+

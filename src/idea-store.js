@@ -17,7 +17,7 @@ const IdeaSchema = z.object({
   tags: z.array(z.string()).default([]),
   status: IdeaStatusSchema,
   priority: IdeaPrioritySchema,
-  linkedSprint: z.string().uuid().nullable()
+  linkedSprint: z.string().uuid().nullable().optional().default(null)
 });
 
 function slugify(text) {
@@ -145,14 +145,20 @@ export async function createIdea({
   }
 
   const markdown = matter.stringify(content, idea);
+  console.log("IDEA FILE PATH:", filePath);
   await fs.writeFile(filePath, markdown, "utf8");
   return { ...idea, body: content, filePath };
 }
 
 export async function listIdeas({ cwd = process.cwd(), project, status, tag } = {}) {
   const context = await getIdeaContext({ cwd, project });
-  if (!(await pathExists(context.ideaDir))) return [];
+  console.log("LIST IDEA DIR:", context.ideaDir);
+  if (!(await pathExists(context.ideaDir))) {
+  console.log("DIR DOES NOT EXIST");
+  return [];
+  }
   const files = await fs.readdir(context.ideaDir);
+  console.log("FOUND FILES:", files);
   const ideas = [];
   for (const name of files) {
     if (!name.endsWith(".md")) continue;
@@ -175,8 +181,9 @@ export async function listIdeas({ cwd = process.cwd(), project, status, tag } = 
       if (status && idea.status !== status) continue;
       if (tag && !idea.tags.includes(tag)) continue;
       ideas.push(idea);
-    } catch {
-      continue;
+    } catch (err) {
+		console.log("IDEA PARSE ERROR:", err);
+		continue;
     }
   }
   return ideas.sort((a, b) => new Date(b.created).getTime() - new Date(a.created).getTime());

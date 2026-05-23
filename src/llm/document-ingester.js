@@ -218,6 +218,55 @@ export class DocumentIngester {
     return { path: absolute, chunks: chunksWithEmbeddings.length, skipped: false };
   }
 
+  async ingestChunks(chunks, { filename = null, fileTs, source_type, platform, metadata, uniqueBy, logPath } = {}) {
+    await this.initialize();
+    if (!Array.isArray(chunks) || chunks.length === 0) {
+      return { path: logPath ?? filename, chunks: 0, skipped: true };
+    }
+
+    const ts = fileTs ?? new Date().toISOString();
+    const prepared = chunks
+      .map((chunk) => ({
+        content: String(chunk.content ?? ""),
+        source_type: chunk.source_type ?? source_type ?? null,
+        platform: chunk.platform ?? platform ?? null,
+        file_ts: chunk.file_ts ?? ts,
+        metadata: chunk.metadata ? { ...chunk.metadata, ...(metadata ?? {}) } : metadata ?? undefined,
+        turn_index: chunk.turn_index ?? null,
+        quality: chunk.quality ?? null,
+        notes: chunk.notes ?? null
+      }))
+      .filter((chunk) => chunk.content.trim().length > 0);
+
+    if (prepared.length === 0) {
+      return { path: logPath ?? filename, chunks: 0, skipped: true };
+    }
+
+    const vectors = await this.embeddings.embedMany(prepared.map((c) => c.content));
+    const chunksWithEmbeddings = prepared.map((chunk, index) => ({
+      ...chunk,
+      embedding: vectors[index]
+    }));
+
+    let rows;
+    if (uniqueBy) {
+      rows = await this.db.upsertDocuments(chunksWithEmbeddings, { filename, uniqueBy });
+    } else {
+      rows = await this.db.replaceDocumentsForFile(filename, chunksWithEmbeddings);
+    }
+
+    if (logPath || filename) {
+      await this.db.upsertIngestionLog({
+        path: logPath ?? filename,
+        file_ts: ts,
+        chunk_count: rows.length,
+        last_run: new Date().toISOString()
+      });
+    }
+
+    return { path: logPath ?? filename, chunks: rows.length, skipped: rows.length === 0, rows };
+  }
+
   async ingestThread(filePath, { platform } = {}) {
     await this.initialize();
     const absolute = path.resolve(filePath);

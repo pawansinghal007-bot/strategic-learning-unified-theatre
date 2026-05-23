@@ -1,4 +1,4 @@
-﻿import child_process from "node:child_process";
+import child_process from "node:child_process";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -626,7 +626,7 @@ export class VscodeContextCollector {
     }
 
     if (!this.vscodeLearn.enabled) {
-      this.outputChannel.appendLine("vscode-rotator: passive learning disabled");
+      this.outputChannel.appendLine("strategic-learning-unified-theatre: passive learning disabled");
       return { dispose: () => {} };
     }
 
@@ -702,3 +702,4 @@ export class VscodeContextCollector {
 }
 
 export const VscodeSignalCollector = VscodeContextCollector;
+
