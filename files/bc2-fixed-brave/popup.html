@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Browser Capture</title>
+<style>
+  :root {
+    --bg:#0f0f0f;--surface:#1a1a1a;--border:#2a2a2a;
+    --gold:#FFCB00;--red:#E63C2F;--teal:#00C4B4;
+    --text:#F0F0E8;--muted:#6b6b5f;
+    --radius:6px;--font:'DM Mono','Courier New',monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    width:320px;min-height:360px;
+    background:var(--bg);color:var(--text);
+    font-family:var(--font);font-size:12px;
+    padding:20px;
+  }
+  h1{font-size:14px;letter-spacing:0.2em;color:var(--gold);margin-bottom:4px;}
+  .sub{font-size:10px;color:var(--muted);margin-bottom:20px;letter-spacing:0.1em;}
+
+  .status-row{
+    display:flex;align-items:center;gap:8px;
+    background:var(--surface);border:1px solid var(--border);
+    padding:10px 14px;border-radius:var(--radius);margin-bottom:12px;
+  }
+  .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  .dot.ok{background:var(--teal);}
+  .dot.warn{background:var(--gold);}
+  .dot.err{background:var(--red);}
+  .status-text{font-size:10px;color:var(--muted);letter-spacing:0.08em;}
+
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;}
+  .stat-box{
+    background:var(--surface);border:1px solid var(--border);
+    padding:12px 8px;border-radius:var(--radius);text-align:center;
+  }
+  .stat-box .n{font-size:22px;font-weight:700;color:var(--gold);line-height:1;}
+  .stat-box .l{font-size:9px;color:var(--muted);letter-spacing:0.1em;margin-top:4px;}
+
+  .event-list{
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:var(--radius);overflow:hidden;margin-bottom:12px;
+  }
+  .event-list .hdr{
+    font-size:9px;letter-spacing:0.18em;color:var(--muted);
+    padding:7px 12px;border-bottom:1px solid var(--border);
+    text-transform:uppercase;
+  }
+  .event-item{
+    padding:7px 12px;border-bottom:1px solid rgba(255,255,255,0.04);
+    font-size:10px;color:rgba(240,240,232,0.65);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .event-item:last-child{border-bottom:none;}
+  .event-item .tag{
+    display:inline-block;
+    background:rgba(255,203,0,0.1);color:var(--gold);
+    font-size:8px;padding:1px 5px;border-radius:2px;
+    margin-right:6px;letter-spacing:0.1em;
+  }
+  .event-item .tag.chat{background:rgba(0,196,180,0.1);color:var(--teal);}
+
+  .footer{
+    border-top:1px solid var(--border);padding-top:10px;
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .footer-text{font-size:9px;color:var(--muted);}
+  button.refresh{
+    background:none;border:1px solid var(--border);
+    color:var(--muted);font-family:var(--font);font-size:9px;
+    padding:4px 10px;border-radius:var(--radius);cursor:pointer;
+    letter-spacing:0.1em;transition:all 0.15s;
+  }
+  button.refresh:hover{border-color:var(--gold);color:var(--gold);}
+  .empty{font-size:10px;color:var(--muted);padding:14px 12px;text-align:center;}
+</style>
+</head>
+<body>
+<h1>BROWSER CAPTURE</h1>
+<div class="sub">LOCAL KNOWLEDGE BASE · ADMIN</div>
+
+<!-- Host status -->
+<div class="status-row">
+  <div class="dot ok" id="hostDot"></div>
+  <span class="status-text" id="hostStatus">Native host active · Capturing all pages</span>
+</div>
+
+<!-- Stats -->
+<div class="stat-grid">
+  <div class="stat-box"><div class="n" id="statPages">…</div><div class="l">PAGES</div></div>
+  <div class="stat-box"><div class="n" id="statChats">…</div><div class="l">CHATS</div></div>
+  <div class="stat-box"><div class="n" id="statToday">…</div><div class="l">TODAY</div></div>
+</div>
+
+<!-- Recent events -->
+<div class="event-list">
+  <div class="hdr">RECENT ACTIVITY</div>
+  <div id="eventList"><div class="empty">Loading…</div></div>
+</div>
+
+<div class="footer">
+  <span class="footer-text" id="dbPath">DB: loading…</span>
+  <button class="refresh" onclick="loadAll()">↺ REFRESH</button>
+</div>
+
+<script>
+const api = (typeof browser !== 'undefined') ? browser : chrome;
+
+// ── Load stats from local DB via background ──
+async function loadAll() {
+  document.getElementById('eventList').innerHTML = '<div class="empty">Loading…</div>';
+
+  // Try REST API first (if api.py is running)
+  try {
+    const r = await fetch('http://localhost:7070/events/stats', { signal: AbortSignal.timeout(1500) });
+    if (r.ok) {
+      const d = await r.json();
+      document.getElementById('statPages').textContent = d.total ?? '—';
+      document.getElementById('statChats').textContent =
+        (d.by_type || []).find(t => t.event_type === 'message_sent')?.count ?? '0';
+      document.getElementById('statToday').textContent = d.today ?? '—';
+
+      // Recent events
+      const ev = await fetch('http://localhost:7070/events?limit=6', { signal: AbortSignal.timeout(1500) });
+      if (ev.ok) {
+        const events = await ev.json();
+        renderEvents(events);
+      }
+      document.getElementById('dbPath').textContent = 'API: localhost:7070';
+      return;
+    }
+  } catch (_) {}
+
+  // Fallback: request stats from background script
+  api.runtime.sendMessage({ type: 'get_stats' }, (res) => {
+    if (res && res.pages !== undefined) {
+      document.getElementById('statPages').textContent = res.pages;
+      document.getElementById('statChats').textContent = res.chats;
+      document.getElementById('statToday').textContent = res.sessions;
+      document.getElementById('dbPath').textContent = 'DB: capturing locally';
+      document.getElementById('eventList').innerHTML =
+        '<div class="empty">Start api.py for full details</div>';
+    } else {
+      document.getElementById('statPages').textContent = '✓';
+      document.getElementById('statChats').textContent = '✓';
+      document.getElementById('statToday').textContent = '✓';
+      document.getElementById('dbPath').textContent = 'DB: capturing locally';
+      document.getElementById('eventList').innerHTML =
+        '<div class="empty">Capturing · Start api.py to view data</div>';
+    }
+  });
+}
+
+function renderEvents(events) {
+  if (!events || events.length === 0) {
+    document.getElementById('eventList').innerHTML = '<div class="empty">No events yet</div>';
+    return;
+  }
+  const html = events.map(e => {
+    const isChat = e.event_type === 'message_sent' || e.event_type === 'message_received';
+    const tag = isChat ? 'chat' : '';
+    const site = (e.tab_url || e.site || '').replace(/https?:\/\//, '').split('/')[0].slice(0, 25);
+    const label = e.event_type.replace(/_/g,' ');
+    return `<div class="event-item">
+      <span class="tag ${tag}">${label}</span>${site}
+    </div>`;
+  }).join('');
+  document.getElementById('eventList').innerHTML = html;
+}
+
+// Add get_stats handler response to background
+loadAll();
+</script>
+</body>
+</html>

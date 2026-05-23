@@ -1,0 +1,9 @@
+{
+  "name": "com.garuda.browser_capture",
+  "description": "Browser Capture v2 native host",
+  "path": "C:\\BrowserCapture\\host.bat",
+  "type": "stdio",
+  "allowed_origins": [
+    "chrome-extension://aegencggpkooibjiidheakooobgiacgm/"
+  ]
+}
