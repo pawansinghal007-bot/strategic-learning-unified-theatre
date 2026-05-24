@@ -286,7 +286,7 @@ Refer to `Solution/sprints/SPRINT-12-CODING-LOG.md` for full E2E details and the
 ### How It Works
 
 1. **During sprint**: Commands like `strategic-learning-unified-theatre ai decisions add` and `strategic-learning-unified-theatre ai lessons add` store state in SQLite.
-2. **At handoff**: `strategic-learning-unified-theatre ai snapshot` queries the DB and prints a compact summary.
+2. **At handoff**: `strategic-learning-unified-theatre ai snapshot` queries the AI memory DB and prints a compact summary. If the AI-memory rows are missing, it falls back to the latest manifest JSON under `~/.vscode-rotator/sprints/`.
 3. **Next session**: Copy the snapshot into the prompt context instead of the entire master instructions.
 4. **Result**: Token budget freed up for actual work context instead of baseline overhead.
 
@@ -303,6 +303,8 @@ Write the following there as they happen — never into this file mid-sprint:
 - Lessons learned (problem, fix, prevention rule)
 - Test baselines (date, passing count, failing count, notes)
 - Handoff notes and resume prompts
+
+If `ai snapshot` cannot read active sprint or handoff rows from the AI-memory DB, it will fall back to the latest file-based manifest in `~/.vscode-rotator/sprints/`.
 
 CLI commands for writing state during a sprint:
   strategic-learning-unified-theatre ai decisions add "<title>: <decision>"
@@ -322,7 +324,11 @@ per-sprint lesson lists to this file. Those live in the database.
 
 ### Snapshot rule
 Every handoff snapshot must reference the DB sprint ID, not copy prose
-from this file. Use:
+from this file. `strategic-learning-unified-theatre ai snapshot` is the canonical
+command for compact context generation. It reads from the AI-memory DB first and
+falls back to the latest handoff manifest JSON only when DB state is absent.
+
+Use:
   strategic-learning-unified-theatre ai snapshot
 to generate the compact context block for the next session.
 
