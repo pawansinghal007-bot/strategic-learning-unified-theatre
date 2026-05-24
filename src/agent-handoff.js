@@ -292,6 +292,86 @@ async function getActiveSprint({ baseDir } = {}) {
   return all.find((s) => s.status === "active") ?? null;
 }
 
+async function loadLatestSprintManifest({ baseDir } = {}) {
+  const dir = await ensureSprintDirectory(baseDir);
+  const entries = await fs.readdir(dir);
+  const manifests = entries
+    .filter((name) => name.endsWith(".json"))
+    .map((name) => {
+      const datePart = name.slice(0, 10);
+      return {
+        filePath: path.join(dir, name),
+        date: /^\d{4}-\d{2}-\d{2}$/.test(datePart) ? datePart : "1970-01-01",
+        name
+      };
+    })
+    .sort((a, b) => {
+      const dateCompare = a.date.localeCompare(b.date);
+      if (dateCompare !== 0) return dateCompare;
+      return a.name.localeCompare(b.name);
+    });
+
+  if (manifests.length === 0) return null;
+
+  try {
+    const raw = await fs.readFile(manifests.at(-1).filePath, "utf8");
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+function mapSprintManifestToSnapshot(manifest) {
+  if (!manifest) return null;
+  const blockers = Array.isArray(manifest.blockers)
+    ? manifest.blockers.map((blocker) => {
+        if (typeof blocker === "string") return blocker;
+        return blocker.suggestedFix
+          ? `${blocker.description} (fix: ${blocker.suggestedFix})`
+          : String(blocker.description || JSON.stringify(blocker));
+      })
+    : [];
+
+  const nextSteps = Array.isArray(manifest.pendingTasks)
+    ? manifest.pendingTasks.map((task) => {
+        if (typeof task === "string") return task;
+        return `${task.description || ""}${task.priority ? ` (priority ${task.priority})` : ""}`.trim();
+      })
+    : [];
+
+  return {
+    sprint_name: manifest.sprintId,
+    status: manifest.status ?? "active",
+    current_goal: manifest.goal ?? "",
+    blockers,
+    next_steps: nextSteps,
+    updated_at: manifest.date ?? new Date().toISOString()
+  };
+}
+
+function mapSprintManifestToHandoff(manifest) {
+  if (!manifest) return null;
+  const completedSteps = Array.isArray(manifest.completedTasks)
+    ? manifest.completedTasks.map((task) => (typeof task === "string" ? task : task.description || ""))
+    : [];
+  const pendingTasks = Array.isArray(manifest.pendingTasks)
+    ? manifest.pendingTasks.map((task) =>
+        typeof task === "string"
+          ? task
+          : `${task.description || ""}${task.priority ? ` (priority ${task.priority})` : ""}`.trim()
+      )
+    : [];
+
+  return {
+    sprint_name: manifest.sprintId,
+    resume_summary: manifest.resumePrompt || `Resume state for sprint ${manifest.sprintId}`,
+    completed_steps: completedSteps,
+    pending_tasks: pendingTasks,
+    last_agent_output: manifest.resumePrompt ?? "",
+    updated_at: manifest.date ?? new Date().toISOString()
+  };
+}
+
 export {
   createSprint,
   loadSprint,
@@ -303,5 +383,8 @@ export {
   updateSprint,
   getActiveSprint,
   setTokenBudget,
-  buildResumePrompt as generateResumePrompt
+  buildResumePrompt as generateResumePrompt,
+  loadLatestSprintManifest,
+  mapSprintManifestToSnapshot,
+  mapSprintManifestToHandoff
 };

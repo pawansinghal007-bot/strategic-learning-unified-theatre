@@ -1,4 +1,4 @@
-const cp = require("node:child_process");
+﻿const cp = require("node:child_process");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
@@ -18,6 +18,15 @@ function activate(context) {
 
   // Initialize and activate the collector
   initializeCollector(context, projectRoot, output);
+  // Start supervisor bootstrap in the background (<500ms impact)
+  const bootstrapUrl = pathToFileURL(path.join(projectRoot, "src", "startup-bootstrap.js")).href;
+  import(bootstrapUrl).then(({ initializeStartupBootstrap }) => {
+    initializeStartupBootstrap({
+      log: (msg) => output.appendLine(msg),
+      error: (msg) => output.appendLine(msg)
+    });
+  }).catch(err => output.appendLine('[Supervisor] Bootstrap import failed: ' + String(err.message)));
+
 
   function runNodeCli(scriptPath, args, cwd) {
     return new Promise((resolve, reject) => {

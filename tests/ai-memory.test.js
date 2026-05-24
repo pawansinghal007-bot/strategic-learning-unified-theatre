@@ -160,6 +160,41 @@ describe("AI Memory Foundation", () => {
     expect(output.some((line) => line.includes("Current sprint:"))).toBe(true);
   });
 
+  it("falls back to the latest sprint manifest when AI-memory repos are empty", async () => {
+    const manifestDir = path.join(process.env.HOME, ".vscode-rotator", "sprints");
+    await fs.mkdir(manifestDir, { recursive: true, mode: 0o700 });
+    const manifest = {
+      sprintId: "00000000-0000-0000-0000-000000000000",
+      date: "2026-05-24T00:00:00.000Z",
+      agent: "other",
+      model: "unknown",
+      goal: "Fix snapshot fallback",
+      tokensUsed: 0,
+      tokensLimit: 100,
+      status: "active",
+      completedTasks: [],
+      pendingTasks: [{ id: "1", description: "Add fallback", priority: 1 }],
+      blockers: [{ description: "No DB rows", suggestedFix: "Use file manifest fallback" }],
+      filesCreated: [],
+      filesModified: [],
+      testsPassed: [],
+      testsFailed: [],
+      resumePrompt: "Resume sprint from manifest"
+    };
+    await fs.writeFile(path.join(manifestDir, "2026-05-24-00000000-0000-0000-0000-000000000000.json"), JSON.stringify(manifest, null, 2), "utf8");
+
+    const output = [];
+    vi.spyOn(console, "log").mockImplementation((...args) => {
+      output.push(args.join(" "));
+    });
+
+    await makeProgram().parseAsync(["node", "strategic-learning-unified-theatre", "ai", "snapshot"]);
+
+    expect(output.some((line) => line.includes("AI Memory Snapshot"))).toBe(true);
+    expect(output.some((line) => line.includes("Current sprint:"))).toBe(true);
+    expect(output.some((line) => line.includes("Handoff summary:"))).toBe(true);
+  });
+
   it("records PowerShell commands and lists them via ai commands list", async () => {
     const output = [];
     vi.spyOn(console, "log").mockImplementation((...args) => {

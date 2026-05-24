@@ -62,34 +62,3 @@ CREATE TABLE IF NOT EXISTS ai_lessons_learned (
   related_files TEXT,
   created_at TEXT NOT NULL
 );
-
--- ---------------------------------------------------------------------------
--- Sprint 14 S3 — Session resume tracking
--- ---------------------------------------------------------------------------
-
-CREATE TABLE IF NOT EXISTS session_resume_metadata (
-  session_id      TEXT    PRIMARY KEY,
-  provider        TEXT    NOT NULL DEFAULT 'unknown',
-  model           TEXT    NOT NULL DEFAULT 'unknown',
-  workspace_path  TEXT    NOT NULL DEFAULT 'unknown',
-  status          TEXT    NOT NULL DEFAULT 'pending',
-  blocked_reason  TEXT,
-  retry_count     INTEGER NOT NULL DEFAULT 0,
-  reset_at        INTEGER,
-  retry_at        INTEGER,
-  last_seen_at    INTEGER
-);
-
-CREATE TABLE IF NOT EXISTS session_continuation_state (
-  session_id                      TEXT PRIMARY KEY,
-  current_goal                    TEXT,
-  goal_redacted                   TEXT,
-  last_prompt_hash                TEXT,
-  last_response_summary_redacted  TEXT,
-  resume_prompt                   TEXT,
-  completion_state                TEXT,
-
-  FOREIGN KEY (session_id)
-    REFERENCES session_resume_metadata (session_id)
-    ON DELETE CASCADE
-);

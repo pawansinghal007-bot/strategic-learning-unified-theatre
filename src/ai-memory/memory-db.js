@@ -12,28 +12,46 @@ function homeDir() {
 }
 
 function defaultBaseDir(baseDir) {
-  return baseDir ? path.resolve(baseDir) : path.join(homeDir(), ".vscode-rotator");
+  return baseDir
+    ? path.resolve(baseDir)
+    : path.join(homeDir(), ".vscode-rotator");
 }
 
 export class MemoryDb {
   constructor({ baseDir, dbPath } = {}) {
     this.baseDir = defaultBaseDir(baseDir);
-    this.dbPath = dbPath ?? path.join(this.baseDir, "ai-memory.db");
+
+    this.dbPath =
+      dbPath ||
+      process.env.DB_PATH ||
+      path.join(this.baseDir, "ai-memory.db");
+
     this.db = null;
   }
 
   async init() {
-    await fs.mkdir(this.baseDir, { recursive: true, mode: 0o700 });
+    await fs.mkdir(this.baseDir, {
+      recursive: true,
+      mode: 0o700,
+    });
+
     const rawSchema = await fs.readFile(schemaPath, "utf8");
+
     this.db = new Database(this.dbPath);
+
     this.db.pragma("journal_mode = WAL");
     this.db.pragma("synchronous = NORMAL");
+
     this.db.exec(rawSchema);
+
     return this;
   }
 
   getDb() {
-    if (!this.db) throw new Error("MemoryDb is not initialized.");
+    if (!this.db) {
+      throw new Error("MemoryDb is not initialized.");
+    }
+
     return this.db;
   }
 
@@ -44,3 +62,15 @@ export class MemoryDb {
     }
   }
 }
+
+// ---------------------------------------------------------------------------
+// Shared singleton used by tests + runtime modules
+// ---------------------------------------------------------------------------
+
+export const memoryDb = new MemoryDb({
+  dbPath: process.env.DB_PATH,
+});
+
+await memoryDb.init();
+
+export const db = memoryDb.getDb();

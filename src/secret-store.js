@@ -1,4 +1,4 @@
-import fs from "node:fs/promises";
+﻿import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
@@ -137,3 +137,13 @@ export function defaultProgressPath() {
   return path.join(os.homedir(), ".vscode-rotator", "PROGRESS.md");
 }
 
+
+export async function getSupervisorCredentials(provider = 'default') {
+  const store = new SecretStore();
+  return await store.get('supervisor_token_' + provider);
+}
+
+export async function setSupervisorCredentials(provider = 'default', token) {
+  const store = new SecretStore();
+  await store.set('supervisor_token_' + provider, token);
+}
