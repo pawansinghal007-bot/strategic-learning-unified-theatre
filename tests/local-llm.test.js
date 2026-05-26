@@ -1,7 +1,6 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DocumentIngester } from "../src/llm/document-ingester.js";
 import { ExperienceDb } from "../src/llm/experience-db.js";
@@ -9,6 +8,7 @@ import { MistakeTracker } from "../src/llm/mistake-tracker.js";
 import { PromptGenerator } from "../src/llm/prompt-generator.js";
 import { LocalLlmInference } from "../src/llm/inference.js";
 import { ingestStagedSignalsFromDirectory } from "../src/commands/llm.js";
+import { askLocalLlm, getLlmStatus, getLocalLlmStatus, ingestDocuments, llmBaseDir, setupModel } from "../src/local-llm.js";
 
 describe("Local Dev-LLM", () => {
   let tempDir;
@@ -54,6 +54,129 @@ describe("Local Dev-LLM", () => {
     expect(first.ingested).toBe(1);
     expect(first.actions[0]).toMatchObject({ type: "new", chunks: 1 });
     expect(second.actions).toEqual([]);
+  });
+
+  it("reports local LLM status as unavailable when no GGUF model exists", async () => {
+    vi.spyOn(os, "homedir").mockReturnValue(tempDir);
+
+    const status = await getLocalLlmStatus();
+
+    expect(status).toEqual({
+      status: "unavailable",
+      modelDir: path.join(tempDir, ".vscode-rotator", "models"),
+      models: []
+    });
+  });
+
+  it("reports LLM status from GGUF files in a provided base directory", async () => {
+    const modelDir = path.join(tempDir, "models");
+    await fs.mkdir(modelDir, { recursive: true });
+    await fs.writeFile(path.join(modelDir, "alpha.gguf"), "model", "utf8");
+    await fs.writeFile(path.join(modelDir, "notes.txt"), "ignore", "utf8");
+
+    const status = await getLlmStatus({ baseDir: tempDir });
+
+    expect(status.available).toBe(true);
+    expect(status.models).toContain("alpha.gguf");
+    expect(status.modelPath).toBe(path.join(modelDir, "alpha.gguf"));
+    expect(status.provider).toBe("node-llama-cpp");
+  });
+
+  it("sets up a custom GGUF model without downloading when mock LLM mode is enabled", async () => {
+    const oldProvider = process.env.VSCODE_ROTATOR_LLM_PROVIDER;
+    process.env.VSCODE_ROTATOR_LLM_PROVIDER = "node-llama-cpp";
+    const sourceModel = path.join(tempDir, "source.gguf");
+    await fs.writeFile(sourceModel, "fake-model", "utf8");
+
+    try {
+      const result = await setupModel({
+        model: "custom",
+        modelPath: sourceModel,
+        baseDir: tempDir,
+      });
+
+      expect(result.modelPath).toBe(path.join(tempDir, "models", "source.gguf"));
+      expect(result.sha256).toMatch(/^[a-f0-9]{64}$/);
+      expect(result.response).toContain("Hello");
+    } finally {
+      if (oldProvider == null) delete process.env.VSCODE_ROTATOR_LLM_PROVIDER;
+      else process.env.VSCODE_ROTATOR_LLM_PROVIDER = oldProvider;
+    }
+  });
+
+  it("rejects custom setup without a model path", async () => {
+    const oldProvider = process.env.VSCODE_ROTATOR_LLM_PROVIDER;
+    process.env.VSCODE_ROTATOR_LLM_PROVIDER = "node-llama-cpp";
+
+    try {
+      await expect(setupModel({ model: "custom", baseDir: tempDir })).rejects.toThrow(
+        /requires --model-path/,
+      );
+    } finally {
+      if (oldProvider == null) delete process.env.VSCODE_ROTATOR_LLM_PROVIDER;
+      else process.env.VSCODE_ROTATOR_LLM_PROVIDER = oldProvider;
+    }
+  });
+
+  it("asks the local LLM through the inference facade", async () => {
+    const answer = await askLocalLlm({
+      question: "Summarize",
+      system: "System prompt",
+      baseDir: tempDir,
+      modelPath: "mock-model",
+    });
+
+    expect(answer).toContain("System prompt");
+    expect(answer).toContain("Summarize");
+  });
+
+  it("ingests a target document through the local LLM helper", async () => {
+    const filePath = path.join(tempDir, "guide.md");
+    await fs.writeFile(filePath, "# Guide\nUseful content", "utf8");
+
+    const result = await ingestDocuments({ baseDir: tempDir, targetPath: filePath });
+
+    expect(result).toHaveLength(1);
+    expect(result[0]).toMatchObject({ chunks: 1, skipped: false });
+  });
+
+  it("resolves the default LLM base directory when not provided", () => {
+    expect(llmBaseDir(tempDir)).toBe(tempDir);
+    expect(llmBaseDir()).toContain(".vscode-rotator");
+  });
+
+  it("reports local LLM status as degraded when runtime verification fails", async () => {
+    vi.spyOn(os, "homedir").mockReturnValue(tempDir);
+    const modelDir = path.join(tempDir, ".vscode-rotator", "models");
+    await fs.mkdir(modelDir, { recursive: true });
+    await fs.writeFile(path.join(modelDir, "model.gguf"), "placeholder", "utf8");
+
+    const status = await getLocalLlmStatus({
+      verifyRuntime: vi.fn().mockRejectedValue(new Error("runtime missing"))
+    });
+
+    expect(status).toEqual({
+      status: "degraded",
+      modelDir,
+      models: ["model.gguf"]
+    });
+  });
+
+  it("reports local LLM status as ready when a GGUF model and runtime exist", async () => {
+    vi.spyOn(os, "homedir").mockReturnValue(tempDir);
+    const modelDir = path.join(tempDir, ".vscode-rotator", "models");
+    await fs.mkdir(modelDir, { recursive: true });
+    await fs.writeFile(path.join(modelDir, "model.gguf"), "placeholder", "utf8");
+
+    const status = await getLocalLlmStatus({
+      verifyRuntime: vi.fn().mockResolvedValue(true)
+    });
+
+    expect(status).toEqual({
+      status: "ready",
+      modelDir,
+      models: ["model.gguf"]
+    });
   });
 
   it("promotes recurring mistakes into rubric rules", async () => {

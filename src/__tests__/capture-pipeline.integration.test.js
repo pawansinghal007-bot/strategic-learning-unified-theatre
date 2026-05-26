@@ -244,9 +244,14 @@ describe('Capture Pipeline Integration', () => {
     const files = await fs.readdir(browserResponsesDir);
     expect(files.length).toBe(0);
 
-    // No capture:done events should have been emitted
+    // Invalid captures should report capture:error without emitting capture:done.
     const events = mockMainWindow.getEmittedEvents();
-    expect(events.length).toBe(0);
+    expect(events.filter(e => e.channel === 'capture:done')).toHaveLength(0);
+    const captureErrorEvents = events.filter(e => e.channel === 'capture:error');
+    expect(captureErrorEvents).toHaveLength(invalidPayloads.length);
+    expect(captureErrorEvents[0].data).toMatchObject({
+      code: 'ROTATOR_BROWSER_CAPTURE_INVALID'
+    });
   });
 
   it('large response text: ingested correctly with multiple chunks', async () => {

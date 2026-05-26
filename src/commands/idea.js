@@ -15,13 +15,30 @@ import {
   linkIdeaToSprint,
   exportIdeas
 } from "../idea-store.js";
+import { IdeaPrioritySchema } from "../domain/schemas.js";
+import { DomainError } from "../error.js";
 
 function accumulate(value, previous) {
   return previous.concat(value);
 }
 
-function parseInteger(value) {
-  return Number.parseInt(String(value), 10);
+function formatValidationError(err) {
+  if (Array.isArray(err?.issues)) {
+    return err.issues.map((issue) => issue.message).join("; ");
+  }
+  return err instanceof Error ? err.message : String(err);
+}
+
+function parseIdeaPriority(value) {
+  try {
+    return IdeaPrioritySchema.parse(Number(value));
+  } catch (err) {
+    throw new DomainError(
+      "ROTATOR_CLI_INVALID",
+      `ROTATOR_CLI_INVALID: Invalid --priority: ${formatValidationError(err)}`,
+      { err: formatValidationError(err), option: "--priority" }
+    );
+  }
 }
 
 function promptFactory() {
@@ -92,6 +109,7 @@ export async function bindIdeaCommands(program) {
       const spinner = ora("Preparing idea...").start();
       let created = null;
       try {
+        const priority = parseIdeaPriority(options.priority);
         spinner.stop();
         const title = await promptForValue("Title: ");
         let body = "";
@@ -117,7 +135,7 @@ export async function bindIdeaCommands(program) {
         const ideaDoc = await createIdea({
           project: options.project,
           tags: options.tag,
-          priority: parseInteger(options.priority),
+          priority,
           body: `# ${title}\n\n${body}`
         });
         created = ideaDoc;

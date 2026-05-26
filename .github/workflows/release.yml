@@ -1,0 +1,50 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-publish:
+    runs-on: windows-latest
+    env:
+      NODE_ENV: production
+      WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+      WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build installers
+        run: npm run dist
+
+      - name: Generate SHA256SUMS
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem -Path release -Recurse -File
+          $hashLines = foreach ($file in $files) {
+            $hash = Get-FileHash -Algorithm SHA256 $file.FullName
+            "$($hash.Hash)  $($file.FullName)"
+          }
+          $hashLines | Out-File -FilePath "$PWD\release\SHA256SUMS" -Encoding utf8
+
+      - name: Upload installers and checksums
+        uses: actions/upload-artifact@v4
+        with:
+          name: installers-and-checksums
+          path: release/**
+
+      # - name: Publish to S3
+      #   run: aws s3 sync release s3://my-update-server/unifiedtheatre --acl private

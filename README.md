@@ -56,6 +56,41 @@ Use these npm scripts after installing Python and Robot Framework:
 - `npm run test:robot:all`
 - `npm run test:tdd`
 
+## Testing & Quality Gates
+
+- `npm test` — runs Vitest unit + static analysis suite
+- `npm run coverage` — runs Vitest with V8 coverage; fails if any core module below 70%
+- `npm run test:robot` — runs Robot Framework functional + regression suites
+- `npm run test:ci` — full CI gate (coverage + verbose reporter)
+- Coverage thresholds: 70% statements/branches on core modules (see `docs/coverage-baseline.md`)
+- Enterprise flow dashboard: `docs/test-protection-dashboard.md`
+- Regression policy: `tests/regression/` files are permanent — never remove
+- CI: every push triggers `.github/workflows/test.yml`; release tags trigger `release.yml`
+
+### Chaos & Resilience
+
+- `npm run test:chaos` — full chaos suite (all three scenarios)
+- `npm run test:chaos:kill-daemon` — daemon crash scenario only
+- `npm run test:chaos:corrupt-config` — config corruption scenario only
+- `npm run test:chaos:burst-load` — Robot burst load scenario only
+- Nightly CI: `.github/workflows/chaos.yml` (02:00 UTC; also manually triggerable)
+- Runbook: `docs/chaos-resilience-runbook.md`
+- SLO definitions: `scripts/chaos/slo.js`
+
+## Release & Updates
+
+- Build installers with `npm run dist:win`, `npm run dist:linux`, or `npm run dist:all`.
+- Update channels are configured in `config/update.json`:
+  - `latest` = stable
+  - `beta` = pre-release
+- Health-check rollback is tracked through `health-state.json` in the user data folder.
+  - When a downloaded update is marked pending, a startup health check runs.
+  - If the check passes, the pending version becomes the new known good version.
+  - If the check fails, rollback is requested and the app exits to allow recovery.
+- Tagged releases matching `v*` trigger `.github/workflows/release.yml` automatically in CI.
+- Enterprise release guidance is available in `docs/release-checklist-enterprise.md`.
+- Update server is configured with the generic provider URL from `package.json` `build.publish`.
+
 ## Documentation
 
 The full Sprint 2+ guide is available in `docs/README.md`.
@@ -84,6 +119,25 @@ The full Sprint 2+ guide is available in `docs/README.md`.
   - amber = cooldown
   - red = all accounts exhausted
 - Actions: active account display, switch submenu, open log, quit
+
+## IPC Contract
+
+- Contract version: `1`
+- Envelope format: `{ v, op, payload }`
+- Envelope-based Sprint 15.4 channels route through `registerIpcHandlers()` in `src/main/ipc/ipcAdapter.ts`.
+- `window.rotator` is the renderer surface; raw `ipcRenderer` is not exposed.
+
+| channel string            | key name                | ops/events                         | payload shape                             | route                  | added in sprint |
+| ------------------------- | ----------------------- | ---------------------------------- | ----------------------------------------- | ---------------------- | --------------- |
+| `ipc:capture-response`    | `captureResponse`       | `captureResponse`                  | `{ responsePath: string }`                | envelope adapter       | Sprint 15.4     |
+| `ipc:tray-command`        | `trayCommand`           | `trayCommand`                      | `{ command: string }`                     | envelope adapter       | Sprint 15.4     |
+| `ipc:log-view`            | `logView`               | `logView`                          | object payload, shape to be typed further | envelope adapter       | Sprint 15.4     |
+| `ipc:robot-runner-action` | `robotRunnerAction`     | `robotRunnerAction`                | `{ action: string }`                      | envelope adapter       | Sprint 15.4     |
+| `health:get`              | `healthGet`             | aggregate health request           | none                                      | legacy invoke          | Sprint 15.2     |
+| `log:event`               | `logEvent`              | structured log event               | log entry object                          | main-to-renderer event | Sprint 15.3     |
+| `browser:switchPlatform`  | `browserSwitchPlatform` | switch embedded browser platform   | platform name string                      | legacy invoke          | Sprint 11       |
+| `browser:setVisible`      | `browserSetVisible`     | toggle embedded browser visibility | boolean                                   | legacy invoke          | Sprint 11       |
+| `browser:navigate`        | `browserNavigate`       | navigate embedded browser          | URL string                                | legacy invoke          | Sprint 11       |
 
 ## Config
 
@@ -141,3 +195,44 @@ Core commands:
 
 Native model and embedding packages are loaded lazily. If the model or native runtime is missing, the CLI exits cleanly with setup guidance instead of breaking unrelated rotator commands.
 
+## Enterprise Configuration (Sprint 15.8)
+
+IT administrators can enforce fleet-wide policy by dropping a JSON or YAML file at one of the following locations (or by pointing the application at a custom path using the `UNIFIED_THEATRE_ENTERPRISE_CONFIG` environment variable):
+
+- `/etc/strategic-learning-unified-theatre/enterprise-policy.json`
+- `/etc/strategic-learning-unified-theatre/enterprise-policy.yaml`
+- Any path set via the `UNIFIED_THEATRE_ENTERPRISE_CONFIG` environment variable
+
+The enterprise file overrides user configuration and is applied at startup. It is validated against the enterprise `Policy` schema; when present and valid it takes precedence over per-user settings.
+
+Minimal JSON example:
+
+```json
+{
+  "policy": {
+    "apiVersion": "1",
+    "allowedPlatforms": ["chatgpt", "claude"],
+    "allowedModels": ["gpt-4o"],
+    "features": {
+      "localDbEnabled": false,
+      "browserCaptureEnabled": true,
+      "llmCommandsEnabled": true
+    },
+    "rateLimits": {
+      "perPlatformPerMinute": 10
+    }
+  }
+}
+```
+
+Policy keys and effects:
+
+- `allowedPlatforms`: restricts which browser platforms can be used.
+- `allowedModels`: restricts which LLM models can be used.
+- `features.localDbEnabled`: if `false`, all local DB (`experience.db`) access is blocked.
+- `features.browserCaptureEnabled`: if `false`, browser capture commands are blocked.
+- `features.llmCommandsEnabled`: if `false`, LLM setup and `ask` commands are blocked.
+- `rateLimits`: future enforcement for per-platform and per-model rate caps (example key: `perPlatformPerMinute`).
+- `pluginSearchPaths`: override where plugins are loaded from.
+
+Note: If the enterprise policy file is invalid (fails schema validation), startup will abort and the application will print a clear error listing all validation failures so administrators can correct the file before redeploying.

@@ -1,4 +1,3 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { Command } from "commander";
 import fs from "node:fs/promises";
 import os from "node:os";
@@ -20,8 +19,6 @@ import {
   ingestBrowserResponseFile,
   tagResponse,
   captureThread,
-  sendPrompt,
-  comparePrompts,
   sendPrompt,
   comparePrompts
 } from "../src/browser-bridge.js";
@@ -67,6 +64,8 @@ import { DocumentIngester } from "../src/llm/document-ingester.js";
 describe("Browser Bridge", () => {
   let tempDir;
   let originalHome;
+  let originalLogLevel;
+  let originalLogSink;
 
   beforeEach(async () => {
     // Create temporary directory for testing
@@ -74,13 +73,31 @@ describe("Browser Bridge", () => {
     
     // Save original HOME and override for tests
     originalHome = process.env.HOME;
+    originalLogLevel = process.env.ROTATOR_LOG_LEVEL;
+    originalLogSink = process.env.ROTATOR_LOG_SINK;
     process.env.HOME = tempDir;
+    process.env.ROTATOR_LOG_LEVEL = "info";
+    process.env.ROTATOR_LOG_SINK = "stdout";
   });
 
   afterEach(async () => {
     // Restore original HOME
     if (originalHome) {
       process.env.HOME = originalHome;
+    } else {
+      delete process.env.HOME;
+    }
+
+    if (originalLogLevel === undefined) {
+      delete process.env.ROTATOR_LOG_LEVEL;
+    } else {
+      process.env.ROTATOR_LOG_LEVEL = originalLogLevel;
+    }
+
+    if (originalLogSink === undefined) {
+      delete process.env.ROTATOR_LOG_SINK;
+    } else {
+      process.env.ROTATOR_LOG_SINK = originalLogSink;
     }
     
     try {
@@ -398,19 +415,40 @@ describe("Browser Bridge", () => {
   describe("Response ingestion hook", () => {
     let appendChangesSpy;
     let ingestFromSnapshotSpy;
-    let infoSpy;
+    let writeSpy;
+    let logLines;
 
     beforeEach(() => {
       appendChangesSpy = vi.spyOn(StorageMonitor.prototype, "appendChanges").mockResolvedValue({ appended: 1 });
       ingestFromSnapshotSpy = vi.spyOn(DocumentIngester.prototype, "ingestFromSnapshot").mockResolvedValue({ actions: [{ chunks: 2 }], ingested: 1, deleted: 0 });
-      infoSpy = vi.spyOn(console, "info").mockImplementation(() => {});
+      logLines = [];
+      writeSpy = vi.spyOn(process.stdout, "write").mockImplementation((line) => {
+        logLines.push(String(line));
+        return true;
+      });
     });
 
     afterEach(() => {
       appendChangesSpy.mockRestore();
       ingestFromSnapshotSpy.mockRestore();
-      infoSpy.mockRestore();
+      writeSpy.mockRestore();
     });
+
+    function browserLogEntries() {
+      return logLines
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .filter((line) => line.startsWith("{"))
+        .map((line) => {
+          try {
+            return JSON.parse(line);
+          } catch {
+            return null;
+          }
+        })
+        .filter(Boolean)
+        .filter((entry) => entry.module === "browser-bridge");
+    }
 
     it("triggers ingestion when browserResponsesIngest is true", async () => {
       await ensureBrowserDirs();
@@ -423,7 +461,25 @@ describe("Browser Bridge", () => {
         { event: "add", path: responsePath, label: "BrowserResponse" }
       ]);
       expect(ingestFromSnapshotSpy).toHaveBeenCalled();
-      expect(infoSpy).toHaveBeenCalledWith("[browser-bridge] ingested 2026-05-19T10-30-45-chatgpt.md → 2 chunks");
+      expect(browserLogEntries()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            level: "info",
+            module: "browser-bridge",
+            msg: "browser.ingest.start",
+            correlationId: responsePath
+          }),
+          expect.objectContaining({
+            level: "info",
+            module: "browser-bridge",
+            msg: "browser.ingest.success",
+            correlationId: responsePath,
+            filename: "2026-05-19T10-30-45-chatgpt.md",
+            chunks: 2,
+            skipped: false
+          })
+        ])
+      );
     });
 
     it("skips ingestion when browserResponsesIngest is false", async () => {
@@ -455,8 +511,19 @@ describe("Browser Bridge", () => {
       await fs.writeFile(responsePath, "Test response", "utf8");
 
       await expect(ingestBrowserResponseFile(responsePath)).resolves.toBeNull();
-      expect(infoSpy).not.toHaveBeenCalled();
       expect(appendChangesSpy).toHaveBeenCalled();
+      expect(browserLogEntries()).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            level: "error",
+            module: "browser-bridge",
+            msg: "browser.ingest.failure",
+            correlationId: responsePath,
+            code: "ROTATOR_BROWSER_INGEST_FAILED",
+            error: expect.objectContaining({ message: "ingest failure" })
+          })
+        ])
+      );
     });
   });
 

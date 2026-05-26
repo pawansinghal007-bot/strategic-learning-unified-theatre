@@ -13,7 +13,12 @@ import { buildGraph } from "../llm/knowledge-graph.js";
 import { MistakeTracker } from "../llm/mistake-tracker.js";
 import { DocumentIngester } from "../llm/document-ingester.js";
 import { sendPrompt, listResponses, ensureBrowserDirs } from "../browser-bridge.js";
+import { PositiveIntSchema } from "../domain/schemas.js";
+import { DomainError } from "../error.js";
+import { createLogger } from "../logger.js";
 import { defaultStagedSignalsDir, parseFrontmatter, splitStagedSignalDocuments } from "../vscode-learn-utils.js";
+
+const log = createLogger("local-llm");
 
 async function loadConfigForLlm(options) {
   const { loadConfig } = await import("../config.js");
@@ -51,66 +56,89 @@ async function writeTempStagedDocument(stageFile, index, documentText) {
 }
 
 export async function ingestStagedSignalsFromDirectory(stageRoot, baseDir) {
-  const files = await listStagedFiles(stageRoot);
-  const ingester = new DocumentIngester({ baseDir });
-  await ingester.initialize();
-  const tracker = new MistakeTracker({ baseDir });
-  const results = [];
-  for (const filePath of files) {
-    let fileFailed = false;
-    try {
-      const raw = await fs.readFile(filePath, "utf8");
-      const documents = splitStagedSignalDocuments(raw);
-      for (let index = 0; index < documents.length; index += 1) {
-        const documentText = documents[index];
-        const { data } = parseFrontmatter(documentText);
-        const sourceType = data.source_type || data.signal_type || "vscode-signal";
-        const platform = data.platform || "vscode";
-        const signalType = data.signal_type || "vscode-signal";
-        const tempPath = await writeTempStagedDocument(filePath, index, documentText);
-        try {
-          const result = await ingester.ingestFile(tempPath, {
-            source_type: sourceType,
-            platform,
-            fileTs: data.captured_at,
-            tags: tagsForStagedSignal(sourceType),
-            metadata: {
+  const correlationId = stageRoot;
+  log.info("llm.staged.ingest.start", { correlationId, stageRoot, baseDir: baseDir || null });
+  let ingester;
+  try {
+    const files = await listStagedFiles(stageRoot);
+    ingester = new DocumentIngester({ baseDir });
+    await ingester.initialize();
+    const tracker = new MistakeTracker({ baseDir });
+    const results = [];
+    for (const filePath of files) {
+      let fileFailed = false;
+      try {
+        const raw = await fs.readFile(filePath, "utf8");
+        const documents = splitStagedSignalDocuments(raw);
+        for (let index = 0; index < documents.length; index += 1) {
+          const documentText = documents[index];
+          const { data } = parseFrontmatter(documentText);
+          const sourceType = data.source_type || data.signal_type || "vscode-signal";
+          const platform = data.platform || "vscode";
+          const signalType = data.signal_type || "vscode-signal";
+          const tempPath = await writeTempStagedDocument(filePath, index, documentText);
+          try {
+            const result = await ingester.ingestFile(tempPath, {
+              source_type: sourceType,
+              platform,
+              fileTs: data.captured_at,
               tags: tagsForStagedSignal(sourceType),
-              staged_file: path.basename(filePath),
-              signal_type: signalType,
-              source_file: data.file_path || null
-            }
-          });
-          if (signalType === "vscode-diagnostic-recurring" || (sourceType === "vscode-diagnostic-recurring" && data.recurring === "true")) {
-            await tracker.addMistake({
-              description: data.message || data.description || `Recurring diagnostic detected in ${path.basename(filePath)}`,
-              category: "vscode-diagnostic",
-              fix_applied: data.fix_applied || "Resolve the recurring diagnostic and update the root cause.",
-              root_cause: data.root_cause || data.message || "Recurring diagnostic marker"
+              metadata: {
+                tags: tagsForStagedSignal(sourceType),
+                staged_file: path.basename(filePath),
+                signal_type: signalType,
+                source_file: data.file_path || null
+              }
             });
+            if (signalType === "vscode-diagnostic-recurring" || (sourceType === "vscode-diagnostic-recurring" && data.recurring === "true")) {
+              await tracker.addMistake({
+                description: data.message || data.description || `Recurring diagnostic detected in ${path.basename(filePath)}`,
+                category: "vscode-diagnostic",
+                fix_applied: data.fix_applied || "Resolve the recurring diagnostic and update the root cause.",
+                root_cause: data.root_cause || data.message || "Recurring diagnostic marker"
+              });
+            }
+            results.push({ file: filePath, chunkPath: tempPath, ...result });
+          } catch (error) {
+            fileFailed = true;
+            results.push({ file: filePath, chunkPath: tempPath, chunks: 0, skipped: true, error: String(error?.message ?? error) });
+          } finally {
+            await fs.rm(tempPath, { force: true });
           }
-          results.push({ file: filePath, chunkPath: tempPath, ...result });
-        } catch (error) {
-          fileFailed = true;
-          results.push({ file: filePath, chunkPath: tempPath, chunks: 0, skipped: true, error: String(error?.message ?? error) });
-        } finally {
-          await fs.rm(tempPath, { force: true });
         }
+        if (!fileFailed) {
+          await fs.rm(filePath, { force: true });
+        }
+      } catch (error) {
+        results.push({ file: filePath, chunks: 0, skipped: true, error: String(error) });
       }
-      if (!fileFailed) {
-        await fs.rm(filePath, { force: true });
-      }
-    } catch (error) {
-      results.push({ file: filePath, chunks: 0, skipped: true, error: String(error) });
     }
+    const chunks = results.reduce((sum, row) => sum + Number(row.chunks || 0), 0);
+    const skipped = results.filter((row) => row.skipped).length;
+    log.info("llm.staged.ingest.success", {
+      correlationId,
+      files: files.length,
+      results: results.length,
+      chunks,
+      skipped
+    });
+    return results;
+  } catch (err) {
+    log.error("llm.staged.ingest.failure", {
+      correlationId,
+      error: err,
+      code: err?.code || "ROTATOR_LLM_STAGED_INGEST_FAILED"
+    });
+    throw err;
+  } finally {
+    await ingester?.db?.close();
   }
-  await ingester.db.close();
-  return results;
 }
 import {
   addMistake,
   askLocalLlm,
   generatePrompt,
+  getLocalLlmStatus,
   importSprints,
   ingestDocuments,
   setupModel
@@ -118,11 +146,34 @@ import {
 import { exportTrainingData } from "../llm/training-exporter.js";
 
 import { verifyLocalLlmRuntime } from "../llm/inference.js";
-function parseRating(value) {
-  const rating = Number.parseInt(String(value), 10);
-  if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
-    throw new Error("Rating must be an integer from 1 to 5.");
+
+function formatValidationError(err) {
+  if (Array.isArray(err?.issues)) {
+    return err.issues.map((issue) => issue.message).join("; ");
   }
+  return err instanceof Error ? err.message : String(err);
+}
+
+function parseRating(value) {
+  let rating;
+  try {
+    rating = PositiveIntSchema.parse(Number(value));
+  } catch (err) {
+    throw new DomainError(
+      "ROTATOR_CLI_INVALID",
+      `ROTATOR_CLI_INVALID: Invalid --rating: ${formatValidationError(err)}`,
+      { err: formatValidationError(err), option: "--rating" }
+    );
+  }
+
+  if (rating > 5) {
+    throw new DomainError(
+      "ROTATOR_CLI_INVALID",
+      "ROTATOR_CLI_INVALID: Invalid --rating: expected an integer from 1 to 5.",
+      { err: "Rating is greater than 5.", option: "--rating" }
+    );
+  }
+
   return rating;
 }
 
@@ -135,7 +186,8 @@ async function prompt(label) {
   }
 }
 
-export async function bindLlmCommands(program) {
+export async function bindLlmCommands(program, { log: cliLog = null } = {}) {
+  const commandLog = cliLog;
   const llm = program.command("llm").description("Local Dev-LLM setup, ingestion, and prompt generation");
 
   llm
@@ -457,6 +509,13 @@ export async function bindLlmCommands(program) {
     .option("--base-dir <dir>", "Local storage base directory")
     .action(async (target, options) => {
       const spinner = ora("Ingesting documents...").start();
+      const correlationId = target || "snapshot";
+      commandLog?.info("llm.ingest.start", {
+        correlationId,
+        targetPath: target || null,
+        force: Boolean(options.force),
+        baseDir: options.baseDir || null
+      });
       try {
         const result = await ingestDocuments({
           targetPath: target,
@@ -464,6 +523,12 @@ export async function bindLlmCommands(program) {
           baseDir: options.baseDir
         });
         spinner.succeed("Ingestion complete");
+        commandLog?.info("llm.ingest.success", {
+          correlationId,
+          targetPath: target || null,
+          force: Boolean(options.force),
+          baseDir: options.baseDir || null
+        });
         if (Array.isArray(result)) {
           console.table(result.map((row) => ({ path: row.path, chunks: row.chunks, skipped: row.skipped })));
         } else {
@@ -471,6 +536,12 @@ export async function bindLlmCommands(program) {
         }
       } catch (err) {
         spinner.stop();
+        commandLog?.error("llm.ingest.failure", {
+          correlationId,
+          targetPath: target || null,
+          error: err,
+          code: err?.code || "ROTATOR_LLM_INGEST_FAILED"
+        });
         console.error(chalk.red(String(err?.message ?? err)));
         process.exitCode = 1;
       }
@@ -633,19 +704,9 @@ export function registerStatus(parent) {
     .command('status')
     .description('Show local LLM status (model path, loaded state)')
     .action(async () => {
-      const fs = await import('node:fs');
-      const os = await import('node:os');
-      const path = await import('node:path');
-      const modelDir = path.default.join(os.default.homedir(), '.vscode-rotator', 'models');
-      const exists = fs.default.existsSync(modelDir);
-      const models = exists ? fs.default.readdirSync(modelDir).filter(f => f.endsWith('.gguf')) : [];
+      const { modelDir, models, status } = await getLocalLlmStatus();
       console.log(`Model dir : ${modelDir}`);
       console.log(`Models    : ${models.length === 0 ? 'none' : models.join(', ')}`);
-      console.log(`Status    : ${models.length > 0 ? 'ready' : 'no model downloaded - run: llm setup'}`);
+      console.log(`Status    : ${status === 'unavailable' ? 'no model downloaded - run: llm setup' : status}`);
     });
 }
-
-
-
-
-

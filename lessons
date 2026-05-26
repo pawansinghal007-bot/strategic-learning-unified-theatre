@@ -1,0 +1,1 @@
+Policy schema and enterprise override validation now use Zod and abort startup on invalid config. Ensure `loadConfig` throws a clear `Invalid configuration/policy. Startup aborted.` error instead of falling back to defaults.

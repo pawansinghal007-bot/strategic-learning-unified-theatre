@@ -1,7 +1,6 @@
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 import { WatcherDaemon } from '../src/watcher.js';
 
@@ -21,11 +20,27 @@ function makeStubs() {
 
 describe('enhanceSchedule daemon hook', () => {
   let originalHome;
+  let originalLogLevel;
+  let originalLogSink;
   beforeEach(() => {
     originalHome = process.env.HOME;
+    originalLogLevel = process.env.ROTATOR_LOG_LEVEL;
+    originalLogSink = process.env.ROTATOR_LOG_SINK;
+    process.env.ROTATOR_LOG_LEVEL = 'info';
+    process.env.ROTATOR_LOG_SINK = 'stdout';
   });
   afterEach(() => {
     process.env.HOME = originalHome;
+    if (originalLogLevel === undefined) {
+      delete process.env.ROTATOR_LOG_LEVEL;
+    } else {
+      process.env.ROTATOR_LOG_LEVEL = originalLogLevel;
+    }
+    if (originalLogSink === undefined) {
+      delete process.env.ROTATOR_LOG_SINK;
+    } else {
+      process.env.ROTATOR_LOG_SINK = originalLogSink;
+    }
     try { vi.useRealTimers(); } catch {}
   });
 
@@ -134,5 +149,73 @@ describe('enhanceSchedule daemon hook', () => {
     expect(daemon.enhanceTimer != null).toBeTruthy();
     await daemon.stop();
     expect(daemon.enhanceTimer == null).toBeTruthy();
+  });
+
+  it('emits structured rotation logs while preserving switch behavior', async () => {
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), 'rotator-test-'));
+    process.env.HOME = tmp;
+
+    const accounts = [
+      {
+        id: 'acct-current',
+        status: 'active',
+        lastUsed: new Date(Date.now() + 10),
+        cooldownUntil: null
+      },
+      {
+        id: 'acct-next',
+        status: 'active',
+        lastUsed: null,
+        cooldownUntil: null
+      }
+    ];
+
+    const s = makeStubs();
+    s.store.list = async () => accounts;
+    s.store.update = vi.fn(async () => {});
+    s.switcher.switch = vi.fn(async () => ({ ok: true }));
+    s.probeAccount = vi.fn(async (acct) => (
+      acct.id === 'acct-current'
+        ? { valid: false, remainingRequests: 0, resetAt: new Date(Date.now() + 1000), error: 'quota exhausted' }
+        : { valid: true, remainingRequests: 100, resetAt: null, error: null }
+    ));
+
+    const output = [];
+    const writeSpy = vi.spyOn(process.stdout, 'write').mockImplementation((line) => {
+      output.push(String(line));
+      return true;
+    });
+
+    try {
+      const daemon = new WatcherDaemon(s);
+      await daemon.start(1000);
+      await daemon.stop();
+    } finally {
+      writeSpy.mockRestore();
+    }
+
+    expect(s.switcher.switch).toHaveBeenCalledWith('acct-next', { dryRun: false });
+    const entries = output.map((line) => JSON.parse(line));
+    expect(entries).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          level: 'info',
+          module: 'watcher',
+          msg: 'rotation.start',
+          correlationId: 'acct-current',
+          reason: 'quota exhausted',
+          action: 'cooldown'
+        }),
+        expect.objectContaining({
+          level: 'info',
+          module: 'watcher',
+          msg: 'rotation.success',
+          correlationId: 'acct-current',
+          reason: 'quota exhausted',
+          action: 'switch',
+          targetAccountId: 'acct-next'
+        })
+      ])
+    );
   });
 });

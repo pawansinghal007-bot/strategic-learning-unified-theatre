@@ -11,6 +11,9 @@ import { DocumentIngester } from "./llm/document-ingester.js";
 import { ExperienceDb } from "./llm/experience-db.js";
 import { MistakeTracker } from "./llm/mistake-tracker.js";
 import { parseFrontmatter } from "./vscode-learn-utils.js";
+import { createLogger } from "./logger.js";
+
+const log = createLogger("browser-bridge");
 
 async function loadPlaywright() {
   const { chromium, firefox } = await import("playwright");
@@ -92,10 +95,18 @@ async function tagResponse(filename, { quality, notes } = {}) {
 }
 
 async function ingestBrowserResponseFile(responsePath) {
+  const correlationId = responsePath;
   const config = await loadConfig();
-  if (config.browserResponsesIngest === false) return null;
+  if (config.browserResponsesIngest === false) {
+    log.info("browser.ingest.skipped", {
+      correlationId,
+      reason: "browserResponsesIngest disabled"
+    });
+    return null;
+  }
 
   try {
+    log.info("browser.ingest.start", { correlationId, responsePath });
     const storageMonitor = new StorageMonitor();
     await storageMonitor.appendChanges([
       { event: "add", path: responsePath, label: "BrowserResponse" }
@@ -104,10 +115,21 @@ async function ingestBrowserResponseFile(responsePath) {
     const ingester = new DocumentIngester();
     const result = await ingester.ingestFromSnapshot({ snapshotPath: storageMonitor.snapshotPath });
     const chunkCount = result.actions.reduce((sum, action) => sum + (action.chunks || 0), 0);
-    console.info(`[browser-bridge] ingested ${path.basename(responsePath)} → ${chunkCount} chunks`);
+    log.info("browser.ingest.success", {
+      correlationId,
+      responsePath,
+      filename: path.basename(responsePath),
+      chunks: chunkCount,
+      skipped: Boolean(result.skipped)
+    });
     return result;
   } catch (err) {
-    console.warn(`[browser-bridge] browser response ingestion failed: ${String(err?.message ?? err)}`);
+    log.error("browser.ingest.failure", {
+      correlationId,
+      responsePath,
+      error: err,
+      code: err?.code || "ROTATOR_BROWSER_INGEST_FAILED"
+    });
     return null;
   }
 }
@@ -270,13 +292,25 @@ export async function sendPrompt(options) {
     prompt,
     browserType = "chromium",
     headless = false,
-    dryRun = false
+    dryRun = false,
+    timeout = 30000
   } = options;
 
   if (!platform) throw new Error("platform is required");
   if (!prompt) throw new Error("prompt is required");
+  const captureId = `${platform}:${Date.now()}`;
 
   if (dryRun) {
+    log.info("browser.sendPrompt.start", {
+      correlationId: captureId,
+      platform,
+      dryRun: true
+    });
+    log.info("browser.sendPrompt.success", {
+      correlationId: captureId,
+      platform,
+      dryRun: true
+    });
     return {
       platform,
       prompt,
@@ -285,10 +319,18 @@ export async function sendPrompt(options) {
     };
   }
 
-  const adapter = await getAdapterModule(platform);
-  const context = await launchBrowser({ browserType, platform, headless });
+  let context;
 
   try {
+    log.info("browser.sendPrompt.start", {
+      correlationId: captureId,
+      platform,
+      browserType,
+      headless,
+      timeout
+    });
+    const adapter = await getAdapterModule(platform);
+    context = await launchBrowser({ browserType, platform, headless, timeout });
     const page = await context.newPage();
     await page.goto(adapter.baseUrl);
 
@@ -353,13 +395,25 @@ ${response}
     try {
       await ingestBrowserResponseFile(responsePath);
     } catch (err) {
-      console.warn(`[browser-bridge] browser response ingestion failed: ${String(err?.message ?? err)}`);
+      log.error("browser.ingest.failure", {
+        correlationId: responsePath,
+        responsePath,
+        error: err,
+        code: err?.code || "ROTATOR_BROWSER_INGEST_FAILED"
+      });
     }
 
     // Record last send time
     const lastSendData = await loadPlatformLastSend();
     lastSendData[platform] = Date.now();
     await fs.writeFile(platformLastSendPath(), JSON.stringify(lastSendData, null, 2), "utf8");
+
+    log.info("browser.sendPrompt.success", {
+      correlationId: captureId,
+      platform,
+      responsePath,
+      timestamp
+    });
 
     return {
       platform,
@@ -368,8 +422,18 @@ ${response}
       responsePath,
       timestamp
     };
+  } catch (err) {
+    log.error("browser.sendPrompt.failure", {
+      correlationId: captureId,
+      platform,
+      error: err,
+      code: err?.code || "ROTATOR_BROWSER_SEND_FAILED"
+    });
+    throw err;
   } finally {
-    await closeBrowser(context);
+    if (context) {
+      await closeBrowser(context);
+    }
   }
 }
 
@@ -406,7 +470,8 @@ export async function comparePrompts(options) {
     platforms = [],
     browserType = "chromium",
     headless = false,
-    dryRun = false
+    dryRun = false,
+    timeout = 30000
   } = options;
 
   if (!prompt) throw new Error("prompt is required");
@@ -433,7 +498,8 @@ export async function comparePrompts(options) {
         prompt,
         browserType,
         headless,
-        dryRun: false
+        dryRun: false,
+        timeout
       });
       results.push(result);
     } catch (err) {
@@ -584,6 +650,11 @@ export async function loginToPage(options) {
   try {
     const page = await context.newPage();
     await page.goto(adapter.baseUrl);
+    log.info("browser.login.opened", {
+      correlationId: platform,
+      platform,
+      url: adapter.baseUrl
+    });
 
     console.log(`\n✓ Browser opened. Please log in manually and close the browser when done.`);
     console.log(`  Platform: ${platform}`);
@@ -607,12 +678,19 @@ export async function loginToPage(options) {
     }
 
     console.log(`✓ Storage state saved for ${platform}`);
+    log.info("browser.login.success", { correlationId: platform, platform });
 
     return {
       platform,
       message: `Login completed and storage state saved`
     };
   } catch (err) {
+    log.error("browser.login.failure", {
+      correlationId: platform,
+      platform,
+      error: err,
+      code: err?.code || "ROTATOR_BROWSER_LOGIN_FAILED"
+    });
     throw err;
   } finally {
     try {
@@ -738,7 +816,11 @@ async function captureThread(platform, { outputDir = null, headless = false, tim
   const platformSelectors = threadSelectors[platform] || getDefaultThreadSelectors(platform);
 
   if (!threadSelectors[platform]) {
-    console.warn(`[browser-bridge] No thread selectors for ${platform}; using defaults`);
+    log.warn("browser.threadSelectors.default", {
+      correlationId: platform,
+      platform,
+      reason: "thread selectors missing"
+    });
   }
 
   const context = await launchBrowser({ platform, headless, timeout });

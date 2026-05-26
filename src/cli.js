@@ -14,7 +14,7 @@ import { nanoid } from "nanoid";
 import { AccountStore } from "./store.js";
 import { AgentTypeSchema } from "./schema.js";
 import { SwitcherService } from "./switcher.js";
-import { probeAccount } from "./health.js";
+import { getSystemHealth } from "./health.js";
 import { ProfileManager } from "./profile-manager.js";
 import { bindProfile } from "./workspace.js";
 import { resolveVSCodeBin } from "./paths.js";
@@ -29,7 +29,9 @@ import { bindStorageCommands } from "./commands/storage.js";
 import { bindLlmCommands } from "./commands/llm.js";
 import { bindBc2SyncCommand } from "./commands/bc2-sync.js";
 import { bindAiCommands } from "./commands/ai.js";
+import { createLogger } from "./logger.js";
 
+const log = createLogger("cli");
 const program = new Command();
 
 function createPrompter() {
@@ -67,6 +69,7 @@ program
   .action(async () => {
     const spinner = ora("Preparing...").start();
     const store = new AccountStore();
+    let accountId = null;
     spinner.stop();
 
     const prompter = createPrompter();
@@ -79,6 +82,8 @@ program
 
       const agentType = normalizeAgentType(agentTypeRaw || "vscode");
       const id = nanoid();
+      accountId = id;
+      log.info("account.add.start", { correlationId: accountId, email, agentType });
 
       spinner.start("Saving...");
       const secretStore = new SecretStore();
@@ -95,9 +100,15 @@ program
       });
       spinner.stop();
 
+      log.info("account.add.success", { correlationId: account.id, email: account.email, agentType: account.agentType });
       console.log(chalk.green("Added account:"), chalk.cyan(account.id));
     } catch (err) {
       spinner.stop();
+      log.error("account.add.failure", {
+        correlationId: accountId,
+        error: err,
+        code: err?.code || "ROTATOR_ACCOUNT_ADD_FAILED"
+      });
       console.error(chalk.red(String(err?.message ?? err)));
       process.exitCode = 1;
     } finally {
@@ -185,6 +196,7 @@ program
   .action(async (accountId, options) => {
     const store = new AccountStore();
     const svc = new SwitcherService({ store });
+    log.info("rotation.start", { correlationId: accountId, dryRun: Boolean(options?.dryRun) });
 
     let spinner = null;
     const onStep = (evt) => {
@@ -226,8 +238,14 @@ program
       console.log(`Agent: ${plan.agentType}`);
       console.log(`Auth path: ${plan.authPath}`);
       console.log(`VS Code profile: ${plan.profileName}`);
+      log.info("rotation.success", { correlationId: accountId, dryRun: Boolean(options?.dryRun) });
     } catch (err) {
       spinner?.stop();
+      log.error("rotation.failure", {
+        correlationId: accountId,
+        error: err,
+        code: err?.code || "ROTATOR_ROTATION_FAILED"
+      });
       console.error(chalk.red(String(err?.message ?? err)));
       process.exitCode = 1;
     }
@@ -236,30 +254,37 @@ program
 program
   .command("health")
   .description("Probe all accounts (one-shot)")
-  .action(async () => {
-    const spinner = ora("Loading accounts...").start();
-    const store = new AccountStore();
+  .option("--json", "Output machine-readable JSON")
+  .action(async (options) => {
+    const spinner = ora("Probing system health...").start();
     try {
-      const accounts = await store.list();
-      spinner.text = "Probing...";
-      const rows = [];
-      for (const acct of accounts) {
-        const res = await probeAccount(acct);
-        rows.push({
-          id: acct.id,
-          agentType: acct.agentType,
-          status: acct.status,
-          valid: res.valid,
-          remainingRequests: res.remainingRequests ?? "",
-          resetAt: res.resetAt ? new Date(res.resetAt).toISOString() : "",
-          error: res.error ?? ""
-        });
-      }
+      const health = await getSystemHealth();
       spinner.stop();
+
+      if (options?.json) {
+        console.log(JSON.stringify(health, null, 2));
+        return;
+      }
+
+      console.log(chalk.bold("Daemon:"), health.daemon.status);
+      console.log(chalk.bold("Local LLM:"), `${health.localLlm.status} (${health.localLlm.models.length} model${health.localLlm.models.length === 1 ? "" : "s"})`);
+      console.log(chalk.bold("Accounts:"), `${health.account.status} (${health.account.summary.total} total)`);
+
+      const rows = health.account.accounts.map((acct) => ({
+        id: acct.id,
+        email: acct.email ?? "",
+        agentType: acct.agentType,
+        status: acct.healthStatus,
+        remainingRequests: acct.remainingRequests ?? "",
+        resetAt: acct.resetAt ? new Date(acct.resetAt).toISOString() : "",
+        error: acct.error ?? ""
+      }));
+
       if (rows.length === 0) {
         console.log(chalk.yellow("No accounts found."));
         return;
       }
+
       console.table(rows);
     } catch (err) {
       spinner.stop();
@@ -441,6 +466,7 @@ profileCmd
   .argument("<workspacePath>", ".code-workspace path")
   .action(async (accountId, workspacePath) => {
     const spinner = ora("Preparing...").start();
+    log.info("profile.apply.start", { correlationId: accountId, workspacePath });
     try {
       const store = new AccountStore();
       const account = await store.get(accountId);
@@ -476,8 +502,19 @@ profileCmd
       child.unref();
 
       spinner.succeed("Applied");
+      log.info("profile.apply.success", {
+        correlationId: accountId,
+        profileName: desiredProfile,
+        workspacePath
+      });
     } catch (err) {
       spinner.stop();
+      log.error("profile.apply.failure", {
+        correlationId: accountId,
+        workspacePath,
+        error: err,
+        code: err?.code || "ROTATOR_PROFILE_APPLY_FAILED"
+      });
       console.error(chalk.red(String(err?.message ?? err)));
       process.exitCode = 1;
     }
@@ -503,9 +540,9 @@ profileCmd
 
 bindHandoffCommands(program);
 bindIdeaCommands(program);
-bindBrowserCommands(program);
+bindBrowserCommands(program, { log });
 bindStorageCommands(program);
-bindLlmCommands(program);
+bindLlmCommands(program, { log });
 bindBc2SyncCommand(program);
 bindAiCommands(program);
 
@@ -558,6 +595,7 @@ daemonCmd
   .action(async () => {
     const spinner = ora("Starting daemon...").start();
     try {
+      log.info("daemon.start", { correlationId: "daemon" });
       const { spawn } = await import("node:child_process");
       const runner = fileURLToPath(new URL("./daemon-runner.js", import.meta.url));
 
@@ -580,6 +618,7 @@ daemonCmd
   .action(async () => {
     const spinner = ora("Stopping daemon...").start();
     try {
+      log.info("daemon.stop", { correlationId: "daemon" });
       const { pidPath } = await daemonPaths();
       const pid = await readPid(pidPath);
       process.kill(pid, "SIGTERM");
@@ -635,5 +674,8 @@ daemonCmd
     });
   });
 
-program.parseAsync(process.argv);
-
+program.parseAsync(process.argv).catch((err) => {
+  log.error("cli.fatal", { error: err, code: err?.code || "ROTATOR_CLI_FAILURE" });
+  console.error(chalk.red(String(err?.message ?? err)));
+  process.exitCode = 1;
+});

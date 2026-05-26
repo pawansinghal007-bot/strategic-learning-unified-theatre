@@ -11,28 +11,38 @@
   "scripts": {
     "start": "node ./src/cli.js",
     "test": "cross-env VSCODE_ROTATOR_MOCK_LLM=1 NODE_OPTIONS=--max-old-space-size=8192 vitest run",
+    "coverage": "vitest run --coverage",
+    "coverage:report": "vitest run --coverage --reporter=html",
+    "test:ci": "vitest run --coverage --reporter=verbose",
     "test:integration": "cross-env VSCODE_ROTATOR_MOCK_LLM=0 NODE_OPTIONS=--max-old-space-size=8192 vitest -c vitest.integration.config.js run",
     "test:serial": "node run-tests.cjs",
-    "test:robot:functional": "node ./src/test-runner.js suite --suite functional",
-    "test:robot:nonfunctional": "node ./src/test-runner.js suite --suite non_functional",
-    "test:robot:regression": "node ./src/test-runner.js suite --suite regression",
-    "test:robot:all": "node ./src/test-runner.js suite --suite all",
+    "test:robot": "robot --outputdir robot-results robot/",
+    "test:robot:functional": "robot --outputdir robot-results --suite functional robot/",
+    "test:robot:regression": "robot --outputdir robot-results --suite regression robot/",
+    "test:robot:nonfunc": "robot --outputdir robot-results --suite non-functional robot/",
     "test:tdd": "node ./src/test-runner.js tdd-check",
     "tray": "electron ./electron-tray/main.js",
     "install-service": "node ./scripts/install.js",
     "ui:dev": "vite",
     "ui:build": "vite build",
     "electron:dev": "npm run ui:build && cross-env NODE_ENV=development electron ./electron-ui/main.cjs",
-    "electron:build": "npm run ui:build && electron-builder"
+    "electron:build": "npm run ui:build && electron-builder",
+    "dist:win": "electron-builder --win nsis",
+    "dist:linux": "electron-builder --linux AppImage",
+    "dist:all": "electron-builder -mwl",
+    "dist": "npm run dist:all"
   },
   "engines": {
     "node": ">=22 <23"
   },
   "build": {
-    "appId": "com.strategic.learning.unified.theatre",
-    "productName": "Strategic Learning Unified Theatre",
+    "appId": "com.strategiclearning.unifiedtheatre",
+    "productName": "UnifiedTheatre",
     "extraMetadata": {
       "main": "electron-ui/main.cjs"
+    },
+    "directories": {
+      "output": "release"
     },
     "files": [
       "electron-ui/dist/**/*",
@@ -42,14 +52,29 @@
       "src/**/*",
       "package.json"
     ],
-    "directories": {
-      "output": "dist_electron"
-    },
+    "publish": [
+      {
+        "provider": "generic",
+        "url": "https://updates.example.com/unifiedtheatre"
+      }
+    ],
+    "generateUpdatesFilesForAllChannels": true,
     "win": {
       "target": [
         "nsis"
       ],
-      "icon": "build/icon.ico"
+      "publisherName": [
+        "Your Company, Inc."
+      ],
+      "artifactName": "${productName}-Setup-${version}.${ext}"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Utility",
+      "artifactName": "${productName}-${version}-${os}-${arch}.${ext}"
     },
     "icon": "build/icon.ico"
   },
@@ -59,6 +84,7 @@
     "chokidar": "^5.0.0",
     "commander": "^14.0.3",
     "electron-store": "^10.1.0",
+    "electron-updater": "^6.0.0",
     "fflate": "^0.8.3",
     "gray-matter": "^4.0.3",
     "keytar": "^7.9.0",
@@ -68,6 +94,7 @@
     "playwright": "^1.60.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
+    "yaml": "^2.9.0",
     "zod": "^4.4.3"
   },
   "optionalDependencies": {
@@ -76,13 +103,15 @@
     "pdf-parse": "^2.4.5"
   },
   "devDependencies": {
+    "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@vitejs/plugin-react": "^6.0.2",
+    "@vitest/coverage-v8": "^4.1.7",
     "autoprefixer": "^10.5.0",
     "cross-env": "^10.1.0",
     "electron": "^42.2.0",
-    "electron-builder": "^26.8.1",
+    "electron-builder": "^24.0.0",
     "jsdom": "^29.1.1",
     "tailwindcss": "^3.4.5",
     "vite": "^8.0.14",

@@ -1,0 +1,55 @@
+name: Test
+
+on:
+  push:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  quality-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Vitest CI coverage gate
+        run: npm run test:ci
+
+      - name: Generate coverage report
+        run: npm run coverage
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+
+      - name: Run Robot suites
+        run: |
+          pip install robotframework
+          npm run test:robot
+
+      - name: Upload Robot results
+        uses: actions/upload-artifact@v4
+        with:
+          name: robot-results
+          path: robot-results/
+
+      - name: Generate quality-gate summary
+        run: |
+          echo "## Quality Gate Summary" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Vitest + Coverage | ✅ passed |" >> $GITHUB_STEP_SUMMARY
+          echo "| Robot Functional  | ✅ passed |" >> $GITHUB_STEP_SUMMARY
+          echo "| Robot Regression  | ✅ passed |" >> $GITHUB_STEP_SUMMARY

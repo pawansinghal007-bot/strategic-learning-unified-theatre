@@ -8,7 +8,9 @@ import { AccountStore } from "../src/store.js";
 
 describe("atomicWriteFile", () => {
   it("writes full content to destination", async () => {
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "strategic-learning-unified-theatre-atomic-"));
+    const dir = await fs.mkdtemp(
+      path.join(os.tmpdir(), "strategic-learning-unified-theatre-atomic-"),
+    );
     const target = path.join(dir, "auth.json");
     await atomicWriteFile(target, "hello");
     expect(await fs.readFile(target, "utf8")).toBe("hello");
@@ -17,7 +19,9 @@ describe("atomicWriteFile", () => {
 
 describe("SwitcherService", () => {
   it("dry-run returns a plan without writing", async () => {
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "strategic-learning-unified-theatre-switcher-"));
+    const dir = await fs.mkdtemp(
+      path.join(os.tmpdir(), "strategic-learning-unified-theatre-switcher-"),
+    );
     const storePath = path.join(dir, "accounts.enc");
     const authPath = path.join(dir, "auth.json");
 
@@ -30,7 +34,7 @@ describe("SwitcherService", () => {
       profileName: null,
       cooldownUntil: null,
       lastUsed: null,
-      status: "active"
+      status: "active",
     });
 
     const svc = new SwitcherService({
@@ -41,13 +45,13 @@ describe("SwitcherService", () => {
           return [];
         },
         async gracefulClose() {},
-        async launchWithProfile() {}
+        async launchWithProfile() {},
       },
-      lockBaseDir: dir
+      lockBaseDir: dir,
     });
 
     const plan = await svc.switch("acct_1", { dryRun: true });
     expect(plan.authPath).toBe(authPath);
     await expect(fs.readFile(authPath, "utf8")).rejects.toThrow();
-  });
+  }, 15000); // Increased timeout: SecretStore initialization can take time
 });

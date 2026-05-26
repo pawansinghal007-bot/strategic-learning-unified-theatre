@@ -3,6 +3,11 @@ import path from "node:path";
 import os from "node:os";
 import crypto from "node:crypto";
 import { z } from "zod";
+import { HandoffSprintSchema } from "./domain/schemas.js";
+import { DomainError } from "./error.js";
+import { createLogger } from "./logger.js";
+
+const log = createLogger("handoff");
 
 const SprintAgentSchema = z.enum(["claude", "chatgpt", "gemini", "perplexity", "other"]);
 const SprintStatusSchema = z.enum(["active", "paused", "exhausted", "complete"]);
@@ -30,26 +35,35 @@ const TestFailureSchema = z.object({
   error: z.string().min(1)
 });
 
-const SprintSchema = z.object({
-  sprintId: z.string().uuid(),
-  date: z.string().refine((value) => !Number.isNaN(Date.parse(value)), {
-    message: "Invalid ISO date"
-  }),
-  agent: SprintAgentSchema,
-  model: z.string().min(1),
-  goal: z.string().min(1),
-  tokensUsed: z.number().nonnegative(),
-  tokensLimit: z.number().nonnegative(),
-  status: SprintStatusSchema,
-  completedTasks: z.array(CompletedTaskSchema),
-  pendingTasks: z.array(PendingTaskSchema),
-  blockers: z.array(BlockerSchema),
-  filesCreated: z.array(z.string()),
-  filesModified: z.array(z.string()),
-  testsPassed: z.array(z.string()),
-  testsFailed: z.array(TestFailureSchema),
-  resumePrompt: z.string()
-});
+const SprintSchema = HandoffSprintSchema;
+
+function formatValidationError(error) {
+  if (error instanceof z.ZodError) {
+    return error.issues
+      .map((issue) => `${issue.path.join(".") || "root"}: ${issue.message}`)
+      .join("; ");
+  }
+  return error instanceof Error ? error.message : String(error);
+}
+
+function createSprintInvalidError(error, context = {}) {
+  const detail = formatValidationError(error);
+  return new DomainError("ROTATOR_SPRINT_INVALID", `Invalid sprint handoff: ${detail}`, {
+    ...context,
+    error: detail
+  });
+}
+
+function parseSprintOrThrowDomainError(raw, context = {}) {
+  try {
+    return SprintSchema.parse(raw);
+  } catch (error) {
+    if (error instanceof DomainError) {
+      throw error;
+    }
+    throw createSprintInvalidError(error, context);
+  }
+}
 
 function sprintRoot(baseDir) {
   return path.join(baseDir ?? os.homedir(), ".vscode-rotator", "sprints");
@@ -66,12 +80,25 @@ async function ensureSprintDirectory(baseDir) {
   return dir;
 }
 
+async function quarantineSprintFile(filePath, reason) {
+  try {
+    const corruptDir = path.join(path.dirname(filePath), "corrupt");
+    await fs.mkdir(corruptDir, { recursive: true, mode: 0o700 });
+    const targetPath = path.join(corruptDir, `${path.basename(filePath)}.${Date.now()}.${reason}`);
+    await fs.rename(filePath, targetPath);
+  } catch {}
+}
+
 async function findSprintFilePath(sprintId, baseDir) {
   const dir = await ensureSprintDirectory(baseDir);
   const entries = await fs.readdir(dir);
   const match = entries.find((name) => name.endsWith(`-${sprintId}.json`));
   if (!match) {
-    throw new Error(`Sprint not found: ${sprintId}`);
+    throw new DomainError("ROTATOR_HANDOFF_MISSING", `Sprint not found: ${sprintId}`, {
+      operation: "loadSprint",
+      sprintId,
+      dir
+    });
   }
   return path.join(dir, match);
 }
@@ -134,7 +161,7 @@ function normalizeAgent(agent) {
 }
 
 async function saveSprint(sprint, baseDir) {
-  const normalized = SprintSchema.parse(sprint);
+  const normalized = parseSprintOrThrowDomainError(sprint, { operation: "saveSprint" });
   const dir = await ensureSprintDirectory(baseDir);
   const filePath = path.join(dir, sprintFileName(normalized.date, normalized.sprintId));
   await fs.writeFile(filePath, JSON.stringify(normalized, null, 2), "utf8");
@@ -143,9 +170,29 @@ async function saveSprint(sprint, baseDir) {
 
 async function loadSprint(sprintId, { baseDir } = {}) {
   const filePath = await findSprintFilePath(sprintId, baseDir);
-  const raw = await fs.readFile(filePath, "utf8");
-  const parsed = JSON.parse(raw);
-  const sprint = SprintSchema.parse(parsed);
+  const raw = await fs.readFile(filePath, "utf8").catch((error) => {
+    if (error?.code === "ENOENT") {
+      throw new DomainError("ROTATOR_HANDOFF_MISSING", `Sprint not found: ${sprintId}`, {
+        operation: "loadSprint",
+        sprintId,
+        filePath
+      });
+    }
+    throw createSprintInvalidError(error, { operation: "loadSprint", sprintId, filePath });
+  });
+
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (error) {
+    await quarantineSprintFile(filePath, "invalid-json");
+    throw new DomainError(
+      "ROTATOR_HANDOFF_CORRUPT",
+      "Sprint manifest was corrupt and has been quarantined",
+      error
+    );
+  }
+  const sprint = parseSprintOrThrowDomainError(parsed, { operation: "loadSprint", sprintId, filePath });
   return { ...sprint, filePath };
 }
 
@@ -155,12 +202,22 @@ async function listSprints({ baseDir } = {}) {
   const sprints = [];
   for (const name of entries) {
     if (!name.endsWith(".json")) continue;
+    const filePath = path.join(dir, name);
     try {
-      const raw = await fs.readFile(path.join(dir, name), "utf8");
+      const raw = await fs.readFile(filePath, "utf8");
       const parsed = JSON.parse(raw);
-      const sprint = SprintSchema.parse(parsed);
+      const sprint = parseSprintOrThrowDomainError(parsed, { operation: "listSprints", filePath });
       sprints.push(sprint);
-    } catch {
+    } catch (error) {
+      const domainError = error instanceof DomainError
+        ? error
+        : createSprintInvalidError(error, { operation: "listSprints", filePath });
+      log.warn("handoff.list.invalidManifest", {
+        correlationId: filePath,
+        filePath,
+        error: domainError,
+        code: domainError.code || "ROTATOR_SPRINT_INVALID"
+      });
       continue;
     }
   }
@@ -168,34 +225,47 @@ async function listSprints({ baseDir } = {}) {
 }
 
 async function createSprint({ agent = "other", model = "unknown", goal, tokensLimit = 0, status = "active", baseDir } = {}) {
-  if (!goal || !String(goal).trim()) {
-    throw new Error("Sprint goal is required");
+  const sprintId = crypto.randomUUID();
+  log.info("handoff.create.start", { correlationId: sprintId, agent, status });
+  try {
+    if (!goal || !String(goal).trim()) {
+      throw new Error("Sprint goal is required");
+    }
+
+    const sprint = {
+      sprintId,
+      date: new Date().toISOString(),
+      agent: normalizeAgent(agent),
+      model: String(model || "unknown"),
+      goal: String(goal).trim(),
+      tokensUsed: 0,
+      tokensLimit: Number(tokensLimit ?? 0),
+      status: normalizeStatus(status),
+      completedTasks: [],
+      pendingTasks: [],
+      blockers: [],
+      filesCreated: [],
+      filesModified: [],
+      testsPassed: [],
+      testsFailed: [],
+      resumePrompt: ""
+    };
+
+    if (sprint.status === "paused" || sprint.status === "exhausted") {
+      sprint.resumePrompt = buildResumePrompt(sprint);
+    }
+
+    const saved = await saveSprint(sprint, baseDir);
+    log.info("handoff.create.success", { correlationId: sprintId, status: saved.status });
+    return saved;
+  } catch (err) {
+    log.error("handoff.create.failure", {
+      correlationId: sprintId,
+      error: err,
+      code: err?.code || "ROTATOR_HANDOFF_CREATE_FAILED"
+    });
+    throw err;
   }
-
-  const sprint = {
-    sprintId: crypto.randomUUID(),
-    date: new Date().toISOString(),
-    agent: normalizeAgent(agent),
-    model: String(model || "unknown"),
-    goal: String(goal).trim(),
-    tokensUsed: 0,
-    tokensLimit: Number(tokensLimit ?? 0),
-    status: normalizeStatus(status),
-    completedTasks: [],
-    pendingTasks: [],
-    blockers: [],
-    filesCreated: [],
-    filesModified: [],
-    testsPassed: [],
-    testsFailed: [],
-    resumePrompt: ""
-  };
-
-  if (sprint.status === "paused" || sprint.status === "exhausted") {
-    sprint.resumePrompt = buildResumePrompt(sprint);
-  }
-
-  return saveSprint(sprint, baseDir);
 }
 
 async function setTokenBudget(sprintId, { tokensUsed, tokensLimit } = {}, { baseDir } = {}) {
@@ -246,45 +316,106 @@ async function updateSprint(sprintId, patch = {}, { baseDir } = {}) {
 }
 
 async function addPendingTask(sprintId, description, priority = 3, { baseDir } = {}) {
-  const sprint = await loadSprint(sprintId, { baseDir });
-  const task = {
-    id: crypto.randomUUID(),
-    description: String(description).trim(),
-    priority: SprintTaskPriority.parse(priority)
-  };
-  sprint.pendingTasks.push(task);
-  return saveSprint(sprint, baseDir);
+  log.info("handoff.task.add.start", { correlationId: sprintId, priority });
+  try {
+    const sprint = await loadSprint(sprintId, { baseDir });
+    const task = {
+      id: crypto.randomUUID(),
+      description: String(description).trim(),
+      priority: SprintTaskPriority.parse(priority)
+    };
+    sprint.pendingTasks.push(task);
+    const saved = await saveSprint(sprint, baseDir);
+    log.info("handoff.task.add.success", {
+      correlationId: sprintId,
+      taskId: task.id,
+      pendingTasks: saved.pendingTasks.length
+    });
+    return saved;
+  } catch (err) {
+    log.error("handoff.task.add.failure", {
+      correlationId: sprintId,
+      error: err,
+      code: err?.code || "ROTATOR_HANDOFF_TASK_ADD_FAILED"
+    });
+    throw err;
+  }
 }
 
 async function completeTask(sprintId, taskId, { baseDir } = {}) {
-  const sprint = await loadSprint(sprintId, { baseDir });
-  const idx = sprint.pendingTasks.findIndex((task) => task.id === taskId);
-  if (idx === -1) {
-    throw new Error(`Pending task not found: ${taskId}`);
+  log.info("handoff.task.complete.start", { correlationId: sprintId, taskId });
+  try {
+    const sprint = await loadSprint(sprintId, { baseDir });
+    const idx = sprint.pendingTasks.findIndex((task) => task.id === taskId);
+    if (idx === -1) {
+      throw new Error(`Pending task not found: ${taskId}`);
+    }
+    const [task] = sprint.pendingTasks.splice(idx, 1);
+    sprint.completedTasks.push({ ...task, filesChanged: [] });
+    const saved = await saveSprint(sprint, baseDir);
+    log.info("handoff.task.complete.success", {
+      correlationId: sprintId,
+      taskId,
+      completedTasks: saved.completedTasks.length
+    });
+    return saved;
+  } catch (err) {
+    log.error("handoff.task.complete.failure", {
+      correlationId: sprintId,
+      taskId,
+      error: err,
+      code: err?.code || "ROTATOR_HANDOFF_TASK_COMPLETE_FAILED"
+    });
+    throw err;
   }
-  const [task] = sprint.pendingTasks.splice(idx, 1);
-  sprint.completedTasks.push({ ...task, filesChanged: [] });
-  return saveSprint(sprint, baseDir);
 }
 
 async function addBlocker(sprintId, description, { baseDir } = {}) {
-  const sprint = await loadSprint(sprintId, { baseDir });
-  sprint.blockers.push({
-    description: String(description).trim(),
-    suggestedFix: "Review the blocker and continue the sprint once resolved."
-  });
-  return saveSprint(sprint, baseDir);
+  log.info("handoff.blocker.add.start", { correlationId: sprintId });
+  try {
+    const sprint = await loadSprint(sprintId, { baseDir });
+    sprint.blockers.push({
+      description: String(description).trim(),
+      suggestedFix: "Review the blocker and continue the sprint once resolved."
+    });
+    const saved = await saveSprint(sprint, baseDir);
+    log.info("handoff.blocker.add.success", {
+      correlationId: sprintId,
+      blockers: saved.blockers.length
+    });
+    return saved;
+  } catch (err) {
+    log.error("handoff.blocker.add.failure", {
+      correlationId: sprintId,
+      error: err,
+      code: err?.code || "ROTATOR_HANDOFF_BLOCKER_ADD_FAILED"
+    });
+    throw err;
+  }
 }
 
 async function closeSprint(sprintId, status, { baseDir } = {}) {
-  const sprint = await loadSprint(sprintId, { baseDir });
-  sprint.status = normalizeStatus(status);
-  if (sprint.status === "paused" || sprint.status === "exhausted") {
-    sprint.resumePrompt = buildResumePrompt(sprint);
-  } else {
-    sprint.resumePrompt = "";
+  log.info("handoff.close.start", { correlationId: sprintId, status });
+  try {
+    const sprint = await loadSprint(sprintId, { baseDir });
+    sprint.status = normalizeStatus(status);
+    if (sprint.status === "paused" || sprint.status === "exhausted") {
+      sprint.resumePrompt = buildResumePrompt(sprint);
+    } else {
+      sprint.resumePrompt = "";
+    }
+    const saved = await saveSprint(sprint, baseDir);
+    log.info("handoff.close.success", { correlationId: sprintId, status: saved.status });
+    return saved;
+  } catch (err) {
+    log.error("handoff.close.failure", {
+      correlationId: sprintId,
+      status,
+      error: err,
+      code: err?.code || "ROTATOR_HANDOFF_CLOSE_FAILED"
+    });
+    throw err;
   }
-  return saveSprint(sprint, baseDir);
 }
 
 async function getActiveSprint({ baseDir } = {}) {
@@ -374,6 +505,7 @@ function mapSprintManifestToHandoff(manifest) {
 
 export {
   createSprint,
+  saveSprint,
   loadSprint,
   listSprints,
   addPendingTask,
@@ -384,6 +516,7 @@ export {
   getActiveSprint,
   setTokenBudget,
   buildResumePrompt as generateResumePrompt,
+  parseSprintOrThrowDomainError,
   loadLatestSprintManifest,
   mapSprintManifestToSnapshot,
   mapSprintManifestToHandoff

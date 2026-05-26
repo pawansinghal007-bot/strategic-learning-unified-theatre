@@ -122,7 +122,14 @@ describe('capture-handlers.cjs', () => {
     await new Promise(resolve => setTimeout(resolve, 50));
 
     expect(mockIngester.ingestFile).not.toHaveBeenCalled();
-    expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
+    expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
+      'capture:error',
+      expect.objectContaining({
+        code: 'ROTATOR_BROWSER_CAPTURE_INVALID',
+        message: expect.stringContaining('Invalid browser capture payload')
+      })
+    );
+    expect(mockMainWindow.webContents.send).not.toHaveBeenCalledWith('capture:done', expect.any(Object));
   });
 
   it('discards payload with missing text field', async () => {
@@ -140,7 +147,14 @@ describe('capture-handlers.cjs', () => {
     await new Promise(resolve => setTimeout(resolve, 50));
 
     expect(mockIngester.ingestFile).not.toHaveBeenCalled();
-    expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
+    expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
+      'capture:error',
+      expect.objectContaining({
+        code: 'ROTATOR_BROWSER_CAPTURE_INVALID',
+        message: expect.stringContaining('Invalid browser capture payload')
+      })
+    );
+    expect(mockMainWindow.webContents.send).not.toHaveBeenCalledWith('capture:done', expect.any(Object));
   });
 
   it('discards payload with missing html field', async () => {
@@ -158,7 +172,14 @@ describe('capture-handlers.cjs', () => {
     await new Promise(resolve => setTimeout(resolve, 50));
 
     expect(mockIngester.ingestFile).not.toHaveBeenCalled();
-    expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
+    expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
+      'capture:error',
+      expect.objectContaining({
+        code: 'ROTATOR_BROWSER_CAPTURE_INVALID',
+        message: expect.stringContaining('Invalid browser capture payload')
+      })
+    );
+    expect(mockMainWindow.webContents.send).not.toHaveBeenCalledWith('capture:done', expect.any(Object));
   });
 
   it('discards payload with missing url field', async () => {
@@ -176,7 +197,14 @@ describe('capture-handlers.cjs', () => {
     await new Promise(resolve => setTimeout(resolve, 50));
 
     expect(mockIngester.ingestFile).not.toHaveBeenCalled();
-    expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
+    expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
+      'capture:error',
+      expect.objectContaining({
+        code: 'ROTATOR_BROWSER_CAPTURE_INVALID',
+        message: expect.stringContaining('Invalid browser capture payload')
+      })
+    );
+    expect(mockMainWindow.webContents.send).not.toHaveBeenCalledWith('capture:done', expect.any(Object));
   });
 
   it('discards payload with missing ts field', async () => {
@@ -194,7 +222,14 @@ describe('capture-handlers.cjs', () => {
     await new Promise(resolve => setTimeout(resolve, 50));
 
     expect(mockIngester.ingestFile).not.toHaveBeenCalled();
-    expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
+    expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
+      'capture:error',
+      expect.objectContaining({
+        code: 'ROTATOR_BROWSER_CAPTURE_INVALID',
+        message: expect.stringContaining('Invalid browser capture payload')
+      })
+    );
+    expect(mockMainWindow.webContents.send).not.toHaveBeenCalledWith('capture:done', expect.any(Object));
   });
 
   it('catches ingestFile rejection and logs error without crashing', async () => {

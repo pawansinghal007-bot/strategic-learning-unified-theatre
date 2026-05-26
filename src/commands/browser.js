@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import chalk from "chalk";
 import ora from "ora";
 
+import { loadConfig, assertFeatureEnabled } from "../config.js";
 import {
   ensureBrowserDirs,
   sendPrompt,
@@ -18,27 +19,106 @@ import {
   clearResponses,
   tagResponse,
   captureThread,
-  BROWSER_RESPONSES_DIR
+  BROWSER_RESPONSES_DIR,
 } from "../browser-bridge.js";
+import {
+  BrowserPlatformSchema,
+  BrowserTypeSchema,
+  TimeoutMsSchema,
+} from "../domain/schemas.js";
+import { DomainError } from "../error.js";
 import { DocumentIngester } from "../llm/document-ingester.js";
 
 export async function captureAndIngest(platform, options = {}) {
   const { outputDir = null, headless = false, timeout = 60000 } = options;
+  const parsedPlatform = parseServicePlatform(platform, "--platform");
+  const parsedTimeout = parseTimeoutMs(timeout, "--timeout");
+  const cfg = await loadConfig();
+  assertFeatureEnabled(cfg, "browserCaptureEnabled", "browser.capture");
   await ensureBrowserDirs();
-  const result = await captureThread(platform, { outputDir, headless, timeout });
+  const result = await captureThread(parsedPlatform, {
+    outputDir,
+    headless,
+    timeout: parsedTimeout,
+  });
   const ingester = new DocumentIngester();
-  const ingestResult = await ingester.ingestThread(result.filePath, { platform: result.platform });
+  const ingestResult = await ingester.ingestThread(result.filePath, {
+    platform: result.platform,
+  });
   return {
     filename: result.filename,
     turns: result.turns,
     platform: result.platform,
     filePath: result.filePath,
-    chunksIngested: ingestResult.chunks
+    chunksIngested: ingestResult.chunks,
   };
 }
 
 function accumulate(value, previous) {
   return previous.concat(value);
+}
+
+const SERVICE_PLATFORMS = new Set([
+  "chatgpt",
+  "claude",
+  "gemini",
+  "perplexity",
+]);
+
+function formatValidationError(err) {
+  if (Array.isArray(err?.issues)) {
+    return err.issues.map((issue) => issue.message).join("; ");
+  }
+  return err instanceof Error ? err.message : String(err);
+}
+
+function createCliInvalidError(option, err) {
+  return new DomainError(
+    "ROTATOR_CLI_INVALID",
+    `ROTATOR_CLI_INVALID: Invalid ${option}: ${formatValidationError(err)}`,
+    { err: formatValidationError(err), option },
+  );
+}
+
+function parseServicePlatform(value, option = "--platform") {
+  const platform = String(value || "")
+    .trim()
+    .toLowerCase();
+  if (SERVICE_PLATFORMS.has(platform)) {
+    return platform;
+  }
+
+  throw createCliInvalidError(
+    option,
+    new Error("Expected one of chatgpt, claude, gemini, perplexity."),
+  );
+}
+
+function parseBrowserEngine(value, option = "--browser") {
+  const browser = String(value || "")
+    .trim()
+    .toLowerCase();
+  const platformResult = BrowserPlatformSchema.safeParse(browser);
+  if (platformResult.success) {
+    return platformResult.data;
+  }
+
+  const typeResult = BrowserTypeSchema.safeParse(browser);
+  if (typeResult.success) {
+    if (typeResult.data === "chrome") return "chromium";
+    if (typeResult.data === "safari") return "webkit";
+    return typeResult.data;
+  }
+
+  throw createCliInvalidError(option, typeResult.error);
+}
+
+function parseTimeoutMs(value, option = "--timeout") {
+  try {
+    return TimeoutMsSchema.parse(Number(value));
+  } catch (err) {
+    throw createCliInvalidError(option, err);
+  }
 }
 
 function parseVariables(variables) {
@@ -53,19 +133,34 @@ function parseVariables(variables) {
   return result;
 }
 
-export function bindBrowserCommands(program) {
-  const browser = program.command("browser").description("Multi-LLM browser communicator");
+export function bindBrowserCommands(program, { log = null } = {}) {
+  const commandLog = log;
+  const browser = program
+    .command("browser")
+    .description("Multi-LLM browser communicator");
 
   // Send command
   browser
     .command("send")
     .description("Send a prompt to an LLM via browser")
-    .requiredOption("--platform <name>", "Platform (chatgpt|claude|perplexity|gemini)")
+    .requiredOption(
+      "--platform <name>",
+      "Platform (chatgpt|claude|perplexity|gemini)",
+    )
     .option("--prompt <text>", "Prompt text")
     .option("--file <path>", "Read prompt from file")
-    .option("--browser <type>", "Browser type (chromium|firefox|brave)", "chromium")
+    .option(
+      "--browser <type>",
+      "Browser type (chromium|firefox|brave)",
+      "chromium",
+    )
+    .option("--timeout <ms>", "Max wait time", "60000")
     .option("--headless", "Run in headless mode", false)
-    .option("--dry-run", "Show what would be sent without opening browser", false)
+    .option(
+      "--dry-run",
+      "Show what would be sent without opening browser",
+      false,
+    )
     .action(async (options) => {
       const spinner = ora("Preparing...").start();
       try {
@@ -83,13 +178,17 @@ export function bindBrowserCommands(program) {
         }
 
         spinner.text = `Sending to ${options.platform}...`;
+        const platform = parseServicePlatform(options.platform);
+        const browserType = parseBrowserEngine(options.browser);
+        const timeout = parseTimeoutMs(options.timeout);
 
         const result = await sendPrompt({
-          platform: options.platform,
+          platform,
           prompt,
-          browserType: options.browser,
+          browserType,
+          timeout,
           headless: options.headless,
-          dryRun: options.dryRun
+          dryRun: options.dryRun,
         });
 
         if (result.dryRun) {
@@ -111,8 +210,16 @@ export function bindBrowserCommands(program) {
     .command("compare")
     .description("Send same prompt to multiple platforms and compare")
     .requiredOption("--prompt <text>", "Prompt text")
-    .requiredOption("--platforms <list>", "Comma-separated platform list (chatgpt,claude,perplexity,gemini)")
-    .option("--browser <type>", "Browser type (chromium|firefox|brave)", "chromium")
+    .requiredOption(
+      "--platforms <list>",
+      "Comma-separated platform list (chatgpt,claude,perplexity,gemini)",
+    )
+    .option(
+      "--browser <type>",
+      "Browser type (chromium|firefox|brave)",
+      "chromium",
+    )
+    .option("--timeout <ms>", "Max wait time", "60000")
     .option("--headless", "Run in headless mode", false)
     .option("--dry-run", "Show what would be sent", false)
     .action(async (options) => {
@@ -129,14 +236,21 @@ export function bindBrowserCommands(program) {
           throw new Error("At least one platform required");
         }
 
-        spinner.text = `Comparing across ${platforms.length} platform(s)...`;
+        const parsedPlatforms = platforms.map((platform) =>
+          parseServicePlatform(platform, "--platforms"),
+        );
+        const browserType = parseBrowserEngine(options.browser);
+        const timeout = parseTimeoutMs(options.timeout);
+
+        spinner.text = `Comparing across ${parsedPlatforms.length} platform(s)...`;
 
         const result = await comparePrompts({
           prompt: options.prompt,
-          platforms,
-          browserType: options.browser,
+          platforms: parsedPlatforms,
+          browserType,
+          timeout,
           headless: options.headless,
-          dryRun: options.dryRun
+          dryRun: options.dryRun,
         });
 
         if (result.dryRun) {
@@ -159,7 +273,9 @@ export function bindBrowserCommands(program) {
     });
 
   // Prompt library commands
-  const prompts = browser.command("prompts").description("Manage prompt library");
+  const prompts = browser
+    .command("prompts")
+    .description("Manage prompt library");
 
   prompts
     .command("list")
@@ -181,8 +297,8 @@ export function bindBrowserCommands(program) {
             name: p.name,
             platforms: p.platforms.join(","),
             tags: p.tags.join(","),
-            lastUsed: p.lastUsed ? p.lastUsed.slice(0, 10) : "—"
-          }))
+            lastUsed: p.lastUsed ? p.lastUsed.slice(0, 10) : "—",
+          })),
         );
       } catch (err) {
         spinner.stop();
@@ -203,7 +319,9 @@ export function bindBrowserCommands(program) {
         console.log(`  Name: ${prompt.name}`);
         console.log(`  Tags: ${prompt.tags.join(", ") || "—"}`);
         console.log(`  Platforms: ${prompt.platforms.join(", ") || "—"}`);
-        console.log(`  Last used: ${prompt.lastUsed ? prompt.lastUsed.slice(0, 10) : "—"}`);
+        console.log(
+          `  Last used: ${prompt.lastUsed ? prompt.lastUsed.slice(0, 10) : "—"}`,
+        );
       } catch (err) {
         console.error(chalk.red(String(err?.message ?? err)));
         process.exitCode = 1;
@@ -236,7 +354,7 @@ export function bindBrowserCommands(program) {
           name: options.name,
           template,
           tags: options.tag || [],
-          platforms: options.platform || []
+          platforms: options.platform || [],
         });
 
         spinner.succeed(`Prompt added: ${chalk.cyan(prompt.id.slice(0, 8))}`);
@@ -264,7 +382,7 @@ export function bindBrowserCommands(program) {
           promptId: id,
           platform: options.platform,
           variables,
-          dryRun: options.dryRun
+          dryRun: options.dryRun,
         });
 
         if (result.dryRun) {
@@ -300,19 +418,29 @@ export function bindBrowserCommands(program) {
   browser
     .command("login")
     .description("Log in to a platform and save credentials")
-    .requiredOption("--platform <name>", "Platform (chatgpt|claude|perplexity|gemini)")
-    .option("--browser <type>", "Browser type (chromium|firefox|brave)", "chromium")
+    .requiredOption(
+      "--platform <name>",
+      "Platform (chatgpt|claude|perplexity|gemini)",
+    )
+    .option(
+      "--browser <type>",
+      "Browser type (chromium|firefox|brave)",
+      "chromium",
+    )
     .option("--timeout <ms>", "Max wait time", "60000")
     .action(async (options) => {
       const spinner = ora("Launching browser...").start();
       try {
         spinner.stop();
         await ensureBrowserDirs();
+        const platform = parseServicePlatform(options.platform);
+        const browserType = parseBrowserEngine(options.browser);
+        const timeout = parseTimeoutMs(options.timeout);
 
         const result = await loginToPage({
-          platform: options.platform,
-          browserType: options.browser,
-          timeout: parseInt(options.timeout, 10)
+          platform,
+          browserType,
+          timeout,
         });
 
         console.log(chalk.green(`✓ ${result.message}`));
@@ -324,9 +452,18 @@ export function bindBrowserCommands(program) {
 
   browser
     .command("login-capture")
-    .description("Log in to a platform and then capture a full thread in one flow")
-    .requiredOption("--platform <name>", "Platform (chatgpt|claude|perplexity|gemini)")
-    .option("--browser <type>", "Browser type (chromium|firefox|brave)", "chromium")
+    .description(
+      "Log in to a platform and then capture a full thread in one flow",
+    )
+    .requiredOption(
+      "--platform <name>",
+      "Platform (chatgpt|claude|perplexity|gemini)",
+    )
+    .option(
+      "--browser <type>",
+      "Browser type (chromium|firefox|brave)",
+      "chromium",
+    )
     .option("--timeout <ms>", "Max wait time for login and capture", "60000")
     .option("--output-dir <path>", "Directory to save captured thread")
     .option("--headless", "Run capture headless after login", false)
@@ -334,25 +471,32 @@ export function bindBrowserCommands(program) {
       const spinner = ora("Starting login+capture flow...").start();
       try {
         await ensureBrowserDirs();
+        const platform = parseServicePlatform(options.platform);
+        const browserType = parseBrowserEngine(options.browser);
+        const timeout = parseTimeoutMs(options.timeout);
 
-        spinner.text = `Logging in to ${options.platform}...`;
+        spinner.text = `Logging in to ${platform}...`;
         await loginToPage({
-          platform: options.platform,
-          browserType: options.browser,
-          timeout: parseInt(options.timeout, 10)
+          platform,
+          browserType,
+          timeout,
         });
 
-        spinner.text = `Capturing thread from ${options.platform}...`;
-        const { filename, turns, platform, chunksIngested } = await captureAndIngest(
-          options.platform,
-          {
-            outputDir: options.outputDir,
-            headless: Boolean(options.headless),
-            timeout: parseInt(options.timeout, 10)
-          }
-        );
+        spinner.text = `Capturing thread from ${platform}...`;
+        const {
+          filename,
+          turns,
+          platform: capturedPlatform,
+          chunksIngested,
+        } = await captureAndIngest(platform, {
+          outputDir: options.outputDir,
+          headless: Boolean(options.headless),
+          timeout,
+        });
 
-        spinner.succeed(`Captured ${turns.length} turns from ${platform}.`);
+        spinner.succeed(
+          `Captured ${turns.length} turns from ${capturedPlatform}.`,
+        );
         console.log(chalk.green(`Response saved to ${filename}`));
         console.log(chalk.green(`Ingested ${chunksIngested} chunks.`));
       } catch (err) {
@@ -365,35 +509,61 @@ export function bindBrowserCommands(program) {
   browser
     .command("capture")
     .description("Capture a full conversation thread from a browser tab")
-    .requiredOption("--platform <name>", "Platform (chatgpt|claude|perplexity|gemini)")
+    .requiredOption(
+      "--platform <name>",
+      "Platform (chatgpt|claude|perplexity|gemini)",
+    )
     .option("--thread", "Capture a full thread", false)
     .option("--output-dir <path>", "Directory to save thread file")
+    .option("--timeout <ms>", "Max wait time", "60000")
     .action(async (options) => {
-      const spinner = ora(`Capturing conversation thread from ${options.platform}...`).start();
+      const spinner = ora(
+        `Capturing conversation thread from ${options.platform}...`,
+      ).start();
+      const correlationId = options.outputDir || options.platform;
+      commandLog?.info("browser.capture.start", {
+        correlationId,
+        platform: options.platform,
+        outputDir: options.outputDir || null,
+      });
       try {
         if (!options.thread) {
           throw new Error("--thread is required for browser capture");
         }
 
-        const { filename, turns, platform, chunksIngested } = await captureAndIngest(
-          options.platform,
-          {
+        const { filename, turns, platform, chunksIngested } =
+          await captureAndIngest(options.platform, {
             outputDir: options.outputDir,
-            headless: false
-          }
-        );
+            headless: false,
+            timeout: parseTimeoutMs(options.timeout),
+          });
 
         spinner.succeed(`Captured ${turns.length} turns from ${platform}.`);
+        commandLog?.info("browser.capture.success", {
+          correlationId,
+          platform,
+          filename,
+          turns: turns.length,
+          chunksIngested,
+        });
         console.log(chalk.green(`Ingested ${chunksIngested} chunks.`));
       } catch (err) {
         spinner.stop();
+        commandLog?.error("browser.capture.failure", {
+          correlationId,
+          platform: options.platform,
+          error: err,
+          code: err?.code || "ROTATOR_BROWSER_CAPTURE_FAILED",
+        });
         console.error(chalk.red(String(err?.message ?? err)));
         process.exitCode = 1;
       }
     });
 
   // Responses command
-  const responses = browser.command("responses").description("Manage captured responses");
+  const responses = browser
+    .command("responses")
+    .description("Manage captured responses");
 
   responses
     .command("list")
@@ -405,7 +575,7 @@ export function bindBrowserCommands(program) {
       try {
         const list = await listResponses({
           platform: options.platform,
-          limit: parseInt(options.limit, 10)
+          limit: parseInt(options.limit, 10),
         });
 
         spinner.stop();
@@ -418,8 +588,8 @@ export function bindBrowserCommands(program) {
         console.table(
           list.map((r) => ({
             filename: r.filename,
-            size: `${Math.round(r.content.length / 1024)}KB`
-          }))
+            size: `${Math.round(r.content.length / 1024)}KB`,
+          })),
         );
       } catch (err) {
         spinner.stop();
@@ -453,7 +623,7 @@ export function bindBrowserCommands(program) {
           platform: options.platform,
           olderThanDays: options.olderThanDays
             ? parseInt(options.olderThanDays, 10)
-            : null
+            : null,
         });
 
         spinner.succeed(`Deleted ${result.deleted} response(s)`);
@@ -474,7 +644,7 @@ export function bindBrowserCommands(program) {
       try {
         const result = await tagResponse(filename, {
           quality: options.quality,
-          notes: options.notes
+          notes: options.notes,
         });
 
         spinner.succeed(`Tagged ${result.filename} as ${result.quality}.`);
@@ -491,15 +661,22 @@ export function bindBrowserCommands(program) {
   responses
     .command("capture")
     .description("Capture a full conversation thread from a browser tab")
-    .requiredOption("--platform <name>", "Platform (chatgpt|claude|perplexity|gemini)")
+    .requiredOption(
+      "--platform <name>",
+      "Platform (chatgpt|claude|perplexity|gemini)",
+    )
     .option("--output-dir <path>", "Directory to save thread file")
+    .option("--timeout <ms>", "Max wait time", "60000")
     .action(async (options) => {
-      const spinner = ora(`Capturing conversation thread from ${options.platform}...`).start();
+      const spinner = ora(
+        `Capturing conversation thread from ${options.platform}...`,
+      ).start();
       try {
-        const { filename, turns, platform, chunksIngested } = await captureAndIngest(
-          options.platform,
-          options.outputDir || undefined
-        );
+        const { filename, turns, platform, chunksIngested } =
+          await captureAndIngest(options.platform, {
+            outputDir: options.outputDir,
+            timeout: parseTimeoutMs(options.timeout),
+          });
 
         spinner.succeed(`Captured ${turns.length} turns from ${platform}.`);
         console.log(chalk.green(`Ingested ${chunksIngested} chunks.`));

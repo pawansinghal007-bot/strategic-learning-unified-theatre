@@ -1,0 +1,127 @@
+=== SPRINT SUMMARY ===
+
+=== LAST 50 COMMITS ===
+f3960bd | 2026-05-24 | pawansinghal007-bot | Add unit and integration tests for redaction and session management
+e882ac9 | 2026-05-24 | pawansinghal007-bot | Signing in
+75d2da7 | 2026-05-22 | pawansinghal007-bot | Sprint 12: test passive git capture
+f407e49 | 2026-05-20 | pawansinghal007-bot | Sprint 10 complete
+e7363e3 | 2026-05-20 | pawansinghal007-bot | chore: mark P3 complete, update tests count and changelog
+e3313de | 2026-05-19 | pawansinghal007-bot | Implement VS Code Tool UI and package Electron app (source only, remove generated binaries)
+52e4422 | 2026-05-19 | pawansinghal007-bot | Initial commit
+6025f8e | 2026-05-19 | pawansinghal007-bot | Initial commit: VS Code Agent - secure store, keychain, tray, daemon, installer
+
+=== FILE CHANGE FREQUENCY ===
+5 src/config.js
+5 package.json
+5 package-lock.json
+4 src/browser-bridge.js
+4 vscode-extension/extension.js
+4 src/llm/document-ingester.js
+4 src/llm/experience-db.js
+4 electron-ui/main.cjs
+4 src/cli.js
+4 src/commands/llm.js
+4 tests/local-llm.test.js
+4 src/secret-store.js
+3 electron-ui/ipc/handlers.cjs
+3 electron-ui/preload.cjs
+3 src/watcher.js
+3 renderer/components/Sidebar.jsx
+3 renderer/index.html
+3 renderer/App.jsx
+3 src/llm/inference.js
+3 src/daemon-runner.js
+3 src/commands/browser.js
+3 src/encrypt.js
+3 scripts/install.js
+3 electron-tray/main.js
+3 vitest.config.js
+3 vscode-extension/package.json
+3 docs/README.md
+3 src/agent-handoff.js
+3 README.md
+3 tests/ai-memory.test.js
+2 src/__tests__/capture-pipeline.integration.test.js
+2 sprints/SPRINT-11A-CORE-COMMANDS-PROMPTS.md
+2 sprints/SPRINT-11A-CORE-COMMANDS.md
+2 sprints/SPRINT-11B-SIDEBAR-VIEWS.md
+2 sprints/SPRINT-11C-AUTOMATION-KG.md
+2 sprints/SPRINT-12-ANALYSIS.md
+2 src/ai-memory/memory-db.js
+2 sprints/SPRINT-12-CODING-LOG.md
+2 sprints/SPRINT-12-SNAPSHOT.md
+2 src/ai-memory/schema.sql
+2 src/commands/ai.js
+2 src/__tests__/browser-selectors.test.js
+2 src/commands/idea.js
+2 src/commands/handoff.js
+2 sprints/SPRINT-12-PLAN.md
+2 sprints/SPRINT-13-PLAN.md
+2 src/llm/prompt-generator.js
+2 src/idea-store.js
+2 vscode-extension/collector.js
+2 VSCODE-EXTENSION-BLUEPRINT.md
+2 vitest-summary.json
+2 tests/workspace.test.js
+2 tests/vscode-collector.test.js
+2 tests/thread.test.js
+2 tests/switcher.test.js
+2 tests/store.test.js
+2 tests/lock.test.js
+2 tests/llm/related.test.js
+2 tests/knowledge-graph.test.js
+2 tests/e2e/rotation.test.js
+2 tests/e2e/response-feedback.test.js
+2 tests/browser-bridge.test.js
+2 tests/agent-handoff.test.js
+2 test-output.txt
+2 test-output.json
+2 tagmsg.txt
+2 src/vscode.js
+2 src/test-runner.js
+2 src/switcher.js
+2 src/schema.js
+2 src/paths.js
+2 src/local-llm.js
+2 smoke-test-sprint12.js
+2 src/llm/knowledge-graph.js
+2 src/llm/embeddings.js
+2 src/health.js
+2 .gitignore
+2 vscode-extension/README.md
+2 Prompt 2.md
+2 renderer/screens/Accounts.jsx
+2 e2e/browser-pane.e2e.js
+2 renderer/__tests__/TrainingStatus.test.jsx
+2 renderer/screens/LocalLLM.jsx
+2 Prompt 6.md
+2 Prompt 5.md
+2 Prompt 4.md
+2 docs/sprint-11-analysis.md
+2 commitmsg.txt
+2 Prompt 3.md
+2 Prompt 1.md
+2 renderer/vite.config.js
+2 electron-ui/__tests__/capture-handlers.test.js
+2 robot/README.md
+2 .scannerwork/report-task.txt
+2 npm-test-output.txt
+2 IDEA_STORE_IMPLEMENTATION.md
+1 electron-ui/preload-browser.cjs
+1 src/storage-monitor.js
+1 test.pem
+1 test.env
+
+
+=== CONTRIBUTORS ===
+     8	pawansinghal007-bot
+
+
+=== RECENT FEATURE KEYWORDS ===
+
+f3960bd (HEAD -> main) Add unit and integration tests for redaction and session management
+75d2da7 Sprint 12: test passive git capture
+e7363e3 chore: mark P3 complete, update tests count and changelog
+e3313de Implement VS Code Tool UI and package Electron app (source only, remove generated binaries)
+6025f8e (tag: v1.0) Initial commit: VS Code Agent - secure store, keychain, tray, daemon, installer
+

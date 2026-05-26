@@ -6,29 +6,40 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { loadConfig, assertFeatureEnabled } from "./config.js";
 import { listSprints } from "./agent-handoff.js";
 import { DocumentIngester } from "./llm/document-ingester.js";
 import { ExperienceDb } from "./llm/experience-db.js";
-import { LocalLlmInference, resolvePreferredLlmProvider, installOllamaModel, isOllamaAvailable, listOllamaModels } from "./llm/inference.js";
+import {
+  LocalLlmInference,
+  resolvePreferredLlmProvider,
+  installOllamaModel,
+  isOllamaAvailable,
+  listOllamaModels,
+  verifyLocalLlmRuntime,
+} from "./llm/inference.js";
 import { MistakeTracker } from "./llm/mistake-tracker.js";
 import { PromptGenerator } from "./llm/prompt-generator.js";
+import { createLogger } from "./logger.js";
+
+const log = createLogger("local-llm");
 
 export const MODEL_REGISTRY = {
   phi3: {
     name: "Phi-3-mini-4k-instruct-q4.gguf",
     url: "https://huggingface.co/microsoft/Phi-3-mini-4k-instruct-gguf/resolve/main/Phi-3-mini-4k-instruct-q4.gguf",
-    sha256: null
+    sha256: null,
   },
   tinyllama: {
     name: "tinyllama-1.1b-q3_k_s.gguf",
     url: "https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/resolve/main/tinyllama-1.1b-chat-v1.0.Q3_K_S.gguf",
-    sha256: null
-  }
+    sha256: null,
+  },
 };
 
 export const OLLAMA_MODEL_REGISTRY = {
   phi3: "phi3:mini",
-  tinyllama: "tinyllama"
+  tinyllama: "tinyllama",
 };
 
 export function llmBaseDir(baseDir) {
@@ -53,7 +64,10 @@ async function sha256(filePath) {
 function download(url, target) {
   return new Promise((resolve, reject) => {
     const request = https.get(url, (response) => {
-      if ([301, 302, 303, 307, 308].includes(response.statusCode) && response.headers.location) {
+      if (
+        [301, 302, 303, 307, 308].includes(response.statusCode) &&
+        response.headers.location
+      ) {
         response.resume();
         download(response.headers.location, target).then(resolve, reject);
         return;
@@ -95,19 +109,52 @@ export async function getLlmStatus({ baseDir } = {}) {
       ggufModels.length > 0
         ? path.join(dir, ggufModels[0])
         : ollamaModels.length > 0
-        ? ollamaModels[0]
-        : null,
-    provider: ggufModels.length > 0 ? "node-llama-cpp" : ollamaModels.length > 0 ? "ollama" : null,
-    ollamaAvailable
+          ? ollamaModels[0]
+          : null,
+    provider:
+      ggufModels.length > 0
+        ? "node-llama-cpp"
+        : ollamaModels.length > 0
+          ? "ollama"
+          : null,
+    ollamaAvailable,
   };
 }
 
+export async function getLocalLlmStatus({
+  verifyRuntime = verifyLocalLlmRuntime,
+} = {}) {
+  const modelDir = path.join(os.homedir(), ".vscode-rotator", "models");
+  let models = [];
+
+  try {
+    const files = await fs.readdir(modelDir);
+    models = files.filter((file) => file.endsWith(".gguf"));
+  } catch {
+    models = [];
+  }
+
+  if (models.length === 0) {
+    return { status: "unavailable", modelDir, models };
+  }
+
+  try {
+    await verifyRuntime();
+  } catch {
+    return { status: "degraded", modelDir, models };
+  }
+
+  return { status: "ready", modelDir, models };
+}
+
 export async function setupModel({ model = "phi3", modelPath, baseDir } = {}) {
+  const cfg = await loadConfig();
+  assertFeatureEnabled(cfg, "llmCommandsEnabled", "llm.setupModel");
   const provider = await resolvePreferredLlmProvider();
   if (provider === "ollama") {
     const requestedModel = modelPath
       ? String(modelPath).trim()
-      : OLLAMA_MODEL_REGISTRY[model] ?? OLLAMA_MODEL_REGISTRY.phi3;
+      : (OLLAMA_MODEL_REGISTRY[model] ?? OLLAMA_MODEL_REGISTRY.phi3);
     if (!requestedModel) {
       throw new Error("Ollama model name is required for setup.");
     }
@@ -123,7 +170,7 @@ export async function setupModel({ model = "phi3", modelPath, baseDir } = {}) {
   const registry =
     model === "custom" && modelPath
       ? { name: path.basename(modelPath), url: null, sha256: null }
-      : MODEL_REGISTRY[model] ?? MODEL_REGISTRY.phi3;
+      : (MODEL_REGISTRY[model] ?? MODEL_REGISTRY.phi3);
   const target = path.join(dir, registry.name);
 
   if (modelPath) {
@@ -143,15 +190,42 @@ export async function setupModel({ model = "phi3", modelPath, baseDir } = {}) {
   return { modelPath: target, sha256: digest, response };
 }
 
-export async function askLocalLlm({ question, system, baseDir, modelPath } = {}) {
+export async function askLocalLlm({
+  question,
+  system,
+  baseDir,
+  modelPath,
+} = {}) {
+  const cfg = await loadConfig();
+  assertFeatureEnabled(cfg, "llmCommandsEnabled", "llm.askLocalLlm");
   const inference = new LocalLlmInference({ baseDir, modelPath });
   return inference.generate({ prompt: question, system });
 }
 
 export async function ingestDocuments(options = {}) {
-  const ingester = new DocumentIngester(options);
-  if (options.targetPath) return ingester.ingestPath(options.targetPath);
-  return ingester.ingestFromSnapshot(options);
+  const correlationId = options.targetPath || "snapshot";
+  log.info("llm.ingest.start", {
+    correlationId,
+    targetPath: options.targetPath || null,
+  });
+  try {
+    const ingester = new DocumentIngester(options);
+    const result = options.targetPath
+      ? await ingester.ingestPath(options.targetPath)
+      : await ingester.ingestFromSnapshot(options);
+    const actionsCount = Array.isArray(result)
+      ? result.length
+      : (result?.actions?.length ?? 0);
+    log.info("llm.ingest.success", { correlationId, actions: actionsCount });
+    return result;
+  } catch (err) {
+    log.error("llm.ingest.failure", {
+      correlationId,
+      error: err,
+      code: err?.code || "ROTATOR_LLM_INGEST_FAILED",
+    });
+    throw err;
+  }
 }
 
 export async function addMistake(options = {}) {
@@ -160,26 +234,47 @@ export async function addMistake(options = {}) {
 }
 
 export async function importSprints({ baseDir, sprintBaseDir } = {}) {
+  const correlationId = baseDir || "default";
+  log.info("llm.sprints.import.start", {
+    correlationId,
+    sprintBaseDir: sprintBaseDir || null,
+  });
   const db = new ExperienceDb({ baseDir });
-  await db.open();
-  const sprints = await listSprints({ baseDir: sprintBaseDir });
-  let mistakes = 0;
-  const tracker = new MistakeTracker({ baseDir, db });
-  for (const sprint of sprints) {
-    await db.upsertSprint(sprint);
-    for (const failure of sprint.testsFailed ?? []) {
-      await tracker.addMistake({
-        sprint_id: sprint.sprintId,
-        description: `Test failed: ${failure.name}`,
-        root_cause: failure.error,
-        fix_applied: "Review failing test during next sprint.",
-        category: "test-failure"
-      });
-      mistakes++;
+  let opened = false;
+  try {
+    await db.open();
+    opened = true;
+    const sprints = await listSprints({ baseDir: sprintBaseDir });
+    let mistakes = 0;
+    const tracker = new MistakeTracker({ baseDir, db });
+    for (const sprint of sprints) {
+      await db.upsertSprint(sprint);
+      for (const failure of sprint.testsFailed ?? []) {
+        await tracker.addMistake({
+          sprint_id: sprint.sprintId,
+          description: `Test failed: ${failure.name}`,
+          root_cause: failure.error,
+          fix_applied: "Review failing test during next sprint.",
+          category: "test-failure",
+        });
+        mistakes++;
+      }
+    }
+    const result = { imported: sprints.length, mistakes };
+    log.info("llm.sprints.import.success", { correlationId, ...result });
+    return result;
+  } catch (err) {
+    log.error("llm.sprints.import.failure", {
+      correlationId,
+      error: err,
+      code: err?.code || "ROTATOR_LLM_SPRINT_IMPORT_FAILED",
+    });
+    throw err;
+  } finally {
+    if (opened) {
+      await db.close();
     }
   }
-  await db.close();
-  return { imported: sprints.length, mistakes };
 }
 
 export async function generatePrompt(options = {}) {

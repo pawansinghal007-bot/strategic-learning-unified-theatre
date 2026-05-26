@@ -10,6 +10,24 @@ const path = require('node:path');
 const os = require('node:os');
 const { promises: fsPromises } = require('node:fs');
 const crypto = require('node:crypto');
+const { createLogger } = require('../../src/logger.js');
+
+const log = createLogger('electron-capture');
+
+let domainModulesPromise;
+
+async function loadDomainModules() {
+  if (!domainModulesPromise) {
+    domainModulesPromise = Promise.all([
+      import('../../src/domain/schemas.js'),
+      import('../../src/error.js')
+    ]).then(([schemas, errors]) => ({
+      BrowserCapturePayloadSchema: schemas.BrowserCapturePayloadSchema,
+      DomainError: errors.DomainError
+    }));
+  }
+  return domainModulesPromise;
+}
 
 /**
  * Get the browser-responses directory
@@ -31,19 +49,31 @@ function formatTimestamp(ts) {
   return iso.replace(/:/g, '-').replace(/\./g, '-');
 }
 
-/**
- * Validate capture:response payload shape
- * @param {unknown} payload
- * @returns {boolean}
- */
-function isValidPayload(payload) {
-  if (!payload || typeof payload !== 'object') return false;
-  if (typeof payload.platform !== 'string') return false;
-  if (typeof payload.html !== 'string') return false;
-  if (typeof payload.text !== 'string') return false;
-  if (typeof payload.url !== 'string') return false;
-  if (typeof payload.ts !== 'number') return false;
-  return true;
+function formatValidationError(error) {
+  if (Array.isArray(error?.issues)) {
+    return error.issues
+      .map((issue) => `${issue.path.join('.') || 'root'}: ${issue.message}`)
+      .join('; ');
+  }
+  return error instanceof Error ? error.message : String(error);
+}
+
+async function parseBrowserPayloadOrThrow(payload, context = {}) {
+  const { BrowserCapturePayloadSchema, DomainError } = await loadDomainModules();
+
+  try {
+    return BrowserCapturePayloadSchema.parse(payload);
+  } catch (error) {
+    if (error instanceof DomainError) {
+      throw error;
+    }
+
+    const detail = formatValidationError(error);
+    throw new DomainError('ROTATOR_BROWSER_CAPTURE_INVALID', `Invalid browser capture payload: ${detail}`, {
+      ...context,
+      error: detail
+    });
+  }
 }
 
 /**
@@ -76,6 +106,7 @@ ${payload.text}
  */
 async function registerCaptureHandlers(ipcMain, ingester, mainWindow) {
   console.log('[capture-handlers] registering handlers');
+  let captureQueue = Promise.resolve();
 
   // IMPORTANT: This uses ipcRenderer.send / ipcMain.on instead of invoke/handle.
   // This is intentional because we want one-way event emission from the preload context.
@@ -83,29 +114,54 @@ async function registerCaptureHandlers(ipcMain, ingester, mainWindow) {
   // The handler logs any errors but does not crash the main process.
 
   ipcMain.on('capture:response', async (event, payload) => {
-    console.log('[capture:response] received payload from', event.sender.getURL());
+    const senderUrl = event.sender.getURL();
 
-    // Validate payload
-    if (!isValidPayload(payload)) {
-      console.error('[capture:response] invalid payload shape:', payload);
-      return; // Log and discard
+    let parsedPayload;
+    try {
+      parsedPayload = await parseBrowserPayloadOrThrow(payload, {
+        channel: 'capture:response',
+        senderUrl
+      });
+    } catch (err) {
+      const code = err?.code || 'ROTATOR_BROWSER_CAPTURE_INVALID';
+      const message = err instanceof Error ? err.message : String(err);
+      const errorPayload = { code, message };
+      log.warn('capture.payload.invalid', {
+        correlationId: null,
+        code,
+        senderUrl,
+        error: err
+      });
+      try {
+        mainWindow.webContents.send('capture:error', errorPayload);
+      } catch (sendErr) {
+        console.error('[capture:response] failed to send capture:error:', sendErr);
+      }
+      return;
     }
 
-    try {
+    const correlationId = `${parsedPayload.platform}:${parsedPayload.ts}`;
+
+    const captureJob = captureQueue.then(async () => {
       // Ensure directory exists
       const responseDir = getBrowserResponsesDir();
       await fs.mkdir(responseDir, { recursive: true });
 
       // Generate filename: browser-responses/{formatted-ts}-{platform}.md
-      const formattedTs = formatTimestamp(payload.ts);
-      const filename = `${formattedTs}-${payload.platform}.md`;
+      const formattedTs = formatTimestamp(parsedPayload.ts);
+      const filename = `${formattedTs}-${parsedPayload.platform}.md`;
       const filepath = path.join(responseDir, filename);
 
       // Format content
-      const content = formatAsMarkdown(payload);
+      const content = formatAsMarkdown(parsedPayload);
 
       // Write atomically: write to .tmp, then rename
       const tmpPath = `${filepath}.${process.pid}.${crypto.randomUUID()}.tmp`;
+      log.info('capture.file.write.start', {
+        correlationId,
+        platform: parsedPayload.platform,
+        filepath
+      });
       await fs.writeFile(tmpPath, content, 'utf8');
       try {
         await fsPromises.rename(tmpPath, filepath);
@@ -117,38 +173,62 @@ async function registerCaptureHandlers(ipcMain, ingester, mainWindow) {
       // Set permissions to 600 (owner read/write only)
       await fs.chmod(filepath, 0o600);
 
-      console.log('[capture:response] wrote file:', filepath);
+      log.info('capture.file.write.success', {
+        correlationId,
+        platform: parsedPayload.platform,
+        filepath
+      });
 
       // Ingest the file
       let result;
       try {
         result = await ingester.ingestFile(filepath, {
-          fileTs: new Date(payload.ts).toISOString(),
+          fileTs: new Date(parsedPayload.ts).toISOString(),
           source_type: 'browser-capture',
-          platform: payload.platform
+          platform: parsedPayload.platform
         });
-        console.log('[capture:response] ingestion result:', result);
       } catch (ingestErr) {
-        console.error('[capture:response] ingestion failed:', ingestErr);
+        log.error('capture.ingest.failure', {
+          correlationId,
+          platform: parsedPayload.platform,
+          filepath,
+          error: ingestErr,
+          code: ingestErr?.code || 'ROTATOR_CAPTURE_INGEST_FAILED'
+        });
         result = { skipped: true, chunks: 0 };
       }
+      log.info('capture.ingest.result', {
+        correlationId,
+        platform: parsedPayload.platform,
+        filepath,
+        chunks: result.chunks || 0,
+        skipped: result.skipped || false
+      });
 
       // Send 'capture:done' event to renderer
       try {
         mainWindow.webContents.send('capture:done', {
-          platform: payload.platform,
+          platform: parsedPayload.platform,
           chunks: result.chunks || 0,
           skipped: result.skipped || false,
-          timestamp: payload.ts
+          timestamp: parsedPayload.ts
         });
       } catch (sendErr) {
         console.error('[capture:response] failed to send capture:done:', sendErr);
       }
-    } catch (err) {
-      console.error('[capture:response] error:', err.message);
+    }).catch((err) => {
+      log.error('capture.pipeline.failure', {
+        correlationId,
+        platform: parsedPayload.platform,
+        error: err,
+        code: err?.code || 'ROTATOR_CAPTURE_PIPELINE_FAILED'
+      });
       // Do not crash the main process; just log the error
-    }
+    });
+
+    captureQueue = captureJob.catch(() => null);
+    return captureJob;
   });
 }
 
-module.exports = { registerCaptureHandlers };
+module.exports = { registerCaptureHandlers, loadDomainModules, parseBrowserPayloadOrThrow };

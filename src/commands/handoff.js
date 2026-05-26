@@ -13,9 +13,38 @@ import {
   getActiveSprint,
   generateResumePrompt
 } from "../agent-handoff.js";
+import { HandoffStatusSchema, PositiveIntSchema } from "../domain/schemas.js";
+import { DomainError } from "../error.js";
 
-function parseInteger(value) {
-  return Number.parseInt(value, 10);
+function formatValidationError(err) {
+  if (Array.isArray(err?.issues)) {
+    return err.issues.map((issue) => issue.message).join("; ");
+  }
+  return err instanceof Error ? err.message : String(err);
+}
+
+function createCliInvalidError(option, err) {
+  return new DomainError(
+    "ROTATOR_CLI_INVALID",
+    `ROTATOR_CLI_INVALID: Invalid ${option}: ${formatValidationError(err)}`,
+    { err: formatValidationError(err), option }
+  );
+}
+
+function parsePositiveInt(value, option) {
+  try {
+    return PositiveIntSchema.parse(Number(value));
+  } catch (err) {
+    throw createCliInvalidError(option, err);
+  }
+}
+
+function parseHandoffStatus(value, option = "--status") {
+  try {
+    return HandoffStatusSchema.parse(value);
+  } catch (err) {
+    throw createCliInvalidError(option, err);
+  }
 }
 
 function accumulate(value, previous) {
@@ -37,7 +66,7 @@ export function bindHandoffCommands(program) {
     .requiredOption("--goal <goal>", "Sprint goal")
     .option("--agent <agent>", "Agent name (claude|chatgpt|gemini|perplexity|other)", "other")
     .option("--model <model>", "Model name", "unknown")
-    .option("--limit <n>", "Token limit", "0")
+    .option("--limit <n>", "Token limit", "1")
     .option("--status <status>", "Initial sprint status", "active")
     .action(async (options) => {
       const spinner = ora("Creating sprint...").start();
@@ -46,8 +75,8 @@ export function bindHandoffCommands(program) {
           agent: options.agent,
           model: options.model,
           goal: options.goal,
-          tokensLimit: parseInteger(options.limit),
-          status: options.status
+          tokensLimit: parsePositiveInt(options.limit, "--limit"),
+          status: parseHandoffStatus(options.status)
         });
         spinner.succeed("Sprint created");
         console.log(chalk.green(sprint.sprintId));
@@ -76,16 +105,17 @@ export function bindHandoffCommands(program) {
 
         if (options.tokensUsed !== undefined || options.tokensLimit !== undefined) {
           const result = await setTokenBudget(sprintId, {
-            tokensUsed: options.tokensUsed !== undefined ? parseInteger(options.tokensUsed) : sprint.tokensUsed,
-            tokensLimit: options.tokensLimit !== undefined ? parseInteger(options.tokensLimit) : sprint.tokensLimit
+            tokensUsed: options.tokensUsed !== undefined ? parsePositiveInt(options.tokensUsed, "--tokens-used") : sprint.tokensUsed,
+            tokensLimit: options.tokensLimit !== undefined ? parsePositiveInt(options.tokensLimit, "--tokens-limit") : sprint.tokensLimit
           });
           sprint = result.sprint;
           warnings.push(...result.warnings);
         }
 
         if (options.addTask.length > 0) {
+          const priority = parsePositiveInt(options.priority, "--priority");
           for (const desc of options.addTask) {
-            sprint = await addPendingTask(sprintId, desc, parseInteger(options.priority));
+            sprint = await addPendingTask(sprintId, desc, priority);
           }
         }
 
@@ -121,7 +151,7 @@ export function bindHandoffCommands(program) {
     .action(async (sprintId, options) => {
       const spinner = ora("Closing sprint...").start();
       try {
-        const sprint = await closeSprint(sprintId, options.status);
+        const sprint = await closeSprint(sprintId, parseHandoffStatus(options.status));
         spinner.succeed("Sprint closed");
         console.log(chalk.green(sprint.sprintId));
       } catch (err) {

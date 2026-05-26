@@ -1,11 +1,10 @@
 ﻿node_modules/
-.DS_Store
 .vscode/
 .idea/
 *.log
 .env
-
-
+dist/
+build/
+.cache/
 dist_electron/
 electron-ui/dist/
-

@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import matter from "gray-matter";
 import { z } from "zod";
+import { DomainError } from "./error.js";
 
 const IdeaStatusSchema = z.enum(["inbox", "active", "parked", "done"]);
 const IdeaPrioritySchema = z.union([z.literal(1), z.literal(2), z.literal(3)]);
@@ -19,6 +20,29 @@ const IdeaSchema = z.object({
   priority: IdeaPrioritySchema,
   linkedSprint: z.string().uuid().nullable().optional().default(null)
 });
+
+function formatValidationError(error) {
+  if (error instanceof z.ZodError) {
+    return error.issues.map((issue) => `${issue.path.join(".") || "root"}: ${issue.message}`).join("; ");
+  }
+  return error instanceof Error ? error.message : String(error);
+}
+
+function createIdeaInvalidError(error, context = {}) {
+  const detail = formatValidationError(error);
+  return new DomainError("ROTATOR_IDEA_INVALID", `Invalid idea: ${detail}`, {
+    ...context,
+    error: detail
+  });
+}
+
+function parseIdeaOrThrowDomainError(raw, context = {}) {
+  try {
+    return IdeaSchema.parse(raw);
+  } catch (error) {
+    throw createIdeaInvalidError(error, context);
+  }
+}
 
 function slugify(text) {
   const slug = String(text || "")
@@ -69,6 +93,15 @@ async function pathExists(filePath) {
   } catch {
     return false;
   }
+}
+
+async function quarantineFile(filePath, reason) {
+  try {
+    const corruptDir = path.join(path.dirname(filePath), "corrupt");
+    await fs.mkdir(corruptDir, { recursive: true, mode: 0o700 });
+    const targetPath = path.join(corruptDir, `${path.basename(filePath)}.${Date.now()}.${reason}`);
+    await fs.rename(filePath, targetPath);
+  } catch {}
 }
 
 async function findGitRoot(cwd = process.cwd()) {
@@ -130,10 +163,11 @@ export async function createIdea({
     created,
     project: context.project,
     tags: normalizeTags(tags),
-    status: IdeaStatusSchema.parse(status),
-    priority: IdeaPrioritySchema.parse(Number(priority)),
+    status,
+    priority: Number(priority),
     linkedSprint: linkedSprint ? String(linkedSprint).trim() : null
   };
+  const parsedIdea = parseIdeaOrThrowDomainError(idea, { operation: "createIdea" });
 
   const title = extractTitle(content);
   const slug = slugify(title);
@@ -144,10 +178,10 @@ export async function createIdea({
     filePath = path.join(context.ideaDir, fileName);
   }
 
-  const markdown = matter.stringify(content, idea);
+  const markdown = matter.stringify(content, parsedIdea);
   console.log("IDEA FILE PATH:", filePath);
   await fs.writeFile(filePath, markdown, "utf8");
-  return { ...idea, body: content, filePath };
+  return { ...parsedIdea, body: content, filePath };
 }
 
 export async function listIdeas({ cwd = process.cwd(), project, status, tag } = {}) {
@@ -162,15 +196,23 @@ export async function listIdeas({ cwd = process.cwd(), project, status, tag } = 
   const ideas = [];
   for (const name of files) {
     if (!name.endsWith(".md")) continue;
+    const filePath = path.join(context.ideaDir, name);
     try {
-      const filePath = path.join(context.ideaDir, name);
       const raw = await fs.readFile(filePath, "utf8");
-      const parsed = matter(raw);
-      const meta = IdeaSchema.parse({
-        ...parsed.data,
-        tags: normalizeTags(parsed.data.tags),
-        linkedSprint: parsed.data.linkedSprint ?? null
-      });
+      let parsed;
+      let meta;
+      try {
+        parsed = matter(raw);
+        meta = parseIdeaOrThrowDomainError({
+          ...parsed.data,
+          tags: normalizeTags(parsed.data.tags),
+          linkedSprint: parsed.data.linkedSprint ?? null
+        }, { operation: "listIdeas", filePath });
+      } catch (err) {
+        await quarantineFile(filePath, "invalid-metadata");
+        console.log("IDEA PARSE ERROR:", err);
+        continue;
+      }
       const idea = {
         ...meta,
         body: String(parsed.content || "").trim(),
@@ -205,16 +247,17 @@ export async function updateIdea(id, patch = {}, options = {}) {
     created: idea.created,
     project: patch.project ?? idea.project,
     tags: normalizeTags(patch.tags ?? idea.tags),
-    status: patch.status ? IdeaStatusSchema.parse(patch.status) : idea.status,
-    priority: patch.priority ? IdeaPrioritySchema.parse(Number(patch.priority)) : idea.priority,
+    status: patch.status ? patch.status : idea.status,
+    priority: patch.priority ? Number(patch.priority) : idea.priority,
     linkedSprint: patch.linkedSprint === undefined ? idea.linkedSprint : patch.linkedSprint
   };
+  const parsedData = parseIdeaOrThrowDomainError(data, { operation: "updateIdea", id, filePath: idea.filePath });
   const updated = {
-    ...data,
+    ...parsedData,
     body: patch.body !== undefined ? String(patch.body).trim() : idea.body
   };
 
-  const markdown = matter.stringify(updated.body, data);
+  const markdown = matter.stringify(updated.body, parsedData);
   await fs.writeFile(idea.filePath, markdown, "utf8");
   return { ...updated, filePath: idea.filePath };
 }

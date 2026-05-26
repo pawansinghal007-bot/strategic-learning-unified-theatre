@@ -1,9 +1,17 @@
 import crypto from "node:crypto";
+import { renameSync } from "node:fs";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
-import { cosineSimilarity, decodeEmbedding, encodeEmbedding, EmbeddingProvider } from "./embeddings.js";
+import { DomainError } from "../error.js";
+import { loadConfig, assertFeatureEnabled } from "../config.js";
+import {
+  cosineSimilarity,
+  decodeEmbedding,
+  encodeEmbedding,
+  EmbeddingProvider,
+} from "./embeddings.js";
 
 function appBaseDir(baseDir) {
   const home = process.env.HOME || os.homedir();
@@ -24,23 +32,42 @@ function defaultState() {
       rubric_rules: 0,
       documents: 0,
       prompt_history: 0,
-      conversation_threads: 0
-    }
+      conversation_threads: 0,
+    },
   };
 }
 
 async function readJson(filePath, fallback) {
   try {
-    return JSON.parse(await fs.readFile(filePath, "utf8"));
-  } catch {
-    return fallback;
+    const raw = await fs.readFile(filePath, "utf8");
+    return JSON.parse(raw);
+  } catch (err) {
+    if (err?.code === "ENOENT") return fallback;
+    throw err;
   }
+}
+
+function isCorruptDbError(err) {
+  return (
+    err?.code === "SQLITE_CORRUPT" ||
+    err?.code === "SQLITE_NOTADB" ||
+    err instanceof SyntaxError
+  );
+}
+
+function quarantineCorruptDb(dbPath) {
+  try {
+    renameSync(dbPath, `${dbPath}.corrupt-${Date.now()}`);
+  } catch {}
 }
 
 async function writeJson(filePath, value) {
   await fs.mkdir(path.dirname(filePath), { recursive: true, mode: 0o700 });
   const tmp = `${filePath}.${process.pid}.${Date.now()}.${crypto.randomUUID()}.tmp`;
-  await fs.writeFile(tmp, JSON.stringify(value, null, 2), { encoding: "utf8", mode: 0o600 });
+  await fs.writeFile(tmp, JSON.stringify(value, null, 2), {
+    encoding: "utf8",
+    mode: 0o600,
+  });
   try {
     await fs.rename(tmp, filePath);
   } catch {
@@ -81,10 +108,14 @@ export class ExperienceDb {
     // functions (like `rotatorPath`) remain consistent.
     if (
       !baseDir &&
-      (process.env.VITEST || process.env.VITEST_WORKER_ID || process.env.NODE_ENV === "test") &&
+      (process.env.VITEST ||
+        process.env.VITEST_WORKER_ID ||
+        process.env.NODE_ENV === "test") &&
       (process.env.HOME == null || process.env.HOME === os.homedir())
     ) {
-      const tmpdir = os.tmpdir ? os.tmpdir() : (process.env.TEMP || process.env.TMP || os.homedir());
+      const tmpdir = os.tmpdir
+        ? os.tmpdir()
+        : process.env.TEMP || process.env.TMP || os.homedir();
       // Use a per-process temp directory to avoid cross-worker collisions
       this.baseDir = path.join(tmpdir, ".vscode-rotator-test-" + process.pid);
     } else {
@@ -101,15 +132,47 @@ export class ExperienceDb {
     return this._writeLock;
   }
 
-  async open() {
-    const loaded = await readJson(this.dbPath, null);
-    this.state = loaded && typeof loaded === "object" ? { ...defaultState(), ...loaded } : defaultState();
-    this.state.counters = { ...defaultState().counters, ...(this.state.counters ?? {}) };
+  _initSchema() {
+    this.state = defaultState();
+    this.state.counters = { ...defaultState().counters };
     return this;
   }
 
+  async open() {
+    const cfg = await loadConfig();
+    assertFeatureEnabled(cfg, "localDbEnabled", "capture-and-ingest");
+    try {
+      const loaded = await readJson(this.dbPath, null);
+      this.state =
+        loaded && typeof loaded === "object"
+          ? { ...defaultState(), ...loaded }
+          : defaultState();
+      this.state.counters = {
+        ...defaultState().counters,
+        ...(this.state.counters ?? {}),
+      };
+      return this;
+    } catch (err) {
+      if (err?.code === "SQLITE_BUSY") {
+        throw new DomainError(
+          "ROTATOR_LLM_DB_LOCKED",
+          `Experience DB is locked at ${this.dbPath}`,
+          err,
+        );
+      }
+
+      if (isCorruptDbError(err)) {
+        quarantineCorruptDb(this.dbPath);
+        return this._initSchema();
+      }
+
+      throw err;
+    }
+  }
+
   async close() {
-    if (this.state) await this._serializeWrite(() => writeJson(this.dbPath, this.state));
+    if (this.state)
+      await this._serializeWrite(() => writeJson(this.dbPath, this.state));
   }
 
   async save() {
@@ -129,13 +192,19 @@ export class ExperienceDb {
       agent: sprint.agent ?? "other",
       goal: sprint.goal ?? "",
       tokens_used: Number(sprint.tokens_used ?? sprint.tokensUsed ?? 0),
-      completed_tasks: toJson(sprint.completed_tasks ?? sprint.completedTasks ?? []),
+      completed_tasks: toJson(
+        sprint.completed_tasks ?? sprint.completedTasks ?? [],
+      ),
       pending_tasks: toJson(sprint.pending_tasks ?? sprint.pendingTasks ?? []),
       files_changed: toJson(
-        sprint.files_changed ?? sprint.filesChanged ?? [...(sprint.filesCreated ?? []), ...(sprint.filesModified ?? [])]
+        sprint.files_changed ??
+          sprint.filesChanged ?? [
+            ...(sprint.filesCreated ?? []),
+            ...(sprint.filesModified ?? []),
+          ],
       ),
       tests_failed: toJson(sprint.tests_failed ?? sprint.testsFailed ?? []),
-      status: sprint.status ?? "active"
+      status: sprint.status ?? "active",
     };
     const index = this.state.sprints.findIndex((item) => item.id === row.id);
     if (index >= 0) this.state.sprints[index] = row;
@@ -155,7 +224,7 @@ export class ExperienceDb {
         completed_tasks: fromJson(sprint.completed_tasks),
         pending_tasks: fromJson(sprint.pending_tasks),
         files_changed: fromJson(sprint.files_changed),
-        tests_failed: fromJson(sprint.tests_failed)
+        tests_failed: fromJson(sprint.tests_failed),
       }));
   }
 
@@ -167,10 +236,12 @@ export class ExperienceDb {
       sprint_id: mistake.sprint_id ?? mistake.sprintId ?? null,
       description: String(mistake.description ?? ""),
       root_cause: String(mistake.root_cause ?? mistake.rootCause ?? ""),
-      fix_applied: String(mistake.fix_applied ?? mistake.fix ?? mistake.fixApplied ?? ""),
+      fix_applied: String(
+        mistake.fix_applied ?? mistake.fix ?? mistake.fixApplied ?? "",
+      ),
       category: String(mistake.category ?? "general"),
       recurrence_count: Number(mistake.recurrence_count ?? 0),
-      embedding: mistake.embedding ? encodeEmbedding(mistake.embedding) : null
+      embedding: mistake.embedding ? encodeEmbedding(mistake.embedding) : null,
     };
     this.state.mistakes.push(row);
     await this.save();
@@ -181,7 +252,7 @@ export class ExperienceDb {
     await this.ensureOpen();
     return this.state.mistakes.map((mistake) => ({
       ...mistake,
-      embedding: decodeEmbedding(mistake.embedding)
+      embedding: decodeEmbedding(mistake.embedding),
     }));
   }
 
@@ -194,7 +265,12 @@ export class ExperienceDb {
     return row;
   }
 
-  async addRubricRule({ rule, category = "general", created_from_mistake_id = null, active = 1 }) {
+  async addRubricRule({
+    rule,
+    category = "general",
+    created_from_mistake_id = null,
+    active = 1,
+  }) {
     await this.ensureOpen();
     const existing = this.state.rubric_rules.find((item) => item.rule === rule);
     if (existing) return existing;
@@ -203,7 +279,7 @@ export class ExperienceDb {
       rule,
       category,
       created_from_mistake_id,
-      active: active ? 1 : 0
+      active: active ? 1 : 0,
     };
     this.state.rubric_rules.push(row);
     await this.save();
@@ -218,7 +294,7 @@ export class ExperienceDb {
       captured_at: captured_at ?? new Date().toISOString(),
       turn_count: Number.isFinite(Number(turn_count)) ? Number(turn_count) : 0,
       file_path,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
     };
     this.state.conversation_threads.push(row);
     await this.save();
@@ -235,7 +311,9 @@ export class ExperienceDb {
 
   async listRubricRules({ activeOnly = false } = {}) {
     await this.ensureOpen();
-    return this.state.rubric_rules.filter((rule) => !activeOnly || Number(rule.active) === 1);
+    return this.state.rubric_rules.filter(
+      (rule) => !activeOnly || Number(rule.active) === 1,
+    );
   }
 
   async setRubricActive(id, active) {
@@ -249,7 +327,9 @@ export class ExperienceDb {
 
   async replaceDocumentsForFile(filename, chunks) {
     await this.ensureOpen();
-    this.state.documents = this.state.documents.filter((doc) => doc.filename !== filename);
+    this.state.documents = this.state.documents.filter(
+      (doc) => doc.filename !== filename,
+    );
     const now = new Date().toISOString();
     const rows = chunks.map((chunk, index) => ({
       id: nextId(this.state, "documents"),
@@ -264,7 +344,7 @@ export class ExperienceDb {
       notes: chunk.notes ?? null,
       turn_index: chunk.turn_index ?? null,
       last_ingested: now,
-      file_ts: chunk.file_ts
+      file_ts: chunk.file_ts,
     }));
     this.state.documents.push(...rows);
     await this.save();
@@ -278,18 +358,25 @@ export class ExperienceDb {
 
     if (uniqueBy) {
       for (const document of this.state.documents) {
-        const metadata = document.metadata ? fromJson(document.metadata, {}) : {};
+        const metadata = document.metadata
+          ? fromJson(document.metadata, {})
+          : {};
         if (metadata && metadata[uniqueBy] != null) {
           existingKeys.add(String(metadata[uniqueBy]));
         }
       }
     }
 
-    const startingIndex = this.state.documents.filter((doc) => doc.filename === filename).length;
+    const startingIndex = this.state.documents.filter(
+      (doc) => doc.filename === filename,
+    ).length;
     const rows = [];
     for (const [index, chunk] of chunks.entries()) {
       const metadata = chunk.metadata ?? null;
-      const uniqueValue = uniqueBy && metadata && metadata[uniqueBy] != null ? String(metadata[uniqueBy]) : null;
+      const uniqueValue =
+        uniqueBy && metadata && metadata[uniqueBy] != null
+          ? String(metadata[uniqueBy])
+          : null;
       if (uniqueBy && uniqueValue && existingKeys.has(uniqueValue)) continue;
 
       if (uniqueValue) {
@@ -309,7 +396,7 @@ export class ExperienceDb {
         notes: chunk.notes ?? null,
         turn_index: chunk.turn_index ?? null,
         last_ingested: now,
-        file_ts: chunk.file_ts
+        file_ts: chunk.file_ts,
       });
     }
 
@@ -326,18 +413,20 @@ export class ExperienceDb {
       .filter((doc) => doc.filename === filename)
       .map((doc) => ({
         ...doc,
-        embedding: decodeEmbedding(doc.embedding)
+        embedding: decodeEmbedding(doc.embedding),
       }))
       .map((doc) => ({
         ...doc,
         metadata: doc.metadata ? JSON.parse(doc.metadata) : null,
-        embedding: decodeEmbedding(doc.embedding)
+        embedding: decodeEmbedding(doc.embedding),
       }));
   }
 
   async deleteDocumentsForFile(filename) {
     await this.ensureOpen();
-    this.state.documents = this.state.documents.filter((doc) => doc.filename !== filename);
+    this.state.documents = this.state.documents.filter(
+      (doc) => doc.filename !== filename,
+    );
     await this.save();
   }
 
@@ -347,7 +436,7 @@ export class ExperienceDb {
       .map((doc) => ({
         ...doc,
         embedding: decodeEmbedding(doc.embedding),
-        score: cosineSimilarity(queryEmbedding, decodeEmbedding(doc.embedding))
+        score: cosineSimilarity(queryEmbedding, decodeEmbedding(doc.embedding)),
       }))
       .sort((a, b) => b.score - a.score)
       .slice(0, limit);
@@ -355,7 +444,9 @@ export class ExperienceDb {
 
   async relatedTo(queryEmbedding, opts = {}) {
     await this.ensureOpen();
-    const topDocs = Number.isFinite(Number(opts.topDocs)) ? Number(opts.topDocs) : 5;
+    const topDocs = Number.isFinite(Number(opts.topDocs))
+      ? Number(opts.topDocs)
+      : 5;
     const documents = await this.vectorSearchDocuments(queryEmbedding, topDocs);
 
     const sprints = Array.isArray(this.state.sprints)
@@ -365,7 +456,7 @@ export class ExperienceDb {
           .slice(0, 5)
           .map((sprint) => ({
             ...sprint,
-            startedAt: sprint.date
+            startedAt: sprint.date,
           }))
       : [];
 
@@ -390,7 +481,10 @@ export class ExperienceDb {
     };
 
     return this.state.documents
-      .filter((doc) => doc.source_type === "llm-response" && doc.platform === platform)
+      .filter(
+        (doc) =>
+          doc.source_type === "llm-response" && doc.platform === platform,
+      )
       .slice()
       .sort((a, b) => {
         const priorityA = getPriority(a.quality);
@@ -401,14 +495,14 @@ export class ExperienceDb {
       .slice(0, limit)
       .map((doc) => ({
         ...doc,
-        embedding: decodeEmbedding(doc.embedding)
+        embedding: decodeEmbedding(doc.embedding),
       }));
   }
 
   async getThreadsByPlatform(platform) {
     await this.ensureOpen();
     const threadsMap = new Map();
-    
+
     // Group documents by filename and turn_index
     for (const doc of this.state.documents) {
       if (doc.source_type === "thread-turn" && doc.platform === platform) {
@@ -418,18 +512,18 @@ export class ExperienceDb {
         threadsMap.get(doc.filename).push({
           ...doc,
           metadata: doc.metadata ? JSON.parse(doc.metadata) : null,
-          embedding: decodeEmbedding(doc.embedding)
+          embedding: decodeEmbedding(doc.embedding),
         });
       }
     }
-    
+
     // Sort each thread by turn_index
     const result = [];
     for (const [filename, docs] of threadsMap.entries()) {
       docs.sort((a, b) => Number(a.turn_index) - Number(b.turn_index));
       result.push(...docs);
     }
-    
+
     // Final sort by filename and turn_index
     result.sort((a, b) => {
       if (a.filename !== b.filename) {
@@ -437,7 +531,7 @@ export class ExperienceDb {
       }
       return Number(a.turn_index) - Number(b.turn_index);
     });
-    
+
     return result;
   }
 
@@ -452,11 +546,15 @@ export class ExperienceDb {
     const queryEmbedding = await provider.embed(String(query));
 
     const threadDocs = this.state.documents
-      .filter((doc) => doc.source_type === "thread-turn" && (!platform || doc.platform === platform))
+      .filter(
+        (doc) =>
+          doc.source_type === "thread-turn" &&
+          (!platform || doc.platform === platform),
+      )
       .map((doc) => ({
         ...doc,
         metadata: doc.metadata ? JSON.parse(doc.metadata) : null,
-        embedding: decodeEmbedding(doc.embedding)
+        embedding: decodeEmbedding(doc.embedding),
       }));
 
     if (threadDocs.length === 0) {
@@ -466,11 +564,12 @@ export class ExperienceDb {
     return threadDocs
       .map((doc) => ({
         ...doc,
-        score: cosineSimilarity(queryEmbedding, doc.embedding)
+        score: cosineSimilarity(queryEmbedding, doc.embedding),
       }))
       .sort((a, b) => {
         if (b.score !== a.score) return b.score - a.score;
-        if (a.filename !== b.filename) return a.filename.localeCompare(b.filename);
+        if (a.filename !== b.filename)
+          return a.filename.localeCompare(b.filename);
         return Number(a.turn_index) - Number(b.turn_index);
       })
       .slice(0, limit);
@@ -487,9 +586,11 @@ export class ExperienceDb {
       path: row.path,
       file_ts: row.file_ts,
       chunk_count: Number(row.chunk_count ?? 0),
-      last_run: row.last_run ?? new Date().toISOString()
+      last_run: row.last_run ?? new Date().toISOString(),
     };
-    const index = this.state.ingestion_log.findIndex((item) => item.path === next.path);
+    const index = this.state.ingestion_log.findIndex(
+      (item) => item.path === next.path,
+    );
     if (index >= 0) this.state.ingestion_log[index] = next;
     else this.state.ingestion_log.push(next);
     await this.save();
@@ -498,7 +599,9 @@ export class ExperienceDb {
 
   async deleteIngestionLog(filePath) {
     await this.ensureOpen();
-    this.state.ingestion_log = this.state.ingestion_log.filter((row) => row.path !== filePath);
+    this.state.ingestion_log = this.state.ingestion_log.filter(
+      (row) => row.path !== filePath,
+    );
     await this.save();
   }
 
@@ -516,16 +619,26 @@ export class ExperienceDb {
       cycle_ts: prompt.cycle_ts ?? null,
       response_summary: prompt.response_summary ?? prompt.responseSummary ?? "",
       sprint_id: prompt.sprint_id ?? prompt.sprintId ?? null,
-      tokens_estimated: Number(prompt.tokens_estimated ?? prompt.tokensEstimated ?? 0),
+      tokens_estimated: Number(
+        prompt.tokens_estimated ?? prompt.tokensEstimated ?? 0,
+      ),
       rating: prompt.rating ?? prompt.quality_rating ?? null,
-      quality_rating: prompt.quality_rating ?? prompt.rating ?? null
+      quality_rating: prompt.quality_rating ?? prompt.rating ?? null,
     };
     this.state.prompt_history.push(row);
     await this.save();
     return row;
   }
 
-  async logEnhanceCycle({ goal, platform, promptText, responseFile, cycleTs = null, rating = null, sprintId = null } = {}) {
+  async logEnhanceCycle({
+    goal,
+    platform,
+    promptText,
+    responseFile,
+    cycleTs = null,
+    rating = null,
+    sprintId = null,
+  } = {}) {
     await this.ensureOpen();
     return this.addPromptHistory({
       goal,
@@ -536,13 +649,15 @@ export class ExperienceDb {
       cycle_ts: cycleTs ?? new Date().toISOString(),
       rating,
       quality_rating: rating,
-      sprint_id: sprintId
+      sprint_id: sprintId,
     });
   }
 
   async _updatePromptRating(id, rating) {
     await this.ensureOpen();
-    const row = this.state.prompt_history.find((prompt) => prompt.id === Number(id));
+    const row = this.state.prompt_history.find(
+      (prompt) => prompt.id === Number(id),
+    );
     if (!row) throw new Error(`Prompt history not found: ${id}`);
     row.rating = Number(rating);
     row.quality_rating = Number(rating);
@@ -557,11 +672,11 @@ export class ExperienceDb {
         description,
         category: "llm-response-quality",
         fix: "Review the prompt and response to improve quality.",
-        recurrence_count: 1
+        recurrence_count: 1,
       });
       await this.addRubricRule({
         rule: `Avoid low-quality responses for goal: ${row.goal || "unnamed goal"}.`,
-        category: "llm-response-quality"
+        category: "llm-response-quality",
       });
     }
 

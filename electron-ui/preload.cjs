@@ -1,6 +1,9 @@
 const { contextBridge, ipcRenderer } = require('electron');
+const { IPC_CHANNELS, IPC_CONTRACT_VERSION } = require('../src/shared/ipc/contract');
 
-const wrap = (channel) => ({ invoke: (...args) => ipcRenderer.invoke(channel, ...args) });
+function invoke(channel, op, payload) {
+  return ipcRenderer.invoke(channel, { v: IPC_CONTRACT_VERSION, op, payload });
+}
 
 contextBridge.exposeInMainWorld('rotator', {
   accounts: {
@@ -77,5 +80,20 @@ contextBridge.exposeInMainWorld('rotator', {
   app: {
     version: () => ipcRenderer.invoke('app:version'),
     openUrl: (url) => ipcRenderer.invoke('app:openUrl', url)
-  }
+  },
+  logs: {
+    onEvent(handler) {
+      if (typeof handler !== 'function') return () => {};
+      const wrapped = (_event, payload) => handler(payload);
+      ipcRenderer.on('log:event', wrapped);
+      return () => ipcRenderer.removeListener('log:event', wrapped);
+    }
+  },
+  health: {
+    aggregate() { return ipcRenderer.invoke("health:get"); }
+  },
+  captureResponse: (payload) => invoke(IPC_CHANNELS.captureResponse, 'captureResponse', payload),
+  trayCommand: (payload) => invoke(IPC_CHANNELS.trayCommand, 'trayCommand', payload),
+  logView: (payload) => invoke(IPC_CHANNELS.logView, 'logView', payload),
+  robotRunnerAction: (payload) => invoke(IPC_CHANNELS.robotRunnerAction, 'robotRunnerAction', payload)
 });

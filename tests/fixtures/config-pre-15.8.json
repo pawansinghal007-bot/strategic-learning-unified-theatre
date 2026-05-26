@@ -1,0 +1,26 @@
+{
+  "watchedRepos": ["/repos/workspace"],
+  "gitPollIntervalMs": 45000,
+  "storagePaths": ["./storage"],
+  "storageIndexMaxAgeDays": 21,
+  "browserResponsesIngest": false,
+  "enhanceSchedule": null,
+  "vscodeLearn": {
+    "enabled": false,
+    "stagedSignalsDir": null,
+    "captureSources": ["diagnostic", "editor"],
+    "maxSignalAgeDays": 30,
+    "flushIntervalMs": 30000,
+    "debounceMs": 600000,
+    "maxFileSizeBytes": 102400,
+    "excludePatterns": ["**/test/**"],
+    "hardExcludePatterns": ["**/.git/**"],
+    "allowedExtensions": [".js", ".ts"]
+  },
+  "browserPaths": {},
+  "platformTriggers": {},
+  "captureSchedule": {
+    "enabled": true,
+    "intervalMs": 900000
+  }
+}
