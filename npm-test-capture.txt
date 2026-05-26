@@ -1,0 +1,25 @@
+
+> strategic-learning-unified-theatre@0.1.0 test
+> cross-env VSCODE_ROTATOR_MOCK_LLM=1 NODE_OPTIONS=--max-old-space-size=8192 vitest run
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.7 [39m[90mC:/SW Development/VS Code Agent/Solution[39m
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mhappy path: capture event triggers atomic write, ingestion, and emission
+[22m[39m[capture-handlers] registering handlers
+
+{"ts":"2026-05-25T20:31:50.098Z","level":"info","module":"electron-capture","msg":"capture.file.write.start","correlationId":"claude:1779741108754","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-cr70GC\\.vscode-rotator\\browser-responses\\2026-05-25T20-31-48-754Z-claude.md"}
+{"ts":"2026-05-25T20:31:50.110Z","level":"info","module":"electron-capture","msg":"capture.file.write.success","correlationId":"claude:1779741108754","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-cr70GC\\.vscode-rotator\\browser-responses\\2026-05-25T20-31-48-754Z-claude.md"}
+{"ts":"2026-05-25T20:31:50.226Z","level":"info","module":"electron-capture","msg":"capture.ingest.result","correlationId":"claude:1779741108754","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-cr70GC\\.vscode-rotator\\browser-responses\\2026-05-25T20-31-48-754Z-claude.md","chunks":1,"skipped":false}
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mduplicate ingestion: second capture overwrites file and detects duplicate
+[22m[39m[capture-handlers] registering handlers
+
+{"ts":"2026-05-25T20:31:50.462Z","level":"info","module":"electron-capture","msg":"capture.file.write.start","correlationId":"gemini:1000000000000","platform":"gemini","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-zwlX5u\\.vscode-rotator\\browser-responses\\2001-09-09T01-46-40-000Z-gemini.md"}
+{"ts":"2026-05-25T20:31:50.465Z","level":"info","module":"electron-capture","msg":"capture.file.write.success","correlationId":"gemini:1000000000000","platform":"gemini","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-zwlX5u\\.vscode-rotator\\browser-responses\\2001-09-09T01-46-40-000Z-gemini.md"}
+{"ts":"2026-05-25T20:31:50.474Z","level":"info","module":"electron-capture","msg":"capture.ingest.result","correlationId":"gemini:1000000000000","platform":"gemini","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-zwlX5u\\.vscode-rotator\\browser-responses\\2001-09-09T01-46-40-000Z-gemini.md","chunks":1,"skipped":false}
+{"ts":"2026-05-25T20:31:50.727Z","level":"info","module":"electron-capture","msg":"capture.file.write.start","correlationId":"gemini:1000000000000","platform":"gemini","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-zwlX5u\\.vscode-rotator\\browser-responses\\2001-09-09T01-46-40-000Z-gemini.md"}
+{"ts":"2026-05-25T20:31:50.993Z","level":"info","module":"electron-capture","msg":"capture.file.write.success","correlationId":"gemini:1000000000000","platform":"gemini","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-zwlX5u\\.vscode-rotator\\browser-responses\\2001-09-09T01-46-40-000Z-gemini.md"}
+{"ts":"2026-05-25T20:31:52.033Z","level":"info","module":"browser-bridge","msg":"browser.sendPrompt.start","correlationId":"chatgpt:1779741112031","platform":"chatgpt","browserType":"chromium","headless":true,"timeout":30000}
+{"ts":"2026-05-25T20:31:52.080Z","level":"info","module":"browser-bridge","msg":"browser.ingest.start","correlationId":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\browser-bridge-test-DUIspe\\.vscode-rotator\\browser-responses\\2026-05-26T02-01-52-chatgpt.md","responsePath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\browser-bridge-test-DUIspe\\.vscode-rotator\\browser-responses\\2026-05-26T02-01-52-chatgpt.md"}
+{"ts":"2026-05-25T20:31:52.145Z","level":"info","module":"browser-bridge","msg":"browser.ingest.success","correlationId":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\browser-bridge-test-DUIspe\\.vscode-rotator\\browser-responses\\2026-05-26T02-01-52-chatgpt.md","responsePath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\browser-bridge-test-DUIspe\\.vscode-rotator\\browser-responses\\2026-05-26T02-01-52-chatgpt.md","filename":"2026-05-26T02-01-52-chatgpt.md","chunks":1,"skipped":false}
+{"ts":"2026-05-25T20:31:52.235Z","level":"info","module":"browser-bridge","msg":"browser.sendPrompt.success","correlationId":"chatgpt:1779741112031","platform":"chatgpt","responsePath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\browser-bridge-test-DUIspe\\.vscode-rotator\\browser-responses\\2026-05-26T02-01-52-chatgpt.md","timestamp":"2026-05-26T02-01-52"}

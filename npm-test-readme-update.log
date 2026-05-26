@@ -1,0 +1,933 @@
+
+> strategic-learning-unified-theatre@0.1.0 test
+> cross-env VSCODE_ROTATOR_MOCK_LLM=1 NODE_OPTIONS=--max-old-space-size=8192 vitest run
+
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.7 [39m[90mC:/SW Development/VS Code Agent/Solution[39m
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mcreateIdea[2m > [22m[2mcreates an idea with valid metadata
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-p5C7fu\.vscode-rotator\ideas\2026-05-25-test-idea.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mcreateIdea[2m > [22m[2mextracts title from body
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-aYdFgp\.vscode-rotator\ideas\2026-05-25-my-feature-idea.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mcreateIdea[2m > [22m[2muses default values for optional fields
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-bPhhox\.vscode-rotator\ideas\2026-05-25-test.md
+
+{"ts":"2026-05-25T20:36:21.282Z","level":"info","module":"browser-bridge","msg":"browser.sendPrompt.start","correlationId":"chatgpt:1779741381280","platform":"chatgpt","browserType":"chromium","headless":true,"timeout":30000}
+{"ts":"2026-05-25T20:36:21.343Z","level":"info","module":"browser-bridge","msg":"browser.ingest.start","correlationId":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\browser-bridge-test-O4r0PY\\.vscode-rotator\\browser-responses\\2026-05-26T02-06-21-chatgpt.md","responsePath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\browser-bridge-test-O4r0PY\\.vscode-rotator\\browser-responses\\2026-05-26T02-06-21-chatgpt.md"}
+{"ts":"2026-05-25T20:36:21.388Z","level":"info","module":"browser-bridge","msg":"browser.ingest.success","correlationId":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\browser-bridge-test-O4r0PY\\.vscode-rotator\\browser-responses\\2026-05-26T02-06-21-chatgpt.md","responsePath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\browser-bridge-test-O4r0PY\\.vscode-rotator\\browser-responses\\2026-05-26T02-06-21-chatgpt.md","filename":"2026-05-26T02-06-21-chatgpt.md","chunks":1,"skipped":false}
+{"ts":"2026-05-25T20:36:21.390Z","level":"info","module":"browser-bridge","msg":"browser.sendPrompt.success","correlationId":"chatgpt:1779741381280","platform":"chatgpt","responsePath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\browser-bridge-test-O4r0PY\\.vscode-rotator\\browser-responses\\2026-05-26T02-06-21-chatgpt.md","timestamp":"2026-05-26T02-06-21"}
+{"ts":"2026-05-25T20:36:21.446Z","level":"info","module":"browser-bridge","msg":"browser.sendPrompt.start","correlationId":"chatgpt:1779741381446","platform":"chatgpt","browserType":"chromium","headless":true,"timeout":30000}
+{"ts":"2026-05-25T20:36:21.467Z","level":"info","module":"browser-bridge","msg":"browser.ingest.start","correlationId":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\browser-bridge-test-e33sjS\\.vscode-rotator\\browser-responses\\2026-05-26T02-06-21-chatgpt.md","responsePath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\browser-bridge-test-e33sjS\\.vscode-rotator\\browser-responses\\2026-05-26T02-06-21-chatgpt.md"}
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mcreateIdea[2m > [22m[2mnormalizes tags from string or array
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-I3o4TZ\.vscode-rotator\ideas\2026-05-25-test.md
+
+{"ts":"2026-05-25T20:36:21.665Z","level":"info","module":"browser-bridge","msg":"browser.ingest.success","correlationId":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\browser-bridge-test-e33sjS\\.vscode-rotator\\browser-responses\\2026-05-26T02-06-21-chatgpt.md","responsePath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\browser-bridge-test-e33sjS\\.vscode-rotator\\browser-responses\\2026-05-26T02-06-21-chatgpt.md","filename":"2026-05-26T02-06-21-chatgpt.md","chunks":1,"skipped":false}
+[90mstdout[2m | tests/local-llm.test.js[2m > [22m[2mLocal Dev-LLM[2m > [22m[2mgenerates prompts with document, sprint, idea, and rubric context
+[22m[39mLIST IDEA DIR: C:\SW Development\VS Code Agent\Solution\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/local-llm.test.js[2m > [22m[2mLocal Dev-LLM[2m > [22m[2mgenerates prompts with document, sprint, idea, and rubric context
+[22m[39mDIR DOES NOT EXIST
+
+{"ts":"2026-05-25T20:36:21.723Z","level":"info","module":"browser-bridge","msg":"browser.sendPrompt.success","correlationId":"chatgpt:1779741381446","platform":"chatgpt","responsePath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\browser-bridge-test-e33sjS\\.vscode-rotator\\browser-responses\\2026-05-26T02-06-21-chatgpt.md","timestamp":"2026-05-26T02-06-21"}
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mlists all ideas
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-8vRDYc\.vscode-rotator\ideas\2026-05-25-idea-1.md
+
+[90mstdout[2m | tests/local-llm.test.js[2m > [22m[2mLocal Dev-LLM[2m > [22m[2mpersists source_type and platform and prepends recent LLM responses
+[22m[39mLIST IDEA DIR: C:\SW Development\VS Code Agent\Solution\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/local-llm.test.js[2m > [22m[2mLocal Dev-LLM[2m > [22m[2mpersists source_type and platform and prepends recent LLM responses
+[22m[39mDIR DOES NOT EXIST
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mlists all ideas
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-8vRDYc\.vscode-rotator\ideas\2026-05-25-idea-2.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mlists all ideas
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-8vRDYc\.vscode-rotator\ideas\2026-05-25-idea-3.md
+
+[90mstdout[2m | tests/local-llm.test.js[2m > [22m[2mLocal Dev-LLM[2m > [22m[2mbuildContext includes llm-response chunk content
+[22m[39mLIST IDEA DIR: C:\SW Development\VS Code Agent\Solution\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/local-llm.test.js[2m > [22m[2mLocal Dev-LLM[2m > [22m[2mbuildContext includes llm-response chunk content
+[22m[39mDIR DOES NOT EXIST
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mlists all ideas
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-8vRDYc\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mlists all ideas
+[22m[39mFOUND FILES: [
+  [32m'2026-05-25-idea-1.md'[39m,
+  [32m'2026-05-25-idea-2.md'[39m,
+  [32m'2026-05-25-idea-3.md'[39m
+]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mfilters ideas by project
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-r0SpBv\.vscode-rotator\ideas\2026-05-25-idea-1.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mfilters ideas by project
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-r0SpBv\.vscode-rotator\ideas\2026-05-25-idea-2.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mfilters ideas by project
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-r0SpBv\.vscode-rotator\ideas\2026-05-25-idea-3.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mfilters ideas by project
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-r0SpBv\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mfilters ideas by project
+[22m[39mFOUND FILES: [
+  [32m'2026-05-25-idea-1.md'[39m,
+  [32m'2026-05-25-idea-2.md'[39m,
+  [32m'2026-05-25-idea-3.md'[39m
+]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mfilters ideas by status
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-TwNBV0\.vscode-rotator\ideas\2026-05-25-idea-1.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mfilters ideas by status
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-TwNBV0\.vscode-rotator\ideas\2026-05-25-idea-2.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mfilters ideas by status
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-TwNBV0\.vscode-rotator\ideas\2026-05-25-idea-3.md
+
+[90mstdout[2m | tests/local-llm.test.js[2m > [22m[2mLocal Dev-LLM[2m > [22m[2mqueries topic-aware thread context with goal and platform
+[22m[39mLIST IDEA DIR: C:\SW Development\VS Code Agent\Solution\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/local-llm.test.js[2m > [22m[2mLocal Dev-LLM[2m > [22m[2mqueries topic-aware thread context with goal and platform
+[22m[39mDIR DOES NOT EXIST
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mfilters ideas by status
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-TwNBV0\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mfilters ideas by status
+[22m[39mFOUND FILES: [
+  [32m'2026-05-25-idea-1.md'[39m,
+  [32m'2026-05-25-idea-2.md'[39m,
+  [32m'2026-05-25-idea-3.md'[39m
+]
+
+[90mstdout[2m | tests/local-llm.test.js[2m > [22m[2mLocal Dev-LLM[2m > [22m[2mrenders thread chunks before recent LLM responses in the system prompt
+[22m[39mLIST IDEA DIR: C:\SW Development\VS Code Agent\Solution\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/local-llm.test.js[2m > [22m[2mLocal Dev-LLM[2m > [22m[2mrenders thread chunks before recent LLM responses in the system prompt
+[22m[39mDIR DOES NOT EXIST
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mfilters ideas by tag
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-Hisnyg\.vscode-rotator\ideas\2026-05-25-idea-1.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mfilters ideas by tag
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-Hisnyg\.vscode-rotator\ideas\2026-05-25-idea-2.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mfilters ideas by tag
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-Hisnyg\.vscode-rotator\ideas\2026-05-25-idea-3.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mfilters ideas by tag
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-Hisnyg\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mfilters ideas by tag
+[22m[39mFOUND FILES: [
+  [32m'2026-05-25-idea-1.md'[39m,
+  [32m'2026-05-25-idea-2.md'[39m,
+  [32m'2026-05-25-idea-3.md'[39m
+]
+
+[90mstdout[2m | tests/local-llm.test.js[2m > [22m[2mLocal Dev-LLM[2m > [22m[2mincludes thread chunks before unrelated document chunks in buildContext
+[22m[39mLIST IDEA DIR: C:\SW Development\VS Code Agent\Solution\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/local-llm.test.js[2m > [22m[2mLocal Dev-LLM[2m > [22m[2mincludes thread chunks before unrelated document chunks in buildContext
+[22m[39mDIR DOES NOT EXIST
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mcombines multiple filters
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-L0nkqC\.vscode-rotator\ideas\2026-05-25-idea-1.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mcombines multiple filters
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-L0nkqC\.vscode-rotator\ideas\2026-05-25-idea-2.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mcombines multiple filters
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-L0nkqC\.vscode-rotator\ideas\2026-05-25-idea-3.md
+
+[90mstdout[2m | tests/local-llm.test.js[2m > [22m[2mLocal Dev-LLM[2m > [22m[2mfalls back gracefully when no platform is specified
+[22m[39mLIST IDEA DIR: C:\SW Development\VS Code Agent\Solution\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/local-llm.test.js[2m > [22m[2mLocal Dev-LLM[2m > [22m[2mfalls back gracefully when no platform is specified
+[22m[39mDIR DOES NOT EXIST
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mcombines multiple filters
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-L0nkqC\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mcombines multiple filters
+[22m[39mFOUND FILES: [
+  [32m'2026-05-25-idea-1.md'[39m,
+  [32m'2026-05-25-idea-2.md'[39m,
+  [32m'2026-05-25-idea-3.md'[39m
+]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2msorts ideas by creation date (newest first)
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-J4suKr\.vscode-rotator\ideas\2026-05-25-idea-1.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2msorts ideas by creation date (newest first)
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-J4suKr\.vscode-rotator\ideas\2026-05-25-idea-2.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2msorts ideas by creation date (newest first)
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-J4suKr\.vscode-rotator\ideas\2026-05-25-idea-3.md
+
+{"ts":"2026-05-25T20:36:22.446Z","level":"info","module":"local-llm","msg":"llm.staged.ingest.start","correlationId":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-SBKTZX\\empty-signals","stageRoot":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-SBKTZX\\empty-signals","baseDir":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-SBKTZX"}
+{"ts":"2026-05-25T20:36:22.458Z","level":"info","module":"local-llm","msg":"llm.staged.ingest.success","correlationId":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-SBKTZX\\empty-signals","files":0,"results":0,"chunks":0,"skipped":0}
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2msorts ideas by creation date (newest first)
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-J4suKr\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2msorts ideas by creation date (newest first)
+[22m[39mFOUND FILES: [
+  [32m'2026-05-25-idea-1.md'[39m,
+  [32m'2026-05-25-idea-2.md'[39m,
+  [32m'2026-05-25-idea-3.md'[39m
+]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mreturns empty array for non-existent directory
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-TCG4wn\.vscode-rotator\ideas\2026-05-25-idea-1.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mreturns empty array for non-existent directory
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-TCG4wn\.vscode-rotator\ideas\2026-05-25-idea-2.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mreturns empty array for non-existent directory
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-TCG4wn\.vscode-rotator\ideas\2026-05-25-idea-3.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mreturns empty array for non-existent directory
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-TCG4wn\nonexistent\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlistIdeas[2m > [22m[2mreturns empty array for non-existent directory
+[22m[39mDIR DOES NOT EXIST
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mfindIdeaById[2m > [22m[2mfinds an idea by its id
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-BVpdfq\.vscode-rotator\ideas\2026-05-25-test-idea.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mfindIdeaById[2m > [22m[2mfinds an idea by its id
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-BVpdfq\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mfindIdeaById[2m > [22m[2mfinds an idea by its id
+[22m[39mFOUND FILES: [ [32m'2026-05-25-test-idea.md'[39m ]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mfindIdeaById[2m > [22m[2mthrows when idea not found
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-IFk87H\.vscode-rotator\ideas\2026-05-25-test-idea.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mfindIdeaById[2m > [22m[2mthrows when idea not found
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-IFk87H\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mfindIdeaById[2m > [22m[2mthrows when idea not found
+[22m[39mFOUND FILES: [ [32m'2026-05-25-test-idea.md'[39m ]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mupdateIdea[2m > [22m[2mupdates idea status
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-UqaV3t\.vscode-rotator\ideas\2026-05-25-original.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mupdateIdea[2m > [22m[2mupdates idea status
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-UqaV3t\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mupdateIdea[2m > [22m[2mupdates idea status
+[22m[39mFOUND FILES: [ [32m'2026-05-25-original.md'[39m ]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mupdateIdea[2m > [22m[2mupdates idea status
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-UqaV3t\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mupdateIdea[2m > [22m[2mupdates idea status
+[22m[39mFOUND FILES: [ [32m'2026-05-25-original.md'[39m ]
+
+{"ts":"2026-05-25T20:36:22.596Z","level":"info","module":"local-llm","msg":"llm.staged.ingest.start","correlationId":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-I8hmin\\vscode-signals","stageRoot":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-I8hmin\\vscode-signals","baseDir":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-I8hmin"}
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mupdateIdea[2m > [22m[2mupdates idea tags
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-wfmgyD\.vscode-rotator\ideas\2026-05-25-original.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mupdateIdea[2m > [22m[2mupdates idea tags
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-wfmgyD\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mupdateIdea[2m > [22m[2mupdates idea tags
+[22m[39mFOUND FILES: [ [32m'2026-05-25-original.md'[39m ]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mupdateIdea[2m > [22m[2mupdates idea priority
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-nmkXpf\.vscode-rotator\ideas\2026-05-25-original.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mupdateIdea[2m > [22m[2mupdates idea priority
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-nmkXpf\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mupdateIdea[2m > [22m[2mupdates idea priority
+[22m[39mFOUND FILES: [ [32m'2026-05-25-original.md'[39m ]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mupdateIdea[2m > [22m[2mupdates idea body
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-NmVRG1\.vscode-rotator\ideas\2026-05-25-original.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mupdateIdea[2m > [22m[2mupdates idea body
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-NmVRG1\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mupdateIdea[2m > [22m[2mupdates idea body
+[22m[39mFOUND FILES: [ [32m'2026-05-25-original.md'[39m ]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mupdateIdea[2m > [22m[2mupdates idea body
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-NmVRG1\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mupdateIdea[2m > [22m[2mupdates idea body
+[22m[39mFOUND FILES: [ [32m'2026-05-25-original.md'[39m ]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mupdateIdea[2m > [22m[2mpreserves unmodified fields
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-0VyyWA\.vscode-rotator\ideas\2026-05-25-original.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mupdateIdea[2m > [22m[2mpreserves unmodified fields
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-0VyyWA\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mupdateIdea[2m > [22m[2mpreserves unmodified fields
+[22m[39mFOUND FILES: [ [32m'2026-05-25-original.md'[39m ]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mmarkIdeaDone[2m > [22m[2mmarks an idea as done
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-YFzKm3\.vscode-rotator\ideas\2026-05-25-task.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mmarkIdeaDone[2m > [22m[2mmarks an idea as done
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-YFzKm3\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mmarkIdeaDone[2m > [22m[2mmarks an idea as done
+[22m[39mFOUND FILES: [ [32m'2026-05-25-task.md'[39m ]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mmarkIdeaDone[2m > [22m[2mmarks an idea as done
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-YFzKm3\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mmarkIdeaDone[2m > [22m[2mmarks an idea as done
+[22m[39mFOUND FILES: [ [32m'2026-05-25-task.md'[39m ]
+
+{"ts":"2026-05-25T20:36:22.816Z","level":"warn","module":"browser-bridge","msg":"browser.threadSelectors.default","correlationId":"chatgpt","platform":"chatgpt","reason":"thread selectors missing"}
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlinkIdeaToSprint[2m > [22m[2mlinks an idea to a sprint
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-vBmK0N\.vscode-rotator\ideas\2026-05-25-sprint-task.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlinkIdeaToSprint[2m > [22m[2mlinks an idea to a sprint
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-vBmK0N\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlinkIdeaToSprint[2m > [22m[2mlinks an idea to a sprint
+[22m[39mFOUND FILES: [ [32m'2026-05-25-sprint-task.md'[39m ]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlinkIdeaToSprint[2m > [22m[2mlinks an idea to a sprint
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-vBmK0N\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlinkIdeaToSprint[2m > [22m[2mlinks an idea to a sprint
+[22m[39mFOUND FILES: [ [32m'2026-05-25-sprint-task.md'[39m ]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlinkIdeaToSprint[2m > [22m[2mallows updating linkedSprint
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-UJKGXM\.vscode-rotator\ideas\2026-05-25-idea.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlinkIdeaToSprint[2m > [22m[2mallows updating linkedSprint
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-UJKGXM\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mlinkIdeaToSprint[2m > [22m[2mallows updating linkedSprint
+[22m[39mFOUND FILES: [ [32m'2026-05-25-idea.md'[39m ]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mexports active ideas for project
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-zQkCjD\.vscode-rotator\ideas\2026-05-25-feature-request.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mexports active ideas for project
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-zQkCjD\.vscode-rotator\ideas\2026-05-25-bug-fix.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mexports active ideas for project
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-zQkCjD\.vscode-rotator\ideas\2026-05-25-done-idea.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mexports active ideas for project
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-zQkCjD\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mexports active ideas for project
+[22m[39mFOUND FILES: [
+  [32m'2026-05-25-bug-fix.md'[39m,
+  [32m'2026-05-25-done-idea.md'[39m,
+  [32m'2026-05-25-feature-request.md'[39m
+]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mtrims body to 500 chars if needed
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-bW0yVm\.vscode-rotator\ideas\2026-05-25-feature-request.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mtrims body to 500 chars if needed
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-bW0yVm\.vscode-rotator\ideas\2026-05-25-bug-fix.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mtrims body to 500 chars if needed
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-bW0yVm\.vscode-rotator\ideas\2026-05-25-done-idea.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mtrims body to 500 chars if needed
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-bW0yVm\.vscode-rotator\ideas\2026-05-25-very-long-idea.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mtrims body to 500 chars if needed
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-bW0yVm\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mtrims body to 500 chars if needed
+[22m[39mFOUND FILES: [
+  [32m'2026-05-25-bug-fix.md'[39m,
+  [32m'2026-05-25-done-idea.md'[39m,
+  [32m'2026-05-25-feature-request.md'[39m,
+  [32m'2026-05-25-very-long-idea.md'[39m
+]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mreturns empty string when no ideas match filter
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-GdlzPD\.vscode-rotator\ideas\2026-05-25-feature-request.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mreturns empty string when no ideas match filter
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-GdlzPD\.vscode-rotator\ideas\2026-05-25-bug-fix.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mreturns empty string when no ideas match filter
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-GdlzPD\.vscode-rotator\ideas\2026-05-25-done-idea.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mreturns empty string when no ideas match filter
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-GdlzPD\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mreturns empty string when no ideas match filter
+[22m[39mFOUND FILES: [
+  [32m'2026-05-25-bug-fix.md'[39m,
+  [32m'2026-05-25-done-idea.md'[39m,
+  [32m'2026-05-25-feature-request.md'[39m
+]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mexports with different status filters
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-HUYiz1\.vscode-rotator\ideas\2026-05-25-feature-request.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mexports with different status filters
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-HUYiz1\.vscode-rotator\ideas\2026-05-25-bug-fix.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mexports with different status filters
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-HUYiz1\.vscode-rotator\ideas\2026-05-25-done-idea.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mexports with different status filters
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-HUYiz1\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mexportIdeas[2m > [22m[2mexports with different status filters
+[22m[39mFOUND FILES: [
+  [32m'2026-05-25-bug-fix.md'[39m,
+  [32m'2026-05-25-done-idea.md'[39m,
+  [32m'2026-05-25-feature-request.md'[39m
+]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mYAML front-matter[2m > [22m[2mstores and retrieves YAML front-matter correctly
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-Vmmt9L\.vscode-rotator\ideas\2026-05-25-test.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mYAML front-matter[2m > [22m[2mstores and retrieves YAML front-matter correctly
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-Vmmt9L\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mYAML front-matter[2m > [22m[2mstores and retrieves YAML front-matter correctly
+[22m[39mFOUND FILES: [ [32m'2026-05-25-test.md'[39m ]
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mYAML front-matter[2m > [22m[2mpreserves UUID format in round-trip
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-hS48MG\.vscode-rotator\ideas\2026-05-25-test.md
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mYAML front-matter[2m > [22m[2mpreserves UUID format in round-trip
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-store-test-hS48MG\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store.test.js[2m > [22m[2mIdea Store[2m > [22m[2mYAML front-matter[2m > [22m[2mpreserves UUID format in round-trip
+[22m[39mFOUND FILES: [ [32m'2026-05-25-test.md'[39m ]
+
+ [32mÔ£ô[39m tests/idea-store.test.js [2m([22m[2m30 tests[22m[2m)[22m[33m 2711[2mms[22m[39m
+       [33m[2mÔ£ô[22m[39m normalizes tags from string or array [33m 390[2mms[22m[39m
+       [33m[2mÔ£ô[22m[39m lists all ideas [33m 593[2mms[22m[39m
+- Capturing conversation thread from chatgpt...
+{"ts":"2026-05-25T20:36:23.307Z","level":"warn","module":"browser-bridge","msg":"browser.threadSelectors.default","correlationId":"chatgpt","platform":"chatgpt","reason":"thread selectors missing"}
+Ô£ö Captured 2 turns from chatgpt.
+ [32mÔ£ô[39m tests/browser-bridge.test.js [2m([22m[2m41 tests[22m[2m)[22m[33m 2952[2mms[22m[39m
+       [33m[2mÔ£ô[22m[39m does not ingest compare report files [33m 359[2mms[22m[39m
+       [33m[2mÔ£ô[22m[39m tags a response as partial without notes ÔÇö no mistake created [33m 487[2mms[22m[39m
+       [33m[2mÔ£ô[22m[39m prints summary with turn and chunk counts [33m 424[2mms[22m[39m
+{"ts":"2026-05-25T20:36:23.485Z","level":"info","module":"local-llm","msg":"llm.staged.ingest.success","correlationId":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-I8hmin\\vscode-signals","files":1,"results":2,"chunks":2,"skipped":0}
+{"ts":"2026-05-25T20:36:23.725Z","level":"info","module":"local-llm","msg":"llm.staged.ingest.start","correlationId":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-kMS18z\\vscode-signals","stageRoot":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-kMS18z\\vscode-signals","baseDir":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-kMS18z"}
+{"ts":"2026-05-25T20:36:23.886Z","level":"info","module":"local-llm","msg":"llm.staged.ingest.success","correlationId":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-kMS18z\\vscode-signals","files":1,"results":1,"chunks":0,"skipped":1}
+{"ts":"2026-05-25T20:36:23.996Z","level":"info","module":"local-llm","msg":"llm.staged.ingest.start","correlationId":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-S0ddds\\vscode-signals","stageRoot":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-S0ddds\\vscode-signals","baseDir":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-S0ddds"}
+{"ts":"2026-05-25T20:36:24.410Z","level":"info","module":"local-llm","msg":"llm.staged.ingest.success","correlationId":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-S0ddds\\vscode-signals","files":1,"results":1,"chunks":1,"skipped":0}
+{"ts":"2026-05-25T20:36:24.652Z","level":"info","module":"local-llm","msg":"llm.staged.ingest.start","correlationId":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-BGUdcc\\vscode-signals","stageRoot":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-BGUdcc\\vscode-signals","baseDir":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-BGUdcc"}
+{"ts":"2026-05-25T20:36:24.970Z","level":"info","module":"local-llm","msg":"llm.staged.ingest.success","correlationId":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-BGUdcc\\vscode-signals","files":1,"results":1,"chunks":1,"skipped":0}
+{"ts":"2026-05-25T20:36:25.197Z","level":"info","module":"local-llm","msg":"llm.staged.ingest.start","correlationId":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-C4lM4H\\vscode-signals","stageRoot":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-C4lM4H\\vscode-signals","baseDir":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-C4lM4H"}
+{"ts":"2026-05-25T20:36:25.387Z","level":"info","module":"local-llm","msg":"llm.staged.ingest.success","correlationId":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-C4lM4H\\vscode-signals","files":1,"results":1,"chunks":1,"skipped":0}
+{"ts":"2026-05-25T20:36:25.515Z","level":"info","module":"local-llm","msg":"llm.staged.ingest.start","correlationId":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-JYchr6\\vscode-signals","stageRoot":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-JYchr6\\vscode-signals","baseDir":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-JYchr6"}
+{"ts":"2026-05-25T20:36:25.821Z","level":"info","module":"local-llm","msg":"llm.staged.ingest.success","correlationId":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-JYchr6\\vscode-signals","files":1,"results":1,"chunks":1,"skipped":0}
+{"ts":"2026-05-25T20:36:25.984Z","level":"info","module":"local-llm","msg":"llm.staged.ingest.start","correlationId":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-818dZe\\vscode-signals","stageRoot":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-818dZe\\vscode-signals","baseDir":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-818dZe"}
+{"ts":"2026-05-25T20:36:26.619Z","level":"info","module":"local-llm","msg":"llm.staged.ingest.success","correlationId":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-818dZe\\vscode-signals","files":1,"results":1,"chunks":1,"skipped":0}
+{"ts":"2026-05-25T20:36:26.959Z","level":"info","module":"local-llm","msg":"llm.staged.ingest.start","correlationId":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-iclPVi\\vscode-signals","stageRoot":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-iclPVi\\vscode-signals","baseDir":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-iclPVi"}
+{"ts":"2026-05-25T20:36:27.511Z","level":"info","module":"local-llm","msg":"llm.staged.ingest.success","correlationId":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-iclPVi\\vscode-signals","files":1,"results":1,"chunks":1,"skipped":0}
+{"ts":"2026-05-25T20:36:28.218Z","level":"info","module":"local-llm","msg":"llm.staged.ingest.start","correlationId":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-8iiqmw\\vscode-signals","stageRoot":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-8iiqmw\\vscode-signals","baseDir":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-8iiqmw"}
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mhappy path: capture event triggers atomic write, ingestion, and emission
+[22m[39m[capture-handlers] registering handlers
+
+{"ts":"2026-05-25T20:36:30.273Z","level":"info","module":"electron-capture","msg":"capture.file.write.start","correlationId":"claude:1779741389738","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-Igujca\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-29-738Z-claude.md"}
+{"ts":"2026-05-25T20:36:30.322Z","level":"info","module":"electron-capture","msg":"capture.file.write.success","correlationId":"claude:1779741389738","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-Igujca\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-29-738Z-claude.md"}
+{"ts":"2026-05-25T20:36:31.128Z","level":"info","module":"electron-capture","msg":"capture.ingest.result","correlationId":"claude:1779741389738","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-Igujca\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-29-738Z-claude.md","chunks":1,"skipped":false}
+{"ts":"2026-05-25T20:36:31.269Z","level":"info","module":"local-llm","msg":"llm.staged.ingest.success","correlationId":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-8iiqmw\\vscode-signals","files":1,"results":4,"chunks":4,"skipped":0}
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mduplicate ingestion: second capture overwrites file and detects duplicate
+[22m[39m[capture-handlers] registering handlers
+
+{"ts":"2026-05-25T20:36:31.737Z","level":"info","module":"local-llm","msg":"llm.staged.ingest.start","correlationId":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-EjzvxS\\vscode-signals","stageRoot":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-EjzvxS\\vscode-signals","baseDir":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-EjzvxS"}
+{"ts":"2026-05-25T20:36:31.739Z","level":"info","module":"electron-capture","msg":"capture.file.write.start","correlationId":"gemini:1000000000000","platform":"gemini","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-6TwyY9\\.vscode-rotator\\browser-responses\\2001-09-09T01-46-40-000Z-gemini.md"}
+{"ts":"2026-05-25T20:36:31.742Z","level":"info","module":"electron-capture","msg":"capture.file.write.success","correlationId":"gemini:1000000000000","platform":"gemini","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-6TwyY9\\.vscode-rotator\\browser-responses\\2001-09-09T01-46-40-000Z-gemini.md"}
+{"ts":"2026-05-25T20:36:31.753Z","level":"info","module":"electron-capture","msg":"capture.ingest.result","correlationId":"gemini:1000000000000","platform":"gemini","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-6TwyY9\\.vscode-rotator\\browser-responses\\2001-09-09T01-46-40-000Z-gemini.md","chunks":1,"skipped":false}
+{"ts":"2026-05-25T20:36:31.923Z","level":"info","module":"electron-capture","msg":"capture.file.write.start","correlationId":"gemini:1000000000000","platform":"gemini","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-6TwyY9\\.vscode-rotator\\browser-responses\\2001-09-09T01-46-40-000Z-gemini.md"}
+{"ts":"2026-05-25T20:36:31.952Z","level":"info","module":"electron-capture","msg":"capture.file.write.success","correlationId":"gemini:1000000000000","platform":"gemini","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-6TwyY9\\.vscode-rotator\\browser-responses\\2001-09-09T01-46-40-000Z-gemini.md"}
+{"ts":"2026-05-25T20:36:32.002Z","level":"info","module":"local-llm","msg":"llm.staged.ingest.success","correlationId":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-EjzvxS\\vscode-signals","files":1,"results":3,"chunks":2,"skipped":1}
+{"ts":"2026-05-25T20:36:32.114Z","level":"info","module":"electron-capture","msg":"capture.ingest.result","correlationId":"gemini:1000000000000","platform":"gemini","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-6TwyY9\\.vscode-rotator\\browser-responses\\2001-09-09T01-46-40-000Z-gemini.md","chunks":1,"skipped":false}
+{"ts":"2026-05-25T20:36:32.161Z","level":"info","module":"local-llm","msg":"llm.staged.ingest.start","correlationId":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-Br0XBm\\vscode-signals","stageRoot":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-Br0XBm\\vscode-signals","baseDir":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-Br0XBm"}
+{"ts":"2026-05-25T20:36:32.230Z","level":"info","module":"local-llm","msg":"llm.staged.ingest.success","correlationId":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-Br0XBm\\vscode-signals","files":1,"results":2,"chunks":1,"skipped":1}
+{"ts":"2026-05-25T20:36:32.340Z","level":"info","module":"local-llm","msg":"llm.staged.ingest.start","correlationId":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-Y3NZQo\\vscode-signals","stageRoot":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-Y3NZQo\\vscode-signals","baseDir":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-Y3NZQo"}
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mmultiple platforms: captures to different files and ingests independently
+[22m[39m[capture-handlers] registering handlers
+
+{"ts":"2026-05-25T20:36:32.372Z","level":"info","module":"electron-capture","msg":"capture.file.write.start","correlationId":"chatgpt:1779741392371","platform":"chatgpt","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-bo01hM\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-32-371Z-chatgpt.md"}
+{"ts":"2026-05-25T20:36:32.375Z","level":"info","module":"electron-capture","msg":"capture.file.write.success","correlationId":"chatgpt:1779741392371","platform":"chatgpt","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-bo01hM\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-32-371Z-chatgpt.md"}
+{"ts":"2026-05-25T20:36:32.398Z","level":"info","module":"electron-capture","msg":"capture.ingest.result","correlationId":"chatgpt:1779741392371","platform":"chatgpt","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-bo01hM\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-32-371Z-chatgpt.md","chunks":1,"skipped":false}
+{"ts":"2026-05-25T20:36:32.511Z","level":"info","module":"electron-capture","msg":"capture.file.write.start","correlationId":"claude:1779741392372","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-bo01hM\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-32-372Z-claude.md"}
+{"ts":"2026-05-25T20:36:32.515Z","level":"info","module":"electron-capture","msg":"capture.file.write.success","correlationId":"claude:1779741392372","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-bo01hM\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-32-372Z-claude.md"}
+{"ts":"2026-05-25T20:36:32.538Z","level":"info","module":"electron-capture","msg":"capture.ingest.result","correlationId":"claude:1779741392372","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-bo01hM\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-32-372Z-claude.md","chunks":1,"skipped":false}
+{"ts":"2026-05-25T20:36:32.563Z","level":"info","module":"local-llm","msg":"llm.staged.ingest.success","correlationId":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-Y3NZQo\\vscode-signals","files":1,"results":1,"chunks":1,"skipped":0}
+{"ts":"2026-05-25T20:36:32.798Z","level":"info","module":"electron-capture","msg":"capture.file.write.start","correlationId":"gemini:1779741392373","platform":"gemini","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-bo01hM\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-32-373Z-gemini.md"}
+{"ts":"2026-05-25T20:36:33.007Z","level":"info","module":"electron-capture","msg":"capture.file.write.success","correlationId":"gemini:1779741392373","platform":"gemini","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-bo01hM\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-32-373Z-gemini.md"}
+{"ts":"2026-05-25T20:36:33.088Z","level":"info","module":"local-llm","msg":"llm.staged.ingest.start","correlationId":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-rRXcxL\\empty-file-signals","stageRoot":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-rRXcxL\\empty-file-signals","baseDir":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-rRXcxL"}
+{"ts":"2026-05-25T20:36:33.146Z","level":"info","module":"local-llm","msg":"llm.staged.ingest.success","correlationId":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-rRXcxL\\empty-file-signals","files":1,"results":0,"chunks":0,"skipped":0}
+{"ts":"2026-05-25T20:36:33.152Z","level":"info","module":"electron-capture","msg":"capture.ingest.result","correlationId":"gemini:1779741392373","platform":"gemini","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-bo01hM\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-32-373Z-gemini.md","chunks":1,"skipped":false}
+{"ts":"2026-05-25T20:36:33.215Z","level":"info","module":"local-llm","msg":"llm.staged.ingest.start","correlationId":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-3kQ2Od\\vscode-signals","stageRoot":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-3kQ2Od\\vscode-signals","baseDir":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-3kQ2Od"}
+{"ts":"2026-05-25T20:36:33.264Z","level":"info","module":"electron-capture","msg":"capture.file.write.start","correlationId":"perplexity:1779741392374","platform":"perplexity","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-bo01hM\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-32-374Z-perplexity.md"}
+{"ts":"2026-05-25T20:36:33.291Z","level":"info","module":"electron-capture","msg":"capture.file.write.success","correlationId":"perplexity:1779741392374","platform":"perplexity","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-bo01hM\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-32-374Z-perplexity.md"}
+{"ts":"2026-05-25T20:36:33.385Z","level":"info","module":"local-llm","msg":"llm.staged.ingest.success","correlationId":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\local-llm-test-3kQ2Od\\vscode-signals","files":1,"results":1,"chunks":1,"skipped":0}
+{"ts":"2026-05-25T20:36:33.406Z","level":"info","module":"electron-capture","msg":"capture.ingest.result","correlationId":"perplexity:1779741392374","platform":"perplexity","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-bo01hM\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-32-374Z-perplexity.md","chunks":1,"skipped":false}
+[90mstdout[2m | tests/local-llm.test.js[2m > [22m[2mLocal Dev-LLM[2m > [22m[2mConversation thread ingestion[2m > [22m[2mskips ingesting a thread file twice and preserves existing chunks
+[22m[39m[document-ingester] ingestThread skipped; already ingested: C:\Users\PAWANS~1\AppData\Local\Temp\local-llm-test-8SIGqb\.vscode-rotator\browser-responses\2026-05-20T12-00-00-chatgpt-thread.md
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mmalformed payload: discarded without file creation or ingestion
+[22m[39m[capture-handlers] registering handlers
+
+{"ts":"2026-05-25T20:36:33.758Z","level":"warn","module":"electron-capture","msg":"capture.payload.invalid","correlationId":null,"code":"ROTATOR_BROWSER_CAPTURE_INVALID","senderUrl":"https://test.com/","error":{"message":"Invalid browser capture payload: html: Invalid input: expected string, received undefined; url: Invalid input: expected string, received undefined; ts: Invalid input: expected number, received undefined"}}
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mregisters capture:response handler on ipcMain
+[22m[39m[capture-handlers] registering handlers
+
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mprocesses valid payload: writes file, ingests, and emits capture:done
+[22m[39m[capture-handlers] registering handlers
+
+{"ts":"2026-05-25T20:36:33.823Z","level":"warn","module":"electron-capture","msg":"capture.payload.invalid","correlationId":null,"code":"ROTATOR_BROWSER_CAPTURE_INVALID","senderUrl":"https://test.com/","error":{"message":"Invalid browser capture payload: text: Invalid input: expected string, received undefined; url: Invalid URL; ts: Invalid input: expected number, received undefined"}}
+{"ts":"2026-05-25T20:36:33.887Z","level":"warn","module":"electron-capture","msg":"capture.payload.invalid","correlationId":null,"code":"ROTATOR_BROWSER_CAPTURE_INVALID","senderUrl":"https://test.com/","error":{"message":"Invalid browser capture payload: platform: Invalid input: expected string, received undefined; url: Invalid input: expected string, received undefined; ts: Invalid input: expected number, received undefined"}}
+{"ts":"2026-05-25T20:36:33.951Z","level":"warn","module":"electron-capture","msg":"capture.payload.invalid","correlationId":null,"code":"ROTATOR_BROWSER_CAPTURE_INVALID","senderUrl":"https://test.com/","error":{"message":"Invalid browser capture payload: root: Invalid input: expected object, received null"}}
+[90mstdout[2m | tests/local-llm.test.js[2m > [22m[2mLocal Dev-LLM[2m > [22m[2mConversation thread ingestion[2m > [22m[2mincludes past conversation context before project documents in generated prompts
+[22m[39mLIST IDEA DIR: C:\SW Development\VS Code Agent\Solution\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/local-llm.test.js[2m > [22m[2mLocal Dev-LLM[2m > [22m[2mConversation thread ingestion[2m > [22m[2mincludes past conversation context before project documents in generated prompts
+[22m[39mDIR DOES NOT EXIST
+
+{"ts":"2026-05-25T20:36:34.001Z","level":"info","module":"electron-capture","msg":"capture.file.write.start","correlationId":"claude:1621000000000","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-7tTgLi\\.vscode-rotator\\browser-responses\\2021-05-14T13-46-40-000Z-claude.md"}
+{"ts":"2026-05-25T20:36:34.005Z","level":"info","module":"electron-capture","msg":"capture.file.write.success","correlationId":"claude:1621000000000","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-7tTgLi\\.vscode-rotator\\browser-responses\\2021-05-14T13-46-40-000Z-claude.md"}
+{"ts":"2026-05-25T20:36:34.006Z","level":"info","module":"electron-capture","msg":"capture.ingest.result","correlationId":"claude:1621000000000","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-7tTgLi\\.vscode-rotator\\browser-responses\\2021-05-14T13-46-40-000Z-claude.md","chunks":5,"skipped":false}
+{"ts":"2026-05-25T20:36:34.013Z","level":"warn","module":"electron-capture","msg":"capture.payload.invalid","correlationId":null,"code":"ROTATOR_BROWSER_CAPTURE_INVALID","senderUrl":"https://test.com/","error":{"message":"Invalid browser capture payload: root: Invalid input: expected object, received undefined"}}
+[90mstdout[2m | tests/local-llm.test.js[2m > [22m[2mLocal Dev-LLM[2m > [22m[2mConversation thread ingestion[2m > [22m[2menhance command generates a prompt with goal context
+[22m[39mLIST IDEA DIR: C:\SW Development\VS Code Agent\Solution\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/local-llm.test.js[2m > [22m[2mLocal Dev-LLM[2m > [22m[2mConversation thread ingestion[2m > [22m[2menhance command generates a prompt with goal context
+[22m[39mDIR DOES NOT EXIST
+
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mlarge response text: ingested correctly with multiple chunks
+[22m[39m[capture-handlers] registering handlers
+
+{"ts":"2026-05-25T20:36:34.167Z","level":"info","module":"electron-capture","msg":"capture.file.write.start","correlationId":"perplexity:1779741394163","platform":"perplexity","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-CcSbYl\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-34-163Z-perplexity.md"}
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mdiscards payload with missing platform field
+[22m[39m[capture-handlers] registering handlers
+
+{"ts":"2026-05-25T20:36:34.175Z","level":"warn","module":"electron-capture","msg":"capture.payload.invalid","correlationId":null,"code":"ROTATOR_BROWSER_CAPTURE_INVALID","senderUrl":"https://test.com/","error":{"message":"Invalid browser capture payload: platform: Invalid input: expected string, received undefined"}}
+{"ts":"2026-05-25T20:36:34.183Z","level":"info","module":"electron-capture","msg":"capture.file.write.success","correlationId":"perplexity:1779741394163","platform":"perplexity","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-CcSbYl\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-34-163Z-perplexity.md"}
+ [32mÔ£ô[39m tests/local-llm.test.js [2m([22m[2m38 tests[22m[2m)[22m[33m 12709[2mms[22m[39m
+       [33m[2mÔ£ô[22m[39m ingests every chunk in a staged file and deletes it after success [33m 1103[2mms[22m[39m
+       [33m[2mÔ£ô[22m[39m retains a staged file when one chunk fails and continues non-fatally [33m 305[2mms[22m[39m
+       [33m[2mÔ£ô[22m[39m creates a mistake for recurring diagnostic chunks [33m 601[2mms[22m[39m
+       [33m[2mÔ£ô[22m[39m stores editor/file-save tags for vscode-edit chunks [33m 577[2mms[22m[39m
+       [33m[2mÔ£ô[22m[39m stores editor/diagnostic tags for vscode-diagnostic chunks [33m 347[2mms[22m[39m
+       [33m[2mÔ£ô[22m[39m stores editor/git tags for vscode-git chunks [33m 435[2mms[22m[39m
+       [33m[2mÔ£ô[22m[39m stores editor/task-error tags for vscode-task-error chunks [33m 994[2mms[22m[39m
+       [33m[2mÔ£ô[22m[39m preserves captured_at timestamp through ingestion [33m 1170[2mms[22m[39m
+       [33m[2mÔ£ô[22m[39m handles staged file with mixed signal types [33m 3630[2mms[22m[39m
+       [33m[2mÔ£ô[22m[39m handles ingestion error on first chunk and continues with rest [33m 411[2mms[22m[39m
+       [33m[2mÔ£ô[22m[39m stores source_type field in database documents [33m 761[2mms[22m[39m
+       [33m[2mÔ£ô[22m[39m skips ingesting a thread file twice and preserves existing chunks [33m 329[2mms[22m[39m
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mdiscards payload with missing text field
+[22m[39m[capture-handlers] registering handlers
+
+{"ts":"2026-05-25T20:36:34.260Z","level":"warn","module":"electron-capture","msg":"capture.payload.invalid","correlationId":null,"code":"ROTATOR_BROWSER_CAPTURE_INVALID","senderUrl":"https://test.com/","error":{"message":"Invalid browser capture payload: text: Invalid input: expected string, received undefined"}}
+{"ts":"2026-05-25T20:36:34.321Z","level":"info","module":"electron-capture","msg":"capture.ingest.result","correlationId":"perplexity:1779741394163","platform":"perplexity","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-CcSbYl\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-34-163Z-perplexity.md","chunks":6,"skipped":false}
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mdiscards payload with missing html field
+[22m[39m[capture-handlers] registering handlers
+
+{"ts":"2026-05-25T20:36:34.337Z","level":"warn","module":"electron-capture","msg":"capture.payload.invalid","correlationId":null,"code":"ROTATOR_BROWSER_CAPTURE_INVALID","senderUrl":"https://test.com/","error":{"message":"Invalid browser capture payload: html: Invalid input: expected string, received undefined"}}
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mdiscards payload with missing url field
+[22m[39m[capture-handlers] registering handlers
+
+{"ts":"2026-05-25T20:36:34.394Z","level":"warn","module":"electron-capture","msg":"capture.payload.invalid","correlationId":null,"code":"ROTATOR_BROWSER_CAPTURE_INVALID","senderUrl":"https://test.com/","error":{"message":"Invalid browser capture payload: url: Invalid input: expected string, received undefined"}}
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mdiscards payload with missing ts field
+[22m[39m[capture-handlers] registering handlers
+
+{"ts":"2026-05-25T20:36:34.461Z","level":"warn","module":"electron-capture","msg":"capture.payload.invalid","correlationId":null,"code":"ROTATOR_BROWSER_CAPTURE_INVALID","senderUrl":"https://test.com/","error":{"message":"Invalid browser capture payload: ts: Invalid input: expected number, received undefined"}}
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mcatches ingestFile rejection and logs error without crashing
+[22m[39m[capture-handlers] registering handlers
+
+{"ts":"2026-05-25T20:36:34.533Z","level":"info","module":"electron-capture","msg":"capture.file.write.start","correlationId":"claude:1621000000000","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-PFOhoz\\.vscode-rotator\\browser-responses\\2021-05-14T13-46-40-000Z-claude.md"}
+{"ts":"2026-05-25T20:36:34.536Z","level":"info","module":"electron-capture","msg":"capture.file.write.success","correlationId":"claude:1621000000000","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-PFOhoz\\.vscode-rotator\\browser-responses\\2021-05-14T13-46-40-000Z-claude.md"}
+{"ts":"2026-05-25T20:36:34.536Z","level":"error","module":"electron-capture","msg":"capture.ingest.failure","correlationId":"claude:1621000000000","code":"ROTATOR_CAPTURE_INGEST_FAILED","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-PFOhoz\\.vscode-rotator\\browser-responses\\2021-05-14T13-46-40-000Z-claude.md","error":{"message":"Ingestion failed"}}
+{"ts":"2026-05-25T20:36:34.536Z","level":"info","module":"electron-capture","msg":"capture.ingest.result","correlationId":"claude:1621000000000","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-PFOhoz\\.vscode-rotator\\browser-responses\\2021-05-14T13-46-40-000Z-claude.md","chunks":0,"skipped":true}
+[90mstdout[2m | src/__tests__/capture-pipeline.integration.test.js[2m > [22m[2mCapture Pipeline Integration[2m > [22m[2mrapid successive captures: all processed and files created
+[22m[39m[capture-handlers] registering handlers
+
+{"ts":"2026-05-25T20:36:34.595Z","level":"info","module":"electron-capture","msg":"capture.file.write.start","correlationId":"claude:1779741394576","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-2ih2HR\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-34-576Z-claude.md"}
+{"ts":"2026-05-25T20:36:34.596Z","level":"info","module":"electron-capture","msg":"capture.file.write.start","correlationId":"claude:1779741394577","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-2ih2HR\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-34-577Z-claude.md"}
+{"ts":"2026-05-25T20:36:34.598Z","level":"info","module":"electron-capture","msg":"capture.file.write.start","correlationId":"claude:1779741394578","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-2ih2HR\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-34-578Z-claude.md"}
+{"ts":"2026-05-25T20:36:34.598Z","level":"info","module":"electron-capture","msg":"capture.file.write.start","correlationId":"claude:1779741394579","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-2ih2HR\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-34-579Z-claude.md"}
+{"ts":"2026-05-25T20:36:34.599Z","level":"info","module":"electron-capture","msg":"capture.file.write.start","correlationId":"claude:1779741394580","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-2ih2HR\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-34-580Z-claude.md"}
+{"ts":"2026-05-25T20:36:34.600Z","level":"info","module":"electron-capture","msg":"capture.file.write.start","correlationId":"claude:1779741394581","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-2ih2HR\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-34-581Z-claude.md"}
+{"ts":"2026-05-25T20:36:34.601Z","level":"info","module":"electron-capture","msg":"capture.file.write.start","correlationId":"claude:1779741394582","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-2ih2HR\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-34-582Z-claude.md"}
+{"ts":"2026-05-25T20:36:34.603Z","level":"info","module":"electron-capture","msg":"capture.file.write.start","correlationId":"claude:1779741394583","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-2ih2HR\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-34-583Z-claude.md"}
+{"ts":"2026-05-25T20:36:34.603Z","level":"info","module":"electron-capture","msg":"capture.file.write.start","correlationId":"claude:1779741394584","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-2ih2HR\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-34-584Z-claude.md"}
+{"ts":"2026-05-25T20:36:34.603Z","level":"info","module":"electron-capture","msg":"capture.file.write.start","correlationId":"claude:1779741394585","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-2ih2HR\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-34-585Z-claude.md"}
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mwrites file with correct filename pattern browser-responses/<ts>-<platform>.md
+[22m[39m[capture-handlers] registering handlers
+
+{"ts":"2026-05-25T20:36:34.656Z","level":"info","module":"electron-capture","msg":"capture.file.write.start","correlationId":"gemini:1621000000000","platform":"gemini","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-LgNy5X\\.vscode-rotator\\browser-responses\\2021-05-14T13-46-40-000Z-gemini.md"}
+{"ts":"2026-05-25T20:36:34.659Z","level":"info","module":"electron-capture","msg":"capture.file.write.success","correlationId":"gemini:1621000000000","platform":"gemini","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-LgNy5X\\.vscode-rotator\\browser-responses\\2021-05-14T13-46-40-000Z-gemini.md"}
+{"ts":"2026-05-25T20:36:34.659Z","level":"info","module":"electron-capture","msg":"capture.ingest.result","correlationId":"gemini:1621000000000","platform":"gemini","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-LgNy5X\\.vscode-rotator\\browser-responses\\2021-05-14T13-46-40-000Z-gemini.md","chunks":5,"skipped":false}
+{"ts":"2026-05-25T20:36:34.722Z","level":"info","module":"electron-capture","msg":"capture.file.write.success","correlationId":"claude:1779741394576","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-2ih2HR\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-34-576Z-claude.md"}
+{"ts":"2026-05-25T20:36:34.723Z","level":"info","module":"electron-capture","msg":"capture.file.write.success","correlationId":"claude:1779741394578","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-2ih2HR\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-34-578Z-claude.md"}
+{"ts":"2026-05-25T20:36:34.723Z","level":"info","module":"electron-capture","msg":"capture.file.write.success","correlationId":"claude:1779741394579","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-2ih2HR\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-34-579Z-claude.md"}
+{"ts":"2026-05-25T20:36:34.724Z","level":"info","module":"electron-capture","msg":"capture.file.write.success","correlationId":"claude:1779741394577","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-2ih2HR\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-34-577Z-claude.md"}
+{"ts":"2026-05-25T20:36:34.724Z","level":"info","module":"electron-capture","msg":"capture.file.write.success","correlationId":"claude:1779741394581","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-2ih2HR\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-34-581Z-claude.md"}
+{"ts":"2026-05-25T20:36:34.725Z","level":"info","module":"electron-capture","msg":"capture.file.write.success","correlationId":"claude:1779741394580","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-2ih2HR\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-34-580Z-claude.md"}
+{"ts":"2026-05-25T20:36:34.725Z","level":"info","module":"electron-capture","msg":"capture.file.write.success","correlationId":"claude:1779741394582","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-2ih2HR\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-34-582Z-claude.md"}
+{"ts":"2026-05-25T20:36:34.725Z","level":"info","module":"electron-capture","msg":"capture.file.write.success","correlationId":"claude:1779741394583","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-2ih2HR\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-34-583Z-claude.md"}
+{"ts":"2026-05-25T20:36:34.726Z","level":"info","module":"electron-capture","msg":"capture.file.write.success","correlationId":"claude:1779741394584","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-2ih2HR\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-34-584Z-claude.md"}
+{"ts":"2026-05-25T20:36:34.726Z","level":"info","module":"electron-capture","msg":"capture.file.write.success","correlationId":"claude:1779741394585","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-2ih2HR\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-34-585Z-claude.md"}
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mcapture:done payload contains platform, chunks, and skipped fields
+[22m[39m[capture-handlers] registering handlers
+
+{"ts":"2026-05-25T20:36:34.782Z","level":"info","module":"electron-capture","msg":"capture.file.write.start","correlationId":"chatgpt:1621000000000","platform":"chatgpt","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-YKrm37\\.vscode-rotator\\browser-responses\\2021-05-14T13-46-40-000Z-chatgpt.md"}
+{"ts":"2026-05-25T20:36:34.786Z","level":"info","module":"electron-capture","msg":"capture.file.write.success","correlationId":"chatgpt:1621000000000","platform":"chatgpt","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-YKrm37\\.vscode-rotator\\browser-responses\\2021-05-14T13-46-40-000Z-chatgpt.md"}
+{"ts":"2026-05-25T20:36:34.786Z","level":"info","module":"electron-capture","msg":"capture.ingest.result","correlationId":"chatgpt:1621000000000","platform":"chatgpt","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-YKrm37\\.vscode-rotator\\browser-responses\\2021-05-14T13-46-40-000Z-chatgpt.md","chunks":3,"skipped":false}
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2msets file permissions to 600 on written file
+[22m[39m[capture-handlers] registering handlers
+
+{"ts":"2026-05-25T20:36:34.913Z","level":"info","module":"electron-capture","msg":"capture.file.write.start","correlationId":"perplexity:1621000000000","platform":"perplexity","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-4GInqT\\.vscode-rotator\\browser-responses\\2021-05-14T13-46-40-000Z-perplexity.md"}
+{"ts":"2026-05-25T20:36:34.915Z","level":"info","module":"electron-capture","msg":"capture.file.write.success","correlationId":"perplexity:1621000000000","platform":"perplexity","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-4GInqT\\.vscode-rotator\\browser-responses\\2021-05-14T13-46-40-000Z-perplexity.md"}
+{"ts":"2026-05-25T20:36:34.916Z","level":"info","module":"electron-capture","msg":"capture.ingest.result","correlationId":"perplexity:1621000000000","platform":"perplexity","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-4GInqT\\.vscode-rotator\\browser-responses\\2021-05-14T13-46-40-000Z-perplexity.md","chunks":5,"skipped":false}
+[90mstdout[2m | electron-ui/__tests__/capture-handlers.test.js[2m > [22m[2mcapture-handlers.cjs[2m > [22m[2mformats Markdown content with platform, URL, and timestamp
+[22m[39m[capture-handlers] registering handlers
+
+{"ts":"2026-05-25T20:36:35.035Z","level":"info","module":"electron-capture","msg":"capture.file.write.start","correlationId":"claude:1621000000000","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-1tGm9n\\.vscode-rotator\\browser-responses\\2021-05-14T13-46-40-000Z-claude.md"}
+{"ts":"2026-05-25T20:36:35.038Z","level":"info","module":"electron-capture","msg":"capture.file.write.success","correlationId":"claude:1621000000000","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-1tGm9n\\.vscode-rotator\\browser-responses\\2021-05-14T13-46-40-000Z-claude.md"}
+{"ts":"2026-05-25T20:36:35.038Z","level":"info","module":"electron-capture","msg":"capture.ingest.result","correlationId":"claude:1621000000000","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-1tGm9n\\.vscode-rotator\\browser-responses\\2021-05-14T13-46-40-000Z-claude.md","chunks":5,"skipped":false}
+ [32mÔ£ô[39m electron-ui/__tests__/capture-handlers.test.js [2m([22m[2m12 tests[22m[2m)[22m[33m 1408[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m processes valid payload: writes file, ingests, and emits capture:done [33m 367[2mms[22m[39m
+{"ts":"2026-05-25T20:36:35.173Z","level":"info","module":"electron-capture","msg":"capture.ingest.result","correlationId":"claude:1779741394576","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-2ih2HR\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-34-576Z-claude.md","chunks":1,"skipped":false}
+{"ts":"2026-05-25T20:36:35.260Z","level":"info","module":"electron-capture","msg":"capture.ingest.result","correlationId":"claude:1779741394578","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-2ih2HR\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-34-578Z-claude.md","chunks":1,"skipped":false}
+{"ts":"2026-05-25T20:36:35.338Z","level":"info","module":"electron-capture","msg":"capture.ingest.result","correlationId":"claude:1779741394579","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-2ih2HR\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-34-579Z-claude.md","chunks":1,"skipped":false}
+{"ts":"2026-05-25T20:36:35.375Z","level":"info","module":"electron-capture","msg":"capture.ingest.result","correlationId":"claude:1779741394577","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-2ih2HR\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-34-577Z-claude.md","chunks":1,"skipped":false}
+{"ts":"2026-05-25T20:36:35.434Z","level":"info","module":"electron-capture","msg":"capture.ingest.result","correlationId":"claude:1779741394581","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-2ih2HR\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-34-581Z-claude.md","chunks":1,"skipped":false}
+{"ts":"2026-05-25T20:36:35.473Z","level":"info","module":"electron-capture","msg":"capture.ingest.result","correlationId":"claude:1779741394580","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-2ih2HR\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-34-580Z-claude.md","chunks":1,"skipped":false}
+{"ts":"2026-05-25T20:36:35.528Z","level":"info","module":"electron-capture","msg":"capture.ingest.result","correlationId":"claude:1779741394582","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-2ih2HR\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-34-582Z-claude.md","chunks":1,"skipped":false}
+{"ts":"2026-05-25T20:36:35.547Z","level":"info","module":"electron-capture","msg":"capture.ingest.result","correlationId":"claude:1779741394583","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-2ih2HR\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-34-583Z-claude.md","chunks":1,"skipped":false}
+{"ts":"2026-05-25T20:36:35.615Z","level":"info","module":"electron-capture","msg":"capture.ingest.result","correlationId":"claude:1779741394584","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-2ih2HR\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-34-584Z-claude.md","chunks":1,"skipped":false}
+{"ts":"2026-05-25T20:36:35.658Z","level":"info","module":"electron-capture","msg":"capture.ingest.result","correlationId":"claude:1779741394585","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-capture-int-2ih2HR\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-34-585Z-claude.md","chunks":1,"skipped":false}
+ [32mÔ£ô[39m src/__tests__/capture-pipeline.integration.test.js [2m([22m[2m6 tests[22m[2m)[22m[33m 6273[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m happy path: capture event triggers atomic write, ingestion, and emission [33m 2181[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m duplicate ingestion: second capture overwrites file and detects duplicate [33m 629[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m multiple platforms: captures to different files and ingests independently [33m 1378[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m malformed payload: discarded without file creation or ingestion [33m 426[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m large response text: ingested correctly with multiple chunks [33m 408[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m rapid successive captures: all processed and files created [33m 1245[2mms[22m[39m
+{"ts":"2026-05-25T20:36:40.651Z","level":"info","module":"handoff","msg":"handoff.create.start","correlationId":"3376f5e9-dd6f-4590-9411-5d839ddd52bc","agent":"chatgpt","status":"active"}
+{"ts":"2026-05-25T20:36:40.662Z","level":"info","module":"handoff","msg":"handoff.create.success","correlationId":"3376f5e9-dd6f-4590-9411-5d839ddd52bc","status":"active"}
+{"ts":"2026-05-25T20:36:40.688Z","level":"info","module":"handoff","msg":"handoff.create.start","correlationId":"e524e8a5-7137-4507-a249-594c0b20e534","agent":"claude","status":"active"}
+{"ts":"2026-05-25T20:36:40.692Z","level":"info","module":"handoff","msg":"handoff.create.success","correlationId":"e524e8a5-7137-4507-a249-594c0b20e534","status":"active"}
+{"ts":"2026-05-25T20:36:40.729Z","level":"info","module":"handoff","msg":"handoff.create.start","correlationId":"5dced388-f3f9-49dc-9cc7-1e42b2815c29","agent":"gemini","status":"active"}
+{"ts":"2026-05-25T20:36:40.732Z","level":"info","module":"handoff","msg":"handoff.create.success","correlationId":"5dced388-f3f9-49dc-9cc7-1e42b2815c29","status":"active"}
+{"ts":"2026-05-25T20:36:40.733Z","level":"info","module":"handoff","msg":"handoff.task.add.start","correlationId":"5dced388-f3f9-49dc-9cc7-1e42b2815c29","priority":1}
+{"ts":"2026-05-25T20:36:40.751Z","level":"info","module":"handoff","msg":"handoff.task.add.success","correlationId":"5dced388-f3f9-49dc-9cc7-1e42b2815c29","taskId":"7f2742d6-ca10-4633-92e3-92beeebea50d","pendingTasks":1}
+{"ts":"2026-05-25T20:36:40.752Z","level":"info","module":"handoff","msg":"handoff.task.complete.start","correlationId":"5dced388-f3f9-49dc-9cc7-1e42b2815c29","taskId":"7f2742d6-ca10-4633-92e3-92beeebea50d"}
+{"ts":"2026-05-25T20:36:40.771Z","level":"info","module":"handoff","msg":"handoff.task.complete.success","correlationId":"5dced388-f3f9-49dc-9cc7-1e42b2815c29","taskId":"7f2742d6-ca10-4633-92e3-92beeebea50d","completedTasks":1}
+{"ts":"2026-05-25T20:36:40.772Z","level":"info","module":"handoff","msg":"handoff.blocker.add.start","correlationId":"5dced388-f3f9-49dc-9cc7-1e42b2815c29"}
+{"ts":"2026-05-25T20:36:40.787Z","level":"info","module":"handoff","msg":"handoff.blocker.add.success","correlationId":"5dced388-f3f9-49dc-9cc7-1e42b2815c29","blockers":1}
+{"ts":"2026-05-25T20:36:40.817Z","level":"info","module":"handoff","msg":"handoff.close.start","correlationId":"5dced388-f3f9-49dc-9cc7-1e42b2815c29","status":"paused"}
+{"ts":"2026-05-25T20:36:40.887Z","level":"info","module":"handoff","msg":"handoff.close.success","correlationId":"5dced388-f3f9-49dc-9cc7-1e42b2815c29","status":"paused"}
+{"ts":"2026-05-25T20:36:40.900Z","level":"info","module":"handoff","msg":"handoff.create.start","correlationId":"306198de-9e3b-46f4-8098-dc47522f193a","agent":"gemini","status":"active"}
+{"ts":"2026-05-25T20:36:40.920Z","level":"info","module":"handoff","msg":"handoff.create.success","correlationId":"306198de-9e3b-46f4-8098-dc47522f193a","status":"active"}
+{"ts":"2026-05-25T20:36:40.920Z","level":"info","module":"handoff","msg":"handoff.close.start","correlationId":"306198de-9e3b-46f4-8098-dc47522f193a","status":"complete"}
+{"ts":"2026-05-25T20:36:40.970Z","level":"info","module":"handoff","msg":"handoff.close.success","correlationId":"306198de-9e3b-46f4-8098-dc47522f193a","status":"complete"}
+ [32mÔ£ô[39m tests/agent-handoff.test.js [2m([22m[2m4 tests[22m[2m)[22m[33m 331[2mms[22m[39m
+ [32mÔ£ô[39m tests/vscode-collector.test.js [2m([22m[2m42 tests[22m[2m)[22m[33m 333[2mms[22m[39m
+{"ts":"2026-05-25T20:36:45.561Z","level":"info","module":"watcher","msg":"rotation.start","correlationId":"a1","action":"cooldown","reason":"expired"}
+{"ts":"2026-05-25T20:36:46.660Z","level":"info","module":"watcher","msg":"rotation.success","correlationId":"a1","action":"switch","targetAccountId":"a2","reason":"expired"}
+{"ts":"2026-05-25T20:36:46.660Z","level":"info","module":"watcher","msg":"watcher.started","interval":1}
+{"ts":"2026-05-25T20:36:46.673Z","level":"info","module":"watcher","msg":"watcher.stopped"}
+ [32mÔ£ô[39m tests/e2e/rotation.test.js [2m([22m[2m1 test[22m[2m)[22m[33m 3440[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m switches to the next best account when current fails health probe [33m 3433[2mms[22m[39m
+ [32mÔ£ô[39m tests/switcher.test.js [2m([22m[2m2 tests[22m[2m)[22m[33m 1874[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m dry-run returns a plan without writing [33m 1852[2mms[22m[39m
+[90mstdout[2m | tests/idea-validation.test.js[2m > [22m[2mIdea validation[2m > [22m[2mupdateIdea with invalid status throws ROTATOR_IDEA_INVALID, no file written
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-validation-y4dLJh\.vscode-rotator\ideas\2026-05-25-stable-idea.md
+
+[90mstdout[2m | tests/idea-validation.test.js[2m > [22m[2mIdea validation[2m > [22m[2mupdateIdea with invalid status throws ROTATOR_IDEA_INVALID, no file written
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-validation-y4dLJh\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-validation.test.js[2m > [22m[2mIdea validation[2m > [22m[2mupdateIdea with invalid status throws ROTATOR_IDEA_INVALID, no file written
+[22m[39mFOUND FILES: [ [32m'2026-05-25-stable-idea.md'[39m ]
+
+[90mstdout[2m | tests/idea-validation.test.js[2m > [22m[2mIdea validation[2m > [22m[2mlistIdeas skips corrupt idea files without crashing
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\idea-validation-bz5BeS\.vscode-rotator\ideas\2026-05-25-good-idea.md
+
+[90mstdout[2m | tests/idea-validation.test.js[2m > [22m[2mIdea validation[2m > [22m[2mlistIdeas skips corrupt idea files without crashing
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-validation-bz5BeS\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-validation.test.js[2m > [22m[2mIdea validation[2m > [22m[2mlistIdeas skips corrupt idea files without crashing
+[22m[39mFOUND FILES: [ [32m'2026-05-25-good-idea.md'[39m, [32m'corrupt.md'[39m ]
+
+[90mstdout[2m | tests/idea-validation.test.js[2m > [22m[2mIdea validation[2m > [22m[2mlistIdeas skips corrupt idea files without crashing
+[22m[39mIDEA PARSE ERROR: DomainError: Invalid idea: id: Invalid input: expected string, received undefined; created: Invalid input: expected string, received undefined; project: Invalid input: expected string, received undefined; status: Invalid option: expected one of "inbox"|"active"|"parked"|"done"; priority: Invalid input
+    at createIdeaInvalidError (C:/SW Development/VS Code Agent/Solution/src/idea-store.js:33:10)
+    at parseIdeaOrThrowDomainError (C:/SW Development/VS Code Agent/Solution/src/idea-store.js:43:11)
+    at listIdeas (C:/SW Development/VS Code Agent/Solution/src/idea-store.js:206:16)
+    at C:/SW Development/VS Code Agent/Solution/tests/idea-validation.test.js:58:19
+    at [90mfile:///C:/SW%20Development/VS%20Code%20Agent/Solution/[39mnode_modules/[4m@vitest[24m/runner/dist/chunk-artifact.js:1903:20 {
+  code: [32m'ROTATOR_IDEA_INVALID'[39m,
+  context: {
+    operation: [32m'listIdeas'[39m,
+    filePath: [32m'C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\idea-validation-bz5BeS\\.vscode-rotator\\ideas\\corrupt.md'[39m,
+    error: [32m'id: Invalid input: expected string, received undefined; created: Invalid input: expected string, received undefined; project: Invalid input: expected string, received undefined; status: Invalid option: expected one of "inbox"|"active"|"parked"|"done"; priority: Invalid input'[39m
+  }
+}
+
+ [32mÔ£ô[39m tests/idea-validation.test.js [2m([22m[2m3 tests[22m[2m)[22m[33m 662[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m createIdea with priority 7 throws ROTATOR_IDEA_INVALID, no file created [33m 398[2mms[22m[39m
+[90mstdout[2m | e2e/browser-pane.e2e.js[2m > [22m[2mE2E: Browser Pane Integration[2m > [22m[2mBrowserPane class[2m > [22m[2minitializes with correct defaults
+[22m[39m[browser-pane] initialized; WebContentsView available: [33mfalse[39m
+
+[90mstdout[2m | e2e/browser-pane.e2e.js[2m > [22m[2mE2E: Browser Pane Integration[2m > [22m[2mBrowserPane class[2m > [22m[2msupports all four platforms
+[22m[39m[browser-pane] initialized; WebContentsView available: [33mfalse[39m
+[browser-pane] initialized; WebContentsView available: [33mfalse[39m
+[browser-pane] initialized; WebContentsView available: [33mfalse[39m
+[browser-pane] initialized; WebContentsView available: [33mfalse[39m
+
+[90mstdout[2m | e2e/browser-pane.e2e.js[2m > [22m[2mE2E: Browser Pane Integration[2m > [22m[2mBrowserPane class[2m > [22m[2mcomputes bounds correctly
+[22m[39m[browser-pane] initialized; WebContentsView available: [33mfalse[39m
+
+[90mstdout[2m | e2e/browser-pane.e2e.js[2m > [22m[2mE2E: Browser Pane Integration[2m > [22m[2mBrowserPane class[2m > [22m[2mvalidates platform names
+[22m[39m[browser-pane] initialized; WebContentsView available: [33mfalse[39m
+[browser-pane] switching to platform: claude
+
+[90mstdout[2m | e2e/browser-pane.e2e.js[2m > [22m[2mE2E: Browser Pane Integration[2m > [22m[2mBrowserPane class[2m > [22m[2mvalidates platform names
+[22m[39m[browser-pane] switching to platform: unknown-platform
+
+[90mstdout[2m | e2e/browser-pane.e2e.js[2m > [22m[2mE2E: Browser Pane Integration[2m > [22m[2mCapture handlers integration[2m > [22m[2mregisters capture:response handler
+[22m[39m[capture-handlers] registering handlers
+
+[90mstdout[2m | e2e/browser-pane.e2e.js[2m > [22m[2mE2E: Browser Pane Integration[2m > [22m[2mCapture handlers integration[2m > [22m[2mvalidates all required fields in payload
+[22m[39m[capture-handlers] registering handlers
+
+{"ts":"2026-05-25T20:36:54.099Z","level":"info","module":"electron-capture","msg":"capture.file.write.start","correlationId":"claude:1779741413798","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-e2e-74V5jD\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-53-798Z-claude.md"}
+{"ts":"2026-05-25T20:36:54.186Z","level":"info","module":"electron-capture","msg":"capture.file.write.success","correlationId":"claude:1779741413798","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-e2e-74V5jD\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-53-798Z-claude.md"}
+{"ts":"2026-05-25T20:36:54.187Z","level":"info","module":"electron-capture","msg":"capture.ingest.result","correlationId":"claude:1779741413798","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-e2e-74V5jD\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-53-798Z-claude.md","chunks":1,"skipped":false}
+{"ts":"2026-05-25T20:36:54.208Z","level":"warn","module":"electron-capture","msg":"capture.payload.invalid","correlationId":null,"code":"ROTATOR_BROWSER_CAPTURE_INVALID","senderUrl":"https://test.com/","error":{"message":"Invalid browser capture payload: platform: Invalid input: expected string, received undefined; url: Invalid URL"}}
+{"ts":"2026-05-25T20:36:54.209Z","level":"warn","module":"electron-capture","msg":"capture.payload.invalid","correlationId":null,"code":"ROTATOR_BROWSER_CAPTURE_INVALID","senderUrl":"https://test.com/","error":{"message":"Invalid browser capture payload: html: Invalid input: expected string, received undefined; url: Invalid URL"}}
+{"ts":"2026-05-25T20:36:54.210Z","level":"warn","module":"electron-capture","msg":"capture.payload.invalid","correlationId":null,"code":"ROTATOR_BROWSER_CAPTURE_INVALID","senderUrl":"https://test.com/","error":{"message":"Invalid browser capture payload: text: Invalid input: expected string, received undefined; url: Invalid URL"}}
+{"ts":"2026-05-25T20:36:54.210Z","level":"warn","module":"electron-capture","msg":"capture.payload.invalid","correlationId":null,"code":"ROTATOR_BROWSER_CAPTURE_INVALID","senderUrl":"https://test.com/","error":{"message":"Invalid browser capture payload: url: Invalid input: expected string, received undefined"}}
+[90mstdout[2m | e2e/browser-pane.e2e.js[2m > [22m[2mE2E: Browser Pane Integration[2m > [22m[2mIPC event flow[2m > [22m[2memits capture:done with correct payload shape
+[22m[39m[capture-handlers] registering handlers
+
+{"ts":"2026-05-25T20:36:54.485Z","level":"info","module":"electron-capture","msg":"capture.file.write.start","correlationId":"gemini:1779741414483","platform":"gemini","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-e2e-XNHBP9\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-54-483Z-gemini.md"}
+{"ts":"2026-05-25T20:36:54.487Z","level":"info","module":"electron-capture","msg":"capture.file.write.success","correlationId":"gemini:1779741414483","platform":"gemini","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-e2e-XNHBP9\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-54-483Z-gemini.md"}
+{"ts":"2026-05-25T20:36:54.488Z","level":"info","module":"electron-capture","msg":"capture.ingest.result","correlationId":"gemini:1779741414483","platform":"gemini","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-e2e-XNHBP9\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-54-483Z-gemini.md","chunks":3,"skipped":false}
+[90mstdout[2m | e2e/browser-pane.e2e.js[2m > [22m[2mE2E: Browser Pane Integration[2m > [22m[2mFile system operations[2m > [22m[2mcreates browser-responses directory if missing
+[22m[39m[capture-handlers] registering handlers
+
+{"ts":"2026-05-25T20:36:54.611Z","level":"info","module":"electron-capture","msg":"capture.file.write.start","correlationId":"claude:1779741414606","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-e2e-m1FbMn\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-54-606Z-claude.md"}
+{"ts":"2026-05-25T20:36:54.615Z","level":"info","module":"electron-capture","msg":"capture.file.write.success","correlationId":"claude:1779741414606","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-e2e-m1FbMn\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-54-606Z-claude.md"}
+{"ts":"2026-05-25T20:36:54.615Z","level":"info","module":"electron-capture","msg":"capture.ingest.result","correlationId":"claude:1779741414606","platform":"claude","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\strategic-learning-unified-theatre-e2e-m1FbMn\\.vscode-rotator\\browser-responses\\2026-05-25T20-36-54-606Z-claude.md","chunks":1,"skipped":false}
+ [32mÔ£ô[39m e2e/browser-pane.e2e.js [2m([22m[2m13 tests[22m[2m)[22m[33m 1065[2mms[22m[39m
+       [33m[2mÔ£ô[22m[39m validates all required fields in payload [33m 600[2mms[22m[39m
+[90mstdout[2m | tests/knowledge-graph.test.js[2m > [22m[2mKnowledge Graph Export[2m > [22m[2mexports a valid graph JSON file
+[22m[39mIDEA ROOT: C:\Users\PAWANS~1\AppData\Local\Temp\kg-export-S0tNmA
+
+[90mstdout[2m | tests/knowledge-graph.test.js[2m > [22m[2mKnowledge Graph Export[2m > [22m[2mexports a valid graph JSON file
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\kg-export-S0tNmA\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/knowledge-graph.test.js[2m > [22m[2mKnowledge Graph Export[2m > [22m[2mexports a valid graph JSON file
+[22m[39mDIR DOES NOT EXIST
+
+[90mstdout[2m | tests/knowledge-graph.test.js[2m > [22m[2mKnowledge Graph Export[2m > [22m[2mexports a valid graph JSON file
+[22m[39mIDEAS: []
+
+[90mstdout[2m | tests/knowledge-graph.test.js[2m > [22m[2mKnowledge Graph Export[2m > [22m[2mcreates a linkedSprint edge for ideas linked to sprints
+[22m[39mIDEA FILE PATH: C:\Users\PAWANS~1\AppData\Local\Temp\kg-idea-sprint-ozbyly\.vscode-rotator\ideas\2026-05-25-test-idea.md
+
+[90mstdout[2m | tests/knowledge-graph.test.js[2m > [22m[2mKnowledge Graph Export[2m > [22m[2mcreates a linkedSprint edge for ideas linked to sprints
+[22m[39mIDEA ROOT: C:\Users\PAWANS~1\AppData\Local\Temp\kg-idea-sprint-ozbyly
+
+[90mstdout[2m | tests/knowledge-graph.test.js[2m > [22m[2mKnowledge Graph Export[2m > [22m[2mcreates a linkedSprint edge for ideas linked to sprints
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\kg-idea-sprint-ozbyly\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/knowledge-graph.test.js[2m > [22m[2mKnowledge Graph Export[2m > [22m[2mcreates a linkedSprint edge for ideas linked to sprints
+[22m[39mFOUND FILES: [ [32m'2026-05-25-test-idea.md'[39m ]
+
+[90mstdout[2m | tests/knowledge-graph.test.js[2m > [22m[2mKnowledge Graph Export[2m > [22m[2mcreates a linkedSprint edge for ideas linked to sprints
+[22m[39mIDEAS: [
+  {
+    id: [32m'4eec8088-5043-4ced-ab9b-0ef2c2ad3b62'[39m,
+    created: [32m'2026-05-25T20:36:57.893Z'[39m,
+    project: [32m'kg-idea-sprint-ozbyly'[39m,
+    tags: [],
+    status: [32m'inbox'[39m,
+    priority: [33m3[39m,
+    linkedSprint: [32m'11111111-1111-4111-8111-111111111111'[39m,
+    body: [32m'Test idea'[39m,
+    filePath: [32m'C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\kg-idea-sprint-ozbyly\\.vscode-rotator\\ideas\\2026-05-25-test-idea.md'[39m
+  }
+]
+
+[90mstdout[2m | tests/knowledge-graph.test.js[2m > [22m[2mKnowledge Graph Export[2m > [22m[2mcreates a promotedTo edge when a mistake is promoted to a rubric rule
+[22m[39mIDEA ROOT: C:\Users\PAWANS~1\AppData\Local\Temp\kg-promoted-rule-95S5nf
+
+[90mstdout[2m | tests/knowledge-graph.test.js[2m > [22m[2mKnowledge Graph Export[2m > [22m[2mcreates a promotedTo edge when a mistake is promoted to a rubric rule
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\kg-promoted-rule-95S5nf\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/knowledge-graph.test.js[2m > [22m[2mKnowledge Graph Export[2m > [22m[2mcreates a promotedTo edge when a mistake is promoted to a rubric rule
+[22m[39mDIR DOES NOT EXIST
+
+[90mstdout[2m | tests/knowledge-graph.test.js[2m > [22m[2mKnowledge Graph Export[2m > [22m[2mcreates a promotedTo edge when a mistake is promoted to a rubric rule
+[22m[39mIDEAS: []
+
+[90mstdout[2m | tests/knowledge-graph.test.js[2m > [22m[2mKnowledge Graph Export[2m > [22m[2mexports a valid ISO 8601 exportedAt timestamp
+[22m[39mIDEA ROOT: C:\Users\PAWANS~1\AppData\Local\Temp\kg-timestamp-CwCetZ
+
+[90mstdout[2m | tests/knowledge-graph.test.js[2m > [22m[2mKnowledge Graph Export[2m > [22m[2mexports a valid ISO 8601 exportedAt timestamp
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\kg-timestamp-CwCetZ\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/knowledge-graph.test.js[2m > [22m[2mKnowledge Graph Export[2m > [22m[2mexports a valid ISO 8601 exportedAt timestamp
+[22m[39mDIR DOES NOT EXIST
+
+[90mstdout[2m | tests/knowledge-graph.test.js[2m > [22m[2mKnowledge Graph Export[2m > [22m[2mexports a valid ISO 8601 exportedAt timestamp
+[22m[39mIDEAS: []
+
+ [32mÔ£ô[39m tests/knowledge-graph.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 214[2mms[22m[39m
+ [32mÔ£ô[39m tests/store.test.js [2m([22m[2m4 tests[22m[2m)[22m[33m 1840[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m round-trips plaintext [33m 1633[2mms[22m[39m
+- Creating sprint...
+- Creating sprint...
+- Preparing idea...
+- Preparing...
+- Launching browser...
+ [32mÔ£ô[39m tests/cli-validation.test.js [2m([22m[2m5 tests[22m[2m)[22m[33m 996[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m handoff create --limit not-a-number reports ROTATOR_CLI_INVALID [33m 536[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m idea add --priority 7 reports ROTATOR_CLI_INVALID, no file created [32m 300[2mms[22m[39m
+[90mstdout[2m | tests/capture-payload-validation.test.js[2m > [22m[2mCapture payload validation[2m > [22m[2mmalformed payload does not cause file write
+[22m[39m[capture-handlers] registering handlers
+
+{"ts":"2026-05-25T20:37:05.647Z","level":"warn","module":"electron-capture","msg":"capture.payload.invalid","correlationId":null,"code":"ROTATOR_BROWSER_CAPTURE_INVALID","senderUrl":"https://test.com/","error":{"message":"Invalid browser capture payload: platform: Invalid input: expected string, received undefined"}}
+[90mstdout[2m | tests/capture-payload-validation.test.js[2m > [22m[2mCapture payload validation[2m > [22m[2mvalid payload passes through to write path
+[22m[39m[capture-handlers] registering handlers
+
+{"ts":"2026-05-25T20:37:05.839Z","level":"info","module":"electron-capture","msg":"capture.file.write.start","correlationId":"chatgpt:1621000000000","platform":"chatgpt","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\capture-payload-validation-sIs31E\\.vscode-rotator\\browser-responses\\2021-05-14T13-46-40-000Z-chatgpt.md"}
+{"ts":"2026-05-25T20:37:06.054Z","level":"info","module":"electron-capture","msg":"capture.file.write.success","correlationId":"chatgpt:1621000000000","platform":"chatgpt","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\capture-payload-validation-sIs31E\\.vscode-rotator\\browser-responses\\2021-05-14T13-46-40-000Z-chatgpt.md"}
+{"ts":"2026-05-25T20:37:06.057Z","level":"info","module":"electron-capture","msg":"capture.ingest.result","correlationId":"chatgpt:1621000000000","platform":"chatgpt","filepath":"C:\\Users\\PAWANS~1\\AppData\\Local\\Temp\\capture-payload-validation-sIs31E\\.vscode-rotator\\browser-responses\\2021-05-14T13-46-40-000Z-chatgpt.md","chunks":1,"skipped":false}
+ [32mÔ£ô[39m tests/capture-payload-validation.test.js [2m([22m[2m3 tests[22m[2m)[22m[33m 1070[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m malformed payload missing platform is rejected with ROTATOR_BROWSER_CAPTURE_INVALID code [33m 508[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m valid payload passes through to write path [33m 505[2mms[22m[39m
+ [32mÔ£ô[39m tests/bc2-sync.test.js [2m([22m[2m3 tests[22m[2m)[22m[33m 1263[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m should ingest Browser Capture messages into the experience database and preserve stable keys [33m 1093[2mms[22m[39m
+ [32mÔ£ô[39m tests/config-validation.test.js [2m([22m[2m11 tests[22m[2m)[22m[33m 3054[2mms[22m[39m
+       [33m[2mÔ£ô[22m[39m returns correctly merged config object [33m 305[2mms[22m[39m
+       [33m[2mÔ£ô[22m[39m rejects negative gitPollIntervalMs (invalid per schema) [33m 726[2mms[22m[39m
+       [33m[2mÔ£ô[22m[39m logs warning and returns defaults on invalid JSON [33m 342[2mms[22m[39m
+       [33m[2mÔ£ô[22m[39m logs warning and returns defaults on schema validation failure [33m 321[2mms[22m[39m
+       [33m[2mÔ£ô[22m[39m handles empty config object (null merges as default) [33m 334[2mms[22m[39m
+{"ts":"2026-05-25T20:37:18.197Z","level":"info","module":"watcher","msg":"watcher.started","interval":10}
+[90mstdout[2m | tests/e2e/enhance-schedule.test.js[2m > [22m[2me2e enhance schedule[2m > [22m[2mfull enhance cycle: timer fires -> enhance_cycle emitted -> logged
+[22m[39mcalledWith [ [32m'refactor error handling'[39m, [32m'chatgpt'[39m ] events [33m1[39m
+
+[90mstdout[2m | tests/e2e/enhance-schedule.test.js[2m > [22m[2me2e enhance schedule[2m > [22m[2mfull enhance cycle: timer fires -> enhance_cycle emitted -> logged
+[22m[39mprompt_history length [33m0[39m entries []
+
+{"ts":"2026-05-25T20:38:18.197Z","level":"info","module":"watcher","msg":"watcher.stopped"}
+{"ts":"2026-05-25T20:37:18.640Z","level":"info","module":"watcher","msg":"watcher.started","interval":10}
+{"ts":"2026-05-25T20:37:18.650Z","level":"info","module":"watcher","msg":"watcher.stopped"}
+ [32mÔ£ô[39m tests/e2e/enhance-schedule.test.js [2m([22m[2m2 tests[22m[2m)[22m[33m 534[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m full enhance cycle: timer fires -> enhance_cycle emitted -> logged [33m 360[2mms[22m[39m
+[90mstdout[2m | tests/e2e/response-feedback.test.js[2m > [22m[2me2e response feedback[2m > [22m[2msurfaces quality-ordered llm-response chunks in generated prompt context
+[22m[39mLIST IDEA DIR: C:\SW Development\VS Code Agent\Solution\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/e2e/response-feedback.test.js[2m > [22m[2me2e response feedback[2m > [22m[2msurfaces quality-ordered llm-response chunks in generated prompt context
+[22m[39mDIR DOES NOT EXIST
+
+ [32mÔ£ô[39m tests/e2e/response-feedback.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 168[2mms[22m[39m
+ [32mÔ£ô[39m tests/llm/embeddings.test.js [2m([22m[2m6 tests[22m[2m)[22m[33m 538[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m clusterDocuments skips documents without embeddings [33m 405[2mms[22m[39m
+ [32mÔ£ô[39m tests/ai-memory.test.js [2m([22m[2m5 tests[22m[2m)[22m[33m 1032[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m prints a compact snapshot from the ai snapshot command [33m 318[2mms[22m[39m
+ [32mÔ£ô[39m renderer/__tests__/TrainingStatus.test.jsx [2m([22m[2m16 tests[22m[2m)[22m[33m 579[2mms[22m[39m
+ [32mÔ£ô[39m tests/storage-monitor.test.js [2m([22m[2m4 tests[22m[2m)[22m[33m 1254[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m indexes tracked files into the Sprint 5 snapshot schema [33m 321[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m removes deleted files from the snapshot [33m 633[2mms[22m[39m
+ [32mÔ£ô[39m renderer/__tests__/Logs.test.jsx [2m([22m[2m2 tests[22m[2m)[22m[32m 277[2mms[22m[39m
+{"ts":"2026-05-25T20:37:40.134Z","level":"info","module":"watcher","msg":"watcher.started","interval":10}
+{"ts":"2026-05-25T20:38:40.138Z","level":"info","module":"watcher","msg":"watcher.stopped"}
+{"ts":"2026-05-25T20:37:40.195Z","level":"info","module":"watcher","msg":"watcher.started","interval":10}
+{"ts":"2026-05-25T20:38:40.195Z","level":"info","module":"watcher","msg":"watcher.stopped"}
+{"ts":"2026-05-25T20:37:40.231Z","level":"info","module":"watcher","msg":"watcher.started","interval":10}
+{"ts":"2026-05-25T20:38:40.231Z","level":"info","module":"watcher","msg":"watcher.stopped"}
+{"ts":"2026-05-25T20:37:40.334Z","level":"info","module":"watcher","msg":"watcher.started","interval":10}
+{"ts":"2026-05-25T20:39:40.334Z","level":"info","module":"watcher","msg":"watcher.stopped"}
+{"ts":"2026-05-25T20:37:40.567Z","level":"info","module":"watcher","msg":"watcher.started","interval":10}
+{"ts":"2026-05-25T20:37:40.568Z","level":"info","module":"watcher","msg":"watcher.stopped"}
+ [32mÔ£ô[39m tests/watcher.test.js [2m([22m[2m6 tests[22m[2m)[22m[33m 531[2mms[22m[39m
+ [32mÔ£ô[39m src/__tests__/browser-selectors.test.js [2m([22m[2m13 tests[22m[2m)[22m[33m 798[2mms[22m[39m
+ [32mÔ£ô[39m tests/llm/related.test.js [2m([22m[2m3 tests[22m[2m)[22m[33m 530[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m relatedTo includes recent sprints regardless of query [33m 302[2mms[22m[39m
+[90mstdout[2m | tests/idea-store-quarantine.test.js[2m > [22m[2midea-store corrupt file quarantine[2m > [22m[2mmoves invalid frontmatter files to corrupt without throwing
+[22m[39mLIST IDEA DIR: C:\Users\PAWANS~1\AppData\Local\Temp\idea-quarantine-wW6mF7\.vscode-rotator\ideas
+
+[90mstdout[2m | tests/idea-store-quarantine.test.js[2m > [22m[2midea-store corrupt file quarantine[2m > [22m[2mmoves invalid frontmatter files to corrupt without throwing
+[22m[39mFOUND FILES: [ [32m'bad.md'[39m ]
+
+[90mstdout[2m | tests/idea-store-quarantine.test.js[2m > [22m[2midea-store corrupt file quarantine[2m > [22m[2mmoves invalid frontmatter files to corrupt without throwing
+[22m[39mIDEA PARSE ERROR: YAMLException: unexpected end of the stream within a flow collection at line 3, column 1:
+    
+    ^
+    at generateError [90m(C:\SW Development\VS Code Agent\Solution\[39mnode_modules\[4mgray-matter[24m\node_modules\[4mjs-yaml[24m\lib\js-yaml\loader.js:183:10[90m)[39m
+    at throwError [90m(C:\SW Development\VS Code Agent\Solution\[39mnode_modules\[4mgray-matter[24m\node_modules\[4mjs-yaml[24m\lib\js-yaml\loader.js:189:9[90m)[39m
+    at readFlowCollection [90m(C:\SW Development\VS Code Agent\Solution\[39mnode_modules\[4mgray-matter[24m\node_modules\[4mjs-yaml[24m\lib\js-yaml\loader.js:786:3[90m)[39m
+    at composeNode [90m(C:\SW Development\VS Code Agent\Solution\[39mnode_modules\[4mgray-matter[24m\node_modules\[4mjs-yaml[24m\lib\js-yaml\loader.js:1376:11[90m)[39m
+    at readBlockMapping [90m(C:\SW Development\VS Code Agent\Solution\[39mnode_modules\[4mgray-matter[24m\node_modules\[4mjs-yaml[24m\lib\js-yaml\loader.js:1105:11[90m)[39m
+    at composeNode [90m(C:\SW Development\VS Code Agent\Solution\[39mnode_modules\[4mgray-matter[24m\node_modules\[4mjs-yaml[24m\lib\js-yaml\loader.js:1375:12[90m)[39m
+    at readDocument [90m(C:\SW Development\VS Code Agent\Solution\[39mnode_modules\[4mgray-matter[24m\node_modules\[4mjs-yaml[24m\lib\js-yaml\loader.js:1541:3[90m)[39m
+    at loadDocuments [90m(C:\SW Development\VS Code Agent\Solution\[39mnode_modules\[4mgray-matter[24m\node_modules\[4mjs-yaml[24m\lib\js-yaml\loader.js:1604:5[90m)[39m
+    at load [90m(C:\SW Development\VS Code Agent\Solution\[39mnode_modules\[4mgray-matter[24m\node_modules\[4mjs-yaml[24m\lib\js-yaml\loader.js:1630:19[90m)[39m
+    at Object.safeLoad [90m(C:\SW Development\VS Code Agent\Solution\[39mnode_modules\[4mgray-matter[24m\node_modules\[4mjs-yaml[24m\lib\js-yaml\loader.js:1653:10[90m)[39m {
+  reason: [32m'unexpected end of the stream within a flow collection'[39m,
+  mark: Mark {
+    name: [1mnull[22m,
+    buffer: [32m'\npriority: [\n\x00'[39m,
+    position: [33m13[39m,
+    line: [33m2[39m,
+    column: [33m0[39m
+  }
+}
+
+ [32mÔ£ô[39m tests/idea-store-quarantine.test.js [2m([22m[2m1 test[22m[2m)[22m[33m 413[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m moves invalid frontmatter files to corrupt without throwing [33m 409[2mms[22m[39m
+ [32mÔ£ô[39m tests/agent-handoff-quarantine.test.js [2m([22m[2m1 test[22m[2m)[22m[33m 406[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m quarantines invalid JSON sprint manifests and keeps listing resilient [33m 402[2mms[22m[39m
+ [32mÔ£ô[39m tests/llm-training-exporter.test.js [2m([22m[2m1 test[22m[2m)[22m[33m 806[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m should export bc2-chat and thread-turn pairs plus llm-response records to JSONL [33m 798[2mms[22m[39m
+ [32mÔ£ô[39m tests/sprint-validation.test.js [2m([22m[2m3 tests[22m[2m)[22m[33m 428[2mms[22m[39m
+ [32mÔ£ô[39m tests/workspace.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 30[2mms[22m[39m
+ [32mÔ£ô[39m tests/health.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 217[2mms[22m[39m
+ [32mÔ£ô[39m tests/session-supervisor.test.js [2m([22m[2m9 tests[22m[2m)[22m[32m 126[2mms[22m[39m
+ [32mÔ£ô[39m tests/auto-handoff.test.js [2m([22m[2m7 tests[22m[2m)[22m[32m 35[2mms[22m[39m
+ [32mÔ£ô[39m tests/logger-redaction.test.js [2m([22m[2m8 tests[22m[2m)[22m[32m 31[2mms[22m[39m
+ [32mÔ£ô[39m tests/lock.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 180[2mms[22m[39m
+ [32mÔ£ô[39m tests/logger.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 105[2mms[22m[39m
+ [32mÔ£ô[39m tests/experience-db-recovery.test.js [2m([22m[2m1 test[22m[2m)[22m[33m 431[2mms[22m[39m
+     [33m[2mÔ£ô[22m[39m quarantines corrupt database bytes and opens a fresh state [33m 425[2mms[22m[39m
+ [32mÔ£ô[39m tests/domain-error.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32mÔ£ô[39m tests/preload-surface.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32mÔ£ô[39m tests/git-monitor.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 32[2mms[22m[39m
+ [32mÔ£ô[39m tests/scorer.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32mÔ£ô[39m tests/test-runner.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32mÔ£ô[39m tests/ci-workflow.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32mÔ£ô[39m tests/startup-bootstrap.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32mÔ£ô[39m tests/window-security.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 32[2mms[22m[39m
+ [32mÔ£ô[39m tests/thread.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32mÔ£ô[39m tests/updater-config.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 12[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m49 passed[39m[22m[90m (49)[39m
+[2m      Tests [22m [1m[32m346 passed[39m[22m[90m (346)[39m
+[2m   Start at [22m 02:06:09
+[2m   Duration [22m 155.23s[2m (transform 7.96s, setup 0ms, import 27.65s, tests 51.80s, environment 310.93s)[22m
+

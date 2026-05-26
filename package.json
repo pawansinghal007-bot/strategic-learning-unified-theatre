@@ -5,7 +5,11 @@
   "main": "vite.config.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "test:solution": "npm --prefix ./Solution test"
+    "test:solution": "npm --prefix ./Solution test",
+    "test:chaos": "node ./scripts/chaos/run-chaos.js",
+    "test:chaos:kill-daemon": "node ./scripts/chaos/run-chaos.js --scenario kill-daemon",
+    "test:chaos:corrupt-config": "node ./scripts/chaos/run-chaos.js --scenario corrupt-config",
+    "test:chaos:burst-load": "node ./scripts/chaos/run-chaos.js --scenario burst-load"
   },
   "keywords": [],
   "author": "",
@@ -16,5 +20,10 @@
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "vite": "^8.0.13"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "jest": "^30.4.2",
+    "ts-jest": "^29.4.11"
   }
 }
