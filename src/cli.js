@@ -30,6 +30,8 @@ import { bindLlmCommands } from "./commands/llm.js";
 import { bindBc2SyncCommand } from "./commands/bc2-sync.js";
 import { bindAiCommands } from "./commands/ai.js";
 import { createLogger } from "./logger.js";
+import { loadConfig } from "./internal/config.js";
+import { getSystemHealth as getSystemHealthSystem } from "./system/systemHealth.js";
 
 const log = createLogger("cli");
 const program = new Command();
@@ -313,6 +315,37 @@ program
     } catch (err) {
       spinner.stop();
       console.error(chalk.red(String(err?.message ?? err)));
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command("system-health")
+  .description("Probe full system health and output JSON")
+  .option("--pretty", "Pretty-print JSON output")
+  .action(async (options) => {
+    try {
+      const config = await loadConfig();
+      const health = await getSystemHealthSystem({
+        dbPath: config.memoryDbPath,
+        config,
+      });
+
+      const out = {
+        overallStatus: health.status,
+        generatedAt: health.ts,
+        subsystems: health.subsystems,
+      };
+
+      if (options?.pretty) {
+        console.log(JSON.stringify(out, null, 2));
+      } else {
+        console.log(JSON.stringify(out));
+      }
+
+      process.exitCode = health.status === "OK" ? 0 : 1;
+    } catch (err) {
+      console.error(String(err?.message ?? err));
       process.exitCode = 1;
     }
   });

@@ -6,9 +6,9 @@
  * Browser Extension → Native Host → SQLite DB → Flask API → Ollama LLM
  */
 
-import { existsSync } from 'fs';
-import { join } from 'path';
-import { homedir } from 'os';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+import { homedir } from 'node:os';
 
 const DB_PATH = join(homedir(), 'AppData', 'Roaming', 'BrowserCapture', 'capture.db');
 

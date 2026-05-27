@@ -575,7 +575,7 @@ export function bindBrowserCommands(program, { log = null } = {}) {
       try {
         const list = await listResponses({
           platform: options.platform,
-          limit: parseInt(options.limit, 10),
+          limit: Number.parseInt(options.limit, 10),
         });
 
         spinner.stop();
@@ -622,7 +622,7 @@ export function bindBrowserCommands(program, { log = null } = {}) {
         const result = await clearResponses({
           platform: options.platform,
           olderThanDays: options.olderThanDays
-            ? parseInt(options.olderThanDays, 10)
+            ? Number.parseInt(options.olderThanDays, 10)
             : null,
         });
 

@@ -1,5 +1,5 @@
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
 
 const workflowPath = path.resolve(__dirname, "../.github/workflows/chaos.yml");
 const workflowText = fs.readFileSync(workflowPath, "utf8");

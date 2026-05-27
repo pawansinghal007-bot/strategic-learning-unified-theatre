@@ -36,8 +36,7 @@ describe("Regression: Scoring Invariants", () => {
       email: `test${Math.random()}@example.com`,
       agentType: "codex",
       authBlob: "x",
-      cooldownUntil:
-        cooldownOffset > 0 ? new Date(now + cooldownOffset) : null,
+      cooldownUntil: cooldownOffset > 0 ? new Date(now + cooldownOffset) : null,
       // Non-cryptographic randomness — used for generating a random lastUsed timestamp only. // NOSONAR javascript:S2245
       lastUsed:
         seed > 0.5 ? new Date(now - Math.random() * 1000 * 60 * 60 * 24) : null, // 0-24 hours ago

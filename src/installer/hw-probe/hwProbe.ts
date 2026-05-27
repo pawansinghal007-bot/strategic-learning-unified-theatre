@@ -3,8 +3,8 @@
  * Cross-platform hardware probe for the adaptive installer.
  */
 
-import { execSync } from "child_process";
-import * as os from "os";
+import { execSync } from "node:child_process";
+import * as os from "node:os";
 
 // ── types ─────────────────────────────────────────────────────────────────────
 
@@ -156,7 +156,7 @@ function tryNvidiaSmi(): GpuInfo[] {
     const raw = run("nvidia-smi --query-gpu=name,memory.total --format=csv,noheader,nounits");
     return raw.split("\n").filter(Boolean).map((line) => {
       const [name, vramStr] = line.split(",").map((s) => s.trim());
-      return { name: name ?? "Unknown NVIDIA GPU", vramMB: parseInt(vramStr ?? "0", 10), vendor: "nvidia" as const };
+      return { name: name ?? "Unknown NVIDIA GPU", vramMB: Number.parseInt(vramStr ?? "0", 10), vendor: "nvidia" as const };
     });
   } catch {
     return [];

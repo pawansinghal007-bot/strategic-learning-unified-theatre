@@ -12,19 +12,19 @@ export const AccountHealthStatus = {
   OK: "ok",
   COOLING_DOWN: "cooling_down",
   EXHAUSTED: "exhausted",
-  ERROR: "error"
+  ERROR: "error",
 };
 
 export const DaemonHealthStatus = {
   OK: "ok",
   DEGRADED: "degraded",
-  NOT_MONITORING: "not_monitoring"
+  NOT_MONITORING: "not_monitoring",
 };
 
 export const LocalLlmHealthStatus = {
   READY: "ready",
   DEGRADED: "degraded",
-  UNAVAILABLE: "unavailable"
+  UNAVAILABLE: "unavailable",
 };
 
 async function exists(p) {
@@ -37,7 +37,7 @@ async function exists(p) {
 }
 
 function base64UrlDecode(input) {
-  const s = input.replace(/-/g, "+").replace(/_/g, "/");
+  const s = input.replaceAll("-", "+").replaceAll("_", "/");
   const pad = s.length % 4 ? "=".repeat(4 - (s.length % 4)) : "";
   return Buffer.from(s + pad, "base64").toString("utf8");
 }
@@ -77,11 +77,21 @@ function parseTokenLikeJson(text) {
 
 function deriveHealthFromExpiry(expiry) {
   if (!expiry) {
-    return { valid: false, remainingRequests: null, resetAt: null, error: "No expiry info" };
+    return {
+      valid: false,
+      remainingRequests: null,
+      resetAt: null,
+      error: "No expiry info",
+    };
   }
   const now = Date.now();
   const valid = expiry.getTime() > now;
-  return { valid, remainingRequests: null, resetAt: expiry, error: valid ? null : "Expired" };
+  return {
+    valid,
+    remainingRequests: null,
+    resetAt: expiry,
+    error: valid ? null : "Expired",
+  };
 }
 
 export async function probeAccount(account, { secretStore } = {}) {
@@ -89,13 +99,15 @@ export async function probeAccount(account, { secretStore } = {}) {
     if (["codex", "vscode", "github"].includes(account.agentType)) {
       const p = await resolveAuthPath(account.agentType, {
         profileName: account.profileName ?? account.id,
-        preferExisting: true
+        preferExisting: true,
       });
       if (await exists(p)) {
         const raw = await fs.readFile(p, "utf8");
         const json = parseTokenLikeJson(raw);
         if (json) {
-          const exp = parseExpiresAt(json.expires_at ?? json.expiry ?? json.exp);
+          const exp = parseExpiresAt(
+            json.expires_at ?? json.expiry ?? json.exp,
+          );
           if (exp) {
             const base = deriveHealthFromExpiry(exp);
             const remaining =
@@ -109,7 +121,7 @@ export async function probeAccount(account, { secretStore } = {}) {
               valid: base.valid,
               remainingRequests: remaining,
               resetAt,
-              error: base.error
+              error: base.error,
             };
           }
         }
@@ -122,12 +134,21 @@ export async function probeAccount(account, { secretStore } = {}) {
         ? account.authBlob
         : await ss.get(account.id);
 
-    if (typeof account?.authBlob === "string" && account.authBlob.length > 0 && !await ss.get(account.id)) {
+    if (
+      typeof account?.authBlob === "string" &&
+      account.authBlob.length > 0 &&
+      !(await ss.get(account.id))
+    ) {
       await ss.set(account.id, account.authBlob);
     }
 
     if (!blob) {
-      return { valid: false, remainingRequests: null, resetAt: null, error: "Missing secret" };
+      return {
+        valid: false,
+        remainingRequests: null,
+        resetAt: null,
+        error: "Missing secret",
+      };
     }
 
     const jwtExp = parseJwtExp(String(blob));
@@ -149,14 +170,19 @@ export async function probeAccount(account, { secretStore } = {}) {
           valid: base.valid,
           remainingRequests: remaining,
           resetAt,
-          error: base.error
+          error: base.error,
         };
       }
     }
 
     return { valid: true, remainingRequests: null, resetAt: null, error: null };
   } catch (err) {
-    return { valid: false, remainingRequests: null, resetAt: null, error: String(err?.message ?? err) };
+    return {
+      valid: false,
+      remainingRequests: null,
+      resetAt: null,
+      error: String(err?.message ?? err),
+    };
   }
 }
 
@@ -169,7 +195,7 @@ function daemonPaths() {
   return {
     baseDir,
     pidPath: path.join(baseDir, "daemon.pid"),
-    logPath: path.join(baseDir, "daemon.log")
+    logPath: path.join(baseDir, "daemon.log"),
   };
 }
 
@@ -199,7 +225,7 @@ function emptyAccountSummary() {
     ok: 0,
     coolingDown: 0,
     exhausted: 0,
-    error: 0
+    error: 0,
   };
 }
 
@@ -208,11 +234,13 @@ function classifyAccount(account, probe) {
     account?.cooldownUntil instanceof Date
       ? account.cooldownUntil
       : account?.cooldownUntil
-      ? new Date(account.cooldownUntil)
-      : null;
+        ? new Date(account.cooldownUntil)
+        : null;
   const isCoolingDown =
     account?.status === "cooldown" ||
-    (cooldownUntil && Number.isFinite(cooldownUntil.getTime()) && cooldownUntil.getTime() > Date.now());
+    (cooldownUntil &&
+      Number.isFinite(cooldownUntil.getTime()) &&
+      cooldownUntil.getTime() > Date.now());
 
   if (probe?.valid === false) return AccountHealthStatus.ERROR;
   if (probe?.remainingRequests === 0) return AccountHealthStatus.EXHAUSTED;
@@ -221,13 +249,25 @@ function classifyAccount(account, probe) {
 }
 
 function summarizeAccountStatus(accounts) {
-  if (accounts.some((account) => account.healthStatus === AccountHealthStatus.ERROR)) {
+  if (
+    accounts.some(
+      (account) => account.healthStatus === AccountHealthStatus.ERROR,
+    )
+  ) {
     return AccountHealthStatus.ERROR;
   }
-  if (accounts.some((account) => account.healthStatus === AccountHealthStatus.EXHAUSTED)) {
+  if (
+    accounts.some(
+      (account) => account.healthStatus === AccountHealthStatus.EXHAUSTED,
+    )
+  ) {
     return AccountHealthStatus.EXHAUSTED;
   }
-  if (accounts.some((account) => account.healthStatus === AccountHealthStatus.COOLING_DOWN)) {
+  if (
+    accounts.some(
+      (account) => account.healthStatus === AccountHealthStatus.COOLING_DOWN,
+    )
+  ) {
     return AccountHealthStatus.COOLING_DOWN;
   }
   return AccountHealthStatus.OK;
@@ -251,7 +291,7 @@ export async function computeAccountHealth() {
           valid: false,
           remainingRequests: null,
           resetAt: null,
-          error: String(err?.message ?? err)
+          error: String(err?.message ?? err),
         };
         healthStatus = AccountHealthStatus.ERROR;
       }
@@ -265,7 +305,7 @@ export async function computeAccountHealth() {
         valid: Boolean(probe?.valid),
         remainingRequests: probe?.remainingRequests ?? null,
         resetAt: probe?.resetAt ?? null,
-        error: probe?.error ?? null
+        error: probe?.error ?? null,
       });
     }
   } catch (err) {
@@ -275,23 +315,25 @@ export async function computeAccountHealth() {
       accounts,
       summary: {
         ...summary,
-        errorMessage: String(err?.message ?? err)
-      }
+        errorMessage: String(err?.message ?? err),
+      },
     };
   }
 
   for (const account of accounts) {
     summary.total += 1;
     if (account.healthStatus === AccountHealthStatus.OK) summary.ok += 1;
-    else if (account.healthStatus === AccountHealthStatus.COOLING_DOWN) summary.coolingDown += 1;
-    else if (account.healthStatus === AccountHealthStatus.EXHAUSTED) summary.exhausted += 1;
+    else if (account.healthStatus === AccountHealthStatus.COOLING_DOWN)
+      summary.coolingDown += 1;
+    else if (account.healthStatus === AccountHealthStatus.EXHAUSTED)
+      summary.exhausted += 1;
     else summary.error += 1;
   }
 
   return {
     status: summarizeAccountStatus(accounts),
     accounts,
-    summary
+    summary,
   };
 }
 
@@ -304,7 +346,9 @@ export async function computeDaemonHealth() {
 
   try {
     const config = await loadConfig();
-    watchedReposCount = Array.isArray(config?.watchedRepos) ? config.watchedRepos.length : 0;
+    watchedReposCount = Array.isArray(config?.watchedRepos)
+      ? config.watchedRepos.length
+      : 0;
   } catch {
     configLoaded = false;
   }
@@ -314,15 +358,15 @@ export async function computeDaemonHealth() {
     watchedReposCount === 0
       ? DaemonHealthStatus.NOT_MONITORING
       : pidAlive && configLoaded
-      ? DaemonHealthStatus.OK
-      : DaemonHealthStatus.DEGRADED;
+        ? DaemonHealthStatus.OK
+        : DaemonHealthStatus.DEGRADED;
 
   return {
     status,
     pid,
     watchedReposCount,
     logPath,
-    logExists
+    logExists,
   };
 }
 
@@ -334,10 +378,17 @@ function mapLocalLlmStatus(raw) {
   if (rawStatus === LocalLlmHealthStatus.DEGRADED) {
     return LocalLlmHealthStatus.DEGRADED;
   }
-  if (rawStatus === LocalLlmHealthStatus.UNAVAILABLE || rawStatus === "missing") {
+  if (
+    rawStatus === LocalLlmHealthStatus.UNAVAILABLE ||
+    rawStatus === "missing"
+  ) {
     return LocalLlmHealthStatus.UNAVAILABLE;
   }
-  if (raw?.available === true && Array.isArray(raw?.models) && raw.models.length > 0) {
+  if (
+    raw?.available === true &&
+    Array.isArray(raw?.models) &&
+    raw.models.length > 0
+  ) {
     return LocalLlmHealthStatus.READY;
   }
   if (raw?.ollamaAvailable === true) {
@@ -348,11 +399,12 @@ function mapLocalLlmStatus(raw) {
 
 export async function computeLocalLlmHealth() {
   const raw = await getLocalLlmStatus();
-  const modelDir = raw?.modelDir ?? (raw?.modelPath ? path.dirname(raw.modelPath) : null);
+  const modelDir =
+    raw?.modelDir ?? (raw?.modelPath ? path.dirname(raw.modelPath) : null);
   return {
     status: mapLocalLlmStatus(raw),
     modelDir,
-    models: Array.isArray(raw?.models) ? raw.models : []
+    models: Array.isArray(raw?.models) ? raw.models : [],
   };
 }
 
@@ -360,13 +412,13 @@ export async function getSystemHealth() {
   const [account, daemon, localLlm] = await Promise.all([
     computeAccountHealth(),
     computeDaemonHealth(),
-    computeLocalLlmHealth()
+    computeLocalLlmHealth(),
   ]);
 
   return {
     ts: new Date().toISOString(),
     account,
     daemon,
-    localLlm
+    localLlm,
   };
 }

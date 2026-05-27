@@ -1,5 +1,5 @@
-import { readFileSync } from 'fs';
-import path from 'path';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 
 const source = readFileSync(path.join(process.cwd(), 'electron-ui', 'main.cjs'), 'utf8');
 

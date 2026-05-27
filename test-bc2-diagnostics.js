@@ -4,10 +4,10 @@
  * Checks database initialization and Flask API health
  */
 
-import { execSync } from 'child_process';
-import { existsSync } from 'fs';
-import { join } from 'path';
-import { homedir } from 'os';
+import { execSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+import { homedir } from 'node:os';
 
 const DB_PATH = join(homedir(), 'AppData', 'Roaming', 'BrowserCapture', 'capture.db');
 const SCHEMA_PATH = 'c:\\SW Development\\VS Code Agent\\files\\bc2-native-host\\native-host\\schema.sql';

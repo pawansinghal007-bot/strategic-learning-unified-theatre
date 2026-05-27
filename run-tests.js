@@ -1,6 +1,6 @@
-import { spawnSync } from "child_process";
-import { readdirSync } from "fs";
-import path from "path";
+import { spawnSync } from "node:child_process";
+import { readdirSync } from "node:fs";
+import path from "node:path";
 
 const ALLOWLIST = ["npm", "pnpm", "yarn", "node", "npx", "vitest"];
 

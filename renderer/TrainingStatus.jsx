@@ -1,4 +1,5 @@
-import React from 'react'
+import React from "react";
+import PropTypes from "prop-types";
 
 /**
  * Format a timestamp as relative time (e.g., "2 min ago")
@@ -8,28 +9,29 @@ import React from 'react'
  */
 function formatRelativeTime(timestamp) {
   if (!timestamp) {
-    return 'never'
+    return "never";
   }
 
   // Handle both ISO strings and milliseconds
-  const ms = typeof timestamp === 'string' ? new Date(timestamp).getTime() : timestamp
-  const now = Date.now()
-  const diffMs = now - ms
+  const ms =
+    typeof timestamp === "string" ? new Date(timestamp).getTime() : timestamp;
+  const now = Date.now();
+  const diffMs = now - ms;
 
-  if (diffMs < 0) return 'in the future'
-  if (diffMs < 1000) return 'just now'
-  if (diffMs < 60000) return `${Math.floor(diffMs / 1000)}s ago`
-  if (diffMs < 3600000) return `${Math.floor(diffMs / 60000)}m ago`
-  if (diffMs < 86400000) return `${Math.floor(diffMs / 3600000)}h ago`
+  if (diffMs < 0) return "in the future";
+  if (diffMs < 1000) return "just now";
+  if (diffMs < 60000) return `${Math.floor(diffMs / 1000)}s ago`;
+  if (diffMs < 3600000) return `${Math.floor(diffMs / 60000)}m ago`;
+  if (diffMs < 86400000) return `${Math.floor(diffMs / 3600000)}h ago`;
 
   // For dates > 1 day, use Intl if available, else fallback
   try {
-    const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' })
-    const daysAgo = Math.floor(diffMs / 86400000)
-    return rtf.format(-daysAgo, 'day')
+    const rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
+    const daysAgo = Math.floor(diffMs / 86400000);
+    return rtf.format(-daysAgo, "day");
   } catch {
-    const daysAgo = Math.floor(diffMs / 86400000)
-    return `${daysAgo}d ago`
+    const daysAgo = Math.floor(diffMs / 86400000);
+    return `${daysAgo}d ago`;
   }
 }
 
@@ -46,9 +48,9 @@ function formatRelativeTime(timestamp) {
 export default function TrainingStatus({
   captureCount = 0,
   lastCapturedAt = null,
-  totalDocs = 0
+  totalDocs = 0,
 }) {
-  const relativeTime = formatRelativeTime(lastCapturedAt)
+  const relativeTime = formatRelativeTime(lastCapturedAt);
 
   return (
     <div className="flex items-center gap-4 px-4 py-2 bg-gray-100 dark:bg-gray-800 border-t border-gray-300 dark:border-gray-700 text-sm text-gray-700 dark:text-gray-300">
@@ -72,5 +74,11 @@ export default function TrainingStatus({
         <span className="font-medium">{totalDocs}</span>
       </div>
     </div>
-  )
+  );
 }
+
+TrainingStatus.propTypes = {
+  captureCount: PropTypes.number,
+  lastCapturedAt: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+  totalDocs: PropTypes.number,
+};

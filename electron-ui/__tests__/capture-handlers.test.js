@@ -373,11 +373,11 @@ describe('capture-handlers.cjs', () => {
       const filepath = path.join(responseDir, files[0]);
       const stats = await fs.stat(filepath);
       // Check that mode is restrictive; Windows file mode reporting may differ.
-      const mode = stats.mode & parseInt('777', 8);
+      const mode = stats.mode & Number.parseInt('777', 8);
       if (process.platform === 'win32') {
-        expect(mode).toBe(parseInt('666', 8));
+        expect(mode).toBe(Number.parseInt('666', 8));
       } else {
-        expect(mode).toBe(parseInt('600', 8));
+        expect(mode).toBe(Number.parseInt('600', 8));
       }
     } finally {
       process.env.HOME = origHome;

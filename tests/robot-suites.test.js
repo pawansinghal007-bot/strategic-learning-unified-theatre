@@ -2,9 +2,9 @@
 // Static analysis test that verifies Robot Framework suites exist and contain mandatory flows
 // This test ensures the robot/ directory structure is properly initialized with required test cases
 
-import { readdir, readFile } from "fs/promises";
-import { join, dirname } from "path";
-import { fileURLToPath } from "url";
+import { readdir, readFile } from "node:fs/promises";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

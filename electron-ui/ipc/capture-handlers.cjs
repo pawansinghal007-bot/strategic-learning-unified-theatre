@@ -46,7 +46,7 @@ function formatTimestamp(ts) {
   const date = new Date(ts);
   const iso = date.toISOString();
   // Replace colons with dashes for filename safety
-  return iso.replace(/:/g, '-').replace(/\./g, '-');
+  return iso.replaceAll(':', '-').replaceAll('.', '-');
 }
 
 function formatValidationError(error) {

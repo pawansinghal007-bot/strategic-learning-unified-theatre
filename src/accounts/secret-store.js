@@ -156,7 +156,7 @@ export async function getSupervisorCredentials(provider = "default") {
   return await store.get("supervisor_token_" + provider);
 }
 
-export async function setSupervisorCredentials(provider = "default", token) {
+export async function setSupervisorCredentials(token, provider = "default") {
   const store = new SecretStore();
   await store.set("supervisor_token_" + provider, token);
 }

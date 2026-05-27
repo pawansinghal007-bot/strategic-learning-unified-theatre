@@ -375,7 +375,7 @@ describe("Regression: Ingestion Error Handling", () => {
 
     const filepath = path.join(browserResponsesDir, files[0]);
     const stats = await fs.stat(filepath);
-    const mode = stats.mode & parseInt("777", 8);
+    const mode = stats.mode & Number.parseInt("777", 8);
 
     // On Windows, perms are different
     if (process.platform === "win32") {
@@ -383,7 +383,7 @@ describe("Regression: Ingestion Error Handling", () => {
       expect(mode).toBeDefined();
     } else {
       // On Unix-like systems, should be 600 (read/write for owner only)
-      expect(mode).toBe(parseInt("600", 8));
+      expect(mode).toBe(Number.parseInt("600", 8));
     }
   });
 

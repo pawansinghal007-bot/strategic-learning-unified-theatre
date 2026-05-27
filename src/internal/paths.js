@@ -1,13 +1,13 @@
-import fs from "node:fs/promises";
+import fsp from "node:fs/promises";
+import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
 import { loadConfig } from "./config.js";
-import fs from "node:fs";
 
 async function exists(p) {
   try {
-    await fs.stat(p);
+    await fsp.stat(p);
     return true;
   } catch {
     return false;

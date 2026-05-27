@@ -6,10 +6,10 @@
 const FALLBACK_WINDOW_MS = 60 * 60 * 1000; // 3,600,000 ms — sprint-defined constant
 
 const LIMIT_PHRASES = [
-  'usage limit reached',
-  'quota exceeded',
-  'too many requests',
-  'usage cap',
+  "usage limit reached",
+  "quota exceeded",
+  "too many requests",
+  "usage cap",
 ];
 
 /**
@@ -26,9 +26,9 @@ export function detectLimit(payloadText) {
   if (!limitHit) return { limitHit: false };
 
   // Attempt to parse a relative reset time: "try again in N minutes".
-  const minutesMatch = text.match(/try again in (\d+) minute/);
+  const minutesMatch = /try again in (\d+) minute/.exec(text);
   if (minutesMatch) {
-    const parsedMs = parseInt(minutesMatch[1], 10) * 60 * 1000;
+    const parsedMs = Number.parseInt(minutesMatch[1], 10) * 60 * 1000;
     return { limitHit: true, resetTime: Date.now() + parsedMs };
   }
 

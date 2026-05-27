@@ -1,7 +1,7 @@
 const { app, BrowserWindow, ipcMain, dialog, session } = require("electron");
 const { autoUpdater } = require("electron-updater");
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
 const { getSystemHealth } = require("../src/accounts/health.js");
 const os = require("node:os");
 const { pathToFileURL } = require("node:url");
@@ -243,7 +243,7 @@ async function createWindow() {
 
   if (process.platform === "darwin") opts.titleBarStyle = "hiddenInset";
 
-  if (saved && saved.x != null) {
+  if (saved?.x != null) {
     opts.x = saved.x;
     opts.y = saved.y;
     opts.width = saved.width || opts.width;
@@ -254,7 +254,7 @@ async function createWindow() {
   mainLogger = createLogger("electron-main", {
     onEntry(entry) {
       try {
-        if (win && !win.isDestroyed()) {
+        if (!win?.isDestroyed()) {
           win.webContents.send("log:event", entry);
         }
       } catch {
@@ -424,7 +424,10 @@ app.whenReady().then(async () => {
 
     const forward = (evtName, type) => (data) => {
       try {
-        mainWindow.webContents.send("daemon:event", { type, ...(data || {}) });
+        mainWindow.webContents.send(
+          "daemon:event",
+          data ? { type, ...data } : { type },
+        );
       } catch {}
     };
 
@@ -487,9 +490,9 @@ app.whenReady().then(async () => {
     });
 
     ipcMain.handle("browser:setVisible", async (event, visible) => {
-      if (!browserPane || !browserPane.currentView) return { success: true };
+      if (!browserPane?.currentView) return { success: true };
       try {
-        const { view, type } = browserPane.currentView;
+        const { view } = browserPane.currentView;
         if (visible) {
           const bounds = browserPane.getBounds();
           view.setBounds(bounds);
@@ -546,7 +549,7 @@ app.whenReady().then(async () => {
     mainLogger.info("ipc.capture.handlers.start", { correlationId: "ipc" });
     // Import DocumentIngester to pass to capture handlers
     const { DocumentIngester } = await import(
-      require("url").pathToFileURL(
+      pathToFileURL(
         path.join(__dirname, "..", "src", "llm", "document-ingester.js"),
       ).href
     );

@@ -1,7 +1,10 @@
 import chalk from "chalk";
 import ora from "ora";
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 
-import { MemoryDb, memoryDb } from "../ai-memory/memory-db.js";
+import { MemoryDb } from "../ai-memory/memory-db.js";
 import { SprintStateRepo } from "../ai-memory/repositories/sprint-state-repo.js";
 import { HandoffRepo } from "../ai-memory/repositories/handoff-repo.js";
 import { LessonsRepo } from "../ai-memory/repositories/lessons-repo.js";
@@ -33,15 +36,35 @@ function renderArray(label, items) {
   return `${label}: ${items.map((item) => String(item)).join(", ")}`;
 }
 
+function aiSnapshotPointerPath() {
+  return path.join(os.homedir(), ".vscode-rotator", "ai-snapshot-current.json");
+}
+
+async function loadSnapshotPointer() {
+  try {
+    const raw = await fs.readFile(aiSnapshotPointerPath(), "utf8");
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
 function renderSummary({
   currentSprint,
   handoff,
   latestBaseline,
   lessons = [],
   decisions = [],
-  commands = []
+  commands = [],
+  snapshotPointer = null
 }) {
   console.log(chalk.bold("AI Memory Snapshot"));
+  if (snapshotPointer?.tag || snapshotPointer?.path) {
+    console.log(
+      chalk.bold("Snapshot tag:"),
+      `${snapshotPointer.tag || "<none>"}${snapshotPointer.path ? ` (${snapshotPointer.path})` : ""}`
+    );
+  }
   console.log();
 
   if (currentSprint) {
@@ -127,12 +150,12 @@ function renderSummary({
 }
 
 // ---------------------------------------------------------------------------
-// Use the module-level singleton so all commands within a test run (or CLI
-// invocation) share the same connection.  Never call db.close() on this
-// context — the singleton must stay open for the lifetime of the process.
+// Open AI-memory DB contexts at command execution time. This respects test
+// HOME/DB_PATH overrides and avoids leaking test baseline records into the
+// user's real local AI-memory database.
 // ---------------------------------------------------------------------------
-function createDbContext() {
-  const db = memoryDb;
+async function createDbContext() {
+  const db = await new MemoryDb().init();
 
   return {
     db,
@@ -141,12 +164,13 @@ function createDbContext() {
     lessonsRepo: new LessonsRepo(db),
     decisionsRepo: new DecisionsRepo(db),
     baselineRepo: new TestBaselineRepo(db),
-    commandsRepo: new CommandsRepo(db)
+    commandsRepo: new CommandsRepo(db),
+    close: () => db.close()
   };
 }
 
 async function loadAiMemoryContext() {
-  const context = createDbContext();
+  const context = await createDbContext();
 
   let currentSprint = context.sprintRepo.getLatest();
   let handoff = context.handoffRepo.getLatest();
@@ -167,15 +191,17 @@ async function loadAiMemoryContext() {
     }
   }
 
-  return {
-    context,
+  const snapshot = {
     currentSprint,
     handoff,
     latestBaseline,
     decisions: context.decisionsRepo.list(),
     lessons: context.lessonsRepo.list(),
-    commands: context.commandsRepo.list()
+    commands: context.commandsRepo.list(),
+    snapshotPointer: await loadSnapshotPointer()
   };
+  context.close();
+  return snapshot;
 }
 
 export function bindAiCommands(program) {
@@ -195,7 +221,8 @@ export function bindAiCommands(program) {
           latestBaseline,
           decisions,
           lessons,
-          commands
+          commands,
+          snapshotPointer
         } = await loadAiMemoryContext();
 
         spinner.stop();
@@ -206,7 +233,8 @@ export function bindAiCommands(program) {
           latestBaseline,
           lessons,
           decisions,
-          commands
+          commands,
+          snapshotPointer
         });
       } catch (err) {
         spinner.stop();
@@ -227,7 +255,8 @@ export function bindAiCommands(program) {
           latestBaseline,
           decisions,
           lessons,
-          commands
+          commands,
+          snapshotPointer
         } = await loadAiMemoryContext();
 
         spinner.stop();
@@ -238,7 +267,8 @@ export function bindAiCommands(program) {
           latestBaseline,
           lessons,
           decisions,
-          commands
+          commands,
+          snapshotPointer
         });
       } catch (err) {
         spinner.stop();
@@ -265,7 +295,7 @@ export function bindAiCommands(program) {
       const spinner = ora("Saving lesson...").start();
 
       try {
-        const context = createDbContext();
+        const context = await createDbContext();
 
         const lesson = context.lessonsRepo.add({
           problem: options.problem,
@@ -278,6 +308,7 @@ export function bindAiCommands(program) {
                 .filter(Boolean)
             : []
         });
+        context.close();
 
         spinner.stop();
 
@@ -296,9 +327,10 @@ export function bindAiCommands(program) {
       const spinner = ora("Loading lessons...").start();
 
       try {
-        const context = createDbContext();
+        const context = await createDbContext();
 
         const rows = context.lessonsRepo.list();
+        context.close();
 
         spinner.stop();
 
@@ -341,7 +373,7 @@ export function bindAiCommands(program) {
       const spinner = ora("Saving decision...").start();
 
       try {
-        const context = createDbContext();
+        const context = await createDbContext();
 
         const record = context.decisionsRepo.add({
           title: options.title,
@@ -355,6 +387,7 @@ export function bindAiCommands(program) {
             : [],
           superseded_by: options.supersededBy ?? null
         });
+        context.close();
 
         spinner.stop();
 
@@ -373,9 +406,10 @@ export function bindAiCommands(program) {
       const spinner = ora("Loading decisions...").start();
 
       try {
-        const context = createDbContext();
+        const context = await createDbContext();
 
         const rows = context.decisionsRepo.list();
+        context.close();
 
         spinner.stop();
 
@@ -411,18 +445,38 @@ export function bindAiCommands(program) {
     .description("Record a new test baseline")
     .requiredOption("--passing <n>", "Passing tests count")
     .requiredOption("--failing <n>", "Failing tests count")
+    .option("--allow-failing", "Allow recording a known failing baseline")
     .option("--notes <notes>", "Baseline notes")
     .action(async (options) => {
       const spinner = ora("Recording baseline...").start();
 
       try {
-        const context = createDbContext();
+        const passing = Number(options.passing);
+        const failing = Number(options.failing);
+
+        if (!Number.isInteger(passing) || passing < 0) {
+          throw new Error("--passing must be a non-negative integer");
+        }
+
+        if (!Number.isInteger(failing) || failing < 0) {
+          throw new Error("--failing must be a non-negative integer");
+        }
+
+        if (failing > 0 && !options.allowFailing) {
+          throw new Error(
+            "Refusing to record a failing test baseline without --allow-failing. " +
+              "Run the full suite and record passing=actual, failing=0 for acceptance snapshots."
+          );
+        }
+
+        const context = await createDbContext();
 
         const baselineRecord = context.baselineRepo.add({
-          passing_tests: Number(options.passing),
-          failing_tests: Number(options.failing),
+          passing_tests: passing,
+          failing_tests: failing,
           notes: options.notes ?? ""
         });
+        context.close();
 
         spinner.stop();
 
@@ -455,7 +509,7 @@ export function bindAiCommands(program) {
       const spinner = ora("Saving command...").start();
 
       try {
-        const context = createDbContext();
+        const context = await createDbContext();
 
         // Commander normalizes:
         // --powershell-command => powershellCommand
@@ -469,6 +523,7 @@ export function bindAiCommands(program) {
           powershell_command: powershellCommand,
           notes: options.notes ?? ""
         });
+        context.close();
 
         spinner.stop();
 
@@ -487,9 +542,10 @@ export function bindAiCommands(program) {
       const spinner = ora("Loading commands...").start();
 
       try {
-        const context = createDbContext();
+        const context = await createDbContext();
 
         const rows = context.commandsRepo.list();
+        context.close();
 
         spinner.stop();
 

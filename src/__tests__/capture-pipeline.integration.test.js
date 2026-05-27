@@ -98,11 +98,11 @@ describe('Capture Pipeline Integration', () => {
 
     // Assert file has correct permissions
     const stats = await fs.stat(filepath);
-    const mode = stats.mode & parseInt('777', 8);
+    const mode = stats.mode & Number.parseInt('777', 8);
     if (process.platform === 'win32') {
-      expect(mode).toBe(parseInt('666', 8));
+      expect(mode).toBe(Number.parseInt('666', 8));
     } else {
-      expect(mode).toBe(parseInt('600', 8));
+      expect(mode).toBe(Number.parseInt('600', 8));
     }
 
     // Assert capture:done event was emitted

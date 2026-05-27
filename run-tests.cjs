@@ -1,6 +1,6 @@
-const { spawnSync } = require("child_process");
-const { readdirSync } = require("fs");
-const path = require("path");
+const { spawnSync } = require("node:child_process");
+const { readdirSync } = require("node:fs");
+const path = require("node:path");
 
 const ALLOWLIST = ["npm", "pnpm", "yarn", "node", "npx", "vitest"];
 

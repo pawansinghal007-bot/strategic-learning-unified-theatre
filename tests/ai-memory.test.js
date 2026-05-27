@@ -39,6 +39,7 @@ describe("AI Memory Foundation", () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "ai-memory-test-"));
     originalHome = process.env.HOME;
     process.env.HOME = tempDir;
+    process.exitCode = undefined;
   });
 
   afterEach(async () => {
@@ -243,13 +244,43 @@ describe("AI Memory Foundation", () => {
       "--passing",
       "150",
       "--failing",
-      "2",
+      "0",
       "--notes",
       "Baseline test"
     ]);
 
     expect(output.some((line) => line.includes("Baseline recorded"))).toBe(true);
     expect(output.some((line) => line.match(/id: \d+/))).toBe(true);
+  });
+
+  it("refuses to record a failing baseline unless explicitly allowed", async () => {
+    const errors = [];
+    vi.spyOn(console, "error").mockImplementation((...args) => {
+      errors.push(args.join(" "));
+    });
+
+    await makeProgram().parseAsync([
+      "node",
+      "strategic-learning-unified-theatre",
+      "ai",
+      "baseline",
+      "add",
+      "--passing",
+      "150",
+      "--failing",
+      "2",
+      "--notes",
+      "Should not become the latest snapshot baseline"
+    ]);
+
+    expect(process.exitCode).toBe(1);
+    expect(errors.some((line) => line.includes("--allow-failing"))).toBe(true);
+
+    const db = new MemoryDb();
+    await db.init();
+    const baselineRepo = new TestBaselineRepo(db);
+    expect(baselineRepo.getLatest()).toBeNull();
+    db.close();
   });
 });
 

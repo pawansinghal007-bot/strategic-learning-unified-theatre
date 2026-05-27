@@ -1,5 +1,5 @@
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 
 const workflowPath = path.join(process.cwd(), ".github", "workflows", "test.yml");
 const content = fs.readFileSync(workflowPath, "utf8");
