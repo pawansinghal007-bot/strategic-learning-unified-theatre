@@ -4,7 +4,7 @@
  * Skips any plugin model key that already exists in built-in registries (no-op override).
  */
 
-import { MODEL_REGISTRY, OLLAMA_MODEL_REGISTRY } from "./local-llm.js";
+import { MODEL_REGISTRY, OLLAMA_MODEL_REGISTRY } from "./llm/local-llm.js";
 
 /**
  * Register plugin LLM providers into the built-in registries.

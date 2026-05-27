@@ -34,11 +34,6 @@ class BrowserPane {
     this.currentView = null;
     this.useWebContentsView = typeof WebContentsView === 'function';
     this.useBrowserView = typeof BrowserView === 'function';
-    
-    console.log(
-      '[browser-pane] initialized; WebContentsView available:',
-      this.useWebContentsView
-    );
   }
 
   /**
@@ -187,8 +182,6 @@ class BrowserPane {
    * @returns {Promise<void>}
    */
   async attachToWindow() {
-    console.log('[browser-pane] attaching to window, platform:', this.currentPlatform);
-
     const viewObj = await this.createView(this.currentPlatform);
     this.viewCache.set(this.currentPlatform, viewObj);
     this.currentView = viewObj;
@@ -199,9 +192,7 @@ class BrowserPane {
 
     // Inject preload script after page has loaded (security requirement)
     viewObj.webContents.on('did-stop-loading', () => {
-      console.log('[browser-pane] page did-stop-loading, preload injection safe');
       // The preload script is already injected via webPreferences.preload
-      // This log confirms the page is stable before user interaction
     });
   }
 
@@ -224,8 +215,6 @@ class BrowserPane {
    * @returns {Promise<void>}
    */
   async switchPlatform(platformName) {
-    console.log('[browser-pane] switching to platform:', platformName);
-
     if (!PLATFORM_URLS[platformName]) {
       throw new Error(`Unknown platform: ${platformName}`);
     }
@@ -266,8 +255,6 @@ class BrowserPane {
    * @returns {Promise<void>}
    */
   async destroy() {
-    console.log('[browser-pane] destroying');
-
     // Detach current view
     if (this.currentView) {
       this.detachView(this.currentView);

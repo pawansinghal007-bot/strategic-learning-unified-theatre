@@ -231,7 +231,9 @@ describe("Regression: Health Edge Cases", () => {
     const accounts = {};
     for (let i = 0; i < 1000; i++) {
       accounts[`acc-${i}`] = {
+        // Non-cryptographic randomness — used for synthetic test data generation only. // NOSONAR javascript:S2245
         valid: Math.random() > 0.5,
+        // Non-cryptographic randomness — used for synthetic test data generation only. // NOSONAR javascript:S2245
         remainingRequests: Math.floor(Math.random() * 1000),
       };
     }

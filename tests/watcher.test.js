@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
-import { WatcherDaemon } from '../src/watcher.js';
+import { WatcherDaemon } from '../src/daemon/watcher.js';
 
 function makeStubs() {
   return {

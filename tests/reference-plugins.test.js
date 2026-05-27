@@ -4,7 +4,7 @@ import * as sampleHealth from "../plugins/sample-healthcheck.js";
 
 import { registerPluginLlmProviders } from "../src/plugin-llm-registry.js";
 import { registerPluginBrowserPlatforms } from "../src/plugin-browser-registry.js";
-import { MODEL_REGISTRY } from "../src/local-llm.js";
+import { MODEL_REGISTRY } from "../src/llm/local-llm.js";
 import { PLATFORM_URLS } from "../src/browser-pane.js";
 
 describe("Reference plugins v1", () => {
@@ -45,7 +45,8 @@ describe("Reference plugins v1", () => {
     const originalPlatformKeys = Object.keys(PLATFORM_URLS).slice();
 
     const llmCaps = (await acmeLlm.getCapabilities()).llmProviders || [];
-    const browserCaps = (await acmeBrowser.getCapabilities()).browserPlatforms || [];
+    const browserCaps =
+      (await acmeBrowser.getCapabilities()).browserPlatforms || [];
 
     registerPluginLlmProviders(llmCaps);
     registerPluginBrowserPlatforms(browserCaps);

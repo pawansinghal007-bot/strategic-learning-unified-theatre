@@ -1,12 +1,12 @@
 /**
  * config-validation.test.js
- * Tests for config schema validation in src/config.js
+ * Tests for config schema validation in src/internal/config.js
  */
 
 import fs from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
-import { loadConfig, configPath } from "../src/config.js";
+import { loadConfig, configPath } from "../src/internal/config.js";
 import { DomainError, isDomainError } from "../src/error.js";
 
 /**

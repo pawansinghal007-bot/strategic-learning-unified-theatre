@@ -3,17 +3,18 @@ import os from "node:os";
 import path from "node:path";
 import { describe, it, expect, vi } from "vitest";
 
-import * as configModule from "../src/config.js";
-import { loadConfig, ConfigSchema } from "../src/config.js";
+import * as configModule from "../src/internal/config.js";
+import { loadConfig, ConfigSchema } from "../src/internal/config.js";
 import { registerPluginBrowserPlatforms } from "../src/plugin-browser-registry.js";
 import { registerPluginLlmProviders } from "../src/plugin-llm-registry.js";
-import { MODEL_REGISTRY } from "../src/local-llm.js";
+import { MODEL_REGISTRY } from "../src/llm/local-llm.js";
 import { PLATFORM_URLS } from "../src/browser-pane.js";
 import { loadPlugins } from "../src/plugin-loader.js";
 
 const fixturesDir = path.resolve(process.cwd(), "tests", "fixtures");
 
 function buildTempConfigPath() {
+  // Non-cryptographic randomness — used to create a unique test config filename only. // NOSONAR javascript:S2245
   return path.join(
     os.tmpdir(),
     `backwards-compat-config-${Date.now()}-${Math.random().toString(36).slice(2)}.json`,

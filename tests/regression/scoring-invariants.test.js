@@ -15,6 +15,7 @@ describe("Regression: Scoring Invariants", () => {
    * This is enforced by the implementation: Math.max(0, Math.min(100, Math.round(score)))
    */
 
+  // Non-cryptographic randomness — used for generating test accounts only. // NOSONAR javascript:S2245
   // Helper: Create a random account
   function randomAccount(seed = Math.random()) {
     const now = Date.now();
@@ -29,16 +30,15 @@ describe("Regression: Scoring Invariants", () => {
     const cooldownOffset = seed < 0.3 ? -1000 : seed < 0.6 ? 60000 : 0;
 
     return {
+      // Non-cryptographic randomness — used for unique test id generation only. // NOSONAR javascript:S2245
       id: `acc-${Math.random().toString(36).slice(2)}`,
+      // Non-cryptographic randomness — used for unique test email generation only. // NOSONAR javascript:S2245
       email: `test${Math.random()}@example.com`,
       agentType: "codex",
       authBlob: "x",
       cooldownUntil:
-        cooldownOffset > 0
-          ? new Date(now + cooldownOffset)
-          : cooldownOffset < 0
-            ? null
-            : null,
+        cooldownOffset > 0 ? new Date(now + cooldownOffset) : null,
+      // Non-cryptographic randomness — used for generating a random lastUsed timestamp only. // NOSONAR javascript:S2245
       lastUsed:
         seed > 0.5 ? new Date(now - Math.random() * 1000 * 60 * 60 * 24) : null, // 0-24 hours ago
       status,
@@ -48,9 +48,12 @@ describe("Regression: Scoring Invariants", () => {
   // Helper: Create random health result
   function randomHealthResult() {
     return {
+      // Non-cryptographic randomness — used for generating randomized health flags only. // NOSONAR javascript:S2245
       valid: Math.random() > 0.5,
+      // Non-cryptographic randomness — used for generating randomized remainingRequests only. // NOSONAR javascript:S2245
       remainingRequests: Math.floor(Math.random() * 500),
       resetAt: null,
+      // Non-cryptographic randomness — used to sometimes inject an error in test data only. // NOSONAR javascript:S2245
       error: Math.random() > 0.8 ? "random error" : null,
     };
   }
@@ -102,6 +105,7 @@ describe("Regression: Scoring Invariants", () => {
   // Test 4-14: 50 property-based randomized tests
   for (let i = 4; i < 50; i++) {
     it(`[${i}/50] invariant: random inputs always produce score in [0, 100]`, () => {
+      // Non-cryptographic randomness — used to seed randomized test inputs only. // NOSONAR javascript:S2245
       const account = randomAccount(Math.random());
       const health = randomHealthResult();
 

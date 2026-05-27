@@ -16,12 +16,12 @@ import { sendPrompt, listResponses, ensureBrowserDirs } from "../browser-bridge.
 import { PositiveIntSchema } from "../domain/schemas.js";
 import { DomainError } from "../error.js";
 import { createLogger } from "../logger.js";
-import { defaultStagedSignalsDir, parseFrontmatter, splitStagedSignalDocuments } from "../vscode-learn-utils.js";
+import { defaultStagedSignalsDir, parseFrontmatter, splitStagedSignalDocuments } from "../storage/vscode-learn-utils.js";
 
 const log = createLogger("local-llm");
 
 async function loadConfigForLlm(options) {
-  const { loadConfig } = await import("../config.js");
+  const { loadConfig } = await import("../internal/config.js");
   const config = await loadConfig();
   if (options?.baseDir) {
     return { ...config, baseDir: path.resolve(options.baseDir) };
@@ -142,7 +142,7 @@ import {
   importSprints,
   ingestDocuments,
   setupModel
-} from "../local-llm.js";
+} from "../llm/local-llm.js";
 import { exportTrainingData } from "../llm/training-exporter.js";
 
 import { verifyLocalLlmRuntime } from "../llm/inference.js";

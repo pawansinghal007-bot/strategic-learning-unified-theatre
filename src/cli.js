@@ -11,17 +11,17 @@ import { Command } from "commander";
 import ora from "ora";
 import { nanoid } from "nanoid";
 
-import { AccountStore } from "./store.js";
-import { AgentTypeSchema } from "./schema.js";
-import { SwitcherService } from "./switcher.js";
-import { getSystemHealth } from "./health.js";
-import { ProfileManager } from "./profile-manager.js";
-import { bindProfile } from "./workspace.js";
-import { resolveVSCodeBin } from "./paths.js";
-import { Journal } from "./journal.js";
-import { GitMonitor } from "./git-monitor.js";
-import { Reporter } from "./reporter.js";
-import { SecretStore } from "./secret-store.js";
+import { AccountStore } from "./accounts/store.js";
+import { AgentTypeSchema } from "./accounts/schema.js";
+import { SwitcherService } from "./accounts/switcher.js";
+import { getSystemHealth } from "./accounts/health.js";
+import { ProfileManager } from "./accounts/profile-manager.js";
+import { bindProfile } from "./accounts/workspace.js";
+import { resolveVSCodeBin } from "./internal/paths.js";
+import { Journal } from "./internal/journal.js";
+import { GitMonitor } from "./internal/git-monitor.js";
+import { Reporter } from "./internal/reporter.js";
+import { SecretStore } from "./accounts/secret-store.js";
 import { bindHandoffCommands } from "./commands/handoff.js";
 import { bindIdeaCommands } from "./commands/idea.js";
 import { bindBrowserCommands } from "./commands/browser.js";
@@ -43,7 +43,7 @@ function createPrompter() {
     },
     close() {
       rl.close();
-    }
+    },
   };
 }
 
@@ -52,7 +52,7 @@ function normalizeAgentType(inputValue) {
   const parsed = AgentTypeSchema.safeParse(value);
   if (!parsed.success) {
     throw new Error(
-      `Invalid agentType: ${inputValue} (expected ${AgentTypeSchema.options.join(", ")})`
+      `Invalid agentType: ${inputValue} (expected ${AgentTypeSchema.options.join(", ")})`,
     );
   }
   return parsed.data;
@@ -60,7 +60,9 @@ function normalizeAgentType(inputValue) {
 
 program
   .name("strategic-learning-unified-theatre")
-  .description("Local development intelligence with OS secret storage and daemon-based workspace automation")
+  .description(
+    "Local development intelligence with OS secret storage and daemon-based workspace automation",
+  )
   .version("0.1.0");
 
 program
@@ -76,14 +78,18 @@ program
     try {
       const email = await prompter.ask("Email: ");
       const agentTypeRaw = await prompter.ask(
-        `Agent type (${AgentTypeSchema.options.join("/")}): `
+        `Agent type (${AgentTypeSchema.options.join("/")}): `,
       );
       const authBlob = await prompter.ask("Auth blob (single line paste): ");
 
       const agentType = normalizeAgentType(agentTypeRaw || "vscode");
       const id = nanoid();
       accountId = id;
-      log.info("account.add.start", { correlationId: accountId, email, agentType });
+      log.info("account.add.start", {
+        correlationId: accountId,
+        email,
+        agentType,
+      });
 
       spinner.start("Saving...");
       const secretStore = new SecretStore();
@@ -96,18 +102,22 @@ program
         profileName: null,
         cooldownUntil: null,
         lastUsed: null,
-        status: "active"
+        status: "active",
       });
       spinner.stop();
 
-      log.info("account.add.success", { correlationId: account.id, email: account.email, agentType: account.agentType });
+      log.info("account.add.success", {
+        correlationId: account.id,
+        email: account.email,
+        agentType: account.agentType,
+      });
       console.log(chalk.green("Added account:"), chalk.cyan(account.id));
     } catch (err) {
       spinner.stop();
       log.error("account.add.failure", {
         correlationId: accountId,
         error: err,
-        code: err?.code || "ROTATOR_ACCOUNT_ADD_FAILED"
+        code: err?.code || "ROTATOR_ACCOUNT_ADD_FAILED",
       });
       console.error(chalk.red(String(err?.message ?? err)));
       process.exitCode = 1;
@@ -138,8 +148,8 @@ program
           agentType: a.agentType,
           status: a.status,
           cooldownUntil: a.cooldownUntil ? a.cooldownUntil.toISOString() : "",
-          lastUsed: a.lastUsed ? a.lastUsed.toISOString() : ""
-        }))
+          lastUsed: a.lastUsed ? a.lastUsed.toISOString() : "",
+        })),
       );
     } catch (err) {
       spinner.stop();
@@ -180,7 +190,9 @@ program
 
       console.log(chalk.bold("Rotation status:"));
       console.log(`Accounts: ${accounts.length}`);
-      console.log("Use 'daemon status' to check the watcher daemon and 'daemon watch' for live log streaming.");
+      console.log(
+        "Use 'daemon status' to check the watcher daemon and 'daemon watch' for live log streaming.",
+      );
     } catch (err) {
       spinner.stop();
       console.error(chalk.red(String(err?.message ?? err)));
@@ -196,7 +208,10 @@ program
   .action(async (accountId, options) => {
     const store = new AccountStore();
     const svc = new SwitcherService({ store });
-    log.info("rotation.start", { correlationId: accountId, dryRun: Boolean(options?.dryRun) });
+    log.info("rotation.start", {
+      correlationId: accountId,
+      dryRun: Boolean(options?.dryRun),
+    });
 
     let spinner = null;
     const onStep = (evt) => {
@@ -230,7 +245,7 @@ program
     try {
       const plan = await svc.switch(accountId, {
         dryRun: Boolean(options?.dryRun),
-        onStep
+        onStep,
       });
 
       console.log(chalk.bold("Plan:"));
@@ -238,13 +253,16 @@ program
       console.log(`Agent: ${plan.agentType}`);
       console.log(`Auth path: ${plan.authPath}`);
       console.log(`VS Code profile: ${plan.profileName}`);
-      log.info("rotation.success", { correlationId: accountId, dryRun: Boolean(options?.dryRun) });
+      log.info("rotation.success", {
+        correlationId: accountId,
+        dryRun: Boolean(options?.dryRun),
+      });
     } catch (err) {
       spinner?.stop();
       log.error("rotation.failure", {
         correlationId: accountId,
         error: err,
-        code: err?.code || "ROTATOR_ROTATION_FAILED"
+        code: err?.code || "ROTATOR_ROTATION_FAILED",
       });
       console.error(chalk.red(String(err?.message ?? err)));
       process.exitCode = 1;
@@ -267,8 +285,14 @@ program
       }
 
       console.log(chalk.bold("Daemon:"), health.daemon.status);
-      console.log(chalk.bold("Local LLM:"), `${health.localLlm.status} (${health.localLlm.models.length} model${health.localLlm.models.length === 1 ? "" : "s"})`);
-      console.log(chalk.bold("Accounts:"), `${health.account.status} (${health.account.summary.total} total)`);
+      console.log(
+        chalk.bold("Local LLM:"),
+        `${health.localLlm.status} (${health.localLlm.models.length} model${health.localLlm.models.length === 1 ? "" : "s"})`,
+      );
+      console.log(
+        chalk.bold("Accounts:"),
+        `${health.account.status} (${health.account.summary.total} total)`,
+      );
 
       const rows = health.account.accounts.map((acct) => ({
         id: acct.id,
@@ -277,7 +301,7 @@ program
         status: acct.healthStatus,
         remainingRequests: acct.remainingRequests ?? "",
         resetAt: acct.resetAt ? new Date(acct.resetAt).toISOString() : "",
-        error: acct.error ?? ""
+        error: acct.error ?? "",
       }));
 
       if (rows.length === 0) {
@@ -349,8 +373,8 @@ program
           behind: s.behind,
           uncommitted: s.uncommitted,
           stashed: s.stashed,
-          lastCommit: `${s.lastCommit.sha.slice(0, 8)} ${s.lastCommit.msg}`
-        }
+          lastCommit: `${s.lastCommit.sha.slice(0, 8)} ${s.lastCommit.msg}`,
+        },
       ]);
     } catch (err) {
       spinner.stop();
@@ -379,9 +403,13 @@ program
     }
   });
 
-const daemonCmd = program.command("daemon").description("Manage the watcher daemon");
+const daemonCmd = program
+  .command("daemon")
+  .description("Manage the watcher daemon");
 
-const profileCmd = program.command("profile").description("Manage VS Code profiles");
+const profileCmd = program
+  .command("profile")
+  .description("Manage VS Code profiles");
 
 profileCmd
   .command("list")
@@ -466,7 +494,10 @@ profileCmd
   .argument("<workspacePath>", ".code-workspace path")
   .action(async (accountId, workspacePath) => {
     const spinner = ora("Preparing...").start();
-    log.info("profile.apply.start", { correlationId: accountId, workspacePath });
+    log.info("profile.apply.start", {
+      correlationId: accountId,
+      workspacePath,
+    });
     try {
       const store = new AccountStore();
       const account = await store.get(accountId);
@@ -495,17 +526,21 @@ profileCmd
       spinner.text = "Launching VS Code...";
       const { spawn } = await import("node:child_process");
       const codeBin = await resolveVSCodeBin();
-      const child = spawn(codeBin, ["--profile", desiredProfile, workspacePath], {
-        detached: true,
-        stdio: "ignore"
-      });
+      const child = spawn(
+        codeBin,
+        ["--profile", desiredProfile, workspacePath],
+        {
+          detached: true,
+          stdio: "ignore",
+        },
+      );
       child.unref();
 
       spinner.succeed("Applied");
       log.info("profile.apply.success", {
         correlationId: accountId,
         profileName: desiredProfile,
-        workspacePath
+        workspacePath,
       });
     } catch (err) {
       spinner.stop();
@@ -513,7 +548,7 @@ profileCmd
         correlationId: accountId,
         workspacePath,
         error: err,
-        code: err?.code || "ROTATOR_PROFILE_APPLY_FAILED"
+        code: err?.code || "ROTATOR_PROFILE_APPLY_FAILED",
       });
       console.error(chalk.red(String(err?.message ?? err)));
       process.exitCode = 1;
@@ -569,7 +604,7 @@ function daemonPaths() {
   return {
     baseDir: base,
     pidPath: path.join(base, "daemon.pid"),
-    logPath: path.join(base, "daemon.log")
+    logPath: path.join(base, "daemon.log"),
   };
 }
 
@@ -597,11 +632,13 @@ daemonCmd
     try {
       log.info("daemon.start", { correlationId: "daemon" });
       const { spawn } = await import("node:child_process");
-      const runner = fileURLToPath(new URL("./daemon-runner.js", import.meta.url));
+      const runner = fileURLToPath(
+        new URL("./daemon/daemon-runner.js", import.meta.url),
+      );
 
       const child = spawn(process.execPath, [runner], {
         detached: true,
-        stdio: "ignore"
+        stdio: "ignore",
       });
       child.unref();
       spinner.succeed("Daemon started");
@@ -640,7 +677,10 @@ daemonCmd
       const pid = await readPid(pidPath);
       spinner.stop();
       const alive = isPidAlive(pid);
-      console.log(alive ? chalk.green("running") : chalk.red("not running"), `(pid ${pid})`);
+      console.log(
+        alive ? chalk.green("running") : chalk.red("not running"),
+        `(pid ${pid})`,
+      );
     } catch (err) {
       spinner.stop();
       console.log(chalk.red("not running"));
@@ -675,7 +715,10 @@ daemonCmd
   });
 
 program.parseAsync(process.argv).catch((err) => {
-  log.error("cli.fatal", { error: err, code: err?.code || "ROTATOR_CLI_FAILURE" });
+  log.error("cli.fatal", {
+    error: err,
+    code: err?.code || "ROTATOR_CLI_FAILURE",
+  });
   console.error(chalk.red(String(err?.message ?? err)));
   process.exitCode = 1;
 });

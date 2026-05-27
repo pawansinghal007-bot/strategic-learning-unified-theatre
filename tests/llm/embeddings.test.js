@@ -4,7 +4,13 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { ExperienceDb } from "../../src/llm/experience-db.js";
-import { kMeans, clusterDocuments, encodeEmbedding, decodeEmbedding, cosineSimilarity } from "../../src/llm/embeddings.js";
+import {
+  kMeans,
+  clusterDocuments,
+  encodeEmbedding,
+  decodeEmbedding,
+  cosineSimilarity,
+} from "../../src/llm/embeddings.js";
 
 const makeUnitVector = (index) => {
   const vector = Array.from({ length: 768 }, () => 0);
@@ -20,12 +26,16 @@ describe("LLM Embeddings", () => {
       makeUnitVector(0),
       makeUnitVector(1),
       makeUnitVector(1),
-      makeUnitVector(1)
+      makeUnitVector(1),
     ];
     const { clusters } = kMeans(vectors, 2);
     expect(clusters).toHaveLength(2);
-    const clusterHasAllDim0 = clusters.some((cluster) => cluster.indices.every((index) => index < 3));
-    const clusterHasAllDim1 = clusters.some((cluster) => cluster.indices.every((index) => index >= 3));
+    const clusterHasAllDim0 = clusters.some((cluster) =>
+      cluster.indices.every((index) => index < 3),
+    );
+    const clusterHasAllDim1 = clusters.some((cluster) =>
+      cluster.indices.every((index) => index >= 3),
+    );
     expect(clusterHasAllDim0).toBe(true);
     expect(clusterHasAllDim1).toBe(true);
   });
@@ -53,6 +63,7 @@ describe("LLM Embeddings", () => {
   it("encodeEmbedding / decodeEmbedding round-trip preserves vector values", () => {
     const vector = new Float32Array(768);
     for (let i = 0; i < 768; i += 1) {
+      // Non-cryptographic randomness — used for test data generation only. // NOSONAR javascript:S2245
       vector[i] = Math.random();
     }
     const roundTripped = decodeEmbedding(encodeEmbedding(vector));
@@ -63,7 +74,9 @@ describe("LLM Embeddings", () => {
   });
 
   it("clusterDocuments skips documents without embeddings", async () => {
-    const baseDir = await fs.mkdtemp(path.join(os.tmpdir(), "embeddings-test-"));
+    const baseDir = await fs.mkdtemp(
+      path.join(os.tmpdir(), "embeddings-test-"),
+    );
     const db = new ExperienceDb({ baseDir });
     await db.open();
     db.state.documents.push(
@@ -73,7 +86,7 @@ describe("LLM Embeddings", () => {
         content: "alpha document",
         embedding: encodeEmbedding(makeUnitVector(0)),
         source_type: "document",
-        platform: null
+        platform: null,
       },
       {
         id: 2,
@@ -81,7 +94,7 @@ describe("LLM Embeddings", () => {
         content: "beta document",
         embedding: encodeEmbedding(makeUnitVector(1)),
         source_type: "document",
-        platform: null
+        platform: null,
       },
       {
         id: 3,
@@ -89,8 +102,8 @@ describe("LLM Embeddings", () => {
         content: "empty embedding",
         embedding: null,
         source_type: "document",
-        platform: null
-      }
+        platform: null,
+      },
     );
     await db.save();
 

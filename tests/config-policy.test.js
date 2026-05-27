@@ -11,7 +11,7 @@ import {
   loadConfig,
   assertFeatureEnabled,
   DEFAULT_CONFIG,
-} from "../src/config.js";
+} from "../src/internal/config.js";
 
 describe("Config Policy Schema", () => {
   it("parses config without policy block and returns policy with defaults", async () => {

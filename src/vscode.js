@@ -1,7 +1,7 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 
-import { resolveVSCodeBin } from "./paths.js";
+import { resolveVSCodeBin } from "./internal/paths.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -92,4 +92,3 @@ export async function launchWithProfile(profileName) {
   });
   child.unref();
 }
-

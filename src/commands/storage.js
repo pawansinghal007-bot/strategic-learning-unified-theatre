@@ -1,11 +1,13 @@
 import chalk from "chalk";
 import ora from "ora";
 
-import { StorageMonitor } from "../storage-monitor.js";
+import { StorageMonitor } from "../storage/storage-monitor.js";
 import { DocumentIngester } from "../llm/document-ingester.js";
 
 export async function bindStorageCommands(program) {
-  const storage = program.command("storage").description("Monitor local storage for dev and document changes");
+  const storage = program
+    .command("storage")
+    .description("Monitor local storage for dev and document changes");
 
   storage
     .command("watch")
@@ -57,8 +59,8 @@ export async function bindStorageCommands(program) {
             path: change.path,
             event: change.event,
             time: change.ts,
-            ingestible: change.ingestible
-          }))
+            ingestible: change.ingestible,
+          })),
         );
       } catch (err) {
         spinner.stop();

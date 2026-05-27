@@ -10,7 +10,7 @@ async function makeTempDir() {
 // Use a mutable variable for the mocked config so the hoisted vi.mock factory
 // can reference it safely before tests run.
 let PLUGIN_SEARCH_PATHS = [];
-vi.mock("../src/config.js", () => ({
+vi.mock("../src/internal/config.js", () => ({
   loadConfig: async () => ({
     policy: { pluginSearchPaths: PLUGIN_SEARCH_PATHS },
   }),

@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import chalk from "chalk";
 import ora from "ora";
 
-import { loadConfig, assertFeatureEnabled } from "../config.js";
+import { loadConfig, assertFeatureEnabled } from "../internal/config.js";
 import {
   ensureBrowserDirs,
   sendPrompt,

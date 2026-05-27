@@ -105,7 +105,6 @@ ${payload.text}
  * @returns {Promise<void>}
  */
 async function registerCaptureHandlers(ipcMain, ingester, mainWindow) {
-  console.log('[capture-handlers] registering handlers');
   let captureQueue = Promise.resolve();
 
   // IMPORTANT: This uses ipcRenderer.send / ipcMain.on instead of invoke/handle.

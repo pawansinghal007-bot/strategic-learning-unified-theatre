@@ -25,7 +25,7 @@ This sprint focuses on **Phase 2** of the extension roadmap: add sidebar views t
 
 **Always refer to these before coding:**
 - [strategic-learning-unified-theatre-master-instructions.md](../strategic-learning-unified-theatre-master-instructions.md) — Latest project status
-- [VSCODE-EXTENSION-BLUEPRINT.md](../VSCODE-EXTENSION-BLUEPRINT.md) — Manifest template, sidebar structure
+- [vscode-extension-blueprint.md](../docs/archive/blueprints/vscode-extension-blueprint.md) — Manifest template, sidebar structure
 - [SPRINT-11A-CORE-COMMANDS.md](./SPRINT-11A-CORE-COMMANDS.md) — Ensure core commands are implemented first
 - `Solution/vscode-extension/extension.js` — From Sprint 11A
 - `Solution/vscode-extension/package.json` — From Sprint 11A
@@ -327,7 +327,7 @@ Solution/
 
 - **VS Code TreeDataProvider API**: https://code.visualstudio.com/api/extension-guides/tree-view  
 - **Webview API**: https://code.visualstudio.com/api/extension-guides/webview  
-- **Blueprint**: [VSCODE-EXTENSION-BLUEPRINT.md](../VSCODE-EXTENSION-BLUEPRINT.md)  
+- **Blueprint**: [vscode-extension-blueprint.md](../docs/archive/blueprints/vscode-extension-blueprint.md)
 - **Master Instructions**: [strategic-learning-unified-theatre-master-instructions.md](../strategic-learning-unified-theatre-master-instructions.md)  
 
 ---

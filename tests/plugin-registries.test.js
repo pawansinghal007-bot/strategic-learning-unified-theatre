@@ -7,7 +7,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { registerPluginLlmProviders } from "../src/plugin-llm-registry.js";
 import { registerPluginBrowserPlatforms } from "../src/plugin-browser-registry.js";
-import { MODEL_REGISTRY, OLLAMA_MODEL_REGISTRY } from "../src/local-llm.js";
+import { MODEL_REGISTRY, OLLAMA_MODEL_REGISTRY } from "../src/llm/local-llm.js";
 import { PLATFORM_URLS } from "../src/browser-pane.js";
 
 describe("Plugin LLM Registry", () => {

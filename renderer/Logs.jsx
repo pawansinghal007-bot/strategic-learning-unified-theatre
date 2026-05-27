@@ -1,39 +1,39 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from "react";
 
-const LEVELS = ['debug', 'info', 'warn', 'error']
+const LEVELS = ["debug", "info", "warn", "error"];
 
 export default function Logs() {
-  const [entries, setEntries] = useState([])
-  const [moduleFilter, setModuleFilter] = useState('')
-  const [levelFilter, setLevelFilter] = useState('')
-  const [correlationFilter, setCorrelationFilter] = useState('')
+  const [entries, setEntries] = useState([]);
+  const [moduleFilter, setModuleFilter] = useState("");
+  const [levelFilter, setLevelFilter] = useState("");
+  const [correlationFilter, setCorrelationFilter] = useState("");
 
   useEffect(() => {
-    const subscribe = window.rotator?.logs?.onEvent
-    if (typeof subscribe !== 'function') return undefined
+    const subscribe = window.rotator?.logs?.onEvent;
+    if (typeof subscribe !== "function") return undefined;
 
     const unsubscribe = subscribe((entry) => {
-      setEntries((current) => [entry, ...current].slice(0, 500))
-    })
+      setEntries((current) => [entry, ...current].slice(0, 500));
+    });
 
-    return typeof unsubscribe === 'function' ? unsubscribe : undefined
-  }, [])
+    return typeof unsubscribe === "function" ? unsubscribe : undefined;
+  }, []);
 
   const modules = Array.from(
-    new Set(entries.map((entry) => entry?.module).filter(Boolean))
-  ).sort()
+    new Set(entries.map((entry) => entry?.module).filter(Boolean)),
+  ).sort((a, b) => a.localeCompare(b));
 
   const filteredEntries = entries.filter((entry) => {
-    if (moduleFilter && entry?.module !== moduleFilter) return false
-    if (levelFilter && entry?.level !== levelFilter) return false
+    if (moduleFilter && entry?.module !== moduleFilter) return false;
+    if (levelFilter && entry?.level !== levelFilter) return false;
     if (
       correlationFilter &&
-      !String(entry?.correlationId ?? '').includes(correlationFilter)
+      !String(entry?.correlationId ?? "").includes(correlationFilter)
     ) {
-      return false
+      return false;
     }
-    return true
-  })
+    return true;
+  });
 
   return (
     <div className="space-y-4">
@@ -90,7 +90,10 @@ export default function Logs() {
         ) : (
           <div className="divide-y divide-gray-200 dark:divide-gray-700">
             {filteredEntries.map((entry, index) => (
-              <div key={`${entry?.ts ?? 'log'}-${index}`} className="p-3 text-sm">
+              <div
+                key={`${entry?.ts ?? "log"}-${index}`}
+                className="p-3 text-sm"
+              >
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                   <span className="font-mono text-xs text-gray-500 dark:text-gray-400">
                     {entry?.ts}
@@ -117,5 +120,5 @@ export default function Logs() {
         )}
       </div>
     </div>
-  )
+  );
 }

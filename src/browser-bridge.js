@@ -5,12 +5,12 @@ import crypto from "node:crypto";
 import readline from "node:readline/promises";
 import { z } from "zod";
 
-import { loadConfig } from "./config.js";
-import { StorageMonitor } from "./storage-monitor.js";
+import { loadConfig } from "./internal/config.js";
+import { StorageMonitor } from "./storage/storage-monitor.js";
 import { DocumentIngester } from "./llm/document-ingester.js";
 import { ExperienceDb } from "./llm/experience-db.js";
 import { MistakeTracker } from "./llm/mistake-tracker.js";
-import { parseFrontmatter } from "./vscode-learn-utils.js";
+import { parseFrontmatter } from "./storage/vscode-learn-utils.js";
 import { createLogger } from "./logger.js";
 
 const log = createLogger("browser-bridge");
@@ -50,7 +50,9 @@ function getBrowserResponsePlatform(filePath) {
 
 async function tagResponse(filename, { quality, notes } = {}) {
   const allowed = new Set(["good", "bad", "partial"]);
-  const normalized = String(quality || "").trim().toLowerCase();
+  const normalized = String(quality || "")
+    .trim()
+    .toLowerCase();
   if (!allowed.has(normalized)) {
     throw new Error("Invalid quality. Expected one of: good, bad, partial");
   }
@@ -71,7 +73,7 @@ async function tagResponse(filename, { quality, notes } = {}) {
       platform: row.platform,
       file_ts: row.file_ts,
       quality: normalized,
-      notes: notes?.trim() ? notes.trim() : null
+      notes: notes?.trim() ? notes.trim() : null,
     }));
     await db.replaceDocumentsForFile(responsePath, updatedChunks);
   }
@@ -82,7 +84,11 @@ async function tagResponse(filename, { quality, notes } = {}) {
   if (normalized === "bad") {
     const tracker = new MistakeTracker();
     const description = noteText || `Low-quality browser response: ${filename}`;
-    await tracker.addMistake({ description, category: "llm-response", fix: "" });
+    await tracker.addMistake({
+      description,
+      category: "llm-response",
+      fix: "",
+    });
     mistakeCreated = true;
   }
 
@@ -90,7 +96,7 @@ async function tagResponse(filename, { quality, notes } = {}) {
     filename,
     quality: normalized,
     notes: noteText,
-    mistakeCreated
+    mistakeCreated,
   };
 }
 
@@ -100,7 +106,7 @@ async function ingestBrowserResponseFile(responsePath) {
   if (config.browserResponsesIngest === false) {
     log.info("browser.ingest.skipped", {
       correlationId,
-      reason: "browserResponsesIngest disabled"
+      reason: "browserResponsesIngest disabled",
     });
     return null;
   }
@@ -109,18 +115,23 @@ async function ingestBrowserResponseFile(responsePath) {
     log.info("browser.ingest.start", { correlationId, responsePath });
     const storageMonitor = new StorageMonitor();
     await storageMonitor.appendChanges([
-      { event: "add", path: responsePath, label: "BrowserResponse" }
+      { event: "add", path: responsePath, label: "BrowserResponse" },
     ]);
 
     const ingester = new DocumentIngester();
-    const result = await ingester.ingestFromSnapshot({ snapshotPath: storageMonitor.snapshotPath });
-    const chunkCount = result.actions.reduce((sum, action) => sum + (action.chunks || 0), 0);
+    const result = await ingester.ingestFromSnapshot({
+      snapshotPath: storageMonitor.snapshotPath,
+    });
+    const chunkCount = result.actions.reduce(
+      (sum, action) => sum + (action.chunks || 0),
+      0,
+    );
     log.info("browser.ingest.success", {
       correlationId,
       responsePath,
       filename: path.basename(responsePath),
       chunks: chunkCount,
-      skipped: Boolean(result.skipped)
+      skipped: Boolean(result.skipped),
     });
     return result;
   } catch (err) {
@@ -128,7 +139,7 @@ async function ingestBrowserResponseFile(responsePath) {
       correlationId,
       responsePath,
       error: err,
-      code: err?.code || "ROTATOR_BROWSER_INGEST_FAILED"
+      code: err?.code || "ROTATOR_BROWSER_INGEST_FAILED",
     });
     return null;
   }
@@ -152,10 +163,12 @@ const PromptSchema = z.object({
   template: z.string().min(1),
   tags: z.array(z.string()).default([]),
   lastUsed: z.string().datetime().nullable().default(null),
-  platforms: z.array(z.string()).default([])
+  platforms: z.array(z.string()).default([]),
 });
 
-const PlatformLastSendSchema = z.record(z.string(), z.number().nonnegative()).default({});
+const PlatformLastSendSchema = z
+  .record(z.string(), z.number().nonnegative())
+  .default({});
 
 async function exists(p) {
   try {
@@ -214,7 +227,7 @@ export async function launchBrowser(options = {}) {
     platform,
     headless = false,
     timeout = 30000,
-    executablePath = null
+    executablePath = null,
   } = options;
   const config = await loadConfig();
   const { chromium, firefox } = await loadPlaywright();
@@ -224,19 +237,25 @@ export async function launchBrowser(options = {}) {
   const launchOptions = {
     headless,
     timeout,
-    args: ["--disable-blink-features=AutomationControlled"]
+    args: ["--disable-blink-features=AutomationControlled"],
   };
 
   if (normalizedType === "firefox") {
     launcher = firefox;
-    const firefoxPath = executablePath || process.env.FIREFOX_PATH || (config && config.browserPaths && config.browserPaths.firefox);
+    const firefoxPath =
+      executablePath ||
+      process.env.FIREFOX_PATH ||
+      (config && config.browserPaths && config.browserPaths.firefox);
     if (firefoxPath) {
       launchOptions.executablePath = firefoxPath;
     }
   } else {
     launcher = chromium;
     if (normalizedType === "brave") {
-      const bravePath = executablePath || process.env.BRAVE_PATH || (config && config.browserPaths && config.browserPaths.brave);
+      const bravePath =
+        executablePath ||
+        process.env.BRAVE_PATH ||
+        (config && config.browserPaths && config.browserPaths.brave);
       if (bravePath) {
         launchOptions.executablePath = bravePath;
       }
@@ -256,7 +275,7 @@ export async function launchBrowser(options = {}) {
   }
 
   const context = await browser.newContext({
-    ...(storageState ? { storageState } : {})
+    ...(storageState ? { storageState } : {}),
   });
 
   context.browserHandle = browser;
@@ -272,9 +291,16 @@ export async function closeBrowser(context) {
   // Save storage state if platform is set
   if (context.storageStatePath) {
     try {
-      await fs.mkdir(path.dirname(context.storageStatePath), { recursive: true, mode: 0o700 });
+      await fs.mkdir(path.dirname(context.storageStatePath), {
+        recursive: true,
+        mode: 0o700,
+      });
       const storageState = await context.storageState();
-      await fs.writeFile(context.storageStatePath, JSON.stringify(storageState, null, 2), "utf8");
+      await fs.writeFile(
+        context.storageStatePath,
+        JSON.stringify(storageState, null, 2),
+        "utf8",
+      );
     } catch {
       // Continue even if save fails
     }
@@ -293,7 +319,7 @@ export async function sendPrompt(options) {
     browserType = "chromium",
     headless = false,
     dryRun = false,
-    timeout = 30000
+    timeout = 30000,
   } = options;
 
   if (!platform) throw new Error("platform is required");
@@ -304,18 +330,18 @@ export async function sendPrompt(options) {
     log.info("browser.sendPrompt.start", {
       correlationId: captureId,
       platform,
-      dryRun: true
+      dryRun: true,
     });
     log.info("browser.sendPrompt.success", {
       correlationId: captureId,
       platform,
-      dryRun: true
+      dryRun: true,
     });
     return {
       platform,
       prompt,
       dryRun: true,
-      message: `Would send prompt to ${platform}`
+      message: `Would send prompt to ${platform}`,
     };
   }
 
@@ -327,7 +353,7 @@ export async function sendPrompt(options) {
       platform,
       browserType,
       headless,
-      timeout
+      timeout,
     });
     const adapter = await getAdapterModule(platform);
     context = await launchBrowser({ browserType, platform, headless, timeout });
@@ -344,7 +370,7 @@ export async function sendPrompt(options) {
     const inputElement = await page.$(inputSelector).catch(() => null);
     if (!inputElement) {
       throw new Error(
-        `Input selector not found: "${inputSelector}". Check ${BROWSER_SELECTORS_PATH}`
+        `Input selector not found: "${inputSelector}". Check ${BROWSER_SELECTORS_PATH}`,
       );
     }
 
@@ -358,7 +384,7 @@ export async function sendPrompt(options) {
     const timestamp = getTimestamp();
     const responsePath = path.join(
       browserResponsesDir(),
-      `${timestamp}-${platform}.md`
+      `${timestamp}-${platform}.md`,
     );
 
     const responseContent = `# ${platform.charAt(0).toUpperCase() + platform.slice(1)} Response
@@ -375,7 +401,10 @@ ${response}
 `;
 
     const tmpPath = `${responsePath}.${process.pid}.${Date.now()}.tmp`;
-    await fs.writeFile(tmpPath, responseContent, { encoding: "utf8", mode: 0o600 });
+    await fs.writeFile(tmpPath, responseContent, {
+      encoding: "utf8",
+      mode: 0o600,
+    });
     const fh = await fs.open(tmpPath, "r+");
     try {
       await fh.sync();
@@ -399,20 +428,24 @@ ${response}
         correlationId: responsePath,
         responsePath,
         error: err,
-        code: err?.code || "ROTATOR_BROWSER_INGEST_FAILED"
+        code: err?.code || "ROTATOR_BROWSER_INGEST_FAILED",
       });
     }
 
     // Record last send time
     const lastSendData = await loadPlatformLastSend();
     lastSendData[platform] = Date.now();
-    await fs.writeFile(platformLastSendPath(), JSON.stringify(lastSendData, null, 2), "utf8");
+    await fs.writeFile(
+      platformLastSendPath(),
+      JSON.stringify(lastSendData, null, 2),
+      "utf8",
+    );
 
     log.info("browser.sendPrompt.success", {
       correlationId: captureId,
       platform,
       responsePath,
-      timestamp
+      timestamp,
     });
 
     return {
@@ -420,14 +453,14 @@ ${response}
       prompt,
       response,
       responsePath,
-      timestamp
+      timestamp,
     };
   } catch (err) {
     log.error("browser.sendPrompt.failure", {
       correlationId: captureId,
       platform,
       error: err,
-      code: err?.code || "ROTATOR_BROWSER_SEND_FAILED"
+      code: err?.code || "ROTATOR_BROWSER_SEND_FAILED",
     });
     throw err;
   } finally {
@@ -471,18 +504,19 @@ export async function comparePrompts(options) {
     browserType = "chromium",
     headless = false,
     dryRun = false,
-    timeout = 30000
+    timeout = 30000,
   } = options;
 
   if (!prompt) throw new Error("prompt is required");
-  if (platforms.length === 0) throw new Error("At least one platform is required");
+  if (platforms.length === 0)
+    throw new Error("At least one platform is required");
 
   if (dryRun) {
     return {
       prompt,
       platforms,
       dryRun: true,
-      message: `Would send prompt to: ${platforms.join(", ")}`
+      message: `Would send prompt to: ${platforms.join(", ")}`,
     };
   }
 
@@ -499,13 +533,13 @@ export async function comparePrompts(options) {
         browserType,
         headless,
         dryRun: false,
-        timeout
+        timeout,
       });
       results.push(result);
     } catch (err) {
       results.push({
         platform,
-        error: String(err?.message ?? err)
+        error: String(err?.message ?? err),
       });
     }
   }
@@ -513,7 +547,10 @@ export async function comparePrompts(options) {
   // Generate comparison report
   // Note: compare reports are not treated as individual browser responses and are not ingested
   const timestamp = getTimestamp();
-  const reportPath = path.join(browserResponsesDir(), `${timestamp}-compare.md`);
+  const reportPath = path.join(
+    browserResponsesDir(),
+    `${timestamp}-compare.md`,
+  );
 
   let reportContent = `# Comparison Report
 
@@ -548,7 +585,7 @@ ${result.response}
     prompt,
     platforms,
     results,
-    reportPath
+    reportPath,
   };
 }
 
@@ -630,7 +667,7 @@ export async function runPromptTemplate(options) {
   return sendPrompt({
     platform,
     prompt: text,
-    dryRun
+    dryRun,
   });
 }
 
@@ -644,7 +681,7 @@ export async function loginToPage(options) {
     browserType,
     platform,
     headless: false,
-    timeout
+    timeout,
   });
 
   try {
@@ -653,22 +690,31 @@ export async function loginToPage(options) {
     log.info("browser.login.opened", {
       correlationId: platform,
       platform,
-      url: adapter.baseUrl
+      url: adapter.baseUrl,
     });
 
-    console.log(`\n✓ Browser opened. Please log in manually and close the browser when done.`);
+    console.log(
+      `\n✓ Browser opened. Please log in manually and close the browser when done.`,
+    );
     console.log(`  Platform: ${platform}`);
     console.log(`  URL: ${adapter.baseUrl}`);
-    console.log(`  If you want to keep the browser open, press ENTER after login.`);
+    console.log(
+      `  If you want to keep the browser open, press ENTER after login.`,
+    );
 
     const browserClosed = new Promise((resolve) => {
       context.browserHandle.once("disconnected", resolve);
     });
 
-    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-    const promptClosed = rl.question("Press ENTER after login is complete...\n").then(() => {
-      rl.close();
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
     });
+    const promptClosed = rl
+      .question("Press ENTER after login is complete...\n")
+      .then(() => {
+        rl.close();
+      });
 
     await Promise.race([browserClosed, promptClosed]);
     rl.close();
@@ -682,14 +728,14 @@ export async function loginToPage(options) {
 
     return {
       platform,
-      message: `Login completed and storage state saved`
+      message: `Login completed and storage state saved`,
     };
   } catch (err) {
     log.error("browser.login.failure", {
       correlationId: platform,
       platform,
       error: err,
-      code: err?.code || "ROTATOR_BROWSER_LOGIN_FAILED"
+      code: err?.code || "ROTATOR_BROWSER_LOGIN_FAILED",
     });
     throw err;
   } finally {
@@ -739,7 +785,7 @@ export async function listResponses(options = {}) {
       filepath,
       content,
       quality: metadata.quality ?? null,
-      notes: metadata.notes ?? null
+      notes: metadata.notes ?? null,
     });
   }
 
@@ -762,7 +808,7 @@ export async function getResponseMetadata(filename) {
     size: stat.size,
     created: stat.birthtime.toISOString(),
     modified: stat.mtime.toISOString(),
-    content
+    content,
   };
 }
 
@@ -803,23 +849,27 @@ export async function clearResponses(options = {}) {
   return { deleted };
 }
 
-
-
-async function captureThread(platform, { outputDir = null, headless = false, timeout = 60000 } = {}) {
+async function captureThread(
+  platform,
+  { outputDir = null, headless = false, timeout = 60000 } = {},
+) {
   if (!["chatgpt", "claude", "perplexity", "gemini"].includes(platform)) {
-    throw new Error(`Unsupported platform: ${platform}. Expected one of: chatgpt, claude, perplexity, gemini`);
+    throw new Error(
+      `Unsupported platform: ${platform}. Expected one of: chatgpt, claude, perplexity, gemini`,
+    );
   }
 
   // Load thread selectors or use defaults
   const selectorsOverrides = await loadSelectorOverrides();
   const threadSelectors = selectorsOverrides.threadSelectors || {};
-  const platformSelectors = threadSelectors[platform] || getDefaultThreadSelectors(platform);
+  const platformSelectors =
+    threadSelectors[platform] || getDefaultThreadSelectors(platform);
 
   if (!threadSelectors[platform]) {
     log.warn("browser.threadSelectors.default", {
       correlationId: platform,
       platform,
-      reason: "thread selectors missing"
+      reason: "thread selectors missing",
     });
   }
 
@@ -843,7 +893,9 @@ async function captureThread(platform, { outputDir = null, headless = false, tim
         return Array.from(containers)
           .map((container) => {
             const roleEl = container.querySelector(`[${roleAttr}]`);
-            const role = roleEl ? (roleEl.getAttribute(roleAttr) || "unknown") : "unknown";
+            const role = roleEl
+              ? roleEl.getAttribute(roleAttr) || "unknown"
+              : "unknown";
             const contentEl = container.querySelector(contentSelector);
             const content = contentEl ? contentEl.textContent?.trim() : "";
 
@@ -851,18 +903,22 @@ async function captureThread(platform, { outputDir = null, headless = false, tim
           })
           .filter((t) => t.content && t.content.length > 0);
       },
-      platformSelectors
+      platformSelectors,
     );
 
     if (turns.length === 0) {
-      throw new Error(`No conversation turns found. Check threadSelectors for ${platform} in browser-selectors.json`);
+      throw new Error(
+        `No conversation turns found. Check threadSelectors for ${platform} in browser-selectors.json`,
+      );
     }
 
-    const roles = new Set(turns.map((turn) => String(turn.role || "unknown").toLowerCase()));
+    const roles = new Set(
+      turns.map((turn) => String(turn.role || "unknown").toLowerCase()),
+    );
     if (!roles.has("user") || !roles.has("assistant")) {
       throw new Error(
         `Incomplete conversation thread: expected both user and assistant turns for ${platform}. ` +
-          `Found roles: ${Array.from(roles).join(", ")}`
+          `Found roles: ${Array.from(roles).join(", ")}`,
       );
     }
 
@@ -934,7 +990,7 @@ turn_count: ${turns.length}
       turns: turns.map((t) => ({ role: t.role, content: t.content })),
       platform,
       filePath: filepath,
-      capturedAt: now()
+      capturedAt: now(),
     };
   } finally {
     await closeBrowser(context);
@@ -946,26 +1002,36 @@ function getDefaultThreadSelectors(platform) {
     chatgpt: {
       turnContainer: "div[class*='message-group']",
       roleAttr: "data-message-author-role",
-      contentSelector: "div[class*='prose']"
+      contentSelector: "div[class*='prose']",
     },
     claude: {
       turnContainer: "div[class*='col']",
       roleAttr: "data-test-id",
-      contentSelector: "div[class*='content']"
+      contentSelector: "div[class*='content']",
     },
     gemini: {
       turnContainer: "div[class*='message']",
       roleAttr: "data-role",
-      contentSelector: "div[class*='text']"
+      contentSelector: "div[class*='text']",
     },
     perplexity: {
       turnContainer: "div[class*='chat-item']",
       roleAttr: "data-role",
-      contentSelector: "div[class*='message-content']"
-    }
+      contentSelector: "div[class*='message-content']",
+    },
   };
 
   return defaults[platform] || defaults.chatgpt;
 }
 
-export { BROWSER_PROFILES_DIR, BROWSER_RESPONSES_DIR, BROWSER_SELECTORS_PATH, PROMPT_LIBRARY_PATH, getBrowserResponsePlatform, ingestBrowserResponseFile, tagResponse, captureThread, parseFrontmatter };
+export {
+  BROWSER_PROFILES_DIR,
+  BROWSER_RESPONSES_DIR,
+  BROWSER_SELECTORS_PATH,
+  PROMPT_LIBRARY_PATH,
+  getBrowserResponsePlatform,
+  ingestBrowserResponseFile,
+  tagResponse,
+  captureThread,
+  parseFrontmatter,
+};

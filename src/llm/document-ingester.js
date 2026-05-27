@@ -4,12 +4,14 @@ import path from "node:path";
 
 import { ExperienceDb } from "./experience-db.js";
 import { EmbeddingProvider } from "./embeddings.js";
-import { parseFrontmatter } from "../vscode-learn-utils.js";
+import { parseFrontmatter } from "../storage/vscode-learn-utils.js";
 
 const SUPPORTED_EXTENSIONS = new Set([".pdf", ".md", ".txt", ".docx"]);
 
 function appBaseDir(baseDir) {
-  return baseDir ?? path.join(process.env.HOME || os.homedir(), ".vscode-rotator");
+  return (
+    baseDir ?? path.join(process.env.HOME || os.homedir(), ".vscode-rotator")
+  );
 }
 
 function browserResponsesDir(baseDir) {
@@ -92,7 +94,9 @@ async function readDocumentText(filePath) {
 }
 
 export function chunkText(text, { tokens = 512, overlap = 64 } = {}) {
-  const words = String(text || "").split(/\s+/).filter(Boolean);
+  const words = String(text || "")
+    .split(/\s+/)
+    .filter(Boolean);
   if (words.length === 0) return [];
   const chunks = [];
   const step = Math.max(1, tokens - overlap);
@@ -112,7 +116,7 @@ function chunkThread(content, { fileTs, platform, thread_file } = {}) {
     return null;
   }
 
-  const turnRegex = /^## Turn (\d+) — (User|Assistant)\s*$/gmi;
+  const turnRegex = /^## Turn (\d+) — (User|Assistant)\s*$/gim;
   const matches = Array.from(body.matchAll(turnRegex));
   if (matches.length === 0) {
     return null;
@@ -123,14 +127,15 @@ function chunkThread(content, { fileTs, platform, thread_file } = {}) {
       const turnIndex = Number(match[1]);
       const role = match[2];
       const contentStart = match.index + match[0].length;
-      const contentEnd = index + 1 < matches.length ? matches[index + 1].index : body.length;
+      const contentEnd =
+        index + 1 < matches.length ? matches[index + 1].index : body.length;
       const turnContent = body.slice(contentStart, contentEnd).trim();
 
       if (!turnContent) return null;
       return {
         turn_index: Number.isFinite(turnIndex) ? turnIndex : index + 1,
         role: role.toLowerCase(),
-        content: turnContent
+        content: turnContent,
       };
     })
     .filter(Boolean);
@@ -148,11 +153,13 @@ function chunkThread(content, { fileTs, platform, thread_file } = {}) {
     metadata: {
       type: "thread",
       captured_at: frontmatter.captured_at ?? null,
-      turn_count: Number.isFinite(Number(frontmatter.turn_count)) ? Number(frontmatter.turn_count) : turns.length,
+      turn_count: Number.isFinite(Number(frontmatter.turn_count))
+        ? Number(frontmatter.turn_count)
+        : turns.length,
       turn: turn.turn_index,
       role: turn.role,
-      thread_file: thread_file || null
-    }
+      thread_file: thread_file || null,
+    },
   }));
 }
 
@@ -171,9 +178,13 @@ export class DocumentIngester {
     return this;
   }
 
-  async ingestFile(filePath, { fileTs, source_type, platform, metadata, tags } = {}) {
+  async ingestFile(
+    filePath,
+    { fileTs, source_type, platform, metadata, tags } = {},
+  ) {
     const absolute = path.resolve(filePath);
-    if (!isSupported(absolute) || !(await exists(absolute))) return { path: absolute, chunks: 0, skipped: true };
+    if (!isSupported(absolute) || !(await exists(absolute)))
+      return { path: absolute, chunks: 0, skipped: true };
     const stat = await fs.stat(absolute);
     const text = await readDocumentText(absolute);
     const ts = fileTs ?? stat.mtime.toISOString();
@@ -181,7 +192,11 @@ export class DocumentIngester {
     // Check if this is a thread file
     let threadChunks = null;
     if (text.includes("type: thread")) {
-      threadChunks = chunkThread(text, { fileTs: ts, platform, thread_file: path.basename(absolute) });
+      threadChunks = chunkThread(text, {
+        fileTs: ts,
+        platform,
+        thread_file: path.basename(absolute),
+      });
     }
 
     let chunks;
@@ -197,15 +212,17 @@ export class DocumentIngester {
         source_type: source_type ?? sourceType(absolute),
         platform: inferredPlatform,
         file_ts: ts,
-        metadata: metadata ?? (tags ? { tags } : undefined)
+        metadata: metadata ?? (tags ? { tags } : undefined),
       }));
     }
 
     // Embed all chunks
-    const vectors = await this.embeddings.embedMany(chunks.map((c) => c.content));
+    const vectors = await this.embeddings.embedMany(
+      chunks.map((c) => c.content),
+    );
     const chunksWithEmbeddings = chunks.map((chunk, index) => ({
       ...chunk,
-      embedding: vectors[index]
+      embedding: vectors[index],
     }));
 
     await this.db.replaceDocumentsForFile(absolute, chunksWithEmbeddings);
@@ -213,12 +230,27 @@ export class DocumentIngester {
       path: absolute,
       file_ts: ts,
       chunk_count: chunksWithEmbeddings.length,
-      last_run: new Date().toISOString()
+      last_run: new Date().toISOString(),
     });
-    return { path: absolute, chunks: chunksWithEmbeddings.length, skipped: false };
+    return {
+      path: absolute,
+      chunks: chunksWithEmbeddings.length,
+      skipped: false,
+    };
   }
 
-  async ingestChunks(chunks, { filename = null, fileTs, source_type, platform, metadata, uniqueBy, logPath } = {}) {
+  async ingestChunks(
+    chunks,
+    {
+      filename = null,
+      fileTs,
+      source_type,
+      platform,
+      metadata,
+      uniqueBy,
+      logPath,
+    } = {},
+  ) {
     await this.initialize();
     if (!Array.isArray(chunks) || chunks.length === 0) {
       return { path: logPath ?? filename, chunks: 0, skipped: true };
@@ -231,10 +263,12 @@ export class DocumentIngester {
         source_type: chunk.source_type ?? source_type ?? null,
         platform: chunk.platform ?? platform ?? null,
         file_ts: chunk.file_ts ?? ts,
-        metadata: chunk.metadata ? { ...chunk.metadata, ...(metadata ?? {}) } : metadata ?? undefined,
+        metadata: chunk.metadata
+          ? { ...chunk.metadata, ...(metadata ?? {}) }
+          : (metadata ?? undefined),
         turn_index: chunk.turn_index ?? null,
         quality: chunk.quality ?? null,
-        notes: chunk.notes ?? null
+        notes: chunk.notes ?? null,
       }))
       .filter((chunk) => chunk.content.trim().length > 0);
 
@@ -242,17 +276,25 @@ export class DocumentIngester {
       return { path: logPath ?? filename, chunks: 0, skipped: true };
     }
 
-    const vectors = await this.embeddings.embedMany(prepared.map((c) => c.content));
+    const vectors = await this.embeddings.embedMany(
+      prepared.map((c) => c.content),
+    );
     const chunksWithEmbeddings = prepared.map((chunk, index) => ({
       ...chunk,
-      embedding: vectors[index]
+      embedding: vectors[index],
     }));
 
     let rows;
     if (uniqueBy) {
-      rows = await this.db.upsertDocuments(chunksWithEmbeddings, { filename, uniqueBy });
+      rows = await this.db.upsertDocuments(chunksWithEmbeddings, {
+        filename,
+        uniqueBy,
+      });
     } else {
-      rows = await this.db.replaceDocumentsForFile(filename, chunksWithEmbeddings);
+      rows = await this.db.replaceDocumentsForFile(
+        filename,
+        chunksWithEmbeddings,
+      );
     }
 
     if (logPath || filename) {
@@ -260,21 +302,29 @@ export class DocumentIngester {
         path: logPath ?? filename,
         file_ts: ts,
         chunk_count: rows.length,
-        last_run: new Date().toISOString()
+        last_run: new Date().toISOString(),
       });
     }
 
-    return { path: logPath ?? filename, chunks: rows.length, skipped: rows.length === 0, rows };
+    return {
+      path: logPath ?? filename,
+      chunks: rows.length,
+      skipped: rows.length === 0,
+      rows,
+    };
   }
 
   async ingestThread(filePath, { platform } = {}) {
     await this.initialize();
     const absolute = path.resolve(filePath);
-    if (!(await exists(absolute))) return { path: absolute, chunks: 0, skipped: true };
+    if (!(await exists(absolute)))
+      return { path: absolute, chunks: 0, skipped: true };
 
     const log = await this.db.getIngestionLog();
     if (log.has(absolute)) {
-      console.info(`[document-ingester] ingestThread skipped; already ingested: ${absolute}`);
+      console.info(
+        `[document-ingester] ingestThread skipped; already ingested: ${absolute}`,
+      );
       await this.db.close();
       return { path: absolute, chunks: 0, skipped: true };
     }
@@ -285,15 +335,17 @@ export class DocumentIngester {
     const result = await this.ingestFile(absolute, {
       fileTs: stat.mtime.toISOString(),
       source_type: "thread-turn",
-      platform
+      platform,
     });
 
     if (!result.skipped && result.chunks > 0) {
       await this.db.insertThread({
         platform,
         captured_at: frontmatter.captured_at ?? stat.mtime.toISOString(),
-        turn_count: Number.isFinite(Number(frontmatter.turn_count)) ? Number(frontmatter.turn_count) : result.chunks,
-        file_path: absolute
+        turn_count: Number.isFinite(Number(frontmatter.turn_count))
+          ? Number(frontmatter.turn_count)
+          : result.chunks,
+        file_path: absolute,
       });
     }
 
@@ -313,13 +365,20 @@ export class DocumentIngester {
 
   async ingestFromSnapshot({ snapshotPath, force = false } = {}) {
     await this.initialize();
-    const effectiveSnapshot = snapshotPath ?? path.join(this.db.baseDir, "storage-snapshot.json");
+    const effectiveSnapshot =
+      snapshotPath ?? path.join(this.db.baseDir, "storage-snapshot.json");
     const snapshot = await readJson(effectiveSnapshot, { paths: {} });
-    const paths = snapshot?.paths && typeof snapshot.paths === "object" ? snapshot.paths : {};
+    const paths =
+      snapshot?.paths && typeof snapshot.paths === "object"
+        ? snapshot.paths
+        : {};
     const ingestible = new Map(
       Object.entries(paths)
-        .filter(([filePath, entry]) => entry?.ingestible === true && isSupported(filePath))
-        .map(([filePath, entry]) => [path.resolve(filePath), entry])
+        .filter(
+          ([filePath, entry]) =>
+            entry?.ingestible === true && isSupported(filePath),
+        )
+        .map(([filePath, entry]) => [path.resolve(filePath), entry]),
     );
     const log = await this.db.getIngestionLog();
     const actions = [];
@@ -335,7 +394,8 @@ export class DocumentIngester {
     }
 
     for (const oldPath of log.keys()) {
-      if (!ingestible.has(oldPath)) actions.push({ type: "deleted", path: oldPath });
+      if (!ingestible.has(oldPath))
+        actions.push({ type: "deleted", path: oldPath });
     }
 
     const results = [];
@@ -348,11 +408,12 @@ export class DocumentIngester {
       }
       await this.db.deleteDocumentsForFile(action.path);
       const browserPlatform = parseBrowserResponsePlatform(action.path);
-      const isBrowserResponse = browserPlatform && isBrowserResponsePath(action.path, this.baseDir);
+      const isBrowserResponse =
+        browserPlatform && isBrowserResponsePath(action.path, this.baseDir);
       const result = await this.ingestFile(action.path, {
         fileTs: action.fileTs,
         source_type: isBrowserResponse ? "llm-response" : undefined,
-        platform: isBrowserResponse ? browserPlatform : undefined
+        platform: isBrowserResponse ? browserPlatform : undefined,
       });
       results.push({ ...action, chunks: result.chunks });
     }
@@ -362,7 +423,7 @@ export class DocumentIngester {
       snapshotPath: effectiveSnapshot,
       actions: results,
       ingested: results.filter((result) => result.type !== "deleted").length,
-      deleted: results.filter((result) => result.type === "deleted").length
+      deleted: results.filter((result) => result.type === "deleted").length,
     };
   }
 }

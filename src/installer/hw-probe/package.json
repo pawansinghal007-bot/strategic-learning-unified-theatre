@@ -1,0 +1,15 @@
+{
+  "name": "hw-probe",
+  "version": "0.1.0",
+  "scripts": {
+    "probe": "tsx src/test-probe.ts",
+    "test": "vitest run --config vitest.config.ts",
+    "test:watch": "vitest --config vitest.config.ts",
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vitest": "^1.6.0",
+    "tsx": "^4.7.0"
+  }
+}

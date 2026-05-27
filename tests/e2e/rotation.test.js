@@ -3,13 +3,15 @@ import os from "node:os";
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
-import { WatcherDaemon } from "../../src/watcher.js";
-import { AccountStore } from "../../src/store.js";
+import { WatcherDaemon } from "../../src/daemon/watcher.js";
+import { AccountStore } from "../../src/accounts/store.js";
 import { CooldownScheduler } from "../../src/scheduler.js";
 
 describe("e2e rotation", () => {
   it("switches to the next best account when current fails health probe", async () => {
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "strategic-learning-unified-theatre-e2e-"));
+    const dir = await fs.mkdtemp(
+      path.join(os.tmpdir(), "strategic-learning-unified-theatre-e2e-"),
+    );
     const storePath = path.join(dir, "accounts.enc");
     const cooldownPath = path.join(dir, "cooldowns.json");
 
@@ -22,7 +24,7 @@ describe("e2e rotation", () => {
       profileName: null,
       cooldownUntil: null,
       lastUsed: new Date(Date.now() + 10),
-      status: "active"
+      status: "active",
     });
     await store.add({
       id: "a2",
@@ -32,7 +34,7 @@ describe("e2e rotation", () => {
       profileName: null,
       cooldownUntil: null,
       lastUsed: null,
-      status: "active"
+      status: "active",
     });
 
     const switcher = { switch: vi.fn(async () => ({ ok: true })) };
@@ -40,12 +42,27 @@ describe("e2e rotation", () => {
 
     const probeAccount = vi.fn(async (acct) => {
       if (acct.id === "a1") {
-        return { valid: false, remainingRequests: 0, resetAt: new Date(Date.now() + 1000), error: "expired" };
+        return {
+          valid: false,
+          remainingRequests: 0,
+          resetAt: new Date(Date.now() + 1000),
+          error: "expired",
+        };
       }
-      return { valid: true, remainingRequests: 100, resetAt: null, error: null };
+      return {
+        valid: true,
+        remainingRequests: 100,
+        resetAt: null,
+        error: null,
+      };
     });
 
-    const daemon = new WatcherDaemon({ store, switcher, scheduler, probeAccount });
+    const daemon = new WatcherDaemon({
+      store,
+      switcher,
+      scheduler,
+      probeAccount,
+    });
 
     await daemon.start(1);
     await new Promise((r) => setTimeout(r, 5));
@@ -54,4 +71,3 @@ describe("e2e rotation", () => {
     expect(switcher.switch).toHaveBeenCalledWith("a2", expect.anything());
   });
 });
-

@@ -27,9 +27,6 @@ export async function initializePluginsForStartup() {
         String(regErr),
       );
     }
-    console.log(
-      `[plugins] Loaded: ${Array.isArray(pluginResult.llmProviders) ? pluginResult.llmProviders.length : 0} LLM providers, ${Array.isArray(pluginResult.browserPlatforms) ? pluginResult.browserPlatforms.length : 0} browser platforms, ${Array.isArray(pluginResult.healthChecks) ? pluginResult.healthChecks.length : 0} health checks`,
-    );
   } catch (err) {
     console.warn("[plugins] Failed to load plugins (non-fatal):", String(err));
   }

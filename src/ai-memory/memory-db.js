@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import Database from "better-sqlite3";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const schemaPath = path.join(__dirname, "schema.sql");
+const schemaPath = path.join(__dirname, "memory.sql");
 
 function homeDir() {
   return process.env.HOME || os.homedir();

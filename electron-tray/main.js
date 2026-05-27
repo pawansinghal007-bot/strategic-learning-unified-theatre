@@ -3,9 +3,9 @@ import os from "node:os";
 import { fileURLToPath } from "node:url";
 import { app, Menu, Tray, nativeImage, shell, clipboard } from "electron";
 
-import { AccountStore } from "../src/store.js";
-import { WatcherDaemon } from "../src/watcher.js";
-import { SwitcherService } from "../src/switcher.js";
+import { AccountStore } from "../src/accounts/store.js";
+import { WatcherDaemon } from "../src/daemon/watcher.js";
+import { SwitcherService } from "../src/accounts/switcher.js";
 import { CooldownScheduler } from "../src/scheduler.js";
 import { getActiveSprint } from "../src/agent-handoff.js";
 
@@ -14,7 +14,7 @@ const logPath = path.join(os.homedir(), ".vscode-rotator", "daemon.log");
 const iconPaths = {
   ok: path.join(__dirname, "assets", "icon-ok.png"),
   warn: path.join(__dirname, "assets", "icon-warn.png"),
-  error: path.join(__dirname, "assets", "icon-error.png")
+  error: path.join(__dirname, "assets", "icon-error.png"),
 };
 
 let tray = null;
@@ -50,13 +50,11 @@ function truncate(text, limit) {
 function pickCurrentAccount(accounts) {
   const active = accounts.filter((a) => a.status !== "retired");
   if (active.length === 0) return null;
-  return active
-    .slice()
-    .sort((a, b) => {
-      const at = a.lastUsed ? new Date(a.lastUsed).getTime() : 0;
-      const bt = b.lastUsed ? new Date(b.lastUsed).getTime() : 0;
-      return bt - at;
-    })[0];
+  return active.slice().sort((a, b) => {
+    const at = a.lastUsed ? new Date(a.lastUsed).getTime() : 0;
+    const bt = b.lastUsed ? new Date(b.lastUsed).getTime() : 0;
+    return bt - at;
+  })[0];
 }
 
 async function refreshAccounts() {
@@ -94,7 +92,7 @@ function buildMenu() {
         } catch (error) {
           console.error(error);
         }
-      }
+      },
     }));
 
   return Menu.buildFromTemplate([
@@ -106,7 +104,7 @@ function buildMenu() {
         if (currentSprint) {
           await shell.openPath(logPath);
         }
-      }
+      },
     },
     {
       label: "Copy resume prompt",
@@ -116,33 +114,36 @@ function buildMenu() {
         if (currentSprint?.resumePrompt) {
           clipboard.writeText(currentSprint.resumePrompt);
         }
-      }
+      },
     },
     { type: "separator" },
     { label: activeLabel, enabled: false },
     { type: "separator" },
     {
       label: "Switch to ▸",
-      submenu: switchItems.length > 0 ? switchItems : [{ label: "No available account", enabled: false }]
+      submenu:
+        switchItems.length > 0
+          ? switchItems
+          : [{ label: "No available account", enabled: false }],
     },
     { type: "separator" },
     {
       label: `Daemon: ${currentStatus}`,
-      enabled: false
+      enabled: false,
     },
     {
       label: "Open log",
       click: async () => {
         await shell.openPath(logPath);
-      }
+      },
     },
     { type: "separator" },
     {
       label: "Quit",
       click: () => {
         app.quit();
-      }
-    }
+      },
+    },
   ]);
 }
 
@@ -198,4 +199,3 @@ app.on("ready", async () => {
 app.on("before-quit", async () => {
   await daemon.stop();
 });
-

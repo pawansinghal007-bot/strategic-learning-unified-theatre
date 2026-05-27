@@ -3,7 +3,11 @@ import { watch } from "node:fs";
 import { spawn } from "node:child_process";
 import path from "node:path";
 
-import { resolveAuthPath, resolveVSCodeBin } from "./paths.js";
+import {
+  resolveAuthPath,
+  resolveVSCodeBin,
+  sanitizeEnvForSpawn,
+} from "./internal/paths.js";
 
 async function fileExists(filePath) {
   try {
@@ -93,7 +97,8 @@ async function launchVSCode(profileName) {
 
   const spawnOptions = {
     detached: true,
-    stdio: "ignore"
+    stdio: "ignore",
+    env: sanitizeEnvForSpawn(process.env),
   };
 
   let child;
@@ -106,10 +111,18 @@ async function launchVSCode(profileName) {
   child.unref();
 }
 
-export async function captureAuthBlob(agentType, { timeoutMs = 120000, launchEditor = false, profileName = null } = {}) {
-  const authPath = await resolveAuthPath(agentType, { preferExisting: true, profileName });
+export async function captureAuthBlob(
+  agentType,
+  { timeoutMs = 120000, launchEditor = false, profileName = null } = {},
+) {
+  const authPath = await resolveAuthPath(agentType, {
+    preferExisting: true,
+    profileName,
+  });
 
-  const original = (await fileExists(authPath)) ? await readTrimmed(authPath) : null;
+  const original = (await fileExists(authPath))
+    ? await readTrimmed(authPath)
+    : null;
 
   if (!launchEditor) {
     if (original) {

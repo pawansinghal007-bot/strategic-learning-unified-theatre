@@ -38,14 +38,12 @@ export default function RobotFramework() {
   }
 
   const previewRobotFile = async (file) => {
-    console.debug('[RobotFramework] previewRobotFile', { file })
     setBrowserSelectedFile(file)
     setStatus(`Previewing ${file}...`)
     setSummary(null)
     setOutput('')
     try {
       const content = await window.rotator.robot.readFile(file)
-      console.debug('[RobotFramework] previewFile content length', content.length)
       setPreviewContent(content)
       setStatus(`Preview loaded for ${file}`)
     } catch (err) {
@@ -66,7 +64,6 @@ export default function RobotFramework() {
   }
 
   const runSuite = async () => {
-    console.debug('[RobotFramework] runSuite', { suite })
     setRunning(true)
     setStatus(`Running ${suite} Robot suite...`)
     setSummary(null)
@@ -74,7 +71,6 @@ export default function RobotFramework() {
 
     try {
       const result = await window.rotator.robot.runSuite({ suite })
-      console.debug('[RobotFramework] runSuite result', result)
       setSummary(result)
       setStatus(`Completed ${suite} suite with exit code ${result.exitCode}`)
       setOutput(JSON.stringify(result, null, 2))
@@ -88,7 +84,6 @@ export default function RobotFramework() {
   }
 
   const runSelectedRobotFile = async () => {
-    console.debug('[RobotFramework] runSelectedRobotFile', { selectedRobotFile })
     if (!selectedRobotFile) {
       setStatus('Select a Robot file first.')
       return
@@ -100,7 +95,6 @@ export default function RobotFramework() {
 
     try {
       const result = await window.rotator.robot.runFile(selectedRobotFile)
-      console.debug('[RobotFramework] runFile result', result)
       setSummary(result)
       setStatus(`Completed ${selectedRobotFile} with exit code ${result.exitCode}`)
       setOutput(JSON.stringify(result, null, 2))

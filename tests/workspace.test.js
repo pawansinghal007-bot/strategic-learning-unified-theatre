@@ -3,17 +3,19 @@ import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 
-import { bindProfile, getBinding, unbind } from "../src/workspace.js";
+import { bindProfile, getBinding, unbind } from "../src/accounts/workspace.js";
 
 describe("workspace binding", () => {
   it("sets, reads, and removes the profile field", async () => {
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "strategic-learning-unified-theatre-ws-"));
+    const dir = await fs.mkdtemp(
+      path.join(os.tmpdir(), "strategic-learning-unified-theatre-ws-"),
+    );
     const wsPath = path.join(dir, "demo.code-workspace");
 
     await fs.writeFile(
       wsPath,
       JSON.stringify({ folders: [{ path: "." }] }, null, 2),
-      "utf8"
+      "utf8",
     );
 
     await bindProfile(wsPath, "MyProfile");
@@ -28,9 +30,10 @@ describe("workspace binding", () => {
   });
 
   it("throws a helpful error when workspace file is missing", async () => {
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "strategic-learning-unified-theatre-ws-"));
+    const dir = await fs.mkdtemp(
+      path.join(os.tmpdir(), "strategic-learning-unified-theatre-ws-"),
+    );
     const wsPath = path.join(dir, "missing.code-workspace");
     await expect(getBinding(wsPath)).rejects.toThrow(/workspace/i);
   });
 });
-

@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import { execSync } from "node:child_process";
+import { sanitizeEnvForSpawn } from "./internal/paths.js";
 
 let machineIdCache = null;
 let keyCache = null;
@@ -13,8 +14,12 @@ function getMachineId() {
   if (platform === "win32") {
     try {
       const out = execSync(
-        "powershell -NoProfile -Command \"(Get-CimInstance Win32_ComputerSystemProduct).UUID\"",
-        { stdio: ["ignore", "pipe", "ignore"], timeout: 1000 }
+        'powershell -NoProfile -Command "(Get-CimInstance Win32_ComputerSystemProduct).UUID"',
+        {
+          stdio: ["ignore", "pipe", "ignore"],
+          timeout: 1000,
+          env: sanitizeEnvForSpawn(process.env),
+        },
       )
         .toString("utf8")
         .trim();
@@ -27,7 +32,8 @@ function getMachineId() {
     try {
       const out = execSync("wmic csproduct get uuid", {
         stdio: ["ignore", "pipe", "ignore"],
-        timeout: 1000
+        timeout: 1000,
+        env: sanitizeEnvForSpawn(process.env),
       })
         .toString("utf8")
         .split(/\r?\n/g)
@@ -45,7 +51,11 @@ function getMachineId() {
     try {
       const out = execSync(
         "ioreg -rd1 -c IOPlatformExpertDevice | awk -F\\\" '/IOPlatformUUID/{print $(NF-1)}'",
-        { stdio: ["ignore", "pipe", "ignore"], timeout: 1000 }
+        {
+          stdio: ["ignore", "pipe", "ignore"],
+          timeout: 1000,
+          env: sanitizeEnvForSpawn(process.env),
+        },
       )
         .toString("utf8")
         .trim();
@@ -73,7 +83,7 @@ function getMachineId() {
     platform,
     os.hostname(),
     os.userInfo?.().username ?? "",
-    os.arch()
+    os.arch(),
   ].join("|");
 
   machineIdCache = crypto.createHash("sha256").update(fallback).digest("hex");
@@ -83,7 +93,11 @@ function getMachineId() {
 function getKey() {
   if (keyCache) return keyCache;
   const machineId = getMachineId();
-  keyCache = crypto.scryptSync(machineId, "strategic-learning-unified-theatre", 32);
+  keyCache = crypto.scryptSync(
+    machineId,
+    "strategic-learning-unified-theatre",
+    32,
+  );
   return keyCache;
 }
 
@@ -98,14 +112,14 @@ export function encrypt(plaintext) {
 
   const ciphertext = Buffer.concat([
     cipher.update(plaintext, "utf8"),
-    cipher.final()
+    cipher.final(),
   ]);
   const tag = cipher.getAuthTag();
 
   return {
     iv: iv.toString("base64"),
     tag: tag.toString("base64"),
-    ciphertext: ciphertext.toString("base64")
+    ciphertext: ciphertext.toString("base64"),
   };
 }
 
@@ -118,15 +132,14 @@ export function decrypt({ iv, tag, ciphertext }) {
   const decipher = crypto.createDecipheriv(
     "aes-256-gcm",
     key,
-    Buffer.from(iv, "base64")
+    Buffer.from(iv, "base64"),
   );
   decipher.setAuthTag(Buffer.from(tag, "base64"));
 
   const plaintext = Buffer.concat([
     decipher.update(Buffer.from(ciphertext, "base64")),
-    decipher.final()
+    decipher.final(),
   ]);
 
   return plaintext.toString("utf8");
 }
-

@@ -2,10 +2,10 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
-import * as config from "../src/config.js";
+import * as config from "../src/internal/config.js";
 import * as browserBridge from "../src/browser-bridge.js";
 import * as browserCommands from "../src/commands/browser.js";
-import { askLocalLlm } from "../src/local-llm.js";
+import { askLocalLlm } from "../src/llm/local-llm.js";
 import { ExperienceDb } from "../src/llm/experience-db.js";
 import { DocumentIngester } from "../src/llm/document-ingester.js";
 

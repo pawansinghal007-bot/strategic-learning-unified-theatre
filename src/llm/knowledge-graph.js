@@ -140,12 +140,10 @@ export async function buildGraph(db, ideaDir, outputPath) {
   const ideaNodes = [];
   try {
     const ideaRoot = ideaDir ? path.dirname(path.dirname(ideaDir)) : os.homedir();
-	console.log("IDEA ROOT:", ideaRoot);
-	const ideas = await listIdeas({
-		cwd: ideaRoot,
-		status: undefined
-		});
-	console.log("IDEAS:", ideas);
+    const ideas = await listIdeas({
+      cwd: ideaRoot,
+      status: undefined
+    });
     ideas.forEach((idea) => {
       ideaNodes.push({
         id: `idea-${idea.id}`,

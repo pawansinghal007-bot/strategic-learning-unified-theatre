@@ -92,7 +92,7 @@ describe("AI Memory Foundation", () => {
       title: "Persistent AI memory database",
       rationale: "Avoid large markdown resume prompts",
       decision: "Use SQLite with better-sqlite3",
-      affected_files: ["src/ai-memory/schema.sql"],
+      affected_files: ["src/ai-memory/memory.sql"],
       superseded_by: null
     });
 

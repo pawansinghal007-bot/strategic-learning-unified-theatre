@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
-const utils = require("../../scripts/chaos/utils.js");
+const utils = require("../scripts/chaos/utils.js");
 
 describe("chaos utils", () => {
   it("parseHealthOk returns true for healthy JSON shapes", () => {

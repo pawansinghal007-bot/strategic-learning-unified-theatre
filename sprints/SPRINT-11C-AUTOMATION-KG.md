@@ -25,7 +25,7 @@ This sprint focuses on **Phase 3 & 4** of the extension roadmap: add minimal but
 
 **Always refer to these before coding:**
 - [strategic-learning-unified-theatre-master-instructions.md](../strategic-learning-unified-theatre-master-instructions.md) — Latest project status
-- [VSCODE-EXTENSION-BLUEPRINT.md](../VSCODE-EXTENSION-BLUEPRINT.md) — Command definitions, manifest
+- [vscode-extension-blueprint.md](../docs/archive/blueprints/vscode-extension-blueprint.md) — Command definitions, manifest
 - [SPRINT-11A-CORE-COMMANDS.md](./SPRINT-11A-CORE-COMMANDS.md) — Core commands (dependency)
 - [SPRINT-11B-SIDEBAR-VIEWS.md](./SPRINT-11B-SIDEBAR-VIEWS.md) — Sidebar views (dependency)
 - `Solution/vscode-extension/extension.js` — From Sprint 11A/11B
@@ -330,7 +330,7 @@ Solution/
 - **Cytoscape.js Docs**: https://js.cytoscape.org/  
 - **VS Code Webview API**: https://code.visualstudio.com/api/extension-guides/webview  
 - **VS Code Settings**: https://code.visualstudio.com/api/references/contribution-points#contributes.configuration  
-- **Blueprint**: [VSCODE-EXTENSION-BLUEPRINT.md](../VSCODE-EXTENSION-BLUEPRINT.md)  
+- **Blueprint**: [vscode-extension-blueprint.md](../docs/archive/blueprints/vscode-extension-blueprint.md)
 - **Master Instructions**: [strategic-learning-unified-theatre-master-instructions.md](../strategic-learning-unified-theatre-master-instructions.md)  
 
 ---

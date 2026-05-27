@@ -184,7 +184,6 @@ function init() {
     return;
   }
 
-  console.log('[preload-browser] Initialized for platform:', platform);
   setupObserver(platform, selectors);
 }
 

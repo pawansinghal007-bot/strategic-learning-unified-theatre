@@ -1,11 +1,11 @@
 import crypto from "node:crypto";
-import { renameSync } from "node:fs";
+import { renameSync, mkdirSync } from "node:fs";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
 import { DomainError } from "../error.js";
-import { loadConfig, assertFeatureEnabled } from "../config.js";
+import { loadConfig, assertFeatureEnabled } from "../internal/config.js";
 import {
   cosineSimilarity,
   decodeEmbedding,
@@ -113,14 +113,41 @@ export class ExperienceDb {
         process.env.NODE_ENV === "test") &&
       (process.env.HOME == null || process.env.HOME === os.homedir())
     ) {
-      const tmpdir = os.tmpdir
-        ? os.tmpdir()
-        : process.env.TEMP || process.env.TMP || os.homedir();
-      // Use a per-process temp directory to avoid cross-worker collisions
-      this.baseDir = path.join(tmpdir, ".vscode-rotator-test-" + process.pid);
+      // Use a homedir-scoped test directory instead of a world-writable tmp
+      // directory to avoid S5443: public writable directories. Create the
+      // directory with restrictive permissions (owner-only).
+      const home = process.env.HOME ?? os.homedir();
+      const testRoot = path.join(home, ".vscode-rotator-test-dir");
+      try {
+        mkdirSync(testRoot, { recursive: true, mode: 0o700 });
+      } catch {}
+      // Use a per-process subdir to avoid cross-worker collisions
+      this.baseDir = path.join(testRoot, String(process.pid));
     } else {
       this.baseDir = inferredBase;
     }
+
+    // If a caller explicitly supplied `baseDir`, ensure it is scoped under
+    // the user's home directory to avoid using world-writable locations.
+    if (baseDir && !process.env.VITEST && !process.env.VITEST_WORKER_ID) {
+      const home = process.env.HOME ?? os.homedir();
+      const resolvedBase = path.resolve(baseDir);
+      const resolvedHome = path.resolve(home) + path.sep;
+      if (
+        !resolvedBase.startsWith(resolvedHome) &&
+        resolvedBase !== path.resolve(home)
+      ) {
+        throw new DomainError(
+          "ROTATOR_INVALID_BASE_DIR",
+          `Refusing to use baseDir outside user home directory: ${baseDir}`,
+        );
+      }
+    }
+
+    // Ensure the base directory exists with owner-only permissions.
+    try {
+      mkdirSync(this.baseDir, { recursive: true, mode: 0o700 });
+    } catch {}
     this.dbPath = dbPath ?? path.join(this.baseDir, "experience.db");
     this.state = null;
     // Serialize writes to avoid concurrent rename/copy issues on Windows.

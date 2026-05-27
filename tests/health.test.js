@@ -2,14 +2,14 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
-vi.mock("../src/local-llm.js", () => ({
+vi.mock("../src/llm/local-llm.js", () => ({
   getLocalLlmStatus: vi.fn()
 }));
 
 const mockAccounts = [];
 const mockSecrets = new Map();
 
-vi.mock("../src/store.js", () => ({
+vi.mock("../src/accounts/store.js", () => ({
   AccountStore: class {
     async list() {
       return mockAccounts.map((account) => ({ ...account }));
@@ -17,7 +17,7 @@ vi.mock("../src/store.js", () => ({
   }
 }));
 
-vi.mock("../src/secret-store.js", () => ({
+vi.mock("../src/accounts/secret-store.js", () => ({
   SecretStore: class {
     async get(id) {
       return mockSecrets.get(id) ?? null;
@@ -29,7 +29,7 @@ vi.mock("../src/secret-store.js", () => ({
   }
 }));
 
-import { getLocalLlmStatus } from "../src/local-llm.js";
+import { getLocalLlmStatus } from "../src/llm/local-llm.js";
 import {
   AccountHealthStatus,
   DaemonHealthStatus,
@@ -38,7 +38,7 @@ import {
   computeDaemonHealth,
   computeLocalLlmHealth,
   getSystemHealth
-} from "../src/health.js";
+} from "../src/accounts/health.js";
 
 function token(expOffsetMs) {
   return JSON.stringify({ expires_at: new Date(Date.now() + expOffsetMs).toISOString() });

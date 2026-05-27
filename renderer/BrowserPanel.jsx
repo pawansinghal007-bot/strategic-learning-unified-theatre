@@ -47,7 +47,6 @@ export default function BrowserPanel({ initialPlatform = 'chatgpt' }) {
    */
   useEffect(() => {
     const handleCapture = (payload) => {
-      console.log('[BrowserPanel] capture:done event:', payload)
       setCaptureCount((prev) => prev + 1)
       setLastCapturedAt(Date.now())
       if (payload.chunks > 0) {
@@ -69,7 +68,6 @@ export default function BrowserPanel({ initialPlatform = 'chatgpt' }) {
    */
   useEffect(() => {
     const handleNavigation = (payload) => {
-      console.log('[BrowserPanel] browser:navigation event:', payload)
       if (payload.url) {
         setBrowserUrl(payload.url)
       }

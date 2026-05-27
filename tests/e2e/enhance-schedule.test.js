@@ -3,7 +3,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
 
-import { WatcherDaemon } from '../../src/watcher.js';
+import { WatcherDaemon } from '../../src/daemon/watcher.js';
 import { ExperienceDb } from '../../src/llm/experience-db.js';
 
 describe('e2e enhance schedule', () => {

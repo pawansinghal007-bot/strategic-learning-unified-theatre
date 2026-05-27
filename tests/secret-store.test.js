@@ -2,8 +2,11 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
-import { SecretStore, defaultProgressPath } from "../src/secret-store.js";
-import { AccountStore } from "../src/store.js";
+import {
+  SecretStore,
+  defaultProgressPath,
+} from "../src/accounts/secret-store.js";
+import { AccountStore } from "../src/accounts/store.js";
 
 describe("SecretStore", () => {
   let tempDir;
@@ -35,7 +38,9 @@ describe("SecretStore", () => {
     const adapter = {
       setPassword: vi.fn().mockRejectedValue(new Error("keychain unavailable")),
       getPassword: vi.fn().mockRejectedValue(new Error("keychain unavailable")),
-      deletePassword: vi.fn().mockRejectedValue(new Error("keychain unavailable")),
+      deletePassword: vi
+        .fn()
+        .mockRejectedValue(new Error("keychain unavailable")),
     };
     const fallbackPath = path.join(tempDir, "fallback", "secrets.enc");
     const store = new SecretStore({ adapter, fallbackPath });
@@ -78,7 +83,9 @@ describe("SecretStore", () => {
       status: "active",
     });
 
-    const secrets = new SecretStore({ fallbackPath: path.join(tempDir, "secrets.enc") });
+    const secrets = new SecretStore({
+      fallbackPath: path.join(tempDir, "secrets.enc"),
+    });
     const migrated = await secrets.migrateLegacy({ storePath });
     const account = await accountStore.get("acct-legacy");
 

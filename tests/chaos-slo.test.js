@@ -1,6 +1,6 @@
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
-const slo = require("../../scripts/chaos/slo.js");
+const slo = require("../scripts/chaos/slo.js");
 
 describe("chaos SLO configuration", () => {
   it("exports valid numeric recovery and load thresholds", () => {

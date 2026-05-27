@@ -54,6 +54,7 @@ export function kMeans(vectors, k, maxIter = 50) {
   const chooseInitial = () => {
     const chosen = new Set();
     while (chosen.size < Math.min(k, n)) {
+      // NOSONAR javascript:S2245 - weak PRNG acceptable for ML clustering initialization; not security-sensitive
       chosen.add(Math.floor(Math.random() * n));
     }
     return Array.from(chosen);
@@ -84,7 +85,10 @@ export function kMeans(vectors, k, maxIter = 50) {
       }
     }
 
-    const sums = Array.from({ length: centroids.length }, () => new Float32Array(dim));
+    const sums = Array.from(
+      { length: centroids.length },
+      () => new Float32Array(dim),
+    );
     const counts = new Array(centroids.length).fill(0);
     for (let i = 0; i < n; i += 1) {
       const clusterIndex = assignments[i];
@@ -98,6 +102,7 @@ export function kMeans(vectors, k, maxIter = 50) {
 
     for (let j = 0; j < centroids.length; j += 1) {
       if (counts[j] === 0) {
+        // NOSONAR javascript:S2245 - weak PRNG acceptable for ML clustering; empty cluster reassignment is not security-sensitive
         const randomIndex = Math.floor(Math.random() * n);
         centroids[j] = floatVectors[randomIndex].slice();
         centroidIndices[j] = randomIndex;
@@ -112,7 +117,10 @@ export function kMeans(vectors, k, maxIter = 50) {
     }
   }
 
-  const clusters = Array.from({ length: Math.min(k, n) }, (_, index) => ({ centroidIndex: centroidIndices[index], indices: [] }));
+  const clusters = Array.from({ length: Math.min(k, n) }, (_, index) => ({
+    centroidIndex: centroidIndices[index],
+    indices: [],
+  }));
   for (let i = 0; i < n; i += 1) {
     const clusterIndex = assignments[i] >= 0 ? assignments[i] : 0;
     clusters[clusterIndex].indices.push(i);
@@ -123,11 +131,15 @@ export function kMeans(vectors, k, maxIter = 50) {
 export async function clusterDocuments(db, k) {
   if (!db) throw new Error("ExperienceDb instance is required.");
   await db.open();
-  const documents = Array.isArray(db.state?.documents) ? db.state.documents : [];
+  const documents = Array.isArray(db.state?.documents)
+    ? db.state.documents
+    : [];
   const docsWithEmbedding = documents
     .map((doc, index) => ({ doc, index }))
     .filter(({ doc }) => doc && doc.embedding);
-  const vectorData = docsWithEmbedding.map(({ doc }) => toFloat32Array(decodeEmbedding(doc.embedding)));
+  const vectorData = docsWithEmbedding.map(({ doc }) =>
+    toFloat32Array(decodeEmbedding(doc.embedding)),
+  );
   if (vectorData.length === 0) {
     return { clusters: [] };
   }
@@ -136,14 +148,23 @@ export async function clusterDocuments(db, k) {
     indices: cluster.indices,
     snippets: cluster.indices.slice(0, 3).map((vectorIndex) => {
       const source = docsWithEmbedding[vectorIndex]?.doc;
-      const snippet = source?.content ? String(source.content).slice(0, 80).replace(/\s+/g, " ").trim() : "";
+      const snippet = source?.content
+        ? String(source.content).slice(0, 80).replace(/\s+/g, " ").trim()
+        : "";
       return snippet;
-    })
+    }),
   }));
 }
 
 export function cosineSimilarity(a, b) {
-  if (!a || !b || typeof a.length !== "number" || typeof b.length !== "number" || a.length !== b.length) return 0;
+  if (
+    !a ||
+    !b ||
+    typeof a.length !== "number" ||
+    typeof b.length !== "number" ||
+    a.length !== b.length
+  )
+    return 0;
   let dot = 0;
   let an = 0;
   let bn = 0;
@@ -199,6 +220,10 @@ export function decodeEmbedding(value) {
   if (Array.isArray(value)) return value;
   if (!value) return [];
   const buffer = Buffer.from(String(value), "base64");
-  const floats = new Float32Array(buffer.buffer, buffer.byteOffset, buffer.byteLength / 4);
+  const floats = new Float32Array(
+    buffer.buffer,
+    buffer.byteOffset,
+    buffer.byteLength / 4,
+  );
   return Array.from(floats);
 }

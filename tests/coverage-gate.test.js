@@ -3,11 +3,11 @@ import path from "path";
 import { pathToFileURL } from "url";
 
 const coreModules = [
-  "src/secret-store.js",
-  "src/daemon-runner.js",
+  "src/accounts/secret-store.js",
+  "src/daemon/daemon-runner.js",
   "src/browser-bridge.js",
   "src/agent-handoff.js",
-  "src/local-llm.js",
+  "src/llm/local-llm.js",
   "src/idea-store.js",
 ];
 const threshold = 70;

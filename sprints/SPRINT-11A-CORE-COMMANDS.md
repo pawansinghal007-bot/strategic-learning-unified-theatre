@@ -23,7 +23,7 @@ This sprint focuses on **Phase 1** of the extension roadmap: get the 6 core comm
 
 **Always refer to these before coding:**
 - [strategic-learning-unified-theatre-master-instructions.md](../strategic-learning-unified-theatre-master-instructions.md) — Project status (139 tests, all passing)
-- [VSCODE-EXTENSION-BLUEPRINT.md](../VSCODE-EXTENSION-BLUEPRINT.md) — Command definitions, CLI reference, sample code
+- [vscode-extension-blueprint.md](../docs/archive/blueprints/vscode-extension-blueprint.md) — Command definitions, CLI reference, sample code
 - `Solution/vscode-extension/package.json` — Current manifest
 - `Solution/vscode-extension/extension.js` — Current scaffold
 
@@ -129,7 +129,7 @@ This sprint focuses on **Phase 1** of the extension roadmap: get the 6 core comm
    - Timeout: 30 seconds (configurable; raise error if exceeded)
 
 2. **Implement all 6 command handlers**  
-   - Use the sample code from [VSCODE-EXTENSION-BLUEPRINT.md](../VSCODE-EXTENSION-BLUEPRINT.md) as base  
+   - Use the sample code from [vscode-extension-blueprint.md](../docs/archive/blueprints/vscode-extension-blueprint.md) as base
    - For each command:
      - Show input boxes/quick picks as needed  
      - Log command to output channel *before* executing  
@@ -242,7 +242,7 @@ Solution/
 
 ## Links & References
 
-- **Blueprint**: [VSCODE-EXTENSION-BLUEPRINT.md](../VSCODE-EXTENSION-BLUEPRINT.md)  
+- **Blueprint**: [vscode-extension-blueprint.md](../docs/archive/blueprints/vscode-extension-blueprint.md)
 - **Master Instructions**: [strategic-learning-unified-theatre-master-instructions.md](../strategic-learning-unified-theatre-master-instructions.md)  
 - **CLI Source**: `Solution/src/cli.js` (entry point)  
 - **Command Implementations**: `Solution/src/commands/*.js` (what the CLI calls)  

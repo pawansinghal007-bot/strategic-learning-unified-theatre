@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 
-import { parseLastCommitLine, parseStatusSummary } from "../src/git-monitor.js";
+import { parseLastCommitLine, parseStatusSummary } from "../src/internal/git-monitor.js";
 
 const fixturesDir = path.join(process.cwd(), "tests", "fixtures");
 
@@ -24,4 +24,3 @@ describe("git monitor parsing", () => {
     expect(c.date).toMatch(/T/);
   });
 });
-

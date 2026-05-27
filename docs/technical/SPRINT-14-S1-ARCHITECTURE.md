@@ -115,7 +115,7 @@ const token = await secretStore.get('provider-token');
 
 | Category | Store | Content Rules | Example |
 |---|---|---|---|
-| **Secrets** | SecretStore (encrypted file or keytar) | Provider token, refresh token, API key | `ghp_xxx...`, `Bearer token`, session cookies |
+| **Secrets** | SecretStore (encrypted file or keytar) | Provider token, refresh token, API key | `provider_token_xxx...`, `Bearer token`, session cookies |
 | **Runtime state** | SQLite `session_supervisor` table | Session ID, reset_at time, retry count, goal (redacted) | `session_123`, `2026-05-25T14:30:00Z`, `3` |
 | **Logs** | daemon.log (JSONL) | Event type, timing, non-secret status | `{"ts":"...", "type":"limit_hit", "reset_at":"..."}` |
 | **Handoff payload** | sprint JSON manifest | Goal, completed tasks, pending tasks, **resume prompt only** | Plain English task list + prompt, no secrets |
@@ -141,7 +141,7 @@ const token = await secretStore.get('provider-token');
 **Data STORED redacted:**
 - `last_response_summary_redacted` → Plain English summary of response outcome, no token excerpts
   - Example: `"Last response returned 3 code suggestions and one error about missing dependency"`
-  - Not: `"Response: [403 Unauthorized. Your token ghp_xxx has expired...]"`
+  - Not: `"Response: [403 Unauthorized. Your token provider_token_xxx has expired...]"`
 - `continuation_goal_redacted` → User's goal/intent, not response content
   - Example: `"Implement session supervisor with auto-resume on limit event"`
   - Not: `"Response was: 'Here is your implementation...'" [full response body]`

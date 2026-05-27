@@ -79,7 +79,7 @@ function activate(context) {
         vscode.window.showInformationMessage(`Flushed ${results.length} staged signals`);
       } else {
         output.appendLine("Collector not initialized; creating new instance...");
-        const configModuleUrl = pathToFileURL(path.join(projectRoot, "src", "config.js")).href;
+        const configModuleUrl = pathToFileURL(path.join(projectRoot, "src", "internal", "config.js")).href;
         const collectorModuleUrl = pathToFileURL(path.join(context.extensionPath, "collector.js")).href;
         const { loadConfig } = await import(configModuleUrl);
         const { VscodeContextCollector } = await import(collectorModuleUrl);
@@ -127,7 +127,7 @@ function activate(context) {
     vscode.commands.registerCommand("strategic-learning-unified-theatre.togglePassiveLearning", async () => {
       output.show(true);
       output.appendLine("Toggling passive learning...");
-      const configModuleUrl = pathToFileURL(path.join(projectRoot, "src", "config.js")).href;
+      const configModuleUrl = pathToFileURL(path.join(projectRoot, "src", "internal", "config.js")).href;
       const { loadConfig, saveConfig } = await import(configModuleUrl);
       const config = await loadConfig();
       const next = {
@@ -159,7 +159,7 @@ function activate(context) {
 
 async function initializeCollector(context, projectRoot, output) {
   try {
-    const configModuleUrl = pathToFileURL(path.join(projectRoot, "src", "config.js")).href;
+    const configModuleUrl = pathToFileURL(path.join(projectRoot, "src", "internal", "config.js")).href;
     const collectorModuleUrl = pathToFileURL(path.join(context.extensionPath, "collector.js")).href;
 
     const { loadConfig } = await import(configModuleUrl);

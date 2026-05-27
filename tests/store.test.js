@@ -4,7 +4,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { encrypt, decrypt } from "../src/encrypt.js";
-import { AccountStore } from "../src/store.js";
+import { AccountStore } from "../src/accounts/store.js";
 
 describe("encrypt/decrypt", () => {
   it("round-trips plaintext", () => {
@@ -25,7 +25,9 @@ describe("encrypt/decrypt", () => {
 
 describe("AccountStore", () => {
   it("adds, lists, and removes accounts with persistence", async () => {
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "strategic-learning-unified-theatre-"));
+    const dir = await fs.mkdtemp(
+      path.join(os.tmpdir(), "strategic-learning-unified-theatre-"),
+    );
     const storePath = path.join(dir, "accounts.enc");
 
     const store1 = new AccountStore({ storePath });
@@ -37,7 +39,7 @@ describe("AccountStore", () => {
       profileName: null,
       cooldownUntil: null,
       lastUsed: null,
-      status: "active"
+      status: "active",
     });
 
     const listed1 = await store1.list();
@@ -54,7 +56,9 @@ describe("AccountStore", () => {
   });
 
   it("updates an account by id", async () => {
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "strategic-learning-unified-theatre-"));
+    const dir = await fs.mkdtemp(
+      path.join(os.tmpdir(), "strategic-learning-unified-theatre-"),
+    );
     const storePath = path.join(dir, "accounts.enc");
 
     const store = new AccountStore({ storePath });
@@ -66,7 +70,7 @@ describe("AccountStore", () => {
       profileName: null,
       cooldownUntil: null,
       lastUsed: null,
-      status: "active"
+      status: "active",
     });
 
     const updated = await store.update("acct_1", { status: "cooldown" });

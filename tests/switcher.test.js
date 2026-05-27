@@ -3,8 +3,8 @@ import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 
-import { atomicWriteFile, SwitcherService } from "../src/switcher.js";
-import { AccountStore } from "../src/store.js";
+import { atomicWriteFile, SwitcherService } from "../src/accounts/switcher.js";
+import { AccountStore } from "../src/accounts/store.js";
 
 describe("atomicWriteFile", () => {
   it("writes full content to destination", async () => {

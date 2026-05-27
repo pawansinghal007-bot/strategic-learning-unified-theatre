@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process";
+import { resolveBinary } from "../internal/paths.js";
 
 import { exportIdeas } from "../idea-store.js";
 import { ExperienceDb } from "./experience-db.js";
@@ -10,26 +11,44 @@ function estimateTokens(text) {
 }
 
 function sprintSummary(sprint) {
-  const completed = (sprint.completed_tasks ?? []).map((task) => task.description).join("; ") || "none";
-  const pending = (sprint.pending_tasks ?? []).map((task) => task.description).join("; ") || "none";
-  const failed = (sprint.tests_failed ?? []).map((test) => `${test.name}: ${test.error}`).join("; ") || "none";
+  const completed =
+    (sprint.completed_tasks ?? []).map((task) => task.description).join("; ") ||
+    "none";
+  const pending =
+    (sprint.pending_tasks ?? []).map((task) => task.description).join("; ") ||
+    "none";
+  const failed =
+    (sprint.tests_failed ?? [])
+      .map((test) => `${test.name}: ${test.error}`)
+      .join("; ") || "none";
   return `- ${sprint.date}: ${sprint.goal} [${sprint.status}]. Completed: ${completed}. Pending: ${pending}. Tests failed: ${failed}.`;
 }
 
 function clipboardWrite(text) {
   try {
     if (process.platform === "win32") {
-      spawnSync("clip", { input: text });
+      const clipBin = resolveBinary("clip") || "clip";
+      spawnSync(clipBin, { input: text });
     } else if (process.platform === "darwin") {
-      spawnSync("pbcopy", { input: text });
+      const pbcopy = resolveBinary("pbcopy") || "pbcopy";
+      spawnSync(pbcopy, { input: text });
     } else {
-      spawnSync("xclip", ["-selection", "clipboard"], { input: text });
+      const xclip =
+        resolveBinary("xclip", ["/usr/bin/xclip", "/usr/local/bin/xclip"]) ||
+        "xclip";
+      spawnSync(xclip, ["-selection", "clipboard"], { input: text });
     }
   } catch {}
 }
 
 export class PromptGenerator {
-  constructor({ baseDir, db, embeddings, inference, cwd = process.cwd() } = {}) {
+  constructor({
+    baseDir,
+    db,
+    embeddings,
+    inference,
+    cwd = process.cwd(),
+  } = {}) {
     this.db = db ?? new ExperienceDb({ baseDir });
     this.embeddings = embeddings ?? new EmbeddingProvider();
     this.inference = inference ?? new LocalLlmInference({ baseDir });
@@ -51,11 +70,13 @@ export class PromptGenerator {
     const targetPlatform = platform ?? "chatgpt";
     const queryEmbedding = await this.embeddings.embed(goal);
     const docs = await this.db.vectorSearchDocuments(queryEmbedding, 5);
-    const recentResponses = platform ? await this.db.recentLlmResponseChunks(platform, 3) : [];
+    const recentResponses = platform
+      ? await this.db.recentLlmResponseChunks(platform, 3)
+      : [];
     const rawThreadChunks = await this.db.getThreadContext(goal, platform);
     const threadChunks = rawThreadChunks.map((chunk) => ({
       ...chunk,
-      score: (chunk.score ?? 0) * 1.2
+      score: (chunk.score ?? 0) * 1.2,
     }));
     threadChunks.sort((a, b) => {
       if (a.filename !== b.filename) {
@@ -63,14 +84,18 @@ export class PromptGenerator {
       }
       return Number(a.turn_index) - Number(b.turn_index);
     });
-    const ideas = await exportIdeas({ project, status: "active", cwd: this.cwd });
+    const ideas = await exportIdeas({
+      project,
+      status: "active",
+      cwd: this.cwd,
+    });
     const sprints = await this.db.recentSprints(3);
     const rules = await this.db.listRubricRules({ activeOnly: true });
     const threadText = threadChunks.length
       ? `## Past conversation context\n\n${threadChunks
           .map(
             (doc) =>
-              `### ${doc.filename}#${doc.turn_index} (${doc.metadata?.role || "unknown"})\n${doc.content}`
+              `### ${doc.filename}#${doc.turn_index} (${doc.metadata?.role || "unknown"})\n${doc.content}`,
           )
           .join("\n\n")}`
       : "";
@@ -80,13 +105,21 @@ export class PromptGenerator {
           .join("\n\n")}`
       : "";
     const documentText = docs
-      .map((doc) => `### ${doc.filename}#${doc.chunk_index} (score ${doc.score.toFixed(2)})\n${doc.content}`)
+      .map(
+        (doc) =>
+          `### ${doc.filename}#${doc.chunk_index} (score ${doc.score.toFixed(2)})\n${doc.content}`,
+      )
       .join("\n\n");
-    const docText = [threadText, responseText, documentText ? `### Project Documents\n\n${documentText}` : ""]
+    const docText = [
+      threadText,
+      responseText,
+      documentText ? `### Project Documents\n\n${documentText}` : "",
+    ]
       .filter(Boolean)
       .join("\n\n")
       .slice(0, 9000);
-    const ruleText = rules.map((rule) => `- ${rule.rule}`).join("\n") || "- None";
+    const ruleText =
+      rules.map((rule) => `- ${rule.rule}`).join("\n") || "- None";
 
     const system = [
       `You are an expert software developer working on ${project || "this project"}.`,
@@ -95,7 +128,7 @@ export class PromptGenerator {
       `Recent sprint history:\n${sprints.map(sprintSummary).join("\n") || "- None imported yet."}`,
       `Known mistakes to avoid:\n${ruleText}`,
       `Generate a detailed, implementation-ready prompt for: ${goal}`,
-      `Target platform: ${targetPlatform}`
+      `Target platform: ${targetPlatform}`,
     ].join("\n\n");
 
     return { system, docs, ideas, sprints, rules };
@@ -107,7 +140,7 @@ export class PromptGenerator {
     const context = await this.buildContext({ goal, project, platform });
     const prompt = await this.inference.generate({
       system: context.system,
-      prompt: `Write the prompt now. Keep it structured, concrete, and ready to paste into ${targetPlatform}.`
+      prompt: `Write the prompt now. Keep it structured, concrete, and ready to paste into ${targetPlatform}.`,
     });
     let history = null;
     if (!skipHistory) {
@@ -115,7 +148,7 @@ export class PromptGenerator {
         platform: targetPlatform,
         prompt,
         response_summary: `Generated for goal: ${goal}`,
-        tokens_estimated: estimateTokens(prompt)
+        tokens_estimated: estimateTokens(prompt),
       });
     }
     await this.db.close();
@@ -129,10 +162,14 @@ export class PromptGenerator {
     }
     await this.initialize();
     const queryEmbedding = await this.embeddings.embed(String(question));
-    const related = await this.db.relatedTo(queryEmbedding, { topDocs: opts.topDocs ?? 5 });
+    const related = await this.db.relatedTo(queryEmbedding, {
+      topDocs: opts.topDocs ?? 5,
+    });
 
     const documentLines = related.documents.map((doc) => {
-      const title = doc.content ? String(doc.content).slice(0, 80).replace(/\s+/g, " ").trim() : "(no content)";
+      const title = doc.content
+        ? String(doc.content).slice(0, 80).replace(/\s+/g, " ").trim()
+        : "(no content)";
       return `- ${title} [source_type: ${doc.source_type ?? "unknown"}][platform: ${doc.platform ?? "unknown"}]`;
     });
 
@@ -150,7 +187,7 @@ export class PromptGenerator {
       "\n## Related Sprints",
       sprintLines.length ? sprintLines.join("\n") : "- None found.",
       "\n## Related Prompt History",
-      historyLines.length ? historyLines.join("\n") : "- None found."
+      historyLines.length ? historyLines.join("\n") : "- None found.",
     ].join("\n");
 
     await this.db.close();

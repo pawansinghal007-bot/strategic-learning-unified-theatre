@@ -3,7 +3,7 @@ const path = require("path");
 
 const runbookPath = path.resolve(
   __dirname,
-  "../../docs/chaos-resilience-runbook.md",
+  "../docs/chaos-resilience-runbook.md",
 );
 const runbook = fs.readFileSync(runbookPath, "utf8");
 
