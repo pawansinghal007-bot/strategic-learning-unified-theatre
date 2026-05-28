@@ -13,7 +13,6 @@ export default defineConfig({
       "e2e/**/*.test.{js,jsx}",
       "e2e/**/*.e2e.{js,jsx}",
     ],
-    exclude: ["tests/llm/ollama-inference.test.js"],
     coverage: {
       provider: "v8",
       all: true,

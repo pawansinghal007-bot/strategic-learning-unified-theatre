@@ -61,6 +61,9 @@ describe("e2e rotation", () => {
       store,
       switcher,
       scheduler,
+      journal: {
+        append: vi.fn(async () => {}),
+      },
       probeAccount,
     });
 

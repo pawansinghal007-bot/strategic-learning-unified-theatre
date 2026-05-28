@@ -93,6 +93,18 @@ export class SwitcherService {
       });
       emit.success("Auth path resolved");
 
+      const plan = {
+        accountId,
+        agentType: account.agentType,
+        authPath,
+        profileName: account.profileName ?? account.id,
+      };
+
+      if (dryRun) {
+        emit.skip("Dry-run: no files written and VS Code not restarted");
+        return plan;
+      }
+
       emit.start("Resolving auth secret");
       const secretStore = new SecretStore();
       let authBlob = null;
@@ -113,18 +125,6 @@ export class SwitcherService {
         throw new Error("Missing auth blob for account");
       }
       emit.success("Auth secret resolved");
-
-      const plan = {
-        accountId,
-        agentType: account.agentType,
-        authPath,
-        profileName: account.profileName ?? account.id,
-      };
-
-      if (dryRun) {
-        emit.skip("Dry-run: no files written and VS Code not restarted");
-        return plan;
-      }
 
       emit.start("Writing auth file");
       await atomicWriteFile(authPath, authBlob);

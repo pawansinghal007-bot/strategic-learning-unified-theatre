@@ -11,7 +11,7 @@ It focuses on architecture, features, functions, and enterprise-grade characteri
 
 Strategic Learning Unified Theatre has evolved from a local VS Code account-rotation utility into a local-first enterprise automation platform. The system now combines secure account management, automated rotation, profile-aware VS Code orchestration, desktop and tray interfaces, browser-assisted LLM workflows, local learning memory, sprint handoff continuity, plugin extensibility, regression protection, chaos testing, release governance, and enterprise policy controls.
 
-By Sprint 14, the core platform was functional and secure enough for sustained developer workflow automation. After Sprint 14, the focus shifted to platform maturity: clearer architecture, stronger tests, recoverable operations, governed releases, and deployable enterprise controls.
+By Sprint 14, the core platform was functional and secure enough for sustained developer workflow automation. After Sprint 14, the focus shifted to platform maturity: clearer architecture, stronger tests, recoverable operations, governed releases, and deployable enterprise controls. Most recently, Sprint 17 delivered a Sonar governance gate with structured hotspot waivers, audit-capable reconciliation, protected branch readiness checks, and a dedicated CI workflow enforcing Node 18 and artifact retention.
 
 ## Phase 1: Sprint 0 Through Sprint 14
 
@@ -30,20 +30,20 @@ The early sprint arc built the core operating system for the product:
 
 The architecture through Sprint 14 established the major runtime layers:
 
-| Area | Architecture Outcome |
-| --- | --- |
-| CLI control plane | `src/cli.js` and command modules became the primary automation interface. |
-| Account persistence | Encrypted account storage and schema validation created a durable account model. |
-| Secret boundary | OS-native keychain storage via `keytar` with encrypted-file fallback kept credentials separate from operational state. |
-| Rotation engine | Atomic auth-file swapping and VS Code restart logic made account switching safe. |
-| Background daemon | Watcher daemon automated rotation checks and operational monitoring. |
-| VS Code profile isolation | Per-account profiles supported isolated extensions, themes, workspaces, and account state. |
-| Operational journal | `PROGRESS.md`, daemon logs, and git monitoring added inspectable system history. |
-| Electron and tray UI | Desktop and system-tray surfaces exposed account, health, daemon, LLM, browser, and test operations. |
-| Passive learning | VS Code collector and staged signal files created a privacy-aware learning ingestion boundary. |
-| Local LLM memory | SQLite-backed experience database supported documents, sprints, mistakes, prompt history, and related context. |
-| Sprint handoff | JSON sprint manifests preserved completed work, pending work, blockers, changed files, and resume prompts. |
-| Auto-resume supervision | Sprint 14 added redacted session metadata and continuation state for restart-safe resume behavior. |
+| Area                      | Architecture Outcome                                                                                                   |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| CLI control plane         | `src/cli.js` and command modules became the primary automation interface.                                              |
+| Account persistence       | Encrypted account storage and schema validation created a durable account model.                                       |
+| Secret boundary           | OS-native keychain storage via `keytar` with encrypted-file fallback kept credentials separate from operational state. |
+| Rotation engine           | Atomic auth-file swapping and VS Code restart logic made account switching safe.                                       |
+| Background daemon         | Watcher daemon automated rotation checks and operational monitoring.                                                   |
+| VS Code profile isolation | Per-account profiles supported isolated extensions, themes, workspaces, and account state.                             |
+| Operational journal       | `PROGRESS.md`, daemon logs, and git monitoring added inspectable system history.                                       |
+| Electron and tray UI      | Desktop and system-tray surfaces exposed account, health, daemon, LLM, browser, and test operations.                   |
+| Passive learning          | VS Code collector and staged signal files created a privacy-aware learning ingestion boundary.                         |
+| Local LLM memory          | SQLite-backed experience database supported documents, sprints, mistakes, prompt history, and related context.         |
+| Sprint handoff            | JSON sprint manifests preserved completed work, pending work, blockers, changed files, and resume prompts.             |
+| Auto-resume supervision   | Sprint 14 added redacted session metadata and continuation state for restart-safe resume behavior.                     |
 
 ### Feature Highlights
 
@@ -106,25 +106,26 @@ After Sprint 14, the project moved from "feature-complete local automation" towa
 - Improving plugin extensibility.
 - Making test and coverage expectations explicit.
 - Documenting current architecture instead of relying on stale generated snapshots.
+- Enforcing governance through CI-based quality gates, waiver validation, and audit-ready policy checks.
 
 ### Current Architecture Highlights
 
 The current architecture is organized around clearer domain boundaries:
 
-| Area | Current Ownership |
-| --- | --- |
-| `src/accounts/` | Account store, schema, health, switching, profiles, workspace binding, and secrets. |
-| `src/storage/` | Storage monitor and VS Code learning ingestion utilities. |
-| `src/llm/` | Local LLM facade, document ingestion, prompt generation, mistakes, graphing, embeddings, inference, and training export. |
-| `src/ai-memory/` | Durable operational memory, schema, repositories, sprint state, handoffs, lessons, decisions, baselines, and commands. |
-| `src/internal/` | Shared low-level plumbing for config, paths, journal, git monitor, and reporting. |
-| `src/daemon/` | Watcher daemon and long-running daemon entrypoint. |
-| `src/main/` and `src/shared/` | Main-process IPC adapters and shared IPC contracts. |
-| `electron-ui/` | Electron shell, IPC handlers, preload surfaces, browser pane, and desktop lifecycle. |
-| `electron-tray/` | Tray process and tray-specific assets. |
-| `renderer/` | React renderer screens, components, and UI tests. |
-| `plugins/` | Reference plugin implementations for LLM providers, browser platforms, and health checks. |
-| `tests/` | Unit, integration, regression, e2e, storage, LLM, chaos, and workflow protection tests. |
+| Area                          | Current Ownership                                                                                                        |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `src/accounts/`               | Account store, schema, health, switching, profiles, workspace binding, and secrets.                                      |
+| `src/storage/`                | Storage monitor and VS Code learning ingestion utilities.                                                                |
+| `src/llm/`                    | Local LLM facade, document ingestion, prompt generation, mistakes, graphing, embeddings, inference, and training export. |
+| `src/ai-memory/`              | Durable operational memory, schema, repositories, sprint state, handoffs, lessons, decisions, baselines, and commands.   |
+| `src/internal/`               | Shared low-level plumbing for config, paths, journal, git monitor, and reporting.                                        |
+| `src/daemon/`                 | Watcher daemon and long-running daemon entrypoint.                                                                       |
+| `src/main/` and `src/shared/` | Main-process IPC adapters and shared IPC contracts.                                                                      |
+| `electron-ui/`                | Electron shell, IPC handlers, preload surfaces, browser pane, and desktop lifecycle.                                     |
+| `electron-tray/`              | Tray process and tray-specific assets.                                                                                   |
+| `renderer/`                   | React renderer screens, components, and UI tests.                                                                        |
+| `plugins/`                    | Reference plugin implementations for LLM providers, browser platforms, and health checks.                                |
+| `tests/`                      | Unit, integration, regression, e2e, storage, LLM, chaos, and workflow protection tests.                                  |
 
 ### Post-Sprint 14 Feature Highlights
 
@@ -181,22 +182,22 @@ The post-Sprint 14 work raises the platform from working automation to governed 
 
 ## Sprint Evolution At A Glance
 
-| Phase | Main Outcome |
-| --- | --- |
-| Sprint 0 | Initial product foundation and local VS Code agent direction. |
-| Sprint 1 | Encrypted account store and CLI foundation. |
-| Sprint 2 | Atomic auth-file swapping and VS Code restart logic. |
-| Sprint 3 | Background watcher daemon and automatic rotation triggers. |
-| Sprint 4 | VS Code profile isolation and workspace binding. |
-| Sprint 5 | Progress journal, git monitor, and local operational visibility. |
-| Sprint 6 | OS-native secret storage, tray UI, installer integration, and daemon hardening. |
-| Sprint 7-10 | Continued desktop, extension, automation, and testing expansion. |
-| Sprint 11 | Embedded browser architecture and passive training capture. |
-| Sprint 12 | Passive VS Code learning, smoke tests, and sprint documentation close-out. |
-| Sprint 13 | LoRA readiness analysis, prompt generation maturity, and data-readiness decision. |
-| Sprint 14 | Auto-resume supervisor, redacted continuation metadata, and session recovery validation. |
-| Sprint 15+ | IPC hardening, packaging, release channels, rollback, enterprise policy, coverage gates, plugins, chaos tests, and architecture reorganization. |
-| Current Reorg Sprint 0.5 | Domain consolidation, current architecture index, organized tests, and maintainable platform structure. |
+| Phase                    | Main Outcome                                                                                                                                    |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Sprint 0                 | Initial product foundation and local VS Code agent direction.                                                                                   |
+| Sprint 1                 | Encrypted account store and CLI foundation.                                                                                                     |
+| Sprint 2                 | Atomic auth-file swapping and VS Code restart logic.                                                                                            |
+| Sprint 3                 | Background watcher daemon and automatic rotation triggers.                                                                                      |
+| Sprint 4                 | VS Code profile isolation and workspace binding.                                                                                                |
+| Sprint 5                 | Progress journal, git monitor, and local operational visibility.                                                                                |
+| Sprint 6                 | OS-native secret storage, tray UI, installer integration, and daemon hardening.                                                                 |
+| Sprint 7-10              | Continued desktop, extension, automation, and testing expansion.                                                                                |
+| Sprint 11                | Embedded browser architecture and passive training capture.                                                                                     |
+| Sprint 12                | Passive VS Code learning, smoke tests, and sprint documentation close-out.                                                                      |
+| Sprint 13                | LoRA readiness analysis, prompt generation maturity, and data-readiness decision.                                                               |
+| Sprint 14                | Auto-resume supervisor, redacted continuation metadata, and session recovery validation.                                                        |
+| Sprint 15+               | IPC hardening, packaging, release channels, rollback, enterprise policy, coverage gates, plugins, chaos tests, and architecture reorganization. |
+| Current Reorg Sprint 0.5 | Domain consolidation, current architecture index, organized tests, and maintainable platform structure.                                         |
 
 ## Enterprise Stakeholder Summary
 

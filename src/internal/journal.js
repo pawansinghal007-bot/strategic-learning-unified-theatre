@@ -12,7 +12,7 @@ const AllowedTypes = new Set([
 ]);
 
 function defaultPath() {
-  return path.join(os.homedir(), ".vscode-rotator", "PROGRESS.md");
+  return path.join(process.env.HOME || os.homedir(), ".vscode-rotator", "PROGRESS.md");
 }
 
 async function ensureDir(p) {
@@ -64,4 +64,3 @@ export class Journal {
     return bak;
   }
 }
-

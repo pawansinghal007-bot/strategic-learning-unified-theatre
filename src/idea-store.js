@@ -108,12 +108,13 @@ async function quarantineFile(filePath, reason) {
 
 async function findGitRoot(cwd = process.cwd()) {
   let current = path.resolve(cwd);
+  const tempRoot = path.resolve(os.tmpdir());
   while (true) {
     if (await pathExists(path.join(current, ".git"))) {
       return current;
     }
     const parent = path.dirname(current);
-    if (parent === current) break;
+    if (parent === current || parent === tempRoot) break;
     current = parent;
   }
   return null;

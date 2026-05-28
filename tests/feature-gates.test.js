@@ -11,13 +11,18 @@ import { DocumentIngester } from "../src/llm/document-ingester.js";
 
 describe("Feature gates", () => {
   let tempDir;
+  let oldMockLlm;
 
   beforeEach(async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "feature-gates-"));
+    oldMockLlm = process.env.VSCODE_ROTATOR_MOCK_LLM;
+    process.env.VSCODE_ROTATOR_MOCK_LLM = "1";
   });
 
   afterEach(async () => {
     vi.restoreAllMocks();
+    if (oldMockLlm == null) delete process.env.VSCODE_ROTATOR_MOCK_LLM;
+    else process.env.VSCODE_ROTATOR_MOCK_LLM = oldMockLlm;
     await fs.rm(tempDir, { recursive: true, force: true });
   });
 

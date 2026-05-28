@@ -1,0 +1,62 @@
+name: Sonar Governance
+
+on:
+  push:
+    branches:
+      - main
+      - release
+  pull_request:
+    branches:
+      - main
+      - release
+  workflow_dispatch: {}
+
+concurrency:
+  group: sonar-governance-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sonar-governance:
+    runs-on: ubuntu-latest
+    env:
+      NODE_OPTIONS: --max-old-space-size=8192
+      IS_PROTECTED_BRANCH: ${{ or(eq(github.ref, 'refs/heads/main'), eq(github.ref, 'refs/heads/release')) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Preflight Node runtime check
+        run: |
+          node -e "const v=process.versions.node.split('.')[0]; if(parseInt(v)<18){console.error('Node too old:',v); process.exit(1);} console.log('Node version OK:',process.versions.node);"
+
+      - name: Validate governance config
+        run: npm run validate:governance
+
+      - name: Validate waivers
+        run: npm run sonar:validate-waivers
+
+      - name: Reconcile hotspot register
+        run: npm run sonar:reconcile
+
+      - name: Secret scanning
+        uses: zricethezav/gitleaks-action@v1.10.0
+        with:
+          args: --redact
+        continue-on-error: false
+
+      - name: Upload Sonar reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonar-reports
+          path: reports/sonar/
+          retention-days: 90
+          if-no-files-found: error

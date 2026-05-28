@@ -6,15 +6,18 @@ import Database from "better-sqlite3";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const schemaPath = path.join(__dirname, "memory.sql");
+const originalHomeDir = os.homedir();
 
 function homeDir() {
   return process.env.HOME || os.homedir();
 }
 
 function defaultBaseDir(baseDir) {
-  return baseDir
-    ? path.resolve(baseDir)
-    : path.join(homeDir(), ".vscode-rotator");
+  if (baseDir) return path.resolve(baseDir);
+  if (process.env.VITEST && (!process.env.HOME || process.env.HOME === originalHomeDir)) {
+    return path.join(os.tmpdir(), `vscode-rotator-test-${process.pid}`);
+  }
+  return path.join(homeDir(), ".vscode-rotator");
 }
 
 export class MemoryDb {

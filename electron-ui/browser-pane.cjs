@@ -6,7 +6,21 @@
  */
 
 const { EventEmitter } = require('node:events');
-const { WebContentsView, BrowserView } = require('electron');
+
+function loadElectronViews() {
+  try {
+    const electron = require('electron');
+    return {
+      WebContentsView: electron.WebContentsView,
+      BrowserView: electron.BrowserView
+    };
+  } catch (error) {
+    if (process.env.VITEST || process.env.NODE_ENV === 'test') {
+      return { WebContentsView: null, BrowserView: null };
+    }
+    throw error;
+  }
+}
 
 const PLATFORM_URLS = {
   chatgpt: 'https://chat.openai.com/',
@@ -32,6 +46,9 @@ class BrowserPane {
     this.currentPlatform = platform;
     this.viewCache = new Map(); // Map<platform, view>
     this.currentView = null;
+    const { WebContentsView, BrowserView } = loadElectronViews();
+    this.WebContentsView = WebContentsView;
+    this.BrowserView = BrowserView;
     this.useWebContentsView = typeof WebContentsView === 'function';
     this.useBrowserView = typeof BrowserView === 'function';
   }
@@ -63,7 +80,7 @@ class BrowserPane {
 
     if (this.useWebContentsView) {
       // Use WebContentsView (Electron 28+)
-      const wcv = new WebContentsView({
+      const wcv = new this.WebContentsView({
         webPreferences: {
           contextIsolation: true,
           nodeIntegration: false,
@@ -90,7 +107,7 @@ class BrowserPane {
       return { view: wcv, webContents: wcv.webContents, type: 'WebContentsView' };
     } else if (this.useBrowserView) {
       // Fallback to BrowserView (older Electron)
-      const bv = new BrowserView({
+      const bv = new this.BrowserView({
         webPreferences: {
           contextIsolation: true,
           nodeIntegration: false,

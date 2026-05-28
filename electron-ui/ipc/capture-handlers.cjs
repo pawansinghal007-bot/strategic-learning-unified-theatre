@@ -113,7 +113,7 @@ async function registerCaptureHandlers(ipcMain, ingester, mainWindow) {
   // The handler logs any errors but does not crash the main process.
 
   ipcMain.on('capture:response', async (event, payload) => {
-    const senderUrl = event.sender.getURL();
+    const senderUrl = event?.sender?.getURL?.() || 'unknown';
 
     let parsedPayload;
     try {

@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "types": []
+  },
+  "files": [
+    "src/shared/contracts/provider.ts",
+    "src/shared/schemas/provider.schema.ts",
+    "src/shared/errors/base.ts",
+    "src/shared/errors/provider.error.ts",
+    "src/shared/errors/routing.error.ts",
+    "src/shared/errors/memory.error.ts",
+    "src/shared/errors/validation.error.ts",
+    "src/shared/errors/index.ts"
+  ]
+}

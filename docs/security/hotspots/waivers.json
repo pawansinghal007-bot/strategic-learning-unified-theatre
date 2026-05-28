@@ -1,0 +1,14 @@
+[
+  {
+    "hotspotKey": "src/credentials/keys.js#L10",
+    "status": "ACTIVE",
+    "owner": "team-security",
+    "ticket": "SEC-1234",
+    "reviewer": "alice@example.com",
+    "expires": "2026-06-15",
+    "notes": "Temporary waiver for legacy credential handling during migration.",
+    "renewalCount": 0,
+    "createdAt": "2026-05-28T12:00:00Z",
+    "createdBy": "pawan@example.com"
+  }
+]

@@ -20,17 +20,17 @@ const DEFAULT_SELECTORS = {
   },
   claude: {
     responseContainer: 'div[class*="markdown"]',
-    streamingIndicator: null,
+    streamingIndicator: '',
     completionDelay: 1500
   },
   gemini: {
     responseContainer: 'div[data-message-type="response"]',
-    streamingIndicator: null,
+    streamingIndicator: '',
     completionDelay: 1500
   },
   perplexity: {
     responseContainer: 'div[class*="answer"]',
-    streamingIndicator: null,
+    streamingIndicator: '',
     completionDelay: 1500
   }
 };

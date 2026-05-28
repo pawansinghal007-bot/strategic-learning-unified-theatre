@@ -1,0 +1,20 @@
+{
+  "analyzedAt": "2026-05-28T05:04:45.450Z",
+  "projectKey": "test",
+  "branch": "main",
+  "sonarKeysCount": 0,
+  "waiverKeysCount": 1,
+  "missingInRegister": [],
+  "staleInRegister": [
+    "src/credentials/keys.js#L10"
+  ],
+  "reconciliationPassed": false,
+  "provenance": {
+    "executedBy": "pawansinghal",
+    "nodeVersion": "v24.16.0",
+    "env": {
+      "GITHUB_RUN_ID": null,
+      "GITHUB_RUN_NUMBER": null
+    }
+  }
+}

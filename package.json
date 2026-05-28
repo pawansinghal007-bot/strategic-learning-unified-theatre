@@ -34,10 +34,17 @@
     "dist:win": "electron-builder --win nsis",
     "dist:linux": "electron-builder --linux AppImage",
     "dist:all": "electron-builder -mwl",
-    "dist": "npm run dist:all"
+    "dist": "npm run dist:all",
+    "validate:governance": "node scripts/validate-governance-config.mjs",
+    "sonar:validate-waivers": "node scripts/validate-waivers.mjs",
+    "sonar:reconcile": "node scripts/reconcile-hotspot-register.mjs",
+    "sonar:check": "node scripts/check-sonar-readiness.mjs",
+    "sonar:scan": "echo 'not implemented'",
+    "sonar:wait": "echo 'not implemented'",
+    "sonar:export": "echo 'not implemented'"
   },
   "engines": {
-    "node": ">=22 <23"
+    "node": ">=18"
   },
   "build": {
     "appId": "com.strategiclearning.unifiedtheatre",
@@ -83,6 +90,7 @@
     "icon": "build/icon.ico"
   },
   "dependencies": {
+    "ajv": "^8.12.0",
     "better-sqlite3": "^12.10.0",
     "chalk": "^5.6.2",
     "chokidar": "^5.0.0",
@@ -92,6 +100,7 @@
     "fflate": "^0.8.3",
     "gray-matter": "^4.0.3",
     "keytar": "^7.9.0",
+    "llama": "^2.2.0",
     "marked": "^18.0.4",
     "nanoid": "^5.1.11",
     "ora": "^9.4.0",

@@ -26,6 +26,19 @@ node ./src/cli.js ai snapshot
 - Verification:
   - `npm test` passed with 73 test files and 518 tests.
 
+## Sprint 17 — Sonar Governance Gate (COMPLETE)
+
+- Config split: security-governance.json (policy) + ci-runtime.json (runtime)
+- Schema validation: validate-governance-config.mjs (AJV, exits 0)
+- Structured waiver store: docs/security/hotspots/waivers.json (owner/ticket/reviewer/expiry/renewalCount)
+- Waiver validation + expiry enforcement: validate-waivers.mjs
+- Reconciliation with audit provenance: reconcile-hotspot-register.mjs → reconciliation-audit.json
+- Readiness check (fail-closed for protected branches): check-sonar-readiness.mjs
+- CI: sonar-governance.yml (concurrency cancel, gitleaks, preflight, 90-day artifacts, Node 18)
+- Node >=18 declared in package.json engines
+- Local scripts do NOT reconstruct Sonar new-code semantics; QG is source of truth
+- Next: Sprint 18 — Hotspot waiver dashboard / internal API (optional high ROI)
+
 ## Snapshot Guidance
 
 - Latest Sprint 16 AI snapshot tag: `SPRINT16_COMPLETE`

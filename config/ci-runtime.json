@@ -1,0 +1,10 @@
+{
+  "retryMaxAttempts": 5,
+  "retryBaseDelayMs": 1000,
+  "retryJitterMs": 300,
+  "waitTimeoutSec": 300,
+  "waitIntervalMs": 5000,
+  "artifactRetentionDays": 90,
+  "sonarScannerVersion": "4.14.0.2747",
+  "nodeVersionRequired": ">=18"
+}

@@ -6,7 +6,7 @@ import { decrypt, encrypt } from "../encrypt.js";
 import { AccountSchema } from "./schema.js";
 
 function defaultStorePath() {
-  return path.join(os.homedir(), ".vscode-rotator", "accounts.enc");
+  return path.join(process.env.HOME || os.homedir(), ".vscode-rotator", "accounts.enc");
 }
 
 function serializeAccount(account) {

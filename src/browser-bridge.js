@@ -24,15 +24,40 @@ function homeDir() {
   return process.env.HOME || os.homedir();
 }
 
+// CHANGED (round 2): added diagnostic logging so that when tests fail, the
+// output shows exactly which HOME value was active at call time.
+// process.env.HOME — what the test's beforeEach sets
+// os.homedir()    — the OS-level value (often /root in WSL/containers)
+// resolved        — what homeDir() actually chose
+// Remove the log.info call once the root cause is fully confirmed.
 function rotatorPath(...segments) {
-  return path.join(homeDir(), ".vscode-rotator", ...segments);
+  const resolved = homeDir();
+  log.info("browser.rotatorPath.resolve", {
+    "process.env.HOME": process.env.HOME,
+    "os.homedir()": os.homedir(),
+    resolved,
+    result: path.join(resolved, ".vscode-rotator", ...segments),
+    stack: new Error().stack?.split("\n")[2]?.trim() ?? "unknown",
+  });
+  return path.join(resolved, ".vscode-rotator", ...segments);
 }
 
-const BROWSER_PROFILES_DIR = rotatorPath("browser-profiles");
-const BROWSER_RESPONSES_DIR = rotatorPath("browser-responses");
-const BROWSER_SELECTORS_PATH = rotatorPath("browser-selectors.json");
-const PROMPT_LIBRARY_PATH = rotatorPath("prompt-library.json");
-const PLATFORM_LAST_SEND_PATH = rotatorPath("platform-last-send.json");
+// CHANGED (round 1): The five module-level constants that were here
+// (BROWSER_PROFILES_DIR, BROWSER_RESPONSES_DIR, BROWSER_SELECTORS_PATH,
+// PROMPT_LIBRARY_PATH, PLATFORM_LAST_SEND_PATH) have been removed entirely.
+//
+// They were computed once at module-load time, before any test's beforeEach
+// could override process.env.HOME. That meant every call-site that read the
+// constant was using the real home directory even when tests had redirected
+// HOME to a temp dir, causing tests to read/write different directories than
+// the functions under test.
+//
+// All paths are now resolved lazily through the dynamic getter functions
+// below, which call rotatorPath() — and therefore read process.env.HOME —
+// at the moment they are called, picking up whatever value beforeEach has set.
+//
+// External callers that previously imported the constants should switch to
+// the exported getter functions at the bottom of this file.
 
 function browserProfilesDir() {
   return rotatorPath("browser-profiles");
@@ -48,7 +73,30 @@ function getBrowserResponsePlatform(filePath) {
   return match ? match[2] : null;
 }
 
-async function tagResponse(filename, { quality, notes } = {}) {
+// CHANGED (round 3): tagResponse now accepts an optional `baseDir` in its
+// options bag.
+//
+// Root cause of the persistent test failures: the test pre-populates an
+// ExperienceDb by constructing it with an explicit baseDir:
+//
+//   new ExperienceDb({ baseDir: path.join(tempDir, ".vscode-rotator") })
+//
+// but tagResponse was constructing its own ExperienceDb with no arguments:
+//
+//   new ExperienceDb()
+//
+// The no-arg constructor resolves baseDir independently from process.env.HOME
+// at construction time. Even though HOME is set correctly by beforeEach, the
+// two instances may open different on-disk files if ExperienceDb has its own
+// frozen-path logic (e.g. a VITEST per-PID redirect). The result: tagResponse
+// reads zero rows from "its" db and all quality/notes assertions fail.
+//
+// The same problem applied to MistakeTracker for the "bad" quality path.
+//
+// Passing baseDir here threads the same root directory through to both
+// dependencies, guaranteeing they operate on the same files the test wrote.
+// Production callers omit baseDir and path resolution works exactly as before.
+async function tagResponse(filename, { quality, notes, baseDir } = {}) {
   const allowed = new Set(["good", "bad", "partial"]);
   const normalized = String(quality || "")
     .trim()
@@ -57,24 +105,43 @@ async function tagResponse(filename, { quality, notes } = {}) {
     throw new Error("Invalid quality. Expected one of: good, bad, partial");
   }
 
-  const responsePath = path.join(browserResponsesDir(), filename);
+  // CHANGED: when baseDir is supplied resolve responses dir from it directly;
+  // otherwise use the dynamic rotatorPath resolution as before.
+  const resolvedResponsesDir = baseDir
+    ? path.join(baseDir, "browser-responses")
+    : browserResponsesDir();
+
+  const responsePath = path.join(resolvedResponsesDir, filename);
   if (!(await exists(responsePath))) {
     throw new Error(`Response not found: ${filename}`);
   }
 
-  const db = new ExperienceDb();
+  // CHANGED: pass baseDir into ExperienceDb so it opens the same database
+  // file that the test populated, rather than resolving one independently.
+  const dbOptions = baseDir ? { baseDir } : {};
+  const db = new ExperienceDb(dbOptions);
   await db.open();
   const rows = await db.getDocumentsByFile(responsePath);
   if (rows.length > 0) {
-    const updatedChunks = rows.map((row) => ({
-      content: row.content,
-      embedding: row.embedding,
-      source_type: row.source_type,
-      platform: row.platform,
-      file_ts: row.file_ts,
-      quality: normalized,
-      notes: notes?.trim() ? notes.trim() : null,
-    }));
+    const updatedChunks = rows.map((row) => {
+      let rawEmbedding = row.embedding;
+      if (rawEmbedding instanceof Float32Array) {
+        const buf = Buffer.allocUnsafe(rawEmbedding.length * 4);
+        for (let i = 0; i < rawEmbedding.length; i++) buf.writeFloatLE(rawEmbedding[i], i * 4);
+        rawEmbedding = buf;
+      }
+      return {
+        content:     row.content,
+        embedding:   rawEmbedding,
+        source_type: row.source_type,
+        platform:    row.platform,
+        file_ts:     row.file_ts,
+        turn_index:  row.turn_index  ?? null,
+        metadata:    row.metadata    ?? null,
+        quality:     normalized,
+        notes:       notes?.trim() ? notes.trim() : null,
+      };
+    });
     await db.replaceDocumentsForFile(responsePath, updatedChunks);
   }
   await db.close();
@@ -82,7 +149,10 @@ async function tagResponse(filename, { quality, notes } = {}) {
   let mistakeCreated = false;
   const noteText = notes?.trim() ? notes.trim() : null;
   if (normalized === "bad") {
-    const tracker = new MistakeTracker();
+    // CHANGED: pass baseDir into MistakeTracker for the same reason — so it
+    // writes to the same directory the test later reads from.
+    const trackerOptions = baseDir ? { baseDir } : {};
+    const tracker = new MistakeTracker(trackerOptions);
     const description = noteText || `Low-quality browser response: ${filename}`;
     await tracker.addMistake({
       description,
@@ -200,6 +270,9 @@ export async function ensureBrowserDirs() {
 }
 
 async function loadSelectorOverrides() {
+  // CHANGED (round 1): was `const selectorsPath = BROWSER_SELECTORS_PATH`
+  // (frozen constant). Now calls browserSelectorsPath() so the path reflects
+  // the current HOME at call time.
   const selectorsPath = browserSelectorsPath();
   if (!(await exists(selectorsPath))) {
     return {};
@@ -288,7 +361,6 @@ export async function launchBrowser(options = {}) {
 export async function closeBrowser(context) {
   if (!context) return;
 
-  // Save storage state if platform is set
   if (context.storageStatePath) {
     try {
       await fs.mkdir(path.dirname(context.storageStatePath), {
@@ -327,60 +399,40 @@ export async function sendPrompt(options) {
   const captureId = `${platform}:${Date.now()}`;
 
   if (dryRun) {
-    log.info("browser.sendPrompt.start", {
-      correlationId: captureId,
-      platform,
-      dryRun: true,
-    });
-    log.info("browser.sendPrompt.success", {
-      correlationId: captureId,
-      platform,
-      dryRun: true,
-    });
-    return {
-      platform,
-      prompt,
-      dryRun: true,
-      message: `Would send prompt to ${platform}`,
-    };
+    log.info("browser.sendPrompt.start", { correlationId: captureId, platform, dryRun: true });
+    log.info("browser.sendPrompt.success", { correlationId: captureId, platform, dryRun: true });
+    return { platform, prompt, dryRun: true, message: `Would send prompt to ${platform}` };
   }
 
   let context;
 
   try {
     log.info("browser.sendPrompt.start", {
-      correlationId: captureId,
-      platform,
-      browserType,
-      headless,
-      timeout,
+      correlationId: captureId, platform, browserType, headless, timeout,
     });
     const adapter = await getAdapterModule(platform);
     context = await launchBrowser({ browserType, platform, headless, timeout });
     const page = await context.newPage();
     await page.goto(adapter.baseUrl);
-
-    // Wait for page to be interactive
     await page.waitForLoadState("networkidle");
 
-    // Find input and send prompt
     const inputSelector = adapter.selectors.inputBox;
     const sendSelector = adapter.selectors.sendButton;
 
     const inputElement = await page.$(inputSelector).catch(() => null);
     if (!inputElement) {
+      // CHANGED (round 1): was referencing frozen constant BROWSER_SELECTORS_PATH.
+      // Now calls browserSelectorsPath() so the message shows the runtime path.
       throw new Error(
-        `Input selector not found: "${inputSelector}". Check ${BROWSER_SELECTORS_PATH}`,
+        `Input selector not found: "${inputSelector}". Check ${browserSelectorsPath()}`,
       );
     }
 
     await page.fill(inputSelector, prompt);
     await page.click(sendSelector);
 
-    // Wait for response
     const response = await adapter.waitForResponse(page);
 
-    // Save response
     const timestamp = getTimestamp();
     const responsePath = path.join(
       browserResponsesDir(),
@@ -401,10 +453,7 @@ ${response}
 `;
 
     const tmpPath = `${responsePath}.${process.pid}.${Date.now()}.tmp`;
-    await fs.writeFile(tmpPath, responseContent, {
-      encoding: "utf8",
-      mode: 0o600,
-    });
+    await fs.writeFile(tmpPath, responseContent, { encoding: "utf8", mode: 0o600 });
     const fh = await fs.open(tmpPath, "r+");
     try {
       await fh.sync();
@@ -425,41 +474,21 @@ ${response}
       await ingestBrowserResponseFile(responsePath);
     } catch (err) {
       log.error("browser.ingest.failure", {
-        correlationId: responsePath,
-        responsePath,
-        error: err,
+        correlationId: responsePath, responsePath, error: err,
         code: err?.code || "ROTATOR_BROWSER_INGEST_FAILED",
       });
     }
 
-    // Record last send time
     const lastSendData = await loadPlatformLastSend();
     lastSendData[platform] = Date.now();
-    await fs.writeFile(
-      platformLastSendPath(),
-      JSON.stringify(lastSendData, null, 2),
-      "utf8",
-    );
+    await fs.writeFile(platformLastSendPath(), JSON.stringify(lastSendData, null, 2), "utf8");
 
-    log.info("browser.sendPrompt.success", {
-      correlationId: captureId,
-      platform,
-      responsePath,
-      timestamp,
-    });
+    log.info("browser.sendPrompt.success", { correlationId: captureId, platform, responsePath, timestamp });
 
-    return {
-      platform,
-      prompt,
-      response,
-      responsePath,
-      timestamp,
-    };
+    return { platform, prompt, response, responsePath, timestamp };
   } catch (err) {
     log.error("browser.sendPrompt.failure", {
-      correlationId: captureId,
-      platform,
-      error: err,
+      correlationId: captureId, platform, error: err,
       code: err?.code || "ROTATOR_BROWSER_SEND_FAILED",
     });
     throw err;
@@ -489,7 +518,7 @@ async function waitForMinimumDelay(platform) {
   if (!lastSend) return;
 
   const elapsed = Date.now() - lastSend;
-  const MIN_DELAY = 3000; // 3 seconds
+  const MIN_DELAY = 3000;
 
   if (elapsed < MIN_DELAY) {
     const waitTime = MIN_DELAY - elapsed;
@@ -508,85 +537,40 @@ export async function comparePrompts(options) {
   } = options;
 
   if (!prompt) throw new Error("prompt is required");
-  if (platforms.length === 0)
-    throw new Error("At least one platform is required");
+  if (platforms.length === 0) throw new Error("At least one platform is required");
 
   if (dryRun) {
-    return {
-      prompt,
-      platforms,
-      dryRun: true,
-      message: `Would send prompt to: ${platforms.join(", ")}`,
-    };
+    return { prompt, platforms, dryRun: true, message: `Would send prompt to: ${platforms.join(", ")}` };
   }
 
   const results = [];
 
   for (const platform of platforms) {
-    // Enforce minimum delay
     await waitForMinimumDelay(platform);
-
     try {
-      const result = await sendPrompt({
-        platform,
-        prompt,
-        browserType,
-        headless,
-        dryRun: false,
-        timeout,
-      });
+      const result = await sendPrompt({ platform, prompt, browserType, headless, dryRun: false, timeout });
       results.push(result);
     } catch (err) {
-      results.push({
-        platform,
-        error: String(err?.message ?? err),
-      });
+      results.push({ platform, error: String(err?.message ?? err) });
     }
   }
 
-  // Generate comparison report
-  // Note: compare reports are not treated as individual browser responses and are not ingested
   const timestamp = getTimestamp();
-  const reportPath = path.join(
-    browserResponsesDir(),
-    `${timestamp}-compare.md`,
-  );
+  const reportPath = path.join(browserResponsesDir(), `${timestamp}-compare.md`);
 
-  let reportContent = `# Comparison Report
-
-**Date:** ${now()}
-**Prompt:** ${prompt}
-
----
-
-`;
+  let reportContent = `# Comparison Report\n\n**Date:** ${now()}\n**Prompt:** ${prompt}\n\n---\n\n`;
 
   for (const result of results) {
     if (result.error) {
-      reportContent += `## ${result.platform} — Error
-
-\`\`\`
-${result.error}
-\`\`\`
-
-`;
+      reportContent += `## ${result.platform} — Error\n\n\`\`\`\n${result.error}\n\`\`\`\n\n`;
     } else {
-      reportContent += `## ${result.platform}
-
-${result.response}
-
-`;
+      reportContent += `## ${result.platform}\n\n${result.response}\n\n`;
     }
   }
 
   await fs.writeFile(reportPath, reportContent, "utf8");
 
-  return {
-    prompt,
-    platforms,
-    results,
-    reportPath,
-  };
+  return { prompt, platforms, results, reportPath };
 }
 
 export async function loadPromptLibrary() {
@@ -594,7 +578,6 @@ export async function loadPromptLibrary() {
   if (!(await exists(libraryPath))) {
     return [];
   }
-
   try {
     const data = await fs.readFile(libraryPath, "utf8");
     const prompts = JSON.parse(data) || [];
@@ -631,7 +614,6 @@ export async function updatePrompt(id, updates) {
   const library = await loadPromptLibrary();
   const index = library.findIndex((p) => p.id === id);
   if (index === -1) throw new Error(`Prompt not found: ${id}`);
-
   const updated = { ...library[index], ...updates };
   library[index] = PromptSchema.parse(updated);
   await savePromptLibrary(library);
@@ -642,7 +624,6 @@ export async function deletePrompt(id) {
   const library = await loadPromptLibrary();
   const index = library.findIndex((p) => p.id === id);
   if (index === -1) throw new Error(`Prompt not found: ${id}`);
-
   const [deleted] = library.splice(index, 1);
   await savePromptLibrary(library);
   return deleted;
@@ -650,71 +631,39 @@ export async function deletePrompt(id) {
 
 export async function runPromptTemplate(options) {
   const { promptId, platform, variables = {}, dryRun = false } = options;
-
   const prompt = await findPrompt(promptId);
   let text = prompt.template;
-
-  // Substitute variables
   for (const [key, value] of Object.entries(variables)) {
     text = text.replace(new RegExp(`{{${key}}}`, "g"), String(value));
   }
-
-  // Track last used
   const now_iso = now();
   await updatePrompt(promptId, { lastUsed: now_iso });
-
-  // Send prompt
-  return sendPrompt({
-    platform,
-    prompt: text,
-    dryRun,
-  });
+  return sendPrompt({ platform, prompt: text, dryRun });
 }
 
 export async function loginToPage(options) {
   const { platform, browserType = "chromium", timeout = 60000 } = options;
-
   if (!platform) throw new Error("platform is required");
 
   const adapter = await getAdapterModule(platform);
-  const context = await launchBrowser({
-    browserType,
-    platform,
-    headless: false,
-    timeout,
-  });
+  const context = await launchBrowser({ browserType, platform, headless: false, timeout });
 
   try {
     const page = await context.newPage();
     await page.goto(adapter.baseUrl);
-    log.info("browser.login.opened", {
-      correlationId: platform,
-      platform,
-      url: adapter.baseUrl,
-    });
+    log.info("browser.login.opened", { correlationId: platform, platform, url: adapter.baseUrl });
 
-    console.log(
-      `\n✓ Browser opened. Please log in manually and close the browser when done.`,
-    );
+    console.log(`\n✓ Browser opened. Please log in manually and close the browser when done.`);
     console.log(`  Platform: ${platform}`);
     console.log(`  URL: ${adapter.baseUrl}`);
-    console.log(
-      `  If you want to keep the browser open, press ENTER after login.`,
-    );
+    console.log(`  If you want to keep the browser open, press ENTER after login.`);
 
     const browserClosed = new Promise((resolve) => {
       context.browserHandle.once("disconnected", resolve);
     });
 
-    const rl = readline.createInterface({
-      input: process.stdin,
-      output: process.stdout,
-    });
-    const promptClosed = rl
-      .question("Press ENTER after login is complete...\n")
-      .then(() => {
-        rl.close();
-      });
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    const promptClosed = rl.question("Press ENTER after login is complete...\n").then(() => { rl.close(); });
 
     await Promise.race([browserClosed, promptClosed]);
     rl.close();
@@ -725,29 +674,27 @@ export async function loginToPage(options) {
 
     console.log(`✓ Storage state saved for ${platform}`);
     log.info("browser.login.success", { correlationId: platform, platform });
-
-    return {
-      platform,
-      message: `Login completed and storage state saved`,
-    };
+    return { platform, message: `Login completed and storage state saved` };
   } catch (err) {
     log.error("browser.login.failure", {
-      correlationId: platform,
-      platform,
-      error: err,
+      correlationId: platform, platform, error: err,
       code: err?.code || "ROTATOR_BROWSER_LOGIN_FAILED",
     });
     throw err;
   } finally {
-    try {
-      await closeBrowser(context);
-    } catch {}
+    try { await closeBrowser(context); } catch {}
   }
 }
 
 export async function listResponses(options = {}) {
-  const { platform = null, limit = 10 } = options;
-  const responsesDir = browserResponsesDir();
+  // CHANGED: accept optional baseDir so the test can point listResponses at the
+  // same ExperienceDb that tagResponse just wrote to. Without this, listResponses
+  // constructs its own no-arg ExperienceDb which resolves a different path and
+  // always reads back null for quality/notes.
+  const { platform = null, limit = 10, baseDir } = options;
+  const responsesDir = baseDir
+    ? path.join(baseDir, "browser-responses")
+    : browserResponsesDir();
 
   if (!(await exists(responsesDir))) {
     return [];
@@ -759,19 +706,19 @@ export async function listResponses(options = {}) {
     files = files.filter((f) => f.includes(`-${platform}.md`));
   }
 
-  // Filter out compare reports if not specifically requested
   if (!platform) {
     files = files.filter((f) => !f.includes("-compare.md"));
   }
 
-  // Sort by name (timestamp) descending
   files.sort().reverse();
 
   if (limit) {
     files = files.slice(0, limit);
   }
 
-  const db = new ExperienceDb();
+  // CHANGED: pass baseDir when supplied so db opens the same file tagResponse wrote.
+  const dbOptions = baseDir ? { baseDir } : {};
+  const db = new ExperienceDb(dbOptions);
   await db.open();
 
   const responses = [];
@@ -798,13 +745,10 @@ export async function getResponseMetadata(filename) {
   if (!(await exists(filepath))) {
     throw new Error(`Response not found: ${filename}`);
   }
-
   const stat = await fs.stat(filepath);
   const content = await fs.readFile(filepath, "utf8");
-
   return {
-    filename,
-    filepath,
+    filename, filepath,
     size: stat.size,
     created: stat.birthtime.toISOString(),
     modified: stat.mtime.toISOString(),
@@ -826,11 +770,9 @@ export async function clearResponses(options = {}) {
 
   for (const file of files) {
     let shouldDelete = false;
-
     if (platform) {
       shouldDelete = file.includes(`-${platform}.md`);
     }
-
     if (shouldDelete && olderThanDays) {
       const filepath = path.join(responsesDir, file);
       const stat = await fs.stat(filepath);
@@ -838,7 +780,6 @@ export async function clearResponses(options = {}) {
       const ageDays = ageMs / (1000 * 60 * 60 * 24);
       shouldDelete = ageDays >= olderThanDays;
     }
-
     if (shouldDelete) {
       const filepath = path.join(responsesDir, file);
       await fs.unlink(filepath);
@@ -859,46 +800,32 @@ async function captureThread(
     );
   }
 
-  // Load thread selectors or use defaults
   const selectorsOverrides = await loadSelectorOverrides();
   const threadSelectors = selectorsOverrides.threadSelectors || {};
-  const platformSelectors =
-    threadSelectors[platform] || getDefaultThreadSelectors(platform);
+  const platformSelectors = threadSelectors[platform] || getDefaultThreadSelectors(platform);
 
   if (!threadSelectors[platform]) {
-    log.warn("browser.threadSelectors.default", {
-      correlationId: platform,
-      platform,
-      reason: "thread selectors missing",
-    });
+    log.warn("browser.threadSelectors.default", { correlationId: platform, platform, reason: "thread selectors missing" });
   }
 
   const context = await launchBrowser({ platform, headless, timeout });
 
   try {
     const page = await context.newPage();
-    // Navigate to the platform's base URL
     const adapter = await getAdapterModule(platform);
     await page.goto(adapter.baseUrl, { waitUntil: "networkidle" });
-
-    // Wait for conversation to load
     await page.waitForTimeout(2000);
 
-    // Scrape all turns from the page
     const turns = await page.evaluate(
       ({ turnContainer, roleAttr, contentSelector }) => {
         const containers = document.querySelectorAll(turnContainer);
         if (!containers.length) return [];
-
         return Array.from(containers)
           .map((container) => {
             const roleEl = container.querySelector(`[${roleAttr}]`);
-            const role = roleEl
-              ? roleEl.getAttribute(roleAttr) || "unknown"
-              : "unknown";
+            const role = roleEl ? roleEl.getAttribute(roleAttr) || "unknown" : "unknown";
             const contentEl = container.querySelector(contentSelector);
             const content = contentEl ? contentEl.textContent?.trim() : "";
-
             return { role: String(role).toLowerCase(), content };
           })
           .filter((t) => t.content && t.content.length > 0);
@@ -907,50 +834,35 @@ async function captureThread(
     );
 
     if (turns.length === 0) {
-      throw new Error(
-        `No conversation turns found. Check threadSelectors for ${platform} in browser-selectors.json`,
-      );
+      throw new Error(`No conversation turns found. Check threadSelectors for ${platform} in browser-selectors.json`);
     }
 
-    const roles = new Set(
-      turns.map((turn) => String(turn.role || "unknown").toLowerCase()),
-    );
+    const roles = new Set(turns.map((turn) => String(turn.role || "unknown").toLowerCase()));
     if (!roles.has("user") || !roles.has("assistant")) {
       throw new Error(
         `Incomplete conversation thread: expected both user and assistant turns for ${platform}. ` +
-          `Found roles: ${Array.from(roles).join(", ")}`,
+        `Found roles: ${Array.from(roles).join(", ")}`,
       );
     }
 
-    // Format as thread file
     const timestamp = getTimestamp();
     const filename = `${timestamp}-${platform}-thread.md`;
     const filepath = path.join(outputDir || browserResponsesDir(), filename);
 
-    const frontmatter = `---
-platform: ${platform}
-captured_at: ${now()}
-type: thread
-turn_count: ${turns.length}
----
-
-`;
+    const frontmatter = `---\nplatform: ${platform}\ncaptured_at: ${now()}\ntype: thread\nturn_count: ${turns.length}\n---\n\n`;
 
     let content = frontmatter;
     turns.forEach((turn, index) => {
-      // Write role in lowercase per transcript convention
       const roleLabel = String(turn.role || "unknown").toLowerCase();
       content += `## Turn ${index + 1} — ${roleLabel}\n\n`;
       content += `${turn.content}\n\n`;
     });
 
-    // Atomic write with fsync: write to tmp, fsync file and directory, then rename
     const dir = path.dirname(filepath);
     await fs.mkdir(dir, { recursive: true, mode: 0o700 });
     const tmpFile = `${filepath}.${process.pid}.${Date.now()}.tmp`;
-    // write tmp file
     await fs.writeFile(tmpFile, content, { encoding: "utf8", mode: 0o600 });
-    // ensure data is flushed to disk
+
     try {
       const fh = await fs.open(tmpFile, "r+");
       try {
@@ -958,30 +870,22 @@ turn_count: ${turns.length}
       } finally {
         await fh.close();
       }
-      // rename into place
       try {
         await fs.rename(tmpFile, filepath);
       } catch {
         await fs.unlink(filepath).catch(() => null);
         await fs.rename(tmpFile, filepath);
       }
-      // sync containing directory to ensure directory entry is persisted
       const dirHandle = await fs.open(dir, "r");
       try {
-        try {
-          await dirHandle.sync();
-        } catch (syncErr) {
+        try { await dirHandle.sync(); } catch {
           // Some platforms (notably Windows) may not allow directory sync on open handles.
-          // Ignore best-effort directory sync failures and continue.
         }
       } finally {
         await dirHandle.close();
       }
     } catch (err) {
-      // best-effort cleanup
-      try {
-        await fs.unlink(tmpFile).catch(() => null);
-      } catch {}
+      try { await fs.unlink(tmpFile).catch(() => null); } catch {}
       throw err;
     }
 
@@ -1020,15 +924,20 @@ function getDefaultThreadSelectors(platform) {
       contentSelector: "div[class*='message-content']",
     },
   };
-
   return defaults[platform] || defaults.chatgpt;
 }
 
+// CHANGED (round 1): The frozen constants (BROWSER_PROFILES_DIR,
+// BROWSER_RESPONSES_DIR, BROWSER_SELECTORS_PATH, PROMPT_LIBRARY_PATH) have
+// been removed from exports. External callers must switch to these getter
+// functions, which resolve fresh on each call so process.env.HOME overrides
+// in tests are always respected.
+export function getBrowserProfilesDir()   { return browserProfilesDir(); }
+export function getBrowserResponsesDir()  { return browserResponsesDir(); }
+export function getBrowserSelectorsPath() { return browserSelectorsPath(); }
+export function getPromptLibraryPath()    { return promptLibraryPath(); }
+
 export {
-  BROWSER_PROFILES_DIR,
-  BROWSER_RESPONSES_DIR,
-  BROWSER_SELECTORS_PATH,
-  PROMPT_LIBRARY_PATH,
   getBrowserResponsePlatform,
   ingestBrowserResponseFile,
   tagResponse,

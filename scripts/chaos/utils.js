@@ -30,7 +30,21 @@ function assertRecovery(name, elapsedMs, sloMs) {
 }
 
 function delay(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  const duration = Math.max(0, Number(ms) || 0);
+  const target = Date.now() + duration;
+
+  return new Promise((resolve) => {
+    function finishWhenElapsed() {
+      const remaining = target - Date.now();
+      if (remaining <= 0) {
+        resolve();
+        return;
+      }
+      setTimeout(finishWhenElapsed, remaining);
+    }
+
+    setTimeout(finishWhenElapsed, duration);
+  });
 }
 
 function createChaosHome() {

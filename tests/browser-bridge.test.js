@@ -14,7 +14,6 @@ import {
   listResponses,
   clearResponses,
   ensureBrowserDirs,
-  BROWSER_RESPONSES_DIR,
   getBrowserResponsePlatform,
   ingestBrowserResponseFile,
   tagResponse,
@@ -639,6 +638,7 @@ describe("Browser Bridge", () => {
       const result = await tagResponse("2026-05-19T10-30-45-chatgpt.md", {
         quality: "good",
         notes: "Accurate answer",
+        baseDir: path.join(tempDir, ".vscode-rotator"),
       });
 
       expect(result).toMatchObject({
@@ -683,6 +683,7 @@ describe("Browser Bridge", () => {
       const result = await tagResponse("2026-05-19T10-30-45-chatgpt.md", {
         quality: "bad",
         notes: "Wrong API used",
+        baseDir: path.join(tempDir, ".vscode-rotator"),
       });
 
       expect(result).toMatchObject({
@@ -735,6 +736,7 @@ describe("Browser Bridge", () => {
 
       const result = await tagResponse("2026-05-19T10-30-45-chatgpt.md", {
         quality: "bad",
+        baseDir: path.join(tempDir, ".vscode-rotator"),
       });
 
       expect(result).toMatchObject({
@@ -787,6 +789,7 @@ describe("Browser Bridge", () => {
       const result = await tagResponse("2026-05-19T10-30-45-chatgpt.md", {
         quality: "partial",
         notes: "",
+        baseDir: path.join(tempDir, ".vscode-rotator"),
       });
 
       expect(result).toMatchObject({
@@ -832,9 +835,10 @@ describe("Browser Bridge", () => {
       await tagResponse("2026-05-19T10-30-45-chatgpt.md", {
         quality: "good",
         notes: "Looks fine",
+        baseDir: path.join(tempDir, ".vscode-rotator"),
       });
 
-      const list = await listResponses({ platform: "chatgpt", limit: 10 });
+      const list = await listResponses({ platform: "chatgpt", limit: 10, baseDir: path.join(tempDir, ".vscode-rotator") });
       expect(list[0].quality).toBe("good");
       expect(list[0].notes).toBe("Looks fine");
     });

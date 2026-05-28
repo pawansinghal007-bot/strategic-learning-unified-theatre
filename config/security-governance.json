@@ -1,0 +1,57 @@
+{
+  "sonar": {
+    "qualityGateFailOnError": true,
+    "protectedBranches": ["main", "release"],
+    "hotspotSeverityThreshold": "CRITICAL"
+  },
+  "release": {
+    "enforceBranchPolicy": true,
+    "allowedBranches": ["main", "release"],
+    "requireReviewerApproval": true
+  },
+  "acknowledgedWaiver": {
+    "defaultExpiryDays": 30,
+    "maxRenewals": 2,
+    "renewalWindowDays": 14
+  },
+  "secretScanning": {
+    "enabled": true,
+    "failOnDetection": false,
+    "scanPaths": ["src", "scripts", "config", "electron-ui"]
+  },
+  "hotspotWaiverSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "hotspotKey",
+      "status",
+      "owner",
+      "ticket",
+      "reviewer",
+      "expires",
+      "notes",
+      "renewalCount",
+      "createdAt",
+      "createdBy"
+    ],
+    "properties": {
+      "hotspotKey": { "type": "string" },
+      "status": {
+        "type": "string",
+        "enum": ["ACTIVE", "EXPIRED", "REVOKED", "RENEWED"]
+      },
+      "owner": { "type": "string" },
+      "ticket": { "type": "string" },
+      "reviewer": { "type": "string" },
+      "expires": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+      "notes": { "type": "string" },
+      "renewalCount": { "type": "integer", "minimum": 0 },
+      "createdAt": {
+        "type": "string",
+        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$"
+      },
+      "createdBy": { "type": "string" },
+      "waiverReason": { "type": "string" }
+    }
+  }
+}
