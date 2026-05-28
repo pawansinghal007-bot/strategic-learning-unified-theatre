@@ -9,6 +9,7 @@
     "noEmit": true,
     "types": []
   },
+  "include": ["src/shared/**/*"],
   "files": [
     "src/shared/contracts/provider.ts",
     "src/shared/schemas/provider.schema.ts",
