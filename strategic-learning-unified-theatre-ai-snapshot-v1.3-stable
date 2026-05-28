@@ -1,0 +1,88 @@
+# Strategic Learning Unified Theatre AI Snapshot v1.3 Stable
+
+- Date: 2026-05-28
+- Session: Prompt 3D - S2004 high-risk review and sprint lock
+- Repository: /home/pawansinghal/projects/VS Code Agent/Solution
+- Snapshot tag: v1.3-stable
+- Snapshot purpose: Lock S2004 sprint state after LOW and MED fixes, HIGH review, and DOUBLE_NESTED review.
+
+## Summary
+
+- Total S2004 issues found: 16
+- LOW: 6 fixed
+- MED: 10 fixed
+- HIGH: 0 fixed, 0 deferred
+- DOUBLE_NESTED: none available in surviving 3D recovery inputs
+- Reclassified to HIGH: 0
+- Reclassified to MED during 3B/3C: 0
+- Deferred: 0
+- Regression status: clean
+
+## Source Inputs
+
+- `strategic-learning-unified-theatre-ai-snapshot-v1.3c-active` was the active snapshot at lock time.
+- `sonar_issues.csv` and `strategic-learning-unified-theatre-ai-snapshot-v1.3a-active` had been deleted before lock time.
+- Per operator instruction, lock proceeded from the surviving active snapshot.
+- `stash@{0}` exists as unrelated in-progress work and was not popped or modified.
+
+## LOW Risk
+
+- Count: 6 fixed.
+- Source: v1.3c-active summary confirms LOW risk fixed 6/6.
+- Files: all LOW fixes were in `tests/browser-bridge.test.js`.
+
+## MED Risk
+
+- Count: 10 fixed.
+- Source: v1.3c-active summary confirms MED risk fixed 10/10 and 0 reclassified to HIGH.
+- Files: all MED fixes were in `tests/browser-bridge.test.js`.
+- Fixes applied:
+  - Hoisted mocked Playwright helpers to module scope:
+    - `mockNewPage`
+    - `mockNewContext`
+    - `mockLaunch`
+  - Replaced nested Playwright mock setups in thread capture and CLI smoke tests with `vi.fn(mockLaunch)`.
+
+## HIGH Risk
+
+- HIGH risk count from v1.3c-active: 0.
+- Fixed: none.
+- Deferred: none.
+- Task 1 status: complete by empty HIGH list.
+
+## DOUBLE_NESTED
+
+- v1.3a triage file was unavailable at lock time due mistaken deletion.
+- No DOUBLE_NESTED items were listed in the surviving v1.3c-active snapshot.
+- Deferred: none recorded in surviving active state.
+- Task 2 status: complete from surviving active snapshot and operator instruction to proceed.
+
+## Label Breakdown
+
+- ARROW_CONVERT: 4
+- HOIST: 12
+- Total labels: 16
+
+## Validation Results
+
+- Step 0 tree check:
+  - `git status --short` - clean before lock edits.
+  - `git stash list` - `stash@{0}: On main: SLUT unrelated in-progress`; left untouched.
+- Baseline validation:
+  - `npx vitest run --run` - PASS
+    - 75 test files passed
+    - 528 tests passed
+  - `npx tsc --noEmit` - PASS
+  - `npm run ui:build` - PASS
+- Lint:
+  - Skipped; no lint script is defined for this sprint workflow.
+
+## Archive
+
+- Available v1.3c active snapshot archived to `docs/archive/s2004/strategic-learning-unified-theatre-ai-snapshot-v1.3c-active`.
+- v1.3a and v1.3b active snapshots were unavailable due mistaken deletion before lock.
+
+## Handoff
+
+- S2004 sprint is locked as `v1.3-stable`.
+- Next: Prompt 4A - S4123 triage.

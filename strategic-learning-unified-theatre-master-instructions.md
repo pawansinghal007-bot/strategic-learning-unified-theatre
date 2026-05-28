@@ -44,3 +44,16 @@ node ./src/cli.js ai snapshot
 - Latest Sprint 16 AI snapshot tag: `SPRINT16_COMPLETE`
 - Latest Sprint 16 pointer tag: `LATEST_SPRINT16`
 - Use the snapshot pointer at `~/.vscode-rotator/ai-snapshot-current.json` before scanning historical snapshot material.
+
+## S2004 Refactor Guidance
+
+- S2004 sprint complete: 16 items fixed across LOW and MED; no HIGH items remained in the active lock snapshot.
+- ARROW_CONVERT -> place `const` at the top of the parent function to preserve scope closure.
+- HOIST -> move to module scope above the parent only when there are zero parent-scope references.
+- DOUBLE_NESTED -> fix the innermost function first, then re-assess each outer level.
+- Caller mapping is required before any MED or HIGH fix.
+- Never export a hoisted function unless an external caller requires it.
+- Commit each fix immediately after validation; do not batch fix commits.
+- Anti-pattern: do not convert to arrow if the function is used as a constructor.
+- Anti-pattern: do not hoist if the function closes over parent variables.
+- Stash discipline: unrelated changes stay stashed separately and must never be mixed with sprint fixes.
