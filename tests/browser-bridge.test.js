@@ -55,10 +55,32 @@ vi.mock("playwright", () => {
     firefox: { launch: vi.fn(async () => fakeBrowser) },
   };
 });
+
 import { ExperienceDb } from "../src/llm/experience-db.js";
 import { MistakeTracker } from "../src/llm/mistake-tracker.js";
 import { StorageMonitor } from "../src/storage/storage-monitor.js";
 import { DocumentIngester } from "../src/llm/document-ingester.js";
+
+// Hoisted helpers for mocked Playwright flows (used by specific tests)
+const mockNewPage = async () => ({
+  goto: vi.fn(async () => {}),
+  waitForTimeout: vi.fn(async () => {}),
+  evaluate: vi.fn(async () => [
+    { role: "user", content: "Hello" },
+    { role: "assistant", content: "Hi there!" },
+  ]),
+  close: vi.fn(async () => {}),
+});
+
+const mockNewContext = async () => ({
+  newPage: vi.fn(async () => mockNewPage()),
+  close: vi.fn(async () => {}),
+});
+
+const mockLaunch = async () => ({
+  newContext: vi.fn(async () => mockNewContext()),
+  close: vi.fn(async () => {}),
+});
 
 describe("Browser Bridge", () => {
   let tempDir;
@@ -933,40 +955,8 @@ describe("Browser Bridge", () => {
     it("returns correct thread capture result structure", async () => {
       // Mock Playwright and ensure captureThread returns structured result
       vi.doMock("playwright", () => ({
-        chromium: {
-          launch: vi.fn(async () => ({
-            newContext: vi.fn(async () => ({
-              newPage: vi.fn(async () => ({
-                goto: vi.fn(async () => {}),
-                waitForTimeout: vi.fn(async () => {}),
-                evaluate: vi.fn(async () => [
-                  { role: "user", content: "Hello" },
-                  { role: "assistant", content: "Hi there!" },
-                ]),
-                close: vi.fn(async () => {}),
-              })),
-              close: vi.fn(async () => {}),
-            })),
-            close: vi.fn(async () => {}),
-          })),
-        },
-        firefox: {
-          launch: vi.fn(async () => ({
-            newContext: vi.fn(async () => ({
-              newPage: vi.fn(async () => ({
-                goto: vi.fn(async () => {}),
-                waitForTimeout: vi.fn(async () => {}),
-                evaluate: vi.fn(async () => [
-                  { role: "user", content: "Hello" },
-                  { role: "assistant", content: "Hi there!" },
-                ]),
-                close: vi.fn(async () => {}),
-              })),
-              close: vi.fn(async () => {}),
-            })),
-            close: vi.fn(async () => {}),
-          })),
-        },
+        chromium: { launch: vi.fn(mockLaunch) },
+        firefox: { launch: vi.fn(mockLaunch) },
       }));
 
       const responsesDir = path.join(
@@ -1085,40 +1075,8 @@ describe("Browser Bridge", () => {
 
     it("executes browser capture --platform chatgpt --thread via CLI smoke test", async () => {
       vi.doMock("playwright", () => ({
-        chromium: {
-          launch: vi.fn(async () => ({
-            newContext: vi.fn(async () => ({
-              newPage: vi.fn(async () => ({
-                goto: vi.fn(async () => {}),
-                waitForTimeout: vi.fn(async () => {}),
-                evaluate: vi.fn(async () => [
-                  { role: "user", content: "Hello" },
-                  { role: "assistant", content: "Hi there!" },
-                ]),
-                close: vi.fn(async () => {}),
-              })),
-              close: vi.fn(async () => {}),
-            })),
-            close: vi.fn(async () => {}),
-          })),
-        },
-        firefox: {
-          launch: vi.fn(async () => ({
-            newContext: vi.fn(async () => ({
-              newPage: vi.fn(async () => ({
-                goto: vi.fn(async () => {}),
-                waitForTimeout: vi.fn(async () => {}),
-                evaluate: vi.fn(async () => [
-                  { role: "user", content: "Hello" },
-                  { role: "assistant", content: "Hi there!" },
-                ]),
-                close: vi.fn(async () => {}),
-              })),
-              close: vi.fn(async () => {}),
-            })),
-            close: vi.fn(async () => {}),
-          })),
-        },
+        chromium: { launch: vi.fn(mockLaunch) },
+        firefox: { launch: vi.fn(mockLaunch) },
       }));
 
       const { bindBrowserCommands } =

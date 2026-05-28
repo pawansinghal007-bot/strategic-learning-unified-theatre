@@ -1,0 +1,83 @@
+# Strategic Learning Unified Theatre AI Snapshot v1.3b Active
+
+- Date: 2026-05-28
+- Session: Prompt 3B resume - S2004 LOW-risk fixes
+- Repository: /home/pawansinghal/projects/VS Code Agent/Solution
+- Snapshot tag: v1.3b-active
+- Snapshot purpose: Track completed LOW-risk S2004 fixes and hand off remaining MED-risk items to Prompt 3C.
+
+## Summary
+
+- Total S2004 occurrences discovered: 16
+- LOW risk: 6
+- LOW risk fixed: 6
+- Reclassified to MED during 3B: 0
+- MED risk remaining for 3C: 10
+- HIGH risk: 0
+- LOW risk status: complete
+
+## Resume State
+
+- Previous timed-out session had already completed the hoist for `tests/browser-bridge.test.js` Playwright mock helpers.
+- Resume point checked: `tests/browser-bridge.test.js` around line 958.
+- No stash entries were present during recovery.
+- Current session cleaned up helper placement so imports remain grouped before module-scope helpers.
+
+## LOW Risk Status
+
+STATUS | FILE | ORIGINAL LINE | FUNCTION / NESTED BLOCK | LABEL | RESULT
+------ | ---- | -------------:| ----------------------- | ----- | ------
+[x] | tests/browser-bridge.test.js | 940 | mock Playwright `chromium.launch` nested block | ARROW_CONVERT / HOISTED_WITH_HELPERS | fixed by module-scope `mockLaunch`
+[x] | tests/browser-bridge.test.js | 941 | mock Playwright `newContext` nested block | ARROW_CONVERT / HOISTED_WITH_HELPERS | fixed by module-scope `mockNewContext`
+[x] | tests/browser-bridge.test.js | 942 | mock Playwright `newPage` nested block | ARROW_CONVERT / HOISTED_WITH_HELPERS | fixed by module-scope `mockNewPage`
+[x] | tests/browser-bridge.test.js | 946 | mock Playwright `evaluate` nested block | ARROW_CONVERT / HOISTED_WITH_HELPERS | fixed by module-scope `mockNewPage`
+[x] | tests/browser-bridge.test.js | 957 | `chromium` launch mock in thread capture test | HOIST | uses module-scope `mockLaunch`
+[x] | tests/browser-bridge.test.js | 958 | `firefox` launch mock in thread capture test | HOIST | uses module-scope `mockLaunch`
+
+## Remaining MED Risk Items
+
+STATUS | FILE | ORIGINAL LINE | LABEL | NEXT PROMPT
+------ | ---- | -------------:| ----- | -----------
+[ ] | tests/browser-bridge.test.js | 959 | HOIST | 3C
+[ ] | tests/browser-bridge.test.js | 963 | HOIST | 3C
+[ ] | tests/browser-bridge.test.js | 1092 | HOIST | 3C
+[ ] | tests/browser-bridge.test.js | 1093 | HOIST | 3C
+[ ] | tests/browser-bridge.test.js | 1094 | HOIST | 3C
+[ ] | tests/browser-bridge.test.js | 1098 | HOIST | 3C
+[ ] | tests/browser-bridge.test.js | 1109 | HOIST | 3C
+[ ] | tests/browser-bridge.test.js | 1110 | HOIST | 3C
+[ ] | tests/browser-bridge.test.js | 1111 | HOIST | 3C
+[ ] | tests/browser-bridge.test.js | 1115 | HOIST | 3C
+
+## Validation Results
+
+- Recovery validation before additional edits:
+  - `npx vitest run tests/browser-bridge.test.js` - PASS
+    - 1 test file passed
+    - 41 tests passed
+  - `npx tsc --noEmit` - PASS
+  - `npm run ui:build` - PASS
+- Final validation after cleanup edit:
+  - `npx vitest run tests/browser-bridge.test.js` - PASS
+    - 1 test file passed
+    - 41 tests passed
+  - `npx tsc --noEmit` - PASS
+  - `npm run ui:build` - PASS
+
+## Fixed Items
+
+- `tests/browser-bridge.test.js::mockNewPage` - HOIST, module-scope helper.
+- `tests/browser-bridge.test.js::mockNewContext` - HOIST, module-scope helper.
+- `tests/browser-bridge.test.js::mockLaunch` - HOIST, module-scope helper.
+- `tests/browser-bridge.test.js` thread capture test - duplicate nested mock block removed and replaced with `vi.fn(mockLaunch)`.
+- `tests/browser-bridge.test.js` CLI smoke test - duplicate nested mock block removed and replaced with `vi.fn(mockLaunch)`.
+
+## Reclassified To MED
+
+None.
+
+## Handoff
+
+- LOW-risk S2004 work is complete.
+- `CURRENT_ACTIVE_SNAPSHOT.md` should point to `strategic-learning-unified-theatre-ai-snapshot-v1.3b-active`.
+- Next: run Prompt 3C for MED-risk S2004 fixes.
