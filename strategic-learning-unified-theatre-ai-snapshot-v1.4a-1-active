@@ -1,0 +1,31 @@
+SPRINT:         S4123 — unexpected await
+PHASE:          4A-1 extraction complete
+STATUS:         active
+
+S4123 RAW ISSUE LIST (9 issues):
+  1. tests/reference-plugins.test.js  line 49
+  2. tests/reference-plugins.test.js  line 13
+  3. tests/reference-plugins.test.js  line 24
+  4. tests/reference-plugins.test.js  line 34
+  5. tests/reference-plugins.test.js  line 47
+  6. src/idea.js                      line 123
+  7. src/cli.js                       line 692
+  8. src/cli.js                       line 709
+  9. src/cli.js                       line 727
+
+FILES AFFECTED:
+  tests/reference-plugins.test.js  — 5 issues
+  src/idea.js                      — 1 issue
+  src/cli.js                       — 3 issues
+
+CONFIRMED:
+  • no source files opened
+  • no code changes made
+  • extraction from sonar_issues.csv only
+
+PREVIOUS SPRINTS:
+  S3776 — 18/18 fixed, v1.2-stable
+  S2004 — 16/16 fixed, v1.3-stable
+
+NEXT STEP:
+  4A-2 — open each file, trace return types
