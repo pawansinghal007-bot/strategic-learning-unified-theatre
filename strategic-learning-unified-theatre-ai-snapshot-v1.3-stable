@@ -82,6 +82,12 @@
 - Available v1.3c active snapshot archived to `docs/archive/s2004/strategic-learning-unified-theatre-ai-snapshot-v1.3c-active`.
 - v1.3a and v1.3b active snapshots were unavailable due mistaken deletion before lock.
 
+## SonarQube Export
+
+- `sonar_issues.csv`, `sonar_hotspots.csv`, and `sonar_reliability_maintainability.csv` were generated and committed.
+- `sonar_issues.csv` contains 9 `javascript:S4123` issues.
+- Working tree clean and ready for 4A-1.
+
 ## Handoff
 
 - S2004 sprint is locked as `v1.3-stable`.
