@@ -24,6 +24,24 @@ async function fileExists(filePath) {
   }
 }
 
+function getWindowsOllamaCandidates() {
+  const candidates = [];
+  const localAppData = process.env.LOCALAPPDATA;
+  const programFiles = process.env.ProgramFiles;
+  const programFilesx86 = process.env["ProgramFiles(x86)"];
+
+  if (localAppData) {
+    candidates.push(path.join(localAppData, "Programs", "Ollama", "ollama.exe"));
+  }
+  if (programFiles) {
+    candidates.push(path.join(programFiles, "Ollama", "ollama.exe"));
+  }
+  if (programFilesx86) {
+    candidates.push(path.join(programFilesx86, "Ollama", "ollama.exe"));
+  }
+  return candidates;
+}
+
 async function findOllamaBinary() {
   const candidates = [];
 
@@ -32,19 +50,7 @@ async function findOllamaBinary() {
   }
 
   if (process.platform === "win32") {
-    const localAppData = process.env.LOCALAPPDATA;
-    const programFiles = process.env.ProgramFiles;
-    const programFilesx86 = process.env["ProgramFiles(x86)"];
-
-    if (localAppData) {
-      candidates.push(path.join(localAppData, "Programs", "Ollama", "ollama.exe"));
-    }
-    if (programFiles) {
-      candidates.push(path.join(programFiles, "Ollama", "ollama.exe"));
-    }
-    if (programFilesx86) {
-      candidates.push(path.join(programFilesx86, "Ollama", "ollama.exe"));
-    }
+    candidates.push(...getWindowsOllamaCandidates());
   }
 
   candidates.push("ollama");

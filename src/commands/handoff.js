@@ -57,6 +57,18 @@ function truncate(value, limit) {
   return `${text.slice(0, limit - 1)}…`;
 }
 
+async function handleUpdateTokenBudget(sprintId, options, sprint, warnings) {
+  if (options.tokensUsed !== undefined || options.tokensLimit !== undefined) {
+    const result = await setTokenBudget(sprintId, {
+      tokensUsed: options.tokensUsed !== undefined ? parsePositiveInt(options.tokensUsed, "--tokens-used") : sprint.tokensUsed,
+      tokensLimit: options.tokensLimit !== undefined ? parsePositiveInt(options.tokensLimit, "--tokens-limit") : sprint.tokensLimit
+    });
+    sprint = result.sprint;
+    warnings.push(...result.warnings);
+  }
+  return { sprint, warnings };
+}
+
 export function bindHandoffCommands(program) {
   const handoff = program.command("handoff").description("Track agent sprint handoff state");
 
@@ -101,16 +113,9 @@ export function bindHandoffCommands(program) {
       const spinner = ora("Updating sprint...").start();
       try {
         let sprint = await loadSprint(sprintId);
-        const warnings = [];
-
-        if (options.tokensUsed !== undefined || options.tokensLimit !== undefined) {
-          const result = await setTokenBudget(sprintId, {
-            tokensUsed: options.tokensUsed !== undefined ? parsePositiveInt(options.tokensUsed, "--tokens-used") : sprint.tokensUsed,
-            tokensLimit: options.tokensLimit !== undefined ? parsePositiveInt(options.tokensLimit, "--tokens-limit") : sprint.tokensLimit
-          });
-          sprint = result.sprint;
-          warnings.push(...result.warnings);
-        }
+        let warnings = [];
+        
+        ({ sprint, warnings } = await handleUpdateTokenBudget(sprintId, options, sprint, warnings));
 
         if (options.addTask.length > 0) {
           const priority = parsePositiveInt(options.priority, "--priority");

@@ -294,6 +294,24 @@ async function getAdapterModule(platform) {
   }
 }
 
+async function setupLauncher(normalizedType, config, executablePath) {
+  const { chromium, firefox } = await loadPlaywright();
+  let launcher;
+  let execPath = null;
+
+  if (normalizedType === "firefox") {
+    launcher = firefox;
+    execPath = executablePath || process.env.FIREFOX_PATH || (config && config.browserPaths && config.browserPaths.firefox);
+  } else {
+    launcher = chromium;
+    if (normalizedType === "brave") {
+      execPath = executablePath || process.env.BRAVE_PATH || (config && config.browserPaths && config.browserPaths.brave);
+    }
+  }
+
+  return { launcher, executablePath: execPath };
+}
+
 export async function launchBrowser(options = {}) {
   const {
     browserType = "chromium",
@@ -303,36 +321,18 @@ export async function launchBrowser(options = {}) {
     executablePath = null,
   } = options;
   const config = await loadConfig();
-  const { chromium, firefox } = await loadPlaywright();
 
   const normalizedType = browserType === "chrome" ? "chromium" : browserType;
-  let launcher;
+  const { launcher, executablePath: resolvedPath } = await setupLauncher(normalizedType, config, executablePath);
+
   const launchOptions = {
     headless,
     timeout,
     args: ["--disable-blink-features=AutomationControlled"],
   };
 
-  if (normalizedType === "firefox") {
-    launcher = firefox;
-    const firefoxPath =
-      executablePath ||
-      process.env.FIREFOX_PATH ||
-      (config && config.browserPaths && config.browserPaths.firefox);
-    if (firefoxPath) {
-      launchOptions.executablePath = firefoxPath;
-    }
-  } else {
-    launcher = chromium;
-    if (normalizedType === "brave") {
-      const bravePath =
-        executablePath ||
-        process.env.BRAVE_PATH ||
-        (config && config.browserPaths && config.browserPaths.brave);
-      if (bravePath) {
-        launchOptions.executablePath = bravePath;
-      }
-    }
+  if (resolvedPath) {
+    launchOptions.executablePath = resolvedPath;
   }
 
   const storageStatePath = platform
