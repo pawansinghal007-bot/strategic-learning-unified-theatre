@@ -241,6 +241,54 @@ async function loadEnterpriseConfigOverride() {
   return null;
 }
 
+async function readConfigFile(path, isStrict) {
+  try {
+    return await fs.readFile(path, "utf8");
+  } catch (err) {
+    const message = `Failed to read config file: ${path}`;
+
+    if (isStrict) {
+      throw new DomainError("ROTATOR_CONFIG_INVALID", message, {
+        path,
+        error: String(err),
+      });
+    }
+
+    console.warn(`[config] ${message} — using defaults`);
+    return null;
+  }
+}
+
+function parseUserConfig(raw, path, isStrict) {
+  if (!raw) {
+    return { ...DEFAULT_CONFIG };
+  }
+
+  try {
+    const json = JSON.parse(raw);
+    return {
+      ...DEFAULT_CONFIG,
+      ...(json ?? {}),
+      vscodeLearn: {
+        ...DEFAULT_CONFIG.vscodeLearn,
+        ...(json?.vscodeLearn ?? {}),
+      },
+    };
+  } catch (err) {
+    const message = `Invalid JSON in config file: ${path}`;
+
+    if (isStrict) {
+      throw new DomainError("ROTATOR_CONFIG_INVALID", message, {
+        path,
+        error: String(err),
+      });
+    }
+
+    console.warn(`[config] ${message} — using defaults`);
+    return { ...DEFAULT_CONFIG };
+  }
+}
+
 export async function loadConfig() {
   const p = configPath();
 
@@ -252,48 +300,8 @@ export async function loadConfig() {
   let userConfig = { ...DEFAULT_CONFIG };
 
   if (await exists(p)) {
-    let raw;
-
-    try {
-      raw = await fs.readFile(p, "utf8");
-    } catch (err) {
-      const message = `Failed to read config file: ${p}`;
-
-      if (isStrict) {
-        throw new DomainError("ROTATOR_CONFIG_INVALID", message, {
-          path: p,
-          error: String(err),
-        });
-      }
-
-      console.warn(`[config] ${message} — using defaults`);
-    }
-
-    if (raw) {
-      try {
-        const json = JSON.parse(raw);
-
-        userConfig = {
-          ...DEFAULT_CONFIG,
-          ...(json ?? {}),
-          vscodeLearn: {
-            ...DEFAULT_CONFIG.vscodeLearn,
-            ...(json?.vscodeLearn ?? {}),
-          },
-        };
-      } catch (err) {
-        const message = `Invalid JSON in config file: ${p}`;
-
-        if (isStrict) {
-          throw new DomainError("ROTATOR_CONFIG_INVALID", message, {
-            path: p,
-            error: String(err),
-          });
-        }
-
-        console.warn(`[config] ${message} — using defaults`);
-      }
-    }
+    const raw = await readConfigFile(p, isStrict);
+    userConfig = parseUserConfig(raw, p, isStrict);
   }
 
   // Load enterprise override if available
