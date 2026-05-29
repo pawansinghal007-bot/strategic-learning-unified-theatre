@@ -1,0 +1,33 @@
+SPRINT:         S4123 — unexpected await
+PHASE:          4A-3 caller impact check complete
+STATUS:         active
+
+CALLER IMPACT TABLE:
+1 | tests/reference-plugins.test.js | 13 | async test callback for LLM capability | OTHER AWAITS IN FN: no | ASYNC REMOVABLE? yes | CALLER_IMPACT: no (anonymous Jest callback, no external callers)
+2 | tests/reference-plugins.test.js | 24 | async test callback for browser platform | OTHER AWAITS IN FN: no | ASYNC REMOVABLE? yes | CALLER_IMPACT: no (anonymous Jest callback, no external callers)
+3 | tests/reference-plugins.test.js | 34 | async test callback for health check | OTHER AWAITS IN FN: yes | ASYNC REMOVABLE? no | CALLER_IMPACT: n/a
+4 | tests/reference-plugins.test.js | 47 | async test callback for registry registration | OTHER AWAITS IN FN: yes | ASYNC REMOVABLE? no | CALLER_IMPACT: n/a
+5 | tests/reference-plugins.test.js | 49 | async test callback for registry registration | OTHER AWAITS IN FN: yes | ASYNC REMOVABLE? no | CALLER_IMPACT: n/a
+6 | src/commands/idea.js | 123 | async action callback for idea add | OTHER AWAITS IN FN: yes | ASYNC REMOVABLE? no | CALLER_IMPACT: n/a
+7 | src/cli.js | 692 | async action callback for daemon stop | OTHER AWAITS IN FN: yes | ASYNC REMOVABLE? no | CALLER_IMPACT: n/a
+8 | src/cli.js | 709 | async action callback for daemon status | OTHER AWAITS IN FN: yes | ASYNC REMOVABLE? no | CALLER_IMPACT: n/a
+9 | src/cli.js | 727 | async action callback for daemon watch | OTHER AWAITS IN FN: yes | ASYNC REMOVABLE? no | CALLER_IMPACT: n/a
+
+COUNT SUMMARY:
+CALLER_IMPACT yes: 0
+CALLER_IMPACT no: 2
+CALLER_IMPACT n/a: 7
+
+ASYNC REMOVABLE:
+yes: 2
+no: 2
+n/a: 5
+
+GREP RESULTS PER FUNCTION:
+- tests callbacks are anonymous Jest callback functions; no external callers are applicable.
+- `src/commands/idea.js` action callback contains other awaits, so async stays and caller grep not required.
+- `src/cli.js` daemon callbacks each contain multiple awaits, so async stays and caller grep not required.
+
+CONFIRMATION:
+- no source files modified during this session
+- all analysis performed via reading source and grep only
