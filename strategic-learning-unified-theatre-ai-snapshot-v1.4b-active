@@ -1,0 +1,31 @@
+SPRINT:         S4123 — unexpected await
+PHASE:          4A-5 fix complete
+STATUS:         active
+
+FIXED ISSUE SUMMARY:
+1 | tests/reference-plugins.test.js | 13 | async test callback for LLM capability | REMOVE-CLEAN | fixed by removing await and async signature
+2 | tests/reference-plugins.test.js | 24 | async test callback for browser platform | REMOVE-CLEAN | fixed by removing await and async signature
+3 | tests/reference-plugins.test.js | 34 | async test callback for health check | REMOVE-AWAIT | fixed by removing await
+4 | tests/reference-plugins.test.js | 47 | async test callback for registry registration | REMOVE-AWAIT | fixed by removing await
+5 | tests/reference-plugins.test.js | 49 | async test callback for registry registration | REMOVE-AWAIT | fixed by removing await
+6 | src/commands/idea.js | 123 | async action callback for idea add | REMOVE-AWAIT | fixed by removing await from promptFactory()
+7 | src/cli.js | 692 | async action callback for daemon stop | REMOVE-AWAIT | fixed by removing await from daemonPaths()
+8 | src/cli.js | 709 | async action callback for daemon status | REMOVE-AWAIT | fixed by removing await from daemonPaths()
+9 | src/cli.js | 727 | async action callback for daemon watch | REMOVE-AWAIT | fixed by removing await from daemonPaths()
+
+COUNT TOTALS:
+REMOVE-CLEAN LOW:   2
+REMOVE-AWAIT LOW:   7
+REMOVE-CLEAN MED:   0
+REVIEW:             0
+TOTAL:              9
+
+VALIDATION:
+- npm test passed (75 files, 528 tests)
+- npx tsc --noEmit passed
+- npm run ui:build passed
+
+CONFIRMATION:
+- fixes committed in source files
+- active snapshot pointer updated to v1.4b-active
+- final state locked as current active snapshot
