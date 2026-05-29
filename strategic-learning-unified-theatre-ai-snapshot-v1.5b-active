@@ -1,0 +1,69 @@
+SPRINT:         S3776 Sprint 1b-B — LOW complexity fixes
+STATUS:         active — items 16-18 refactored, tests passing
+
+THRESHOLD:      15
+TOTAL ISSUES:   18
+
+SPRINT 1b-B SCOPE (LOW-RISK items):
+  HIGH (7 items) — deferred to 1b-C
+  MED (4 items)  — deferred to 1b-C
+  LOW (7 items)  — THIS SPRINT
+
+REFACTORING CHANGES:
+
+Item 16 ✓ browser-bridge.js:297
+  Pattern:  SWITCH_BLOCK
+  Excess:   +1 (16→15 after fix)
+  Strategy: Extract launcher setup to setupLauncher()
+  Changes:  New function encapsulates firefox/brave/chromium path selection
+  Status:   ✓ Committed — all tests passing
+
+Item 17 ✓ handoff.js:100
+  Pattern:  MIXED_CONCERNS
+  Excess:   +1 (16→15 after fix)
+  Strategy: Extract token budget concern to handleUpdateTokenBudget()
+  Changes:  New function isolates options.tokensUsed/tokensLimit logic
+  Status:   ✓ Committed — all tests passing
+
+Item 18 ✓ inference.js:27
+  Pattern:  SWITCH_BLOCK
+  Excess:   +1 (16→15 after fix)
+  Strategy: Extract Windows paths collection to getWindowsOllamaCandidates()
+  Changes:  New function encapsulates LOCALAPPDATA/ProgramFiles/ProgramFilesx86
+  Status:   ✓ Committed — all tests passing
+
+VALIDATION:
+  npx vitest run --run    → ✓ 528/528 tests passing
+  npx tsc --noEmit        → ✓ No TypeScript errors
+  git commit              → ✓ Commit defd522
+
+REMAINING LOW-RISK ITEMS (for 1b-C):
+
+Item 12 [ ] src/idea-store.js:189
+  Pattern:  NESTED_LOGIC
+  Excess:   +2 (17→15 after fix)
+  Status:   not started
+
+Item 13 [ ] src/llm/document-ingester.js:366
+  Pattern:  MIXED_CONCERNS
+  Excess:   +2 (17→15 after fix)
+  Status:   not started
+
+Item 14 [ ] src/plugin-loader.js:35
+  Pattern:  NESTED_LOGIC
+  Excess:   +2 (17→15 after fix)
+  Status:   not started
+
+Item 15 [ ] src/internal/reporter.js:14
+  Pattern:  NESTED_LOGIC
+  Excess:   +2 (17→15 after fix)
+  Status:   not started
+
+NEXT:
+  1b-C MED complexity fixes (items 5-11)
+  1b-D HIGH complexity fixes (items 1-4)
+
+GIT:
+  Main branch: defd522
+  Files modified: 3
+  Tests: 528/528 passing
