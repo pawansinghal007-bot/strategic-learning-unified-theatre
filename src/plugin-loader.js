@@ -38,6 +38,18 @@ export async function loadPlugins() {
   const browserPlatforms = [];
   const healthChecks = [];
   const errors = [];
+  function applyCapabilities(caps, llmProviders, browserPlatforms, healthChecks) {
+    if (!caps) return;
+    if (caps.llmProviders && Array.isArray(caps.llmProviders)) {
+      llmProviders.push(...caps.llmProviders);
+    }
+    if (caps.browserPlatforms && Array.isArray(caps.browserPlatforms)) {
+      browserPlatforms.push(...caps.browserPlatforms);
+    }
+    if (caps.healthChecks && Array.isArray(caps.healthChecks)) {
+      healthChecks.push(...caps.healthChecks);
+    }
+  }
 
   for (const filePath of paths) {
     const id = path.basename(filePath);
@@ -49,18 +61,9 @@ export async function loadPlugins() {
       const plugin = mod.default ?? mod;
       // validate API version against the normalized plugin object
       assertPluginApiCompatible(plugin, id);
-
       if (typeof plugin.getCapabilities === "function") {
         const caps = await plugin.getCapabilities();
-        if (caps?.llmProviders && Array.isArray(caps.llmProviders)) {
-          llmProviders.push(...caps.llmProviders);
-        }
-        if (caps?.browserPlatforms && Array.isArray(caps.browserPlatforms)) {
-          browserPlatforms.push(...caps.browserPlatforms);
-        }
-        if (caps?.healthChecks && Array.isArray(caps.healthChecks)) {
-          healthChecks.push(...caps.healthChecks);
-        }
+        applyCapabilities(caps, llmProviders, browserPlatforms, healthChecks);
       }
     } catch (err) {
       errors.push({ plugin: id, error: String(err) });
