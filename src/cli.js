@@ -689,7 +689,7 @@ daemonCmd
     const spinner = ora("Stopping daemon...").start();
     try {
       log.info("daemon.stop", { correlationId: "daemon" });
-      const { pidPath } = await daemonPaths();
+      const { pidPath } = daemonPaths();
       const pid = await readPid(pidPath);
       process.kill(pid, "SIGTERM");
       spinner.succeed("Daemon stopped");
@@ -706,7 +706,7 @@ daemonCmd
   .action(async () => {
     const spinner = ora("Checking daemon...").start();
     try {
-      const { pidPath } = await daemonPaths();
+      const { pidPath } = daemonPaths();
       const pid = await readPid(pidPath);
       spinner.stop();
       const alive = isPidAlive(pid);
@@ -724,9 +724,9 @@ daemonCmd
   .command("watch")
   .description("Stream daemon log output")
   .action(async () => {
-    const { logPath } = await daemonPaths();
-    await fs.mkdir(path.dirname(logPath), { recursive: true, mode: 0o700 });
-    await fs.appendFile(logPath, "", { encoding: "utf8" });
+      const { logPath } = daemonPaths();
+      await fs.mkdir(path.dirname(logPath), { recursive: true, mode: 0o700 });
+      await fs.appendFile(logPath, "", { encoding: "utf8" });
 
     let offset = 0;
     try {
