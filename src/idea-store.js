@@ -206,6 +206,13 @@ export async function createIdea({
   return { ...parsedIdea, body: content, filePath };
 }
 
+function ideaMatchesFilter(idea, { project, status, tag }) {
+  if (project && idea.project !== project) return false;
+  if (status && idea.status !== status) return false;
+  if (tag && !idea.tags.includes(tag)) return false;
+  return true;
+}
+
 export async function listIdeas({ cwd = process.cwd(), project, status, tag } = {}) {
   const context = await getIdeaContext({ cwd, project });
   if (!(await pathExists(context.ideaDir))) {
@@ -219,10 +226,7 @@ export async function listIdeas({ cwd = process.cwd(), project, status, tag } = 
     try {
       const idea = await readIdeaFile(filePath);
       if (!idea) continue;
-
-      if (project && idea.project !== project) continue;
-      if (status && idea.status !== status) continue;
-      if (tag && !idea.tags.includes(tag)) continue;
+      if (!ideaMatchesFilter(idea, { project, status, tag })) continue;
       ideas.push(idea);
     } catch {
       continue;
