@@ -1,0 +1,30 @@
+SPRINT:         S4123 — unexpected await
+PHASE:          4A-2 return type trace complete
+STATUS:         active
+
+RETURN TYPE TRACE TABLE:
+1 | tests/reference-plugins.test.js | 13 | async test callback for LLM capability | acmeLlm.getCapabilities() | NO | getCapabilities() returns an object directly in plugins/acme-llm-provider.js
+2 | tests/reference-plugins.test.js | 24 | async test callback for browser platform | acmeBrowser.getCapabilities() | NO | getCapabilities() returns an object directly in plugins/acme-browser-platform.js
+3 | tests/reference-plugins.test.js | 34 | async test callback for health check | sampleHealth.getCapabilities() | NO | getCapabilities() returns an object directly in plugins/sample-healthcheck.js
+4 | tests/reference-plugins.test.js | 47 | async test callback for registry registration | acmeLlm.getCapabilities() | NO | getCapabilities() returns an object directly in plugins/acme-llm-provider.js
+5 | tests/reference-plugins.test.js | 49 | async test callback for registry registration | acmeBrowser.getCapabilities() | NO | getCapabilities() returns an object directly in plugins/acme-browser-platform.js
+6 | src/commands/idea.js | 123 | async action callback for idea add | promptFactory() | NO | promptFactory() returns a prompt object, not a Promise
+7 | src/cli.js | 692 | async action callback for daemon stop | daemonPaths() | NO | daemonPaths() returns a plain object
+8 | src/cli.js | 709 | async action callback for daemon status | daemonPaths() | NO | daemonPaths() returns a plain object
+9 | src/cli.js | 727 | async action callback for daemon watch | daemonPaths() | NO | daemonPaths() returns a plain object
+
+COUNT SUMMARY:
+YES: 0
+NO: 9
+UNCLEAR: 0
+
+IMPORT PATHS FOLLOWED:
+- plugins/acme-llm-provider.js
+- plugins/acme-browser-platform.js
+- plugins/sample-healthcheck.js
+- src/commands/idea.js
+- src/cli.js
+
+CONFIRMATION:
+- no source files modified during this session
+- all tracing based on reading source files only
