@@ -28,29 +28,23 @@ export class Reporter {
     }
 
     const lines = raw.split(/\r?\n/g).filter((l) => l.startsWith("- "));
-    let switches = 0;
-    let cooldowns = 0;
-    let recovers = 0;
-    let gitWarns = 0;
+    const counts = { SWITCH: 0, COOLDOWN: 0, RECOVER: 0, GIT_WARN: 0 };
 
     for (const line of lines) {
       const m = line.match(/^- ([^ ]+) \| ([A-Z_]+) \|/);
       if (!m) continue;
-      const [_, ts, type] = m;
+      const [, ts, type] = m;
       if (!isSameDay(ts, day)) continue;
-      if (type === "SWITCH") switches++;
-      else if (type === "COOLDOWN") cooldowns++;
-      else if (type === "RECOVER") recovers++;
-      else if (type === "GIT_WARN") gitWarns++;
+      if (Object.prototype.hasOwnProperty.call(counts, type)) counts[type]++;
     }
 
     const section = [
       "",
       `## ${day} Summary`,
-      `- Switches: ${switches}`,
-      `- Cooldowns: ${cooldowns}`,
-      `- Recovers: ${recovers}`,
-      `- Git warnings: ${gitWarns}`,
+      `- Switches: ${counts.SWITCH}`,
+      `- Cooldowns: ${counts.COOLDOWN}`,
+      `- Recovers: ${counts.RECOVER}`,
+      `- Git warnings: ${counts.GIT_WARN}`,
       ""
     ].join("\n");
 
