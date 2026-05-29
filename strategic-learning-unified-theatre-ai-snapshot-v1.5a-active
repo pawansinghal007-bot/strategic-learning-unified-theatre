@@ -1,0 +1,139 @@
+SPRINT:         S3776 Sprint 1b-A — re-triage
+STATUS:         active — triage complete, no code changes
+
+THRESHOLD:      15
+TOTAL ISSUES:   18
+
+SOURCE:
+  sonar_s3776_rescan.csv
+
+CONTEXT:
+  Scenario A confirmed in v1.5-partial:
+    Profile drift detected — not a regression.
+    Sonar way js updated 2026-05-27T23:00:21
+    Sonar way ts updated 2026-05-27T23:00:50
+    S3776 threshold now 15.
+
+READ-ONLY TRIAGE:
+  Opened each flagged file at the Sonar line.
+  Classified complexity driver and risk.
+  No source files changed.
+
+RANKED S3776 RE-TRIAGE TABLE:
+  RANK | FILE                                | LINE | SCORE | EXCESS | DRIVER          | RISK
+  -----|-------------------------------------|------|-------|--------|-----------------|------
+  1    | src/accounts/health.js              | 97   | 38/15 | +23    | MIXED_CONCERNS  | HIGH
+  2    | src/internal/paths.js               | 42   | 34/15 | +19    | MIXED_CONCERNS  | HIGH
+  3    | src/llm/embeddings.js               | 41   | 33/15 | +18    | NESTED_LOGIC    | HIGH
+  4    | src/internal/paths.js               | 151  | 29/15 | +14    | NESTED_LOGIC    | HIGH
+  5    | src/llm/training-exporter.js        | 32   | 29/15 | +14    | MIXED_CONCERNS  | MED
+  6    | scripts/check-sonar-readiness.mjs   | 25   | 27/15 | +12    | MIXED_CONCERNS  | MED
+  7    | test-bc2-integration.js             | 95   | 25/15 | +10    | MIXED_CONCERNS  | MED
+  8    | src/encrypt.js                      | 10   | 24/15 | +9     | SWITCH_BLOCK    | MED
+  9    | vscode-extension/collector.js       | 208  | 23/15 | +8     | MIXED_CONCERNS  | MED
+  10   | src/llm/experience-db.js            | 381  | 22/15 | +7     | MIXED_CONCERNS  | MED
+  11   | src/internal/config.js              | 244  | 20/15 | +5     | MIXED_CONCERNS  | MED
+  12   | src/idea-store.js                   | 189  | 17/15 | +2     | NESTED_LOGIC    | LOW
+  13   | src/llm/document-ingester.js        | 366  | 17/15 | +2     | MIXED_CONCERNS  | LOW
+  14   | src/plugin-loader.js                | 35   | 17/15 | +2     | NESTED_LOGIC    | LOW
+  15   | src/internal/reporter.js            | 14   | 17/15 | +2     | NESTED_LOGIC    | LOW
+  16   | src/browser-bridge.js               | 297  | 16/15 | +1     | SWITCH_BLOCK    | LOW
+  17   | src/commands/handoff.js             | 100  | 16/15 | +1     | MIXED_CONCERNS  | LOW
+  18   | src/llm/inference.js                | 27   | 16/15 | +1     | SWITCH_BLOCK    | LOW
+
+TRIAGE NOTES:
+  HIGH:
+    health.js:97
+      probeAccount combines agent-specific auth path probing, secret-store persistence,
+      token/JWT parsing, expiry derivation, and broad error conversion. Shared account
+      health behavior is used by daemon/system health paths.
+
+    paths.js:42
+      resolveAuthPath mixes config precedence, platform/profile path construction,
+      optional filesystem probing, and fallback errors. It is shared by account
+      switching, health probing, auth capture, and UI IPC handlers.
+
+    embeddings.js:41
+      kMeans contains initialization, iterative assignment, centroid aggregation,
+      empty-cluster handling, and final cluster construction. Algorithmic behavior
+      is covered by tests but extraction must preserve clustering semantics.
+
+    paths.js:151
+      sanitizePathEntries is platform-sensitive security logic with allowlists,
+      override handling, filesystem stat checks, and POSIX/Windows branches. Treat
+      as HIGH despite +14 because the function gates spawned-process PATH safety.
+
+  MED:
+    training-exporter.js:32
+      buildExportRecords groups documents, sorts pair sources, builds export rows,
+      and applies quality filtering. Clear helper seams exist, but export shape is
+      user-facing training data.
+
+    check-sonar-readiness.mjs:25
+      main loads governance artifacts, derives branch protection, accumulates
+      failure reasons, and handles protected/non-protected exits. Script behavior
+      affects governance gate status.
+
+    test-bc2-integration.js:95
+      runTests is a procedural integration-test runner with repeated result
+      accounting and conditional sections. Test-only, but many observable messages
+      and exit behavior sit in one function.
+
+    encrypt.js:10
+      getMachineId switches by platform and has multiple fallback probes before
+      cached derivation. Security-adjacent and platform-sensitive.
+
+    collector.js:208
+      stageSignal validates several signal types, mutates diagnostic recurrence
+      metadata, debounces, and updates buffers. Shared extension behavior and many
+      tests cover this method.
+
+    experience-db.js:381
+      upsertDocuments builds dedupe state, appends rows, assigns IDs, and saves
+      database state. Shared persistence surface; extraction must preserve uniqueBy
+      semantics and chunk indexes.
+
+    config.js:244
+      loadConfig handles config read errors, strict/non-strict behavior, enterprise
+      override loading, merge, schema validation, and fallback. Central startup
+      surface with broad callers.
+
+  LOW:
+    idea-store.js:189
+      listIdeas has a small excess from parse/quarantine/filter flow. Extraction
+      can isolate file parsing/filter predicates without shared mutable state.
+
+    document-ingester.js:366
+      ingestFromSnapshot has a small excess from action planning and action
+      execution. The two phases are clear and localized.
+
+    plugin-loader.js:35
+      loadPlugins has a small excess from plugin import/capability accumulation.
+      Results arrays are local and helper extraction is straightforward.
+
+    reporter.js:14
+      Reporter.daily has a small excess from date normalization, file read fallback,
+      journal line counting, and append. State is local to the method.
+
+    browser-bridge.js:297
+      launchBrowser has a +1 platform/browser branch for executable selection.
+      Helper extraction around launch options should be narrow.
+
+    handoff.js:100
+      update command action has a +1 procedural command flow with local warnings
+      and sprint mutation. Extracting option application is straightforward.
+
+    inference.js:27
+      findOllamaBinary has a +1 platform/env candidate selection branch. Local
+      candidates array makes this a narrow helper extraction.
+
+NEXT:
+  1b-B LOW fixes:
+    src/idea-store.js:189
+    src/llm/document-ingester.js:366
+    src/plugin-loader.js:35
+    src/internal/reporter.js:14
+    src/browser-bridge.js:297
+    src/commands/handoff.js:100
+    src/llm/inference.js:27
+
