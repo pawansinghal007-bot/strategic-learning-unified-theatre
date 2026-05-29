@@ -29,11 +29,10 @@ function documentTimestamp(doc) {
   return isFinite(date.getTime()) ? date : null;
 }
 
-function buildExportRecords(documents, qualityFilter) {
-  const records = [];
-
+function groupDocuments(documents) {
   const sessionGroups = new Map();
   const threadGroups = new Map();
+  const llmResponses = [];
 
   for (const doc of documents) {
     if (doc.source_type === "bc2-chat" && doc.metadata?.bc2_session_id) {
@@ -56,7 +55,7 @@ function buildExportRecords(documents, qualityFilter) {
     }
 
     if (doc.source_type === "llm-response") {
-      records.push({
+      llmResponses.push({
         type: "llm-response",
         platform: doc.platform ?? null,
         content: doc.content ?? null,
@@ -65,6 +64,12 @@ function buildExportRecords(documents, qualityFilter) {
       });
     }
   }
+
+  return { sessionGroups, threadGroups, llmResponses };
+}
+
+function buildSessionRecords(sessionGroups) {
+  const records = [];
 
   for (const [sessionId, docs] of sessionGroups.entries()) {
     docs.sort((a, b) => {
@@ -97,6 +102,12 @@ function buildExportRecords(documents, qualityFilter) {
     }
   }
 
+  return records;
+}
+
+function buildThreadRecords(threadGroups) {
+  const records = [];
+
   for (const [threadId, docs] of threadGroups.entries()) {
     docs.sort((a, b) => Number(a.turn_index ?? 0) - Number(b.turn_index ?? 0));
     for (let index = 0; index < docs.length - 1; index += 1) {
@@ -122,6 +133,17 @@ function buildExportRecords(documents, qualityFilter) {
       }
     }
   }
+
+  return records;
+}
+
+function buildExportRecords(documents, qualityFilter) {
+  const { sessionGroups, threadGroups, llmResponses } = groupDocuments(documents);
+  const records = [];
+
+  records.push(...llmResponses);
+  records.push(...buildSessionRecords(sessionGroups));
+  records.push(...buildThreadRecords(threadGroups));
 
   if (qualityFilter) {
     return records.filter(
