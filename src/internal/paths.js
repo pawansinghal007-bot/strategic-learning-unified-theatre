@@ -44,101 +44,120 @@ export async function resolveAuthPath(
   { profileName = null, preferExisting = false } = {},
 ) {
   const config = await loadConfig();
-  const configuredPath =
-    config?.authPaths?.[agentType] ??
-    config?.agents?.[agentType]?.authPath ??
-    config?.[`${agentType}AuthPath`];
+  const configuredPath = getConfiguredAuthPath(config, agentType);
 
   if (typeof configuredPath === "string" && configuredPath.trim()) {
     return configuredPath.trim();
   }
 
+  const normalizedProfile = normalizeProfileName(profileName);
+
   if (agentType === "codex") return homedirPath(".codex", "auth.json");
   if (agentType === "trae") return homedirPath(".trae", "auth.json");
 
   if (agentType === "github") {
-    const userDir = resolveVSCodeUserDir();
-    const normalizedProfile = profileName ? String(profileName).trim() : null;
-    const candidates = [];
-
-    if (normalizedProfile) {
-      candidates.push(
-        path.join(
-          userDir,
-          "profiles",
-          normalizedProfile,
-          "globalStorage",
-          "github.copilot",
-          "auth.json",
-        ),
-      );
-      candidates.push(
-        path.join(
-          userDir,
-          "profiles",
-          normalizedProfile,
-          "github.copilot",
-          "auth.json",
-        ),
-      );
-    }
-
-    candidates.push(
-      path.join(resolveVSCodeGlobalStorageDir(), "github.copilot", "auth.json"),
-    );
-    candidates.push(homedirPath(".github-copilot", "auth.json"));
-
-    if (preferExisting) {
-      for (const candidate of candidates) {
-        if (await exists(candidate)) return candidate;
-      }
-    }
-
-    return candidates[0];
+    const candidates = getGithubAuthCandidates(normalizedProfile);
+    return await chooseExistingOrFirstCandidate(candidates, preferExisting);
   }
 
   if (agentType === "vscode") {
-    const userDir = resolveVSCodeUserDir();
-    const candidates = [];
-    const normalizedProfile = profileName ? String(profileName).trim() : null;
-
-    if (normalizedProfile) {
-      candidates.push(
-        path.join(
-          userDir,
-          "profiles",
-          normalizedProfile,
-          "globalStorage",
-          "saml.secret",
-        ),
-      );
-      candidates.push(
-        path.join(userDir, "profiles", normalizedProfile, "saml.secret"),
-      );
-    }
-
-    candidates.push(path.join(resolveVSCodeGlobalStorageDir(), "saml.secret"));
-    candidates.push(path.join(os.homedir(), ".vscode", "argv.json"));
-
-    if (preferExisting) {
-      for (const candidate of candidates) {
-        if (await exists(candidate)) return candidate;
-      }
-    }
-
-    return candidates[0];
+    const candidates = getVscodeAuthCandidates(normalizedProfile);
+    return await chooseExistingOrFirstCandidate(candidates, preferExisting);
   }
 
-  const configured =
-    config?.authPaths?.other ??
-    config?.agents?.other?.authPath ??
-    config?.otherAuthPath;
-
+  const configured = getConfiguredOtherAuthPath(config);
   if (typeof configured === "string" && configured.trim()) return configured;
 
   throw new Error(
     'No auth path configured for agentType "other". Set ~/.vscode-rotator/config.json',
   );
+}
+
+function getConfiguredAuthPath(config, agentType) {
+  return (
+    config?.authPaths?.[agentType] ??
+    config?.agents?.[agentType]?.authPath ??
+    config?.[`${agentType}AuthPath`]
+  );
+}
+
+function normalizeProfileName(profileName) {
+  const normalized = profileName ? String(profileName).trim() : null;
+  return normalized && normalized.length > 0 ? normalized : null;
+}
+
+function getGithubAuthCandidates(normalizedProfile) {
+  const userDir = resolveVSCodeUserDir();
+  const candidates = [];
+
+  if (normalizedProfile) {
+    candidates.push(
+      path.join(
+        userDir,
+        "profiles",
+        normalizedProfile,
+        "globalStorage",
+        "github.copilot",
+        "auth.json",
+      ),
+    );
+    candidates.push(
+      path.join(
+        userDir,
+        "profiles",
+        normalizedProfile,
+        "github.copilot",
+        "auth.json",
+      ),
+    );
+  }
+
+  candidates.push(
+    path.join(resolveVSCodeGlobalStorageDir(), "github.copilot", "auth.json"),
+  );
+  candidates.push(homedirPath(".github-copilot", "auth.json"));
+  return candidates;
+}
+
+function getVscodeAuthCandidates(normalizedProfile) {
+  const userDir = resolveVSCodeUserDir();
+  const candidates = [];
+
+  if (normalizedProfile) {
+    candidates.push(
+      path.join(
+        userDir,
+        "profiles",
+        normalizedProfile,
+        "globalStorage",
+        "saml.secret",
+      ),
+    );
+    candidates.push(
+      path.join(userDir, "profiles", normalizedProfile, "saml.secret"),
+    );
+  }
+
+  candidates.push(path.join(resolveVSCodeGlobalStorageDir(), "saml.secret"));
+  candidates.push(path.join(os.homedir(), ".vscode", "argv.json"));
+  return candidates;
+}
+
+function getConfiguredOtherAuthPath(config) {
+  return (
+    config?.authPaths?.other ??
+    config?.agents?.other?.authPath ??
+    config?.otherAuthPath
+  );
+}
+
+async function chooseExistingOrFirstCandidate(candidates, preferExisting) {
+  if (preferExisting) {
+    for (const candidate of candidates) {
+      if (await exists(candidate)) return candidate;
+    }
+  }
+  return candidates[0];
 }
 
 function resolvePathCandidates(binName) {
@@ -152,12 +171,30 @@ export function sanitizePathEntries(
   pathEnv,
   sep = process.platform === "win32" ? ";" : ":",
 ) {
-  const parts = String(pathEnv || "")
-    .split(sep)
-    .filter(Boolean);
-  const allowed = new Set();
+  const parts = String(pathEnv || "").split(sep).filter(Boolean);
+  const allowed = new Set(getAllowedPathRoots());
 
-  // Platform-known safe directories (non-exhaustive)
+  const extraAllowed = getExtraAllowedPaths(sep);
+  for (const p of extraAllowed) allowed.add(path.resolve(p));
+
+  const safe = [];
+  for (const part of parts) {
+    const resolved = resolvePathEntry(part);
+    if (!resolved) continue;
+
+    if (allowed.has(resolved) || isSafePathEntry(resolved)) {
+      safe.push(resolved);
+    }
+  }
+
+  if (safe.length === 0) {
+    safe.push(...Array.from(allowed));
+  }
+
+  return safe;
+}
+
+function getAllowedPathRoots() {
   const platformAllowed = {
     linux: [
       "/usr/bin",
@@ -189,56 +226,41 @@ export function sanitizePathEntries(
       : process.platform === "win32"
         ? "win32"
         : "linux";
-  for (const p of platformAllowed[plat] || []) allowed.add(path.resolve(p));
 
-  // Allow explicit override of allowed PATH entries via env
-  const extra =
-    process.env.VSCODE_ROTATOR_ALLOW_PATH?.split(sep).filter(Boolean) ?? [];
-  for (const p of extra) allowed.add(path.resolve(p));
+  return (platformAllowed[plat] || []).map((p) => path.resolve(p));
+}
 
-  const safe = [];
-  for (const part of parts) {
-    try {
-      const resolved = path.resolve(part);
-      if (allowed.has(resolved)) {
-        safe.push(resolved);
-        continue;
-      }
+function getExtraAllowedPaths(sep) {
+  return process.env.VSCODE_ROTATOR_ALLOW_PATH?.split(sep).filter(Boolean) ?? [];
+}
 
-      // Best-effort safety check: ensure directory exists and is not world-writable on POSIX
-      const stat = fs.statSync(resolved);
-      if (stat.isDirectory()) {
-        if (process.platform === "win32") {
-          // On Windows, allow Program Files and System directories; otherwise include but log via comment.
-          if (
-            String(resolved).toLowerCase().includes("program files") ||
-            String(resolved).toLowerCase().includes("windows")
-          ) {
-            safe.push(resolved);
-            continue;
-          }
-          // For user-writable dirs on Windows, skip unless explicitly allowed
-        } else {
-          // POSIX: check world-writable bit (others write)
-          const mode = stat.mode & 0o777;
-          const worldWritable = (mode & 0o002) !== 0;
-          if (!worldWritable) {
-            safe.push(resolved);
-            continue;
-          }
-        }
-      }
-    } catch {
-      // ignore stat errors
+function resolvePathEntry(part) {
+  try {
+    return path.resolve(part);
+  } catch {
+    return null;
+  }
+}
+
+function isSafePathEntry(resolved) {
+  try {
+    const stat = fs.statSync(resolved);
+    if (!stat.isDirectory()) return false;
+
+    if (process.platform === "win32") {
+      const normalized = String(resolved).toLowerCase();
+      return (
+        normalized.includes("program files") ||
+        normalized.includes("windows")
+      );
     }
-  }
 
-  // If we found nothing safe, fall back to platformAllowed entries (best-effort)
-  if (safe.length === 0) {
-    for (const s of Array.from(allowed)) safe.push(s);
+    const mode = stat.mode & 0o777;
+    const worldWritable = (mode & 0o002) !== 0;
+    return !worldWritable;
+  } catch {
+    return false;
   }
-
-  return safe;
 }
 
 export function resolveBinary(binName, extraCandidates = []) {
