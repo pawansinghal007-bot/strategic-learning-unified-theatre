@@ -1,1 +1,1 @@
-strategic-learning-unified-theatre-ai-snapshot-v1.4b-active
+strategic-learning-unified-theatre-ai-snapshot-v1.4-stable

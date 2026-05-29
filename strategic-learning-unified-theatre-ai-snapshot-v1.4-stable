@@ -1,0 +1,41 @@
+SPRINT:         S4123 — unexpected await
+STATUS:         stable — all issues resolved
+
+TOTAL ISSUES FOUND: 9
+
+FIXED — REMOVE-CLEAN LOW (2):
+  reference-plugins.test.js  line 13  — await removed + async removed
+  reference-plugins.test.js  line 24  — await removed + async removed
+
+FIXED — REMOVE-AWAIT LOW (7):
+  reference-plugins.test.js  line 34  — await removed, async retained
+  reference-plugins.test.js  line 47  — await removed, async retained
+  reference-plugins.test.js  line 49  — await removed, async retained
+  idea.js                    line 123 — await removed, async retained
+  cli.js                     line 692 — await removed, async retained
+  cli.js                     line 709 — await removed, async retained
+  cli.js                     line 727 — await removed, async retained
+
+DEFERRED: 0
+BLOCKED:  0
+
+FILES CHANGED:
+  reference-plugins.test.js
+  idea.js
+  cli.js
+
+VALIDATION:
+  npx vitest run --run  — PASS
+  npx tsc --noEmit      — PASS
+  npm run ui:build      — PASS
+  lint                  — skipped, no lint script
+
+REGRESSION STATUS: clean
+
+PREVIOUS SPRINTS:
+  S3776 — 18/18 fixed — v1.2-stable
+  S2004 — 16/16 fixed — v1.3-stable
+  S4123 — 9/9 fixed   — v1.4-stable
+
+NEXT STEP:
+  Prompt 5 — re-run npx @sonar/scan + final lock

@@ -57,3 +57,42 @@ node ./src/cli.js ai snapshot
 - Anti-pattern: do not convert to arrow if the function is used as a constructor.
 - Anti-pattern: do not hoist if the function closes over parent variables.
 - Stash discipline: unrelated changes stay stashed separately and must never be mixed with sprint fixes.
+
+## S4123 SPRINT COMPLETE
+
+Total fixed: 9 — all LOW risk, 0 deferred, 0 blocked
+
+Fix patterns confirmed:
+
+  REMOVE-CLEAN:
+    • awaited expression returns plain value
+    • no other awaits in function
+    • no callers depend on async
+    • fix: remove await + remove async from signature
+
+  REMOVE-AWAIT:
+    • awaited expression returns plain value
+    • other awaits exist in function — async must stay
+    • fix: remove await keyword only
+      do NOT touch async on signature
+      do NOT touch other lines in function
+
+Triage process confirmed (4 read-only sessions before any fix):
+  4A-1: extract raw list from CSV
+  4A-2: trace return types — read source files only
+  4A-3: grep callers — check async removability
+  4A-4: apply labels + risk ratings — pure classification
+  4A-5: apply fixes — one file at a time, commit per file
+
+Anti-patterns confirmed:
+  never remove await without tracing return type first
+  never remove async without confirming no other awaits remain
+  never remove async without confirming no callers depend on it
+  never batch fixes across files without validating each file first
+  always commit snapshot before session ends —
+    lost snapshot = lost sprint state
+
+Snapshot discipline:
+  triage snapshots (4A-1 through 4A-4) must not be deleted
+  until v1.4-stable is written and pushed
+  always commit + push snapshot immediately after writing
