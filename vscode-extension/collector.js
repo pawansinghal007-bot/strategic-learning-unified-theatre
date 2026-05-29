@@ -214,62 +214,13 @@ export class VscodeContextCollector {
     }
 
     const built = this._buildSignal(signal);
-    if (!built.content) {
-      throw new Error("Signal content must be provided.");
-    }
+    this._validateBuiltSignal(built);
 
-    const signalType = built.signal_type;
-    const filePath = built.file_path;
-
-    if (filePath && this._shouldSkipByPath(filePath)) {
-      return null;
-    }
-
-    if (signalType === "vscode-edit") {
-      if (
-        !filePath ||
-        !isAllowedExtension(filePath, this.vscodeLearn.allowedExtensions)
-      )
-        return null;
-      if (
-        Buffer.byteLength(built.content, "utf8") >
-        Number(this.vscodeLearn.maxFileSizeBytes)
-      ) {
-        this.outputChannel.appendLine(
-          "[vscode-learn] staged signal skipped: content exceeds maxFileSizeBytes.",
-        );
-        return null;
-      }
-    }
-
-    if (signalType === "vscode-diagnostic") {
-      if (built.severity !== 0) return null;
-      if (
-        !filePath ||
-        !isAllowedExtension(filePath, this.vscodeLearn.allowedExtensions)
-      )
-        return null;
-      const diagKey = `${filePath}:${built.message}`;
-      const previousCount = this.diagnosticCounts.get(diagKey) ?? 0;
-      this.diagnosticCounts.set(diagKey, previousCount + 1);
-      if (previousCount >= 1) {
-        built.signal_type = "vscode-diagnostic-recurring";
-        built.source_type = "vscode-diagnostic-recurring";
-        built.recurring = true;
-      }
-    }
-
-    if (signalType === "vscode-git") {
-      if (!built.commit_hash || !built.commit_message) return null;
-    }
-
-    if (signalType === "vscode-task-error") {
-      if (
-        Number.isNaN(Number(built.exit_code)) ||
-        Number(built.exit_code) === 0
-      )
-        return null;
-    }
+    if (this._shouldSkipPath(built.file_path)) return null;
+    if (this._shouldSkipEditSignal(built)) return null;
+    if (this._shouldSkipDiagnosticSignal(built)) return null;
+    if (this._shouldSkipGitSignal(built)) return null;
+    if (this._shouldSkipTaskErrorSignal(built)) return null;
 
     const key = this._getSignalBufferKey(built);
     if (this._shouldDebounce(key)) {
@@ -277,10 +228,71 @@ export class VscodeContextCollector {
     }
     this._recordStage(key);
 
-    const signalId = `${fileTimestamp()}-${sanitizeFilename(signalType)}-${this.buffer.size + 1}`;
+    const signalId = `${fileTimestamp()}-${sanitizeFilename(built.signal_type)}-${this.buffer.size + 1}`;
     this.buffer.set(signalId, built);
     this._buffer.push(built);
     return built;
+  }
+
+  _validateBuiltSignal(built) {
+    if (!built.content) {
+      throw new Error("Signal content must be provided.");
+    }
+  }
+
+  _shouldSkipPath(filePath) {
+    return filePath && this._shouldSkipByPath(filePath);
+  }
+
+  _shouldSkipEditSignal(built) {
+    if (built.signal_type !== "vscode-edit") return false;
+    const filePath = built.file_path;
+    if (!filePath || !isAllowedExtension(filePath, this.vscodeLearn.allowedExtensions)) {
+      return true;
+    }
+
+    if (Buffer.byteLength(built.content, "utf8") > Number(this.vscodeLearn.maxFileSizeBytes)) {
+      this.outputChannel.appendLine(
+        "[vscode-learn] staged signal skipped: content exceeds maxFileSizeBytes.",
+      );
+      return true;
+    }
+
+    return false;
+  }
+
+  _shouldSkipDiagnosticSignal(built) {
+    if (built.signal_type !== "vscode-diagnostic") return false;
+    if (built.severity !== 0) return true;
+
+    const filePath = built.file_path;
+    if (!filePath || !isAllowedExtension(filePath, this.vscodeLearn.allowedExtensions)) {
+      return true;
+    }
+
+    const diagKey = `${filePath}:${built.message}`;
+    const previousCount = this.diagnosticCounts.get(diagKey) ?? 0;
+    this.diagnosticCounts.set(diagKey, previousCount + 1);
+    if (previousCount >= 1) {
+      built.signal_type = "vscode-diagnostic-recurring";
+      built.source_type = "vscode-diagnostic-recurring";
+      built.recurring = true;
+    }
+
+    return false;
+  }
+
+  _shouldSkipGitSignal(built) {
+    if (built.signal_type !== "vscode-git") return false;
+    return !built.commit_hash || !built.commit_message;
+  }
+
+  _shouldSkipTaskErrorSignal(built) {
+    if (built.signal_type !== "vscode-task-error") return false;
+    return (
+      Number.isNaN(Number(built.exit_code)) ||
+      Number(built.exit_code) === 0
+    );
   }
 
   async _runCli(args = []) {
