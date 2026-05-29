@@ -31,7 +31,7 @@ describe("Reference plugins v1", () => {
 
   it("exports PLUGIN_API_VERSION === 1 and provides health check that succeeds", async () => {
     expect(sampleHealth.PLUGIN_API_VERSION).toBe(1);
-    const caps = await sampleHealth.getCapabilities();
+    const caps = sampleHealth.getCapabilities();
     expect(caps).toHaveProperty("healthChecks");
     const hc = caps.healthChecks.find((h) => h.name === "sample-config-health");
     expect(hc).toBeDefined();
@@ -44,9 +44,9 @@ describe("Reference plugins v1", () => {
     const originalModelKeys = Object.keys(MODEL_REGISTRY).slice();
     const originalPlatformKeys = Object.keys(PLATFORM_URLS).slice();
 
-    const llmCaps = (await acmeLlm.getCapabilities()).llmProviders || [];
+    const llmCaps = (acmeLlm.getCapabilities()).llmProviders || [];
     const browserCaps =
-      (await acmeBrowser.getCapabilities()).browserPlatforms || [];
+      (acmeBrowser.getCapabilities()).browserPlatforms || [];
 
     registerPluginLlmProviders(llmCaps);
     registerPluginBrowserPlatforms(browserCaps);
