@@ -381,50 +381,23 @@ export class ExperienceDb {
   async upsertDocuments(chunks, { filename = null, uniqueBy = null } = {}) {
     await this.ensureOpen();
     const now = new Date().toISOString();
-    const existingKeys = new Set();
-
-    if (uniqueBy) {
-      for (const document of this.state.documents) {
-        const metadata = document.metadata
-          ? fromJson(document.metadata, {})
-          : {};
-        if (metadata && metadata[uniqueBy] != null) {
-          existingKeys.add(String(metadata[uniqueBy]));
-        }
-      }
-    }
+    const existingKeys = this._getExistingDocumentKeys(uniqueBy);
 
     const startingIndex = this.state.documents.filter(
       (doc) => doc.filename === filename,
     ).length;
     const rows = [];
+
     for (const [index, chunk] of chunks.entries()) {
       const metadata = chunk.metadata ?? null;
-      const uniqueValue =
-        uniqueBy && metadata && metadata[uniqueBy] != null
-          ? String(metadata[uniqueBy])
-          : null;
+      const uniqueValue = this._extractUniqueValue(uniqueBy, metadata);
+
       if (uniqueBy && uniqueValue && existingKeys.has(uniqueValue)) continue;
+      if (uniqueValue) existingKeys.add(uniqueValue);
 
-      if (uniqueValue) {
-        existingKeys.add(uniqueValue);
-      }
-
-      rows.push({
-        id: nextId(this.state, "documents"),
-        filename,
-        chunk_index: startingIndex + index,
-        content: chunk.content,
-        embedding: encodeEmbedding(chunk.embedding),
-        source_type: chunk.source_type ?? null,
-        platform: chunk.platform ?? null,
-        metadata: metadata ? toJson(metadata) : null,
-        quality: chunk.quality ?? null,
-        notes: chunk.notes ?? null,
-        turn_index: chunk.turn_index ?? null,
-        last_ingested: now,
-        file_ts: chunk.file_ts,
-      });
+      rows.push(
+        this._buildDocumentRow(chunk, filename, startingIndex, index, metadata, now),
+      );
     }
 
     if (rows.length > 0) {
@@ -432,6 +405,44 @@ export class ExperienceDb {
       await this.save();
     }
     return rows;
+  }
+
+  _getExistingDocumentKeys(uniqueBy) {
+    const existingKeys = new Set();
+    if (!uniqueBy) return existingKeys;
+
+    for (const document of this.state.documents) {
+      const metadata = document.metadata ? fromJson(document.metadata, {}) : {};
+      if (metadata && metadata[uniqueBy] != null) {
+        existingKeys.add(String(metadata[uniqueBy]));
+      }
+    }
+
+    return existingKeys;
+  }
+
+  _extractUniqueValue(uniqueBy, metadata) {
+    return uniqueBy && metadata && metadata[uniqueBy] != null
+      ? String(metadata[uniqueBy])
+      : null;
+  }
+
+  _buildDocumentRow(chunk, filename, startingIndex, index, metadata, now) {
+    return {
+      id: nextId(this.state, "documents"),
+      filename,
+      chunk_index: startingIndex + index,
+      content: chunk.content,
+      embedding: encodeEmbedding(chunk.embedding),
+      source_type: chunk.source_type ?? null,
+      platform: chunk.platform ?? null,
+      metadata: metadata ? toJson(metadata) : null,
+      quality: chunk.quality ?? null,
+      notes: chunk.notes ?? null,
+      turn_index: chunk.turn_index ?? null,
+      last_ingested: now,
+      file_ts: chunk.file_ts,
+    };
   }
 
   async getDocumentsByFile(filename) {
