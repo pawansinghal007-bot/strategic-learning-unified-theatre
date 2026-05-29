@@ -9,74 +9,21 @@ let keyCache = null;
 
 function getMachineId() {
   if (machineIdCache) return machineIdCache;
+
   const platform = process.platform;
+  let machineId = null;
 
   if (platform === "win32") {
-    try {
-      const out = execSync(
-        'powershell -NoProfile -Command "(Get-CimInstance Win32_ComputerSystemProduct).UUID"',
-        {
-          stdio: ["ignore", "pipe", "ignore"],
-          timeout: 1000,
-          env: sanitizeEnvForSpawn(process.env),
-        },
-      )
-        .toString("utf8")
-        .trim();
-      if (out) {
-        machineIdCache = out;
-        return machineIdCache;
-      }
-    } catch {}
-
-    try {
-      const out = execSync("wmic csproduct get uuid", {
-        stdio: ["ignore", "pipe", "ignore"],
-        timeout: 1000,
-        env: sanitizeEnvForSpawn(process.env),
-      })
-        .toString("utf8")
-        .split(/\r?\n/g)
-        .map((s) => s.trim())
-        .filter(Boolean)
-        .slice(-1)[0];
-      if (out) {
-        machineIdCache = out;
-        return machineIdCache;
-      }
-    } catch {}
+    machineId = getWindowsMachineId();
+  } else if (platform === "darwin") {
+    machineId = getMacMachineId();
+  } else if (platform === "linux") {
+    machineId = getLinuxMachineId();
   }
 
-  if (platform === "darwin") {
-    try {
-      const out = execSync(
-        "ioreg -rd1 -c IOPlatformExpertDevice | awk -F\\\" '/IOPlatformUUID/{print $(NF-1)}'",
-        {
-          stdio: ["ignore", "pipe", "ignore"],
-          timeout: 1000,
-          env: sanitizeEnvForSpawn(process.env),
-        },
-      )
-        .toString("utf8")
-        .trim();
-      if (out) {
-        machineIdCache = out;
-        return machineIdCache;
-      }
-    } catch {}
-  }
-
-  if (platform === "linux") {
-    const candidates = ["/etc/machine-id", "/var/lib/dbus/machine-id"];
-    for (const p of candidates) {
-      try {
-        const out = fs.readFileSync(p, "utf8").trim();
-        if (out) {
-          machineIdCache = out;
-          return machineIdCache;
-        }
-      } catch {}
-    }
+  if (machineId) {
+    machineIdCache = machineId;
+    return machineIdCache;
   }
 
   const fallback = [
@@ -88,6 +35,72 @@ function getMachineId() {
 
   machineIdCache = crypto.createHash("sha256").update(fallback).digest("hex");
   return machineIdCache;
+}
+
+function getWindowsMachineId() {
+  try {
+    const out = execSync(
+      'powershell -NoProfile -Command "(Get-CimInstance Win32_ComputerSystemProduct).UUID"',
+      {
+        stdio: ["ignore", "pipe", "ignore"],
+        timeout: 1000,
+        env: sanitizeEnvForSpawn(process.env),
+      },
+    )
+      .toString("utf8")
+      .trim();
+
+    if (out) return out;
+  } catch {}
+
+  try {
+    const out = execSync("wmic csproduct get uuid", {
+      stdio: ["ignore", "pipe", "ignore"],
+      timeout: 1000,
+      env: sanitizeEnvForSpawn(process.env),
+    })
+      .toString("utf8")
+      .split(/\r?\n/g)
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .slice(-1)[0];
+
+    if (out) return out;
+  } catch {}
+
+  return null;
+}
+
+function getMacMachineId() {
+  try {
+    const out = execSync(
+      "ioreg -rd1 -c IOPlatformExpertDevice | awk -F\\\" '/IOPlatformUUID/{print $(NF-1)}'",
+      {
+        stdio: ["ignore", "pipe", "ignore"],
+        timeout: 1000,
+        env: sanitizeEnvForSpawn(process.env),
+      },
+    )
+      .toString("utf8")
+      .trim();
+
+    if (out) return out;
+  } catch {}
+
+  return null;
+}
+
+function getLinuxMachineId() {
+  const candidates = ["/etc/machine-id", "/var/lib/dbus/machine-id"];
+
+  for (const p of candidates) {
+    try {
+      const out = fs.readFileSync(p, "utf8").trim();
+      if (out) return out;
+    } catch {}
+  }
+
+  return null;
 }
 
 function getKey() {
