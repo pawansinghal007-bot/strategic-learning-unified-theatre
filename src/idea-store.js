@@ -213,26 +213,38 @@ function ideaMatchesFilter(idea, { project, status, tag }) {
   return true;
 }
 
+async function readIdeaFileIfMarkdown(directory, name) {
+  if (!name.endsWith(".md")) return null;
+  const filePath = path.join(directory, name);
+  try {
+    return await readIdeaFile(filePath);
+  } catch {
+    return null;
+  }
+}
+
+function sortIdeasByCreatedDesc(ideas) {
+  return ideas.sort((a, b) => new Date(b.created).getTime() - new Date(a.created).getTime());
+}
+
+async function readIdeasFromDirectory(directory, filterOptions) {
+  const files = await fs.readdir(directory);
+  const ideas = [];
+  for (const name of files) {
+    const idea = await readIdeaFileIfMarkdown(directory, name);
+    if (!idea || !ideaMatchesFilter(idea, filterOptions)) continue;
+    ideas.push(idea);
+  }
+  return ideas;
+}
+
 export async function listIdeas({ cwd = process.cwd(), project, status, tag } = {}) {
   const context = await getIdeaContext({ cwd, project });
   if (!(await pathExists(context.ideaDir))) {
     return [];
   }
-  const files = await fs.readdir(context.ideaDir);
-  const ideas = [];
-  for (const name of files) {
-    if (!name.endsWith(".md")) continue;
-    const filePath = path.join(context.ideaDir, name);
-    try {
-      const idea = await readIdeaFile(filePath);
-      if (!idea) continue;
-      if (!ideaMatchesFilter(idea, { project, status, tag })) continue;
-      ideas.push(idea);
-    } catch {
-      continue;
-    }
-  }
-  return ideas.sort((a, b) => new Date(b.created).getTime() - new Date(a.created).getTime());
+  const ideas = await readIdeasFromDirectory(context.ideaDir, { project, status, tag });
+  return sortIdeasByCreatedDesc(ideas);
 }
 
 export async function findIdeaById(id, options = {}) {
