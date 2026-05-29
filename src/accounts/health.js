@@ -96,86 +96,13 @@ function deriveHealthFromExpiry(expiry) {
 
 export async function probeAccount(account, { secretStore } = {}) {
   try {
-    if (["codex", "vscode", "github"].includes(account.agentType)) {
-      const p = await resolveAuthPath(account.agentType, {
-        profileName: account.profileName ?? account.id,
-        preferExisting: true,
-      });
-      if (await exists(p)) {
-        const raw = await fs.readFile(p, "utf8");
-        const json = parseTokenLikeJson(raw);
-        if (json) {
-          const exp = parseExpiresAt(
-            json.expires_at ?? json.expiry ?? json.exp,
-          );
-          if (exp) {
-            const base = deriveHealthFromExpiry(exp);
-            const remaining =
-              typeof json.remainingRequests === "number"
-                ? json.remainingRequests
-                : typeof json.remaining === "number"
-                  ? json.remaining
-                  : null;
-            const resetAt = parseExpiresAt(json.resetAt) ?? base.resetAt;
-            return {
-              valid: base.valid,
-              remainingRequests: remaining,
-              resetAt,
-              error: base.error,
-            };
-          }
-        }
-      }
-    }
+    const authPathHealth = await probeAccountFromAuthPath(account);
+    if (authPathHealth) return authPathHealth;
 
-    const ss = secretStore ?? new SecretStore();
-    const blob =
-      typeof account?.authBlob === "string" && account.authBlob.length > 0
-        ? account.authBlob
-        : await ss.get(account.id);
+    const blob = await getAccountBlob(account, secretStore);
+    if (!blob) return missingSecretHealth();
 
-    if (
-      typeof account?.authBlob === "string" &&
-      account.authBlob.length > 0 &&
-      !(await ss.get(account.id))
-    ) {
-      await ss.set(account.id, account.authBlob);
-    }
-
-    if (!blob) {
-      return {
-        valid: false,
-        remainingRequests: null,
-        resetAt: null,
-        error: "Missing secret",
-      };
-    }
-
-    const jwtExp = parseJwtExp(String(blob));
-    if (jwtExp) return deriveHealthFromExpiry(jwtExp);
-
-    const json = parseTokenLikeJson(String(blob));
-    if (json) {
-      const exp = parseExpiresAt(json.expires_at ?? json.expiry ?? json.exp);
-      if (exp) {
-        const base = deriveHealthFromExpiry(exp);
-        const remaining =
-          typeof json.remainingRequests === "number"
-            ? json.remainingRequests
-            : typeof json.remaining === "number"
-              ? json.remaining
-              : null;
-        const resetAt = parseExpiresAt(json.resetAt) ?? base.resetAt;
-        return {
-          valid: base.valid,
-          remainingRequests: remaining,
-          resetAt,
-          error: base.error,
-        };
-      }
-    }
-
-    return { valid: true, remainingRequests: null, resetAt: null, error: null };
+    return probeAuthBlob(String(blob));
   } catch (err) {
     return {
       valid: false,
@@ -184,6 +111,77 @@ export async function probeAccount(account, { secretStore } = {}) {
       error: String(err?.message ?? err),
     };
   }
+}
+
+async function probeAccountFromAuthPath(account) {
+  if (!["codex", "vscode", "github"].includes(account.agentType)) {
+    return null;
+  }
+
+  const authPath = await resolveAuthPath(account.agentType, {
+    profileName: account.profileName ?? account.id,
+    preferExisting: true,
+  });
+
+  if (!(await exists(authPath))) return null;
+
+  const raw = await fs.readFile(authPath, "utf8");
+  const json = parseTokenLikeJson(raw);
+  return probeTokenJson(json);
+}
+
+async function getAccountBlob(account, secretStore) {
+  const ss = secretStore ?? new SecretStore();
+  const storedBlob = await ss.get(account.id);
+  const accountBlob =
+    typeof account?.authBlob === "string" && account.authBlob.length > 0
+      ? account.authBlob
+      : null;
+
+  if (accountBlob && !storedBlob) {
+    await ss.set(account.id, accountBlob);
+  }
+
+  return accountBlob ?? storedBlob;
+}
+
+function missingSecretHealth() {
+  return {
+    valid: false,
+    remainingRequests: null,
+    resetAt: null,
+    error: "Missing secret",
+  };
+}
+
+function probeAuthBlob(blob) {
+  const jwtExp = parseJwtExp(blob);
+  if (jwtExp) return deriveHealthFromExpiry(jwtExp);
+
+  const json = parseTokenLikeJson(blob);
+  return probeTokenJson(json) ?? { valid: true, remainingRequests: null, resetAt: null, error: null };
+}
+
+function probeTokenJson(json) {
+  if (!json) return null;
+
+  const exp = parseExpiresAt(json.expires_at ?? json.expiry ?? json.exp);
+  if (!exp) return null;
+
+  const base = deriveHealthFromExpiry(exp);
+  const remaining =
+    typeof json.remainingRequests === "number"
+      ? json.remainingRequests
+      : typeof json.remaining === "number"
+        ? json.remaining
+        : null;
+  const resetAt = parseExpiresAt(json.resetAt) ?? base.resetAt;
+  return {
+    valid: base.valid,
+    remainingRequests: remaining,
+    resetAt,
+    error: base.error,
+  };
 }
 
 function daemonBaseDir() {
