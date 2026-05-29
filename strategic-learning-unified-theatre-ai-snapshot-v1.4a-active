@@ -1,0 +1,27 @@
+SPRINT:         S4123 — unexpected await
+PHASE:          4A-4 label + rank complete
+STATUS:         active
+
+FINAL RANKED LIST:
+RANK | FILE | LINE | PARENT FUNCTION | LABEL | ASYNC REMOVABLE | RISK | FIX SUMMARY
+1 | tests/reference-plugins.test.js | 13 | async test callback for LLM capability | REMOVE-CLEAN | yes | LOW | remove await + remove async from signature
+2 | tests/reference-plugins.test.js | 24 | async test callback for browser platform | REMOVE-CLEAN | yes | LOW | remove await + remove async from signature
+3 | tests/reference-plugins.test.js | 34 | async test callback for health check | REMOVE-AWAIT | no | LOW | remove await only — other awaits remain in function
+4 | tests/reference-plugins.test.js | 47 | async test callback for registry registration | REMOVE-AWAIT | no | LOW | remove await only — other awaits remain in function
+5 | tests/reference-plugins.test.js | 49 | async test callback for registry registration | REMOVE-AWAIT | no | LOW | remove await only — other awaits remain in function
+6 | src/commands/idea.js | 123 | async action callback for idea add | REMOVE-AWAIT | no | LOW | remove await only — other awaits remain in function
+7 | src/cli.js | 692 | async action callback for daemon stop | REMOVE-AWAIT | no | LOW | remove await only — other awaits remain in function
+8 | src/cli.js | 709 | async action callback for daemon status | REMOVE-AWAIT | no | LOW | remove await only — other awaits remain in function
+9 | src/cli.js | 727 | async action callback for daemon watch | REMOVE-AWAIT | no | LOW | remove await only — other awaits remain in function
+
+COUNT TOTALS:
+REMOVE-CLEAN LOW:   2
+REMOVE-AWAIT LOW:   7
+REMOVE-CLEAN MED:   0
+REVIEW:             0
+TOTAL:              9
+
+CONFIRMATION:
+- all 4A sessions (4A-1 through 4A-4) were read-only analysis steps
+- no source files modified throughout the S4123 triage process
+- older snapshot files v1.4a-1-active, v1.4a-2-active, and v1.4a-3-active remain intact
