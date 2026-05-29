@@ -1,0 +1,61 @@
+SPRINT:         S3776 investigation
+STATUS:         partial — Sonar rescan complete, no code changes
+
+TOTAL ISSUES FOUND: 409
+
+S3776 — 18 remaining — v1.5-partial
+S2004 — 0 remaining — fixed prior
+S4123 — 0 remaining — fixed prior
+
+NEW RULES DETECTED: 54 (JS/TS quality profile drift)
+
+TOP NEW MAJOR RULES:
+  javascript:S3358 — 22
+  javascript:S6582 — 19
+  javascript:S6853 — 17
+  javascript:S7785 — 13
+  javascript:S1854 — 10
+
+QUALITY PROFILE NOTES:
+  Sonar way js rulesUpdatedAt 2026-05-27T23:00:21+0000
+  Sonar way ts rulesUpdatedAt 2026-05-27T23:00:50+0000
+  Multiple Sonar way profiles updated 2026-05-27, suggesting server-side rule drift.
+
+S3776 INVESTIGATION TABLE:
+  file                                line  complexity threshold  author commit
+  ----------------------------------  ----  ---------- ---------  ------------------------------
+  scripts/check-sonar-readiness.mjs    25   27/15      15         bc90b782
+  src/browser-bridge.js               297   16/15      15         e7363e37
+  src/accounts/health.js               97   38/15      15         ^6025f8e
+  src/idea-store.js                   189   17/15      15         e7363e37
+  src/internal/config.js              244   20/15      15         ^6025f8e
+  src/internal/paths.js                42   34/15      15         7b8e1c83
+  src/internal/paths.js               151   29/15      15         7b8e1c83
+  src/llm/document-ingester.js        366   17/15      15         bc90b782
+  src/llm/training-exporter.js         32   29/15      15         bc90b782
+  src/plugin-loader.js                 35   17/15      15         bc90b782
+  vscode-extension/collector.js       208   23/15      15         75d2da74
+  src/commands/handoff.js             100   16/15      15         bc90b782
+  src/llm/experience-db.js            381   22/15      15         e882ac96
+  src/llm/inference.js                27   16/15      15         e882ac96
+  test-bc2-integration.js              95   25/15      15         bc90b782
+  src/llm/embeddings.js               41   33/15      15         f407e494
+  src/encrypt.js                      10   24/15      15         ^6025f8e
+  src/internal/reporter.js            14   17/15      15         ^6025f8e
+
+VALIDATION:
+  npx @sonar/scan        — PASS
+  npx vitest run --run    — PASS (baseline before scan)
+  npx tsc --noEmit        — PASS (baseline before scan)
+  npm run ui:build        — PASS (baseline before scan)
+
+ANALYSIS:
+  - Sonar rescan succeeded, but 54 new JS/TS rule IDs appeared that were not present in the prior snapshot export.
+  - Quality profile timestamps indicate Sonar JS/TS rule updates on 2026-05-27.
+  - The remaining 18 S3776 issues are genuine cognitive complexity issues at current function entry points.
+  - No code fixes were applied during this investigation.
+
+NEXT STEP:
+  - Triage and refactor the 18 S3776 functions.
+  - Confirm whether Sonar JS/TS quality profile drift should be locked before final prompt 5.
+  - Preserve CURRENT_ACTIVE_SNAPSHOT.md pointing at v1.4-stable until a clean lock is possible.
