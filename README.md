@@ -67,6 +67,14 @@ Use these npm scripts after installing Python and Robot Framework:
 - Regression policy: `tests/regression/` files are permanent — never remove
 - CI: every push triggers `.github/workflows/test.yml`; release tags trigger `release.yml`
 
+Note: The `npm test` script runs a small wrapper `run-tests.cjs` which invokes Vitest
+in a controlled, serial fashion and strips unsupported forwarded flags (for example
+when callers pass `--runInBand`). Run unit tests locally with:
+
+```bash
+npm test
+```
+
 ### Chaos & Resilience
 
 - `npm run test:chaos` — full chaos suite (all three scenarios)

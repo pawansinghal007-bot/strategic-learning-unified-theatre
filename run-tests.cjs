@@ -14,8 +14,9 @@ function validateBinary(bin) {
 
 const tests = readdirSync("tests").filter((f) => f.endsWith(".test.js"));
 
-// Allow optional override via env or first CLI arg, but validate it.
-const overrideBin = process.env.TEST_RUNNER_BIN || process.argv[2];
+// Allow optional override via env or first non-flag CLI arg, but validate it.
+const argvOverride = process.argv.slice(2).find((a) => typeof a === 'string' && a.length > 0 && !a.startsWith("-"));
+const overrideBin = process.env.TEST_RUNNER_BIN || argvOverride;
 const binary = overrideBin ? String(overrideBin) : "npx";
 validateBinary(binary);
 

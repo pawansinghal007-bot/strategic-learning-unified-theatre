@@ -10,7 +10,11 @@
   },
   "scripts": {
     "start": "node ./src/cli.js",
-    "test": "cross-env VSCODE_ROTATOR_MOCK_LLM=1 NODE_OPTIONS=--max-old-space-size=8192 vitest run",
+    "hw:probe": "tsx src/installer/hw-probe/test-probe.ts",
+    "hw:test": "vitest run --config vitest.config.js",
+    "hw:test:watch": "vitest --config vitest.config.js",
+    "hw:build": "tsc",
+    "test": "cross-env VSCODE_ROTATOR_MOCK_LLM=1 NODE_OPTIONS=--max-old-space-size=8192 node run-tests.cjs",
     "coverage": "vitest run --coverage",
     "coverage:report": "vitest run --coverage --reporter=html",
     "test:ci": "vitest run --coverage --reporter=verbose",
@@ -121,6 +125,7 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@vitejs/plugin-react": "^6.0.2",
+    "@vitest/coverage-istanbul": "^4.1.7",
     "@vitest/coverage-v8": "^4.1.7",
     "autoprefixer": "^10.5.0",
     "cross-env": "^10.1.0",
@@ -129,7 +134,9 @@
     "jsdom": "^29.1.1",
     "tailwindcss": "^3.4.5",
     "vite": "^8.0.14",
-    "vitest": "^4.1.7"
+    "vitest": "^4.1.7",
+    "tsx": "^4.7.0",
+    "typescript": "^5.9.3"
   },
   "author": "Pawan Singhal"
 }
