@@ -21,6 +21,33 @@ QUALITY PROFILE NOTES:
   Sonar way ts rulesUpdatedAt 2026-05-27T23:00:50+0000
   Multiple Sonar way profiles updated 2026-05-27, suggesting server-side rule drift.
 
+SCENARIO A CONFIRMED
+────────────────────
+Profile drift detected — not a regression.
+
+Quality profile update dates:
+  Sonar way js: 2026-05-27T23:00:21
+  Sonar way ts: 2026-05-27T23:00:50
+
+S3776 new threshold: 15
+
+S3776 remaining (18) — Sprint 1b required:
+  These are the same 18 functions from Sprint 1.
+  Previously passed at old threshold.
+  Now fail at new stricter threshold.
+  Require additional complexity reduction.
+
+New rules (54) — NOT regressions:
+  All are profile additions from 2026-05-27 update.
+  None triggered by our code changes.
+  Added to next sprint backlog after Sprint 1b.
+
+Sprint 1b scope:
+  Rule: S3776
+  Files: 18 functions (same files as Sprint 1)
+  Pattern: same 4-prompt triage (1b-A through 1b-D)
+  Snapshot series: v1.5a through v1.5-stable
+
 S3776 INVESTIGATION TABLE:
   file                                line  complexity threshold  author commit
   ----------------------------------  ----  ---------- ---------  ------------------------------

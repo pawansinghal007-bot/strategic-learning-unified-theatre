@@ -1,0 +1,19 @@
+rule|severity|file|line|message
+javascript:S3776|CRITICAL|strategic-learning-unified-theatre:scripts/check-sonar-readiness.mjs|25|Refactor this function to reduce its Cognitive Complexity from 27 to the 15 allowed.
+javascript:S3776|CRITICAL|strategic-learning-unified-theatre:src/browser-bridge.js|297|Refactor this function to reduce its Cognitive Complexity from 16 to the 15 allowed.
+javascript:S3776|CRITICAL|strategic-learning-unified-theatre:src/accounts/health.js|97|Refactor this function to reduce its Cognitive Complexity from 38 to the 15 allowed.
+javascript:S3776|CRITICAL|strategic-learning-unified-theatre:src/idea-store.js|189|Refactor this function to reduce its Cognitive Complexity from 17 to the 15 allowed.
+javascript:S3776|CRITICAL|strategic-learning-unified-theatre:src/internal/config.js|244|Refactor this function to reduce its Cognitive Complexity from 20 to the 15 allowed.
+javascript:S3776|CRITICAL|strategic-learning-unified-theatre:src/internal/paths.js|42|Refactor this function to reduce its Cognitive Complexity from 34 to the 15 allowed.
+javascript:S3776|CRITICAL|strategic-learning-unified-theatre:src/internal/paths.js|151|Refactor this function to reduce its Cognitive Complexity from 29 to the 15 allowed.
+javascript:S3776|CRITICAL|strategic-learning-unified-theatre:src/llm/document-ingester.js|366|Refactor this function to reduce its Cognitive Complexity from 17 to the 15 allowed.
+javascript:S3776|CRITICAL|strategic-learning-unified-theatre:src/llm/training-exporter.js|32|Refactor this function to reduce its Cognitive Complexity from 29 to the 15 allowed.
+javascript:S3776|CRITICAL|strategic-learning-unified-theatre:src/plugin-loader.js|35|Refactor this function to reduce its Cognitive Complexity from 17 to the 15 allowed.
+javascript:S3776|CRITICAL|strategic-learning-unified-theatre:vscode-extension/collector.js|208|Refactor this function to reduce its Cognitive Complexity from 23 to the 15 allowed.
+javascript:S3776|CRITICAL|strategic-learning-unified-theatre:src/commands/handoff.js|100|Refactor this function to reduce its Cognitive Complexity from 16 to the 15 allowed.
+javascript:S3776|CRITICAL|strategic-learning-unified-theatre:src/llm/experience-db.js|381|Refactor this function to reduce its Cognitive Complexity from 22 to the 15 allowed.
+javascript:S3776|CRITICAL|strategic-learning-unified-theatre:src/llm/inference.js|27|Refactor this function to reduce its Cognitive Complexity from 16 to the 15 allowed.
+javascript:S3776|CRITICAL|strategic-learning-unified-theatre:test-bc2-integration.js|95|Refactor this function to reduce its Cognitive Complexity from 25 to the 15 allowed.
+javascript:S3776|CRITICAL|strategic-learning-unified-theatre:src/llm/embeddings.js|41|Refactor this function to reduce its Cognitive Complexity from 33 to the 15 allowed.
+javascript:S3776|CRITICAL|strategic-learning-unified-theatre:src/encrypt.js|10|Refactor this function to reduce its Cognitive Complexity from 24 to the 15 allowed.
+javascript:S3776|CRITICAL|strategic-learning-unified-theatre:src/internal/reporter.js|14|Refactor this function to reduce its Cognitive Complexity from 17 to the 15 allowed.
