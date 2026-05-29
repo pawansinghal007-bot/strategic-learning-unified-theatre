@@ -92,145 +92,146 @@ async function test(name, fn) {
   }
 }
 
+async function fetchEventCount() {
+  const res = await httpGet(`${API_URL}/events?limit=10`);
+  if (res.status !== 200) throw new Error(`Expected 200, got ${res.status}`);
+  if (!Array.isArray(res.data)) throw new Error('Expected array response');
+  return res.data.length;
+}
+
+async function assertApiReachable() {
+  const res = await httpGet(`${API_URL}/health`);
+  if (res.status !== 200) throw new Error(`Expected 200, got ${res.status}`);
+  if (!res.data.db) throw new Error('Missing db field in health response');
+}
+
+async function assertEventStats() {
+  const res = await httpGet(`${API_URL}/events/stats`);
+  if (res.status !== 200) throw new Error(`Expected 200, got ${res.status}`);
+  if (typeof res.data.total !== 'number') throw new Error('Missing total field');
+  console.log(`   → Total events: ${res.data.total}`);
+  console.log(`   → Today: ${res.data.today}`);
+  if (res.data.by_type?.length > 0) {
+    console.log(`   → Event types: ${res.data.by_type.map((t) => `${t.event_type}(${t.count})`).join(', ')}`);
+  }
+}
+
+async function fetchRecentContext() {
+  const res = await httpGet(`${API_URL}/events/recent-context?n=5`);
+  if (res.status !== 200) throw new Error(`Expected 200, got ${res.status}`);
+  if (!res.data.context) throw new Error('Missing context field');
+  return res.data;
+}
+
+async function assertSearchResults() {
+  const res = await httpGet(`${API_URL}/events/search?q=error&limit=5`);
+  if (res.status !== 200) throw new Error(`Expected 200, got ${res.status}`);
+  if (!Array.isArray(res.data)) throw new Error('Expected array response');
+  console.log(`   → Found ${res.data.length} events matching "error"`);
+}
+
+async function runOllamaQuestionTest() {
+  const res = await httpPost(`${API_URL}/ollama/ask`, {
+    question: 'What was the user doing recently?',
+    context_n: 5,
+  });
+
+  if (res.status !== 200) {
+    if (res.status === 500 || res.status === 502) {
+      console.log('   ⚠️  Ollama server not responding (expected if not running)');
+      console.log('       Start Ollama separately: ollama serve');
+      return;
+    }
+    throw new Error(`Expected 200, got ${res.status}`);
+  }
+
+  if (res.data.answer) {
+    console.log('   → Received response from Ollama:');
+    console.log(`      ${res.data.answer.substring(0, 300)}`);
+  }
+}
+
+async function assertEventDetail() {
+  const listRes = await httpGet(`${API_URL}/events?limit=1`);
+  if (listRes.data.length === 0) throw new Error('No events to retrieve');
+  const eventId = listRes.data[0].id;
+
+  const res = await httpGet(`${API_URL}/events/${eventId}`);
+  if (res.status !== 200) throw new Error(`Expected 200, got ${res.status}`);
+  if (!res.data.event_type) throw new Error('Missing event_type field');
+  console.log(`   → Event ID: ${eventId}`);
+  console.log(`   → Type: ${res.data.event_type}`);
+  console.log(`   → Browser: ${res.data.browser}`);
+  console.log(`   → URL: ${res.data.tab_url}`);
+}
+
 async function runTests() {
   console.log('\n╔════════════════════════════════════════════════════════════╗');
   console.log('║         Browser Capture v2 Integration Tests              ║');
   console.log('╚════════════════════════════════════════════════════════════╝\n');
 
-  let passed = 0, failed = 0;
-
-  // ────────────────────────────────────────
-  // 1. Flask API Health Check
-  // ────────────────────────────────────────
-  console.log('\n📡 Flask API Connectivity\n');
-  if (await test('API is reachable at localhost:7070', async () => {
-    const res = await httpGet(`${API_URL}/health`);
-    if (res.status !== 200) throw new Error(`Expected 200, got ${res.status}`);
-    if (!res.data.db) throw new Error('Missing db field in health response');
-  })) passed++; else failed++;
-
-  // ────────────────────────────────────────
-  // 2. Query Captured Events
-  // ────────────────────────────────────────
-  console.log('\n📊 Captured Events Retrieval\n');
-  
+  let passed = 0;
+  let failed = 0;
   let eventCount = 0;
-  if (await test('GET /events returns event list', async () => {
-    const res = await httpGet(`${API_URL}/events?limit=10`);
-    if (res.status !== 200) throw new Error(`Expected 200, got ${res.status}`);
-    if (!Array.isArray(res.data)) throw new Error('Expected array response');
-    eventCount = res.data.length;
-  })) passed++; else failed++;
-
-  if (await test('Event count displayed', async () => {
-    console.log(`   → Total events captured: ${eventCount}`);
-  })) passed++; else failed++;
-
-  // ────────────────────────────────────────
-  // 3. Query Event Statistics
-  // ────────────────────────────────────────
-  console.log('\n📈 Event Statistics\n');
-  
-  if (await test('GET /events/stats returns statistics', async () => {
-    const res = await httpGet(`${API_URL}/events/stats`);
-    if (res.status !== 200) throw new Error(`Expected 200, got ${res.status}`);
-    if (typeof res.data.total !== 'number') throw new Error('Missing total field');
-    console.log(`   → Total events: ${res.data.total}`);
-    console.log(`   → Today: ${res.data.today}`);
-    if (res.data.by_type?.length > 0) {
-      console.log(`   → Event types: ${res.data.by_type.map(t => `${t.event_type}(${t.count})`).join(', ')}`);
-    }
-  })) passed++; else failed++;
-
-  // ────────────────────────────────────────
-  // 4. Retrieve Recent Context (for LLM)
-  // ────────────────────────────────────────
-  console.log('\n💬 Recent Context Retrieval (for LLM prompting)\n');
-  
   let recentContext = '';
-  if (await test('GET /events/recent-context returns chat context', async () => {
-    const res = await httpGet(`${API_URL}/events/recent-context?n=5`);
-    if (res.status !== 200) throw new Error(`Expected 200, got ${res.status}`);
-    if (!res.data.context) throw new Error('Missing context field');
-    recentContext = res.data.context;
-    console.log(`   → Retrieved ${res.data.count} recent events as context`);
-    if (recentContext.trim().length > 0) {
-      console.log('   → Context sample (first 200 chars):');
-      console.log(`      ${recentContext.substring(0, 200).replace(/\n/g, '\n      ')}`);
-    } else {
-      console.log('   → (No recent events yet; ensure browser extension is active)');
-    }
-  })) passed++; else failed++;
 
-  // ────────────────────────────────────────
-  // 5. Full-Text Search
-  // ────────────────────────────────────────
-  console.log('\n🔍 Full-Text Search\n');
-  
-  if (await test('GET /events/search with query parameter', async () => {
-    const res = await httpGet(`${API_URL}/events/search?q=error&limit=5`);
-    if (res.status !== 200) throw new Error(`Expected 200, got ${res.status}`);
-    if (!Array.isArray(res.data)) throw new Error('Expected array response');
-    console.log(`   → Found ${res.data.length} events matching "error"`);
-  })) passed++; else failed++;
-
-  // ────────────────────────────────────────
-  // 6. Ollama Integration (if available)
-  // ────────────────────────────────────────
-  console.log('\n🤖 Ollama LLM Integration\n');
-  
-  if (eventCount === 0) {
-    console.log('⚠️  Skipping Ollama test: No events in database yet');
-    console.log('    Ensure browser extension is loaded and capture some activity.');
-  } else {
-    if (await test('POST /ollama/ask accepts question with context', async () => {
-      const res = await httpPost(`${API_URL}/ollama/ask`, {
-        question: 'What was the user doing recently?',
-        context_n: 5
-      });
-      if (res.status !== 200) {
-        // Ollama might not be running; acceptable
-        if (res.status === 500 || res.status === 502) {
-          console.log('   ⚠️  Ollama server not responding (expected if not running)');
-          console.log('       Start Ollama separately: ollama serve');
+  const steps = [
+    { name: 'API is reachable at localhost:7070', fn: assertApiReachable },
+    {
+      name: 'GET /events returns event list',
+      fn: async () => {
+        eventCount = await fetchEventCount();
+      },
+    },
+    {
+      name: 'Event count displayed',
+      fn: async () => {
+        console.log(`   → Total events captured: ${eventCount}`);
+      },
+    },
+    { name: 'GET /events/stats returns statistics', fn: assertEventStats },
+    {
+      name: 'GET /events/recent-context returns chat context',
+      fn: async () => {
+        const data = await fetchRecentContext();
+        recentContext = data.context;
+        console.log(`   → Retrieved ${data.count} recent events as context`);
+        if (recentContext.trim().length > 0) {
+          console.log('   → Context sample (first 200 chars):');
+          console.log(`      ${recentContext.substring(0, 200).replace(/\n/g, '\n      ')}`);
+        } else {
+          console.log('   → (No recent events yet; ensure browser extension is active)');
+        }
+      },
+    },
+    { name: 'GET /events/search with query parameter', fn: assertSearchResults },
+    {
+      name: 'POST /ollama/ask accepts question with context',
+      fn: async () => {
+        if (eventCount === 0) {
+          console.log('⚠️  Skipping Ollama test: No events in database yet');
+          console.log('    Ensure browser extension is loaded and capture some activity.');
           return;
         }
-        throw new Error(`Expected 200, got ${res.status}`);
-      }
-      if (res.data.answer) {
-        console.log('   → Received response from Ollama:');
-        console.log(`      ${res.data.answer.substring(0, 300)}`);
-      }
-    })) passed++; else failed++;
+        await runOllamaQuestionTest();
+      },
+    },
+    {
+      name: 'GET /events/<id> retrieves single event',
+      fn: async () => {
+        if (eventCount === 0) {
+          console.log('⏭️  Skipping event detail test (no events yet)');
+          return;
+        }
+        await assertEventDetail();
+      },
+    },
+  ];
+
+  for (const step of steps) {
+    if (await test(step.name, step.fn)) passed++; else failed++;
   }
 
-  // ────────────────────────────────────────
-  // 7. Event Detail Retrieval
-  // ────────────────────────────────────────
-  console.log('\n🔎 Event Details\n');
-  
-  if (eventCount > 0) {
-    if (await test('GET /events/<id> retrieves single event', async () => {
-      // Get first event ID
-      const listRes = await httpGet(`${API_URL}/events?limit=1`);
-      if (listRes.data.length === 0) throw new Error('No events to retrieve');
-      const eventId = listRes.data[0].id;
-      
-      const res = await httpGet(`${API_URL}/events/${eventId}`);
-      if (res.status !== 200) throw new Error(`Expected 200, got ${res.status}`);
-      if (!res.data.event_type) throw new Error('Missing event_type field');
-      console.log(`   → Event ID: ${eventId}`);
-      console.log(`   → Type: ${res.data.event_type}`);
-      console.log(`   → Browser: ${res.data.browser}`);
-      console.log(`   → URL: ${res.data.tab_url}`);
-    })) passed++; else failed++;
-  } else {
-    console.log('⏭️  Skipping event detail test (no events yet)');
-  }
-
-  // ════════════════════════════════════════
-  // SUMMARY
-  // ════════════════════════════════════════
   console.log('\n╔════════════════════════════════════════════════════════════╗');
   console.log(`║  Tests: ${passed} passed, ${failed} failed                          ║`);
   console.log('╚════════════════════════════════════════════════════════════╝\n');
