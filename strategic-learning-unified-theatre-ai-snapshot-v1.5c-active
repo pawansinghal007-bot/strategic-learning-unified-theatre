@@ -1,0 +1,57 @@
+SPRINT:         S3776 Sprint 1b-C — MED complexity fixes
+STATUS:         active — items 5-11 refactored, tests passing
+
+THRESHOLD:      15
+TOTAL ISSUES:   11
+
+SPRINT 1b-C SCOPE (MED-RISK items):
+  HIGH (4 items) — deferred to 1b-D
+  MED (7 items)  — THIS SPRINT
+  LOW (0 items)  — completed in 1b-B
+
+REFACTORING CHANGES:
+
+Item 5 ✓ training-exporter.js
+  Pattern:  MIXED_CONCERNS
+  Status:   ✓ Committed — earlier history
+
+Item 6 ✓ check-sonar-readiness.mjs:25
+  Pattern:  MIXED_CONCERNS
+  Status:   ✓ Committed — earlier history
+
+Item 7 ✓ test-bc2-integration.js:95
+  Pattern:  MIXED_CONCERNS
+  Strategy: Extract individual test steps into helper functions and reduce nested async control flow
+  Status:   ✓ Committed — tests passing
+
+Item 8 ✓ src/encrypt.js:10
+  Pattern:  SWITCH_BLOCK
+  Strategy: Extract platform-specific machine ID resolution helpers
+  Status:   ✓ Committed — tests passing
+
+Item 9 ✓ vscode-extension/collector.js:208
+  Pattern:  MIXED_CONCERNS
+  Strategy: Move signal filtering logic into small _shouldSkip* helpers
+  Status:   ✓ Committed — tests passing
+
+Item 10 ✓ src/llm/experience-db.js:381
+  Pattern:  MIXED_CONCERNS
+  Strategy: Extract document key generation and row construction helpers
+  Status:   ✓ Committed — tests passing
+
+Item 11 ✓ src/internal/config.js:244
+  Pattern:  MIXED_CONCERNS
+  Strategy: Factor config file reading and JSON parsing into helpers
+  Status:   ✓ Committed — tests passing
+
+VALIDATION:
+  npx vitest run --run    → ✓ 528/528 tests passing
+  npx tsc --noEmit        → ✓ No TypeScript errors
+
+NEXT:
+  1b-D HIGH complexity fixes (items 1-4)
+
+GIT:
+  Main branch: 09e5e7f
+  Files modified: 5
+  Tests: 528/528 passing
