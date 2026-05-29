@@ -106,6 +106,26 @@ async function quarantineFile(filePath, reason) {
   }
 }
 
+async function readIdeaFile(filePath) {
+  const raw = await fs.readFile(filePath, "utf8");
+  try {
+    const parsed = matter(raw);
+    const meta = parseIdeaOrThrowDomainError({
+      ...parsed.data,
+      tags: normalizeTags(parsed.data.tags),
+      linkedSprint: parsed.data.linkedSprint ?? null
+    }, { operation: "listIdeas", filePath });
+    return {
+      ...meta,
+      body: String(parsed.content || "").trim(),
+      filePath
+    };
+  } catch (err) {
+    await quarantineFile(filePath, "invalid-metadata");
+    return null;
+  }
+}
+
 async function findGitRoot(cwd = process.cwd()) {
   let current = path.resolve(cwd);
   const tempRoot = path.resolve(os.tmpdir());
@@ -197,25 +217,8 @@ export async function listIdeas({ cwd = process.cwd(), project, status, tag } = 
     if (!name.endsWith(".md")) continue;
     const filePath = path.join(context.ideaDir, name);
     try {
-      const raw = await fs.readFile(filePath, "utf8");
-      let parsed;
-      let meta;
-      try {
-        parsed = matter(raw);
-        meta = parseIdeaOrThrowDomainError({
-          ...parsed.data,
-          tags: normalizeTags(parsed.data.tags),
-          linkedSprint: parsed.data.linkedSprint ?? null
-        }, { operation: "listIdeas", filePath });
-      } catch (err) {
-        await quarantineFile(filePath, "invalid-metadata");
-        continue;
-      }
-      const idea = {
-        ...meta,
-        body: String(parsed.content || "").trim(),
-        filePath
-      };
+      const idea = await readIdeaFile(filePath);
+      if (!idea) continue;
 
       if (project && idea.project !== project) continue;
       if (status && idea.status !== status) continue;
