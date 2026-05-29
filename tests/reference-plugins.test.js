@@ -8,9 +8,9 @@ import { MODEL_REGISTRY } from "../src/llm/local-llm.js";
 import { PLATFORM_URLS } from "../src/browser-pane.js";
 
 describe("Reference plugins v1", () => {
-  it("exports PLUGIN_API_VERSION === 1 and provides expected LLM capability", async () => {
+  it("exports PLUGIN_API_VERSION === 1 and provides expected LLM capability", () => {
     expect(acmeLlm.PLUGIN_API_VERSION).toBe(1);
-    const caps = await acmeLlm.getCapabilities();
+    const caps = acmeLlm.getCapabilities();
     expect(caps).toHaveProperty("llmProviders");
     const providers = caps.llmProviders;
     expect(Array.isArray(providers)).toBe(true);
@@ -19,9 +19,9 @@ describe("Reference plugins v1", () => {
     expect(p.models).toContain("acme-chat-1");
   });
 
-  it("exports PLUGIN_API_VERSION === 1 and provides expected browser platform", async () => {
+  it("exports PLUGIN_API_VERSION === 1 and provides expected browser platform", () => {
     expect(acmeBrowser.PLUGIN_API_VERSION).toBe(1);
-    const caps = await acmeBrowser.getCapabilities();
+    const caps = acmeBrowser.getCapabilities();
     expect(caps).toHaveProperty("browserPlatforms");
     const platforms = caps.browserPlatforms;
     const pf = platforms.find((x) => x.name === "acme-search");
