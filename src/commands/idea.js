@@ -120,7 +120,7 @@ export async function bindIdeaCommands(program) {
         }
 
         if (!body) {
-          const prompter = await promptFactory();
+          const prompter = promptFactory();
           try {
             body = await askBodyInline(prompter);
           } finally {
