@@ -1,0 +1,10 @@
+rule,severity,file,line,message
+javascript:S4123,CRITICAL,strategic-learning-unified-theatre:tests/reference-plugins.test.js,49,"Unexpected `await` of a non-Promise (non-""Thenable"") value."
+javascript:S4123,CRITICAL,strategic-learning-unified-theatre:tests/reference-plugins.test.js,13,"Unexpected `await` of a non-Promise (non-""Thenable"") value."
+javascript:S4123,CRITICAL,strategic-learning-unified-theatre:tests/reference-plugins.test.js,24,"Unexpected `await` of a non-Promise (non-""Thenable"") value."
+javascript:S4123,CRITICAL,strategic-learning-unified-theatre:tests/reference-plugins.test.js,34,"Unexpected `await` of a non-Promise (non-""Thenable"") value."
+javascript:S4123,CRITICAL,strategic-learning-unified-theatre:tests/reference-plugins.test.js,47,"Unexpected `await` of a non-Promise (non-""Thenable"") value."
+javascript:S4123,CRITICAL,strategic-learning-unified-theatre:src/commands/idea.js,123,"Unexpected `await` of a non-Promise (non-""Thenable"") value."
+javascript:S4123,CRITICAL,strategic-learning-unified-theatre:src/cli.js,692,"Unexpected `await` of a non-Promise (non-""Thenable"") value."
+javascript:S4123,CRITICAL,strategic-learning-unified-theatre:src/cli.js,709,"Unexpected `await` of a non-Promise (non-""Thenable"") value."
+javascript:S4123,CRITICAL,strategic-learning-unified-theatre:src/cli.js,727,"Unexpected `await` of a non-Promise (non-""Thenable"") value."
