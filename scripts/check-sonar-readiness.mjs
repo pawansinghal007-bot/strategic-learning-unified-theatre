@@ -22,6 +22,56 @@ function summarizeConditions(conditions) {
   }));
 }
 
+function deriveBranchProtection(config) {
+  const isProtectedEnv = (
+    process.env.IS_PROTECTED_BRANCH || "false"
+  ).toLowerCase();
+  return (
+    isProtectedEnv === "true" ||
+    (config.sonar &&
+      Array.isArray(config.sonar.protectedBranches) &&
+      config.sonar.protectedBranches.includes(process.env.BRANCH_NAME))
+  );
+}
+
+function accumulateFailureReasons(status, conditions, unresolvedHotspots) {
+  const reasons = [];
+  if (status !== "OK") {
+    reasons.push(`Quality Gate status: ${status}`);
+  }
+  for (const c of conditions) {
+    if (c.status && c.status !== "OK")
+      reasons.push(
+        `Condition ${c.metric} status ${c.status} (actual: ${c.actual})`,
+      );
+  }
+  if (unresolvedHotspots > 0) {
+    reasons.push(`${unresolvedHotspots} unresolved hotspot(s) reported`);
+  }
+  return reasons;
+}
+
+function handleProtectedBranch(reasons) {
+  if (reasons.length) {
+    console.error("Sonar readiness check failed (protected branch):");
+    for (const r of reasons) console.error("- " + r);
+    process.exit(1);
+  } else {
+    console.log("Sonar readiness check passed.");
+    process.exit(0);
+  }
+}
+
+function handleNonProtectedBranch(reasons) {
+  if (reasons.length) {
+    console.warn("Sonar readiness check warnings (non-protected branch):");
+    for (const r of reasons) console.warn("- " + r);
+  } else {
+    console.log("Sonar readiness check passed.");
+  }
+  process.exit(0);
+}
+
 async function main() {
   try {
     const config = (await loadJson(CONFIG_PATH)) || {};
@@ -30,14 +80,7 @@ async function main() {
     };
     const hotspots = (await loadJson(HOTSPOTS_PATH)) || { hotspots: [] };
 
-    const isProtectedEnv = (
-      process.env.IS_PROTECTED_BRANCH || "false"
-    ).toLowerCase();
-    const isProtectedBranch =
-      isProtectedEnv === "true" ||
-      (config.sonar &&
-        Array.isArray(config.sonar.protectedBranches) &&
-        config.sonar.protectedBranches.includes(process.env.BRANCH_NAME));
+    const isProtectedBranch = deriveBranchProtection(config);
 
     const status = (qg.projectStatus && qg.projectStatus.status) || "UNKNOWN";
     const conditions = summarizeConditions(
@@ -45,39 +88,12 @@ async function main() {
     );
 
     const unresolvedHotspots = (hotspots.hotspots || []).length;
-
-    // Collect reasons
-    const reasons = [];
-    if (status !== "OK") {
-      reasons.push(`Quality Gate status: ${status}`);
-    }
-    for (const c of conditions) {
-      if (c.status && c.status !== "OK")
-        reasons.push(
-          `Condition ${c.metric} status ${c.status} (actual: ${c.actual})`,
-        );
-    }
-    if (unresolvedHotspots > 0) {
-      reasons.push(`${unresolvedHotspots} unresolved hotspot(s) reported`);
-    }
+    const reasons = accumulateFailureReasons(status, conditions, unresolvedHotspots);
 
     if (isProtectedBranch) {
-      if (reasons.length) {
-        console.error("Sonar readiness check failed (protected branch):");
-        for (const r of reasons) console.error("- " + r);
-        process.exit(1);
-      } else {
-        console.log("Sonar readiness check passed.");
-        process.exit(0);
-      }
+      handleProtectedBranch(reasons);
     } else {
-      if (reasons.length) {
-        console.warn("Sonar readiness check warnings (non-protected branch):");
-        for (const r of reasons) console.warn("- " + r);
-      } else {
-        console.log("Sonar readiness check passed.");
-      }
-      process.exit(0);
+      handleNonProtectedBranch(reasons);
     }
   } catch (err) {
     console.error(
