@@ -55,6 +55,27 @@ function isSupported(filePath) {
   return SUPPORTED_EXTENSIONS.has(path.extname(filePath).toLowerCase());
 }
 
+function buildSnapshotActions(ingestible, log, force) {
+  const actions = [];
+
+  for (const [filePath, entry] of ingestible.entries()) {
+    const fileTs = entry.file_ts ?? entry.ts;
+    const previous = log.get(filePath);
+    if (force || !previous) {
+      actions.push({ type: "new", path: filePath, fileTs });
+    } else if (Date.parse(fileTs) > Date.parse(previous.file_ts)) {
+      actions.push({ type: "changed", path: filePath, fileTs });
+    }
+  }
+
+  for (const oldPath of log.keys()) {
+    if (!ingestible.has(oldPath))
+      actions.push({ type: "deleted", path: oldPath });
+  }
+
+  return actions;
+}
+
 async function* walkFiles(root) {
   const stat = await fs.stat(root);
   if (stat.isFile()) {
@@ -381,22 +402,7 @@ export class DocumentIngester {
         .map(([filePath, entry]) => [path.resolve(filePath), entry]),
     );
     const log = await this.db.getIngestionLog();
-    const actions = [];
-
-    for (const [filePath, entry] of ingestible.entries()) {
-      const fileTs = entry.file_ts ?? entry.ts;
-      const previous = log.get(filePath);
-      if (force || !previous) {
-        actions.push({ type: "new", path: filePath, fileTs });
-      } else if (Date.parse(fileTs) > Date.parse(previous.file_ts)) {
-        actions.push({ type: "changed", path: filePath, fileTs });
-      }
-    }
-
-    for (const oldPath of log.keys()) {
-      if (!ingestible.has(oldPath))
-        actions.push({ type: "deleted", path: oldPath });
-    }
+    const actions = buildSnapshotActions(ingestible, log, force);
 
     const results = [];
     for (const action of actions) {
