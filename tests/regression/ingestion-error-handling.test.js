@@ -5,7 +5,7 @@
 // Background: Ingestion failures used to crash the capture pipeline or throw unhandled errors.
 // Now ingestion failures must be caught and reported via error events without crashing.
 
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";

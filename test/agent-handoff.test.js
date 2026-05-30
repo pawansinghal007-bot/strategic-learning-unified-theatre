@@ -12,8 +12,7 @@ import {
   addBlocker,
   closeSprint,
   setTokenBudget,
-  getActiveSprint,
-  generateResumePrompt
+  getActiveSprint
 } from "../src/agent-handoff.js";
 
 describe("Agent Handoff Tracker", () => {

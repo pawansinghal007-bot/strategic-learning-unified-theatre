@@ -21,7 +21,6 @@ import { LessonsRepo } from "../src/ai-memory/repositories/lessons-repo.js";
 import { DecisionsRepo } from "../src/ai-memory/repositories/decisions-repo.js";
 import { TestBaselineRepo } from "../src/ai-memory/repositories/test-baseline-repo.js";
 import { bindAiCommands } from "../src/commands/ai.js";
-import { CommandsRepo } from "../src/ai-memory/repositories/commands-repo.js";
 
 // Helper: fresh program per call — commander cannot be reused across parseAsync calls
 function makeProgram() {

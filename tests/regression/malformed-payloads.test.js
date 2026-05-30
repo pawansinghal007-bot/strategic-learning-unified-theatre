@@ -6,7 +6,7 @@
 // Each shape used to cause crashes or unhandled rejections.
 // Now each must return a structured error (not crash, not unhandled rejection).
 
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";

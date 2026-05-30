@@ -3,7 +3,7 @@
  * Tests for policy schema, enterprise config loading, and policy validation.
  */
 
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import fs from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";

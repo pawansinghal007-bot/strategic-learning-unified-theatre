@@ -1,7 +1,6 @@
 // tests/auto-handoff.test.js
 import { describe, it, expect, vi, afterEach } from "vitest";
 import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
 import { redact } from "../src/utils/redactor.js";
 

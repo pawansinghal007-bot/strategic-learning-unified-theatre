@@ -6,8 +6,8 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
-import { loadConfig, configPath } from "../src/internal/config.js";
-import { DomainError, isDomainError } from "../src/error.js";
+import { loadConfig } from "../src/internal/config.js";
+import { isDomainError } from "../src/error.js";
 
 /**
  * Helper: create a temporary config directory and override configPath()
@@ -73,14 +73,14 @@ describe("Config Validation", () => {
         gitPollIntervalMs: 60000,
         vscodeLearn: {
           enabled: true,
-          stagedSignalsDir: "/custom/signals"
-        }
+          stagedSignalsDir: "/custom/signals",
+        },
       };
 
       await fs.writeFile(
         env.configFilePath,
         JSON.stringify(customConfig),
-        "utf8"
+        "utf8",
       );
 
       const config = await loadConfig();
@@ -95,15 +95,15 @@ describe("Config Validation", () => {
     it("deeply merges vscodeLearn settings", async () => {
       const customConfig = {
         vscodeLearn: {
-          enabled: true
+          enabled: true,
           // Other vscodeLearn fields intentionally omitted
-        }
+        },
       };
 
       await fs.writeFile(
         env.configFilePath,
         JSON.stringify(customConfig),
-        "utf8"
+        "utf8",
       );
 
       const config = await loadConfig();
@@ -131,14 +131,10 @@ describe("Config Validation", () => {
     it("rejects schema validation failure (type mismatch)", async () => {
       // gitPollIntervalMs as string instead of number
       const badConfig = {
-        gitPollIntervalMs: "not a number"
+        gitPollIntervalMs: "not a number",
       };
 
-      await fs.writeFile(
-        env.configFilePath,
-        JSON.stringify(badConfig),
-        "utf8"
-      );
+      await fs.writeFile(env.configFilePath, JSON.stringify(badConfig), "utf8");
 
       // Should throw DomainError in strict mode
       await expect(loadConfig()).rejects.toThrow();
@@ -153,14 +149,10 @@ describe("Config Validation", () => {
 
     it("rejects negative gitPollIntervalMs (invalid per schema)", async () => {
       const badConfig = {
-        gitPollIntervalMs: -100 // Negative not allowed
+        gitPollIntervalMs: -100, // Negative not allowed
       };
 
-      await fs.writeFile(
-        env.configFilePath,
-        JSON.stringify(badConfig),
-        "utf8"
-      );
+      await fs.writeFile(env.configFilePath, JSON.stringify(badConfig), "utf8");
 
       await expect(loadConfig()).rejects.toThrow();
       try {
@@ -182,7 +174,9 @@ describe("Config Validation", () => {
     });
 
     it("logs warning and returns defaults on invalid JSON", async () => {
-      const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const consoleWarnSpy = vi
+        .spyOn(console, "warn")
+        .mockImplementation(() => {});
 
       await fs.writeFile(env.configFilePath, "{ invalid json }", "utf8");
 
@@ -196,14 +190,12 @@ describe("Config Validation", () => {
     });
 
     it("logs warning and returns defaults on schema validation failure", async () => {
-      const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const consoleWarnSpy = vi
+        .spyOn(console, "warn")
+        .mockImplementation(() => {});
 
       const badConfig = { gitPollIntervalMs: "not a number" };
-      await fs.writeFile(
-        env.configFilePath,
-        JSON.stringify(badConfig),
-        "utf8"
-      );
+      await fs.writeFile(env.configFilePath, JSON.stringify(badConfig), "utf8");
 
       const config = await loadConfig();
       expect(config.watchedRepos).toEqual([]);
@@ -225,13 +217,13 @@ describe("Config Validation", () => {
 
     it("coerces boolean strings in schema", async () => {
       const customConfig = {
-        browserResponsesIngest: false
+        browserResponsesIngest: false,
       };
 
       await fs.writeFile(
         env.configFilePath,
         JSON.stringify(customConfig),
-        "utf8"
+        "utf8",
       );
 
       const config = await loadConfig();
@@ -240,13 +232,13 @@ describe("Config Validation", () => {
 
     it("preserves null for nullable fields", async () => {
       const customConfig = {
-        enhanceSchedule: null
+        enhanceSchedule: null,
       };
 
       await fs.writeFile(
         env.configFilePath,
         JSON.stringify(customConfig),
-        "utf8"
+        "utf8",
       );
 
       const config = await loadConfig();

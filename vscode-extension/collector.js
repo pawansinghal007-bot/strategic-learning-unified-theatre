@@ -1,6 +1,5 @@
 import child_process from "node:child_process";
 import fs from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
 import { resolveBinary, sanitizeEnvForSpawn } from "../src/internal/paths.js";
 import { DocumentIngester } from "../src/llm/document-ingester.js";
