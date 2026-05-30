@@ -169,16 +169,17 @@ function probeTokenJson(json) {
   if (!exp) return null;
 
   const base = deriveHealthFromExpiry(exp);
-  const remaining =
+  const remainingRequests =
     typeof json.remainingRequests === "number"
       ? json.remainingRequests
-      : typeof json.remaining === "number"
-        ? json.remaining
-        : null;
+      : null;
+  const remaining =
+    typeof json.remaining === "number" ? json.remaining : null;
+  const totalRemaining = remainingRequests ?? remaining;
   const resetAt = parseExpiresAt(json.resetAt) ?? base.resetAt;
   return {
     valid: base.valid,
-    remainingRequests: remaining,
+    remainingRequests: totalRemaining,
     resetAt,
     error: base.error,
   };
@@ -228,12 +229,10 @@ function emptyAccountSummary() {
 }
 
 function classifyAccount(account, probe) {
+  const rawCooldownUntil = account?.cooldownUntil;
+  const parsedCooldownUntil = rawCooldownUntil ? new Date(rawCooldownUntil) : null;
   const cooldownUntil =
-    account?.cooldownUntil instanceof Date
-      ? account.cooldownUntil
-      : account?.cooldownUntil
-        ? new Date(account.cooldownUntil)
-        : null;
+    rawCooldownUntil instanceof Date ? rawCooldownUntil : parsedCooldownUntil;
   const isCoolingDown =
     account?.status === "cooldown" ||
     (cooldownUntil &&
@@ -352,12 +351,14 @@ export async function computeDaemonHealth() {
   }
 
   const logExists = await exists(logPath);
+  const activeDaemonStatus =
+    pidAlive && configLoaded
+      ? DaemonHealthStatus.OK
+      : DaemonHealthStatus.DEGRADED;
   const status =
     watchedReposCount === 0
       ? DaemonHealthStatus.NOT_MONITORING
-      : pidAlive && configLoaded
-        ? DaemonHealthStatus.OK
-        : DaemonHealthStatus.DEGRADED;
+      : activeDaemonStatus;
 
   return {
     status,
