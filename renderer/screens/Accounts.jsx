@@ -49,7 +49,7 @@ export default function Accounts() {
 
   const loadHealth = async (id) => {
     try {
-      const health = await window.rotator.accounts.health(id);
+      const health = await globalThis.rotator.accounts.health(id);
       setHealthById((current) => ({ ...current, [id]: health }));
     } catch (err) {
       setHealthById((current) => ({
@@ -60,7 +60,7 @@ export default function Accounts() {
   };
 
   const load = () =>
-    window.rotator.accounts
+    globalThis.rotator.accounts
       .listDetails()
       .then((list) => {
         setRows(list);
@@ -68,7 +68,7 @@ export default function Accounts() {
         list.forEach((row) => loadHealth(row.id));
       })
       .catch(async () => {
-        const list = await window.rotator.accounts.list();
+        const list = await globalThis.rotator.accounts.list();
         setRows(list);
         if (list.length > 0 && !selectedAccount) setSelectedAccount(list[0]);
         list.forEach((row) => loadHealth(row.id));
@@ -98,7 +98,7 @@ export default function Accounts() {
 
     if (!window.confirm("Switch to this account?")) return;
     try {
-      await window.rotator.switcher.switch(id);
+      await globalThis.rotator.switcher.switch(id);
       await load();
     } catch (err) {
       alert(String(err));
@@ -113,7 +113,7 @@ export default function Accounts() {
 
   const handleManualAdd = async () => {
     try {
-      await window.rotator.accounts.add({
+      await globalThis.rotator.accounts.add({
         email: form.email,
         agentType: form.agentType,
         authBlob: form.authBlob,
@@ -142,7 +142,7 @@ export default function Accounts() {
     const url = getLoginUrl(form.agentType);
 
     try {
-      await window.rotator.app.openUrl(url);
+      await globalThis.rotator.app.openUrl(url);
     } catch (err) {
       alert(String(err));
     }
@@ -152,7 +152,7 @@ export default function Accounts() {
     try {
       setCapturing(true);
       setStatus("Starting capture...");
-      await window.rotator.accounts.capture({
+      await globalThis.rotator.accounts.capture({
         email: form.email,
         agentType: form.agentType,
         profileName: form.profileName || null,
@@ -637,7 +637,7 @@ export default function Accounts() {
                   const url =
                     selectedAccount.loginUrl ||
                     getLoginUrl(selectedAccount.agentType);
-                  await window.rotator.app.openUrl(url);
+                  await globalThis.rotator.app.openUrl(url);
                 }}
               >
                 {selectedAccount.loginUrl ||
