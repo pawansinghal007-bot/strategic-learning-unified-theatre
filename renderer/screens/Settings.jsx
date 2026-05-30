@@ -3,10 +3,10 @@ import React, { useEffect, useState } from 'react'
 export default function Settings() {
   const [cfg, setCfg] = useState({})
 
-  useEffect(() => { window.rotator.config.get().then(setCfg).catch(() => {}) }, [])
+  useEffect(() => { globalThis.rotator.config.get().then(setCfg).catch(() => {}) }, [])
 
   const update = (patch) => setCfg((c) => ({ ...c, ...patch }))
-  const save = async () => { await window.rotator.config.set(cfg); alert('Saved') }
+  const save = async () => { await globalThis.rotator.config.set(cfg); alert('Saved') }
 
   return (
     <div>
