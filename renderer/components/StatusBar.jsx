@@ -38,7 +38,7 @@ export default function StatusBar() {
   useEffect(() => {
     let mounted = true
     const refresh = () => {
-      window.rotator.health.aggregate().then((h) => {
+      globalThis.rotator.health.aggregate().then((h) => {
         if (mounted) setHealth(h)
       }).catch(() => {})
     }
