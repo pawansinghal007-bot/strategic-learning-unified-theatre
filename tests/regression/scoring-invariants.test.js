@@ -19,15 +19,25 @@ describe("Regression: Scoring Invariants", () => {
   // Helper: Create a random account
   function randomAccount(seed = Math.random()) {
     const now = Date.now();
-    const status =
-      seed < 0.3
-        ? "active"
-        : seed < 0.6
-          ? "cooldown"
-          : seed < 0.9
-            ? "retired"
-            : "active";
-    const cooldownOffset = seed < 0.3 ? -1000 : seed < 0.6 ? 60000 : 0;
+    let status;
+    if (seed < 0.3) {
+      status = "active";
+    } else if (seed < 0.6) {
+      status = "cooldown";
+    } else if (seed < 0.9) {
+      status = "retired";
+    } else {
+      status = "active";
+    }
+
+    let cooldownOffset;
+    if (seed < 0.3) {
+      cooldownOffset = -1000;
+    } else if (seed < 0.6) {
+      cooldownOffset = 60000;
+    } else {
+      cooldownOffset = 0;
+    }
 
     return {
       // Non-cryptographic randomness — used for unique test id generation only. // NOSONAR javascript:S2245
