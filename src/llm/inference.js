@@ -6,13 +6,20 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
-const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+const projectRoot = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../..",
+);
 const OLLAMA_DEFAULT_TIMEOUT_MS = 180000;
-const DEFAULT_OLLAMA_MODEL = process.env.VSCODE_ROTATOR_OLLAMA_MODEL ?? "phi3:mini";
-const OLLAMA_BIN_ENV = process.env.VSCODE_ROTATOR_OLLAMA_BIN ?? process.env.OLLAMA_PATH;
+const DEFAULT_OLLAMA_MODEL =
+  process.env.VSCODE_ROTATOR_OLLAMA_MODEL ?? "phi3:mini";
+const OLLAMA_BIN_ENV =
+  process.env.VSCODE_ROTATOR_OLLAMA_BIN ?? process.env.OLLAMA_PATH;
 
 async function importOptional(moduleName) {
-  return await new Function("moduleName", "return import(moduleName);")(moduleName);
+  return await new Function("moduleName", "return import(moduleName);")(
+    moduleName,
+  );
 }
 
 async function fileExists(filePath) {
@@ -31,7 +38,9 @@ function getWindowsOllamaCandidates() {
   const programFilesx86 = process.env["ProgramFiles(x86)"];
 
   if (localAppData) {
-    candidates.push(path.join(localAppData, "Programs", "Ollama", "ollama.exe"));
+    candidates.push(
+      path.join(localAppData, "Programs", "Ollama", "ollama.exe"),
+    );
   }
   if (programFiles) {
     candidates.push(path.join(programFiles, "Ollama", "ollama.exe"));
@@ -63,7 +72,7 @@ async function findOllamaBinary() {
   }
 
   throw new Error(
-    "Ollama binary not found. Install Ollama or set VSCODE_ROTATOR_OLLAMA_BIN to the executable path."
+    "Ollama binary not found. Install Ollama or set VSCODE_ROTATOR_OLLAMA_BIN to the executable path.",
   );
 }
 
@@ -73,7 +82,9 @@ export async function verifyOllamaInstalled() {
     await execFileAsync(binary, ["--version"], { timeout: 10000 });
     return true;
   } catch (error) {
-    throw new Error(`Ollama runtime not available: ${String(error?.message ?? error)}`);
+    throw new Error(
+      `Ollama runtime not available: ${String(error?.message ?? error)}`,
+    );
   }
 }
 
@@ -96,7 +107,9 @@ export async function isNodeLlamaCppInstalled() {
 }
 
 export async function resolvePreferredLlmProvider() {
-  const configured = (process.env.VSCODE_ROTATOR_LLM_PROVIDER ?? "").trim().toLowerCase();
+  const configured = (process.env.VSCODE_ROTATOR_LLM_PROVIDER ?? "")
+    .trim()
+    .toLowerCase();
 
   if (configured === "ollama") return "ollama";
   if (configured === "node-llama-cpp") return "node-llama-cpp";
@@ -105,7 +118,7 @@ export async function resolvePreferredLlmProvider() {
   if (await isOllamaAvailable()) return "ollama";
 
   throw new Error(
-    "No local inference provider available. Install node-llama-cpp or Ollama and set VSCODE_ROTATOR_LLM_PROVIDER if needed."
+    "No local inference provider available. Install node-llama-cpp or Ollama and set VSCODE_ROTATOR_LLM_PROVIDER if needed.",
   );
 }
 
@@ -124,7 +137,7 @@ export async function verifyNodeLlamaCppInstalled() {
 }
 
 function parseOllamaOutput(output) {
-  const lines = output.replace(/\r/g, "").split(/\n/);
+  const lines = output.replaceAll(/\r/g, "").split(/\n/);
   while (lines.length > 0 && lines[lines.length - 1].trim() === "---") {
     lines.pop();
   }
@@ -132,7 +145,9 @@ function parseOllamaOutput(output) {
 }
 
 function parseOllamaListOutput(output) {
-  const normalized = String(output ?? "").replace(/\r/g, "").trim();
+  const normalized = String(output ?? "")
+    .replaceAll(/\r/g, "")
+    .trim();
   if (!normalized) return [];
 
   try {
@@ -146,7 +161,10 @@ function parseOllamaListOutput(output) {
     // Fallback to plain table parsing
   }
 
-  const lines = normalized.split(/\n/).map((line) => line.trim()).filter(Boolean);
+  const lines = normalized
+    .split(/\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
   const headerIndex = lines.findIndex((line) => /^NAME\b/i.test(line));
   const rows = headerIndex >= 0 ? lines.slice(headerIndex + 1) : lines;
   return rows.map((line) => line.split(/\s+/)[0]).filter(Boolean);
@@ -157,14 +175,14 @@ export async function listOllamaModels() {
   try {
     const { stdout } = await execFileAsync(binary, ["list", "--json"], {
       timeout: 10000,
-      maxBuffer: 50 * 1024 * 1024
+      maxBuffer: 50 * 1024 * 1024,
     });
     return parseOllamaListOutput(stdout);
   } catch {
     try {
       const { stdout } = await execFileAsync(binary, ["list"], {
         timeout: 10000,
-        maxBuffer: 50 * 1024 * 1024
+        maxBuffer: 50 * 1024 * 1024,
       });
       return parseOllamaListOutput(stdout);
     } catch {
@@ -178,31 +196,42 @@ export async function installOllamaModel(modelName) {
   try {
     await execFileAsync(binary, ["pull", modelName], {
       timeout: 600000,
-      maxBuffer: 50 * 1024 * 1024
+      maxBuffer: 50 * 1024 * 1024,
     });
     return true;
   } catch (error) {
-    throw new Error(`Ollama install failed: ${String(error?.message ?? error)}`);
+    throw new Error(
+      `Ollama install failed: ${String(error?.message ?? error)}`,
+    );
   }
 }
 
-async function runOllama({ prompt, modelPath, timeout = OLLAMA_DEFAULT_TIMEOUT_MS } = {}) {
+async function runOllama({
+  prompt,
+  modelPath,
+  timeout = OLLAMA_DEFAULT_TIMEOUT_MS,
+} = {}) {
   const binary = await findOllamaBinary();
   const modelArg = modelPath ?? DEFAULT_OLLAMA_MODEL;
 
   try {
     const { stdout } = await execFileAsync(binary, ["run", modelArg, prompt], {
       timeout,
-      maxBuffer: 50 * 1024 * 1024
+      maxBuffer: 50 * 1024 * 1024,
     });
     return parseOllamaOutput(stdout);
   } catch (error) {
-    throw new Error(`Ollama execution failed: ${String(error?.message ?? error)}`);
+    throw new Error(
+      `Ollama execution failed: ${String(error?.message ?? error)}`,
+    );
   }
 }
 
 function defaultModelDir(baseDir) {
-  return path.join(baseDir ?? path.join(os.homedir(), ".vscode-rotator"), "models");
+  return path.join(
+    baseDir ?? path.join(os.homedir(), ".vscode-rotator"),
+    "models",
+  );
 }
 
 async function exists(filePath) {
@@ -221,7 +250,13 @@ async function ollamaModelExists(modelName) {
 }
 
 export class LocalLlmInference {
-  constructor({ baseDir, modelPath, contextSize = 4096, temperature = 0.3, topP = 0.9 } = {}) {
+  constructor({
+    baseDir,
+    modelPath,
+    contextSize = 4096,
+    temperature = 0.3,
+    topP = 0.9,
+  } = {}) {
     this.baseDir = baseDir;
     this.modelPath = modelPath;
     this.contextSize = contextSize;
@@ -246,7 +281,9 @@ export class LocalLlmInference {
     if (provider === "node-llama-cpp") {
       const modelPath = await this.resolveModelPath();
       if (!modelPath || !(await exists(modelPath))) {
-        throw new Error("No local LLM model found. Run: strategic-learning-unified-theatre llm setup --model phi3");
+        throw new Error(
+          "No local LLM model found. Run: strategic-learning-unified-theatre llm setup --model phi3",
+        );
       }
       await verifyLocalLlmRuntime();
       return modelPath;
@@ -286,13 +323,17 @@ export class LocalLlmInference {
     const llama = await importOptional("node-llama-cpp");
     const getLlama = llama.getLlama ?? llama.default?.getLlama;
     if (!getLlama) throw new Error("Unsupported node-llama-cpp version.");
-    const runtime = await getLlama({ gpu: false, build: 'lastBuild' });
+    const runtime = await getLlama({ gpu: false, build: "lastBuild" });
     const model = await runtime.loadModel({ modelPath });
-    const context = await model.createContext({ contextSize: this.contextSize });
-    const session = new llama.LlamaChatSession({ contextSequence: context.getSequence() });
+    const context = await model.createContext({
+      contextSize: this.contextSize,
+    });
+    const session = new llama.LlamaChatSession({
+      contextSequence: context.getSequence(),
+    });
     const response = await session.prompt(fullPrompt, {
       temperature: this.temperature,
-      topP: this.topP
+      topP: this.topP,
     });
 
     if (typeof context.free === "function") {
