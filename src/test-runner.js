@@ -22,7 +22,10 @@ async function pathExists(filePath) {
 
 async function runProcess(cmd, args, opts = {}) {
   return new Promise((resolve, reject) => {
-    const child = spawn(cmd, args, { stdio: ["ignore", "pipe", "pipe"], ...opts });
+    const child = spawn(cmd, args, {
+      stdio: ["ignore", "pipe", "pipe"],
+      ...opts,
+    });
     let stdout = "";
     let stderr = "";
 
@@ -48,7 +51,7 @@ export async function detectPython() {
         return {
           available: true,
           version: output.replace(/^Python\s+/i, ""),
-          cmd
+          cmd,
         };
       }
     } catch {
@@ -64,7 +67,7 @@ export async function detectRobotFramework(pythonCmd = "python") {
     if (result.code === 0) {
       return {
         available: true,
-        version: result.stdout.trim().split(/\r?\n/)[0] || null
+        version: result.stdout.trim().split(/\r?\n/)[0] || null,
       };
     }
   } catch {
@@ -76,9 +79,9 @@ export async function detectRobotFramework(pythonCmd = "python") {
 function toSnakeCase(name) {
   return name
     .replace(/\.js$/i, "")
-    .replace(/([a-z0-9])([A-Z])/g, "$1_$2")
-    .replace(/[^a-z0-9]+/gi, "_")
-    .replace(/^_+|_+$/g, "")
+    .replaceAll(/([a-z0-9])([A-Z])/g, "$1_$2")
+    .replaceAll(/[^a-z0-9]+/gi, "_")
+    .replaceAll(/^_+|_+$/g, "")
     .toLowerCase();
 }
 
@@ -92,7 +95,7 @@ function extractExportedNames(source) {
   for (const regex of [
     /export\s+function\s+([A-Za-z0-9_]+)/g,
     /export\s+(?:const|let|var)\s+([A-Za-z0-9_]+)\s*=/g,
-    /export\s+default\s+function(?:\s+([A-Za-z0-9_]+))?/g
+    /export\s+default\s+function(?:\s+([A-Za-z0-9_]+))?/g,
   ]) {
     let match;
     while ((match = regex.exec(source))) {
@@ -108,7 +111,10 @@ async function atomicWrite(filePath, content) {
   await fs.rename(tmpPath, filePath);
 }
 
-export async function generateSkeletonRobotFile(srcFile, robotDir = path.resolve(DEFAULT_BASE_DIR, "robot")) {
+export async function generateSkeletonRobotFile(
+  srcFile,
+  robotDir = path.resolve(DEFAULT_BASE_DIR, "robot"),
+) {
   const srcPath = path.resolve(srcFile);
   if (!(await pathExists(srcPath))) {
     throw new Error(`Source file not found: ${srcFile}`);
@@ -122,7 +128,8 @@ export async function generateSkeletonRobotFile(srcFile, robotDir = path.resolve
   const testCases = exported.length
     ? exported
         .map(
-          (name) => `*** Test Cases ***\n${name}\n    [Documentation]    TODO implement test for ${name}\n    Fail    Test stub for ${name}`
+          (name) =>
+            `*** Test Cases ***\n${name}\n    [Documentation]    TODO implement test for ${name}\n    Fail    Test stub for ${name}`,
         )
         .join("\n\n")
     : "*** Test Cases ***\nPlaceholder test\n    Fail    TODO add tests";
@@ -132,7 +139,11 @@ export async function generateSkeletonRobotFile(srcFile, robotDir = path.resolve
   return robotPath;
 }
 
-export async function enforceTdd(srcFile, robotDir = path.resolve(DEFAULT_BASE_DIR, "robot"), options = {}) {
+export async function enforceTdd(
+  srcFile,
+  robotDir = path.resolve(DEFAULT_BASE_DIR, "robot"),
+  options = {},
+) {
   const srcPath = path.resolve(srcFile);
   const robotPath = deriveRobotPath(srcPath, robotDir);
   const exists = await pathExists(robotPath);
@@ -145,7 +156,7 @@ export async function enforceTdd(srcFile, robotDir = path.resolve(DEFAULT_BASE_D
       robotPath,
       srcMtime: srcStat.mtimeMs,
       robotMtime: null,
-      reason: `No robot test found for ${srcFile}. Write the test first.`
+      reason: `No robot test found for ${srcFile}. Write the test first.`,
     };
   }
 
@@ -156,7 +167,7 @@ export async function enforceTdd(srcFile, robotDir = path.resolve(DEFAULT_BASE_D
       robotPath,
       srcMtime: srcStat.mtimeMs,
       robotMtime: robotStat.mtimeMs,
-      reason: `Implementation was modified after its test. Run tests before modifying ${srcFile}.`
+      reason: `Implementation was modified after its test. Run tests before modifying ${srcFile}.`,
     };
   }
 
@@ -165,14 +176,20 @@ export async function enforceTdd(srcFile, robotDir = path.resolve(DEFAULT_BASE_D
     robotPath,
     srcMtime: srcStat.mtimeMs,
     robotMtime: robotStat.mtimeMs,
-    reason: null
+    reason: null,
   };
 }
 
-export async function assertTddGate(srcFiles, robotDir = path.resolve(DEFAULT_BASE_DIR, "robot"), options = { strict: true, graceMs: 0 }) {
+export async function assertTddGate(
+  srcFiles,
+  robotDir = path.resolve(DEFAULT_BASE_DIR, "robot"),
+  options = { strict: true, graceMs: 0 },
+) {
   const violations = [];
   for (const file of srcFiles) {
-    const result = await enforceTdd(file, robotDir, { graceMs: options.graceMs });
+    const result = await enforceTdd(file, robotDir, {
+      graceMs: options.graceMs,
+    });
     if (!result.compliant) {
       violations.push(result);
     }
@@ -180,7 +197,7 @@ export async function assertTddGate(srcFiles, robotDir = path.resolve(DEFAULT_BA
 
   if (violations.length && options.strict) {
     throw new TddViolationError(
-      `TDD violations found: ${violations.map((violation) => violation.reason).join("; ")}`
+      `TDD violations found: ${violations.map((violation) => violation.reason).join("; ")}`,
     );
   }
 
@@ -194,7 +211,7 @@ function parseRobotStats(xml) {
   return {
     passed: passMatch ? Number(passMatch[1]) : 0,
     failed: failMatch ? Number(failMatch[1]) : 0,
-    skipped: skipMatch ? Number(skipMatch[1]) : 0
+    skipped: skipMatch ? Number(skipMatch[1]) : 0,
   };
 }
 
@@ -209,13 +226,20 @@ function parseRobotErrors(xml) {
 }
 
 export async function persistResultsToDb(results, baseDir = DEFAULT_BASE_DIR) {
-  console.warn("persistResultsToDb() is not implemented yet. Install SQLite persistence before using.");
+  console.warn(
+    "persistResultsToDb() is not implemented yet. Install SQLite persistence before using.",
+  );
   return null;
 }
 
-function resolveRobotPath(robotPath, robotDir = path.resolve(DEFAULT_BASE_DIR, "robot")) {
+function resolveRobotPath(
+  robotPath,
+  robotDir = path.resolve(DEFAULT_BASE_DIR, "robot"),
+) {
   if (!robotPath) return null;
-  return path.isAbsolute(robotPath) ? robotPath : path.resolve(robotDir, robotPath);
+  return path.isAbsolute(robotPath)
+    ? robotPath
+    : path.resolve(robotDir, robotPath);
 }
 
 async function collectRobotFiles(dir) {
@@ -233,7 +257,9 @@ async function collectRobotFiles(dir) {
   return results;
 }
 
-export async function listRobotFiles(robotDir = path.resolve(DEFAULT_BASE_DIR, "robot")) {
+export async function listRobotFiles(
+  robotDir = path.resolve(DEFAULT_BASE_DIR, "robot"),
+) {
   const resolvedRoot = path.resolve(robotDir);
   if (!(await pathExists(resolvedRoot))) {
     return [];
@@ -242,7 +268,10 @@ export async function listRobotFiles(robotDir = path.resolve(DEFAULT_BASE_DIR, "
   return files.map((file) => path.relative(resolvedRoot, file)).sort();
 }
 
-export async function readRobotFile(robotPath, robotDir = path.resolve(DEFAULT_BASE_DIR, "robot")) {
+export async function readRobotFile(
+  robotPath,
+  robotDir = path.resolve(DEFAULT_BASE_DIR, "robot"),
+) {
   const resolvedPath = resolveRobotPath(robotPath, robotDir);
   if (!(await pathExists(resolvedPath))) {
     throw new Error(`Robot file not found: ${robotPath}`);
@@ -253,12 +282,16 @@ export async function readRobotFile(robotPath, robotDir = path.resolve(DEFAULT_B
 export async function runRobotFile(robotPath, outputDir = null, env = {}) {
   const python = await detectPython();
   if (!python.available) {
-    throw new RobotFrameworkError("Python 3.10+ is required for Robot Framework tests.");
+    throw new RobotFrameworkError(
+      "Python 3.10+ is required for Robot Framework tests.",
+    );
   }
 
   const robot = await detectRobotFramework(python.cmd);
   if (!robot.available) {
-    throw new RobotFrameworkError("Robot Framework is unavailable. Run: pip install robotframework robotframework-playwright");
+    throw new RobotFrameworkError(
+      "Robot Framework is unavailable. Run: pip install robotframework robotframework-playwright",
+    );
   }
 
   const resolvedPath = resolveRobotPath(robotPath);
@@ -266,15 +299,33 @@ export async function runRobotFile(robotPath, outputDir = null, env = {}) {
     throw new Error(`Robot file not found: ${resolvedPath}`);
   }
 
-  const outputDirectory = outputDir ? path.resolve(outputDir) : path.resolve(DEFAULT_BASE_DIR, "robot-results");
+  const outputDirectory = outputDir
+    ? path.resolve(outputDir)
+    : path.resolve(DEFAULT_BASE_DIR, "robot-results");
   await fs.mkdir(outputDirectory, { recursive: true });
   const outputXml = path.join(outputDirectory, "output.xml");
   const reportHtml = path.join(outputDirectory, "report.html");
   const logHtml = path.join(outputDirectory, "log.html");
 
-  const args = ["-m", "robot", "--outputdir", outputDirectory, "--output", "output.xml", "--log", "log.html", "--report", "report.html", resolvedPath];
-  const result = await runProcess(python.cmd, args, { env: { ...process.env, ...env } });
-  const xmlContents = (await pathExists(outputXml)) ? await fs.readFile(outputXml, "utf8") : "";
+  const args = [
+    "-m",
+    "robot",
+    "--outputdir",
+    outputDirectory,
+    "--output",
+    "output.xml",
+    "--log",
+    "log.html",
+    "--report",
+    "report.html",
+    resolvedPath,
+  ];
+  const result = await runProcess(python.cmd, args, {
+    env: { ...process.env, ...env },
+  });
+  const xmlContents = (await pathExists(outputXml))
+    ? await fs.readFile(outputXml, "utf8")
+    : "";
   const stats = parseRobotStats(xmlContents);
   const errors = xmlContents ? parseRobotErrors(xmlContents) : [];
 
@@ -287,7 +338,7 @@ export async function runRobotFile(robotPath, outputDir = null, env = {}) {
     reportHtml,
     logHtml,
     durationMs: 0,
-    errors
+    errors,
   };
 
   await persistResultsToDb(summary, DEFAULT_BASE_DIR).catch(() => {});
@@ -301,16 +352,20 @@ export async function runSuite({
   outputDir = null,
   dryRun = false,
   baseDir = DEFAULT_BASE_DIR,
-  env = {}
+  env = {},
 } = {}) {
   const python = await detectPython();
   if (!python.available) {
-    throw new RobotFrameworkError("Python 3.10+ is required for Robot Framework tests.");
+    throw new RobotFrameworkError(
+      "Python 3.10+ is required for Robot Framework tests.",
+    );
   }
 
   const robot = await detectRobotFramework(python.cmd);
   if (!robot.available) {
-    throw new RobotFrameworkError("Robot Framework is unavailable. Run: pip install robotframework robotframework-playwright");
+    throw new RobotFrameworkError(
+      "Robot Framework is unavailable. Run: pip install robotframework robotframework-playwright",
+    );
   }
 
   if (typeof suite === "string" && suite.toLowerCase().endsWith(".robot")) {
@@ -321,7 +376,7 @@ export async function runSuite({
     all: path.resolve(baseDir, "robot"),
     functional: path.resolve(baseDir, "robot", "functional"),
     non_functional: path.resolve(baseDir, "robot", "non_functional"),
-    regression: path.resolve(baseDir, "robot", "regression")
+    regression: path.resolve(baseDir, "robot", "regression"),
   };
 
   const suitePath = suiteMap[suite] || suiteMap.all;
@@ -334,14 +389,29 @@ export async function runSuite({
   const reportHtml = path.join(outputDir, "report.html");
   const logHtml = path.join(outputDir, "log.html");
 
-  const args = ["-m", "robot", "--outputdir", outputDir, "--output", "output.xml", "--log", "log.html", "--report", "report.html"];
+  const args = [
+    "-m",
+    "robot",
+    "--outputdir",
+    outputDir,
+    "--output",
+    "output.xml",
+    "--log",
+    "log.html",
+    "--report",
+    "report.html",
+  ];
   if (dryRun) args.push("--dryrun");
   for (const tag of tags) args.push("--include", tag);
   for (const tag of excludeTags) args.push("--exclude", tag);
   args.push(suitePath);
 
-  const result = await runProcess(python.cmd, args, { env: { ...process.env, ...env } });
-  const xmlContents = (await pathExists(outputXml)) ? await fs.readFile(outputXml, "utf8") : "";
+  const result = await runProcess(python.cmd, args, {
+    env: { ...process.env, ...env },
+  });
+  const xmlContents = (await pathExists(outputXml))
+    ? await fs.readFile(outputXml, "utf8")
+    : "";
   const stats = parseRobotStats(xmlContents);
   const errors = xmlContents ? parseRobotErrors(xmlContents) : [];
 
@@ -354,7 +424,7 @@ export async function runSuite({
     reportHtml,
     logHtml,
     durationMs: 0,
-    errors
+    errors,
   };
 
   await persistResultsToDb(summary, baseDir).catch(() => {});
@@ -376,13 +446,17 @@ function collectJsFiles(dir) {
           return [resolved];
         }
         return [];
-      })
-    ).then((nested) => nested.flat())
+      }),
+    ).then((nested) => nested.flat()),
   );
 }
 
 const program = new Command();
-program.name("strategic-learning-unified-theatre-test-runner").description("Robot Framework test runner and TDD helper for strategic-learning-unified-theatre");
+program
+  .name("strategic-learning-unified-theatre-test-runner")
+  .description(
+    "Robot Framework test runner and TDD helper for strategic-learning-unified-theatre",
+  );
 
 program
   .command("suite")
@@ -390,7 +464,11 @@ program
   .option("--suite <name>", "all|functional|non_functional|regression", "all")
   .option("--include <tags...>", "Tags to include", [])
   .option("--exclude <tags...>", "Tags to exclude", [])
-  .option("--output-dir <path>", "Output directory for Robot results", path.resolve(DEFAULT_BASE_DIR, "robot-results"))
+  .option(
+    "--output-dir <path>",
+    "Output directory for Robot results",
+    path.resolve(DEFAULT_BASE_DIR, "robot-results"),
+  )
   .option("--dry-run", "Run Robot Framework in dry-run mode")
   .action(async (options) => {
     try {
@@ -399,9 +477,11 @@ program
         tags: options.include,
         excludeTags: options.exclude,
         outputDir: path.resolve(options.outputDir),
-        dryRun: Boolean(options.dryRun)
+        dryRun: Boolean(options.dryRun),
       });
-      console.log(`Robot suite completed: passed=${summary.passed} failed=${summary.failed} skipped=${summary.skipped}`);
+      console.log(
+        `Robot suite completed: passed=${summary.passed} failed=${summary.failed} skipped=${summary.skipped}`,
+      );
       if (summary.errors.length) {
         console.log("Errors:", summary.errors.join(", "));
       }
@@ -421,10 +501,14 @@ program
       const files = file
         ? [file]
         : await collectJsFiles(path.resolve(DEFAULT_BASE_DIR, "src"));
-      const violations = await assertTddGate(files, path.resolve(DEFAULT_BASE_DIR, "robot"), {
-        strict: false,
-        graceMs: Number(options.graceMs)
-      });
+      const violations = await assertTddGate(
+        files,
+        path.resolve(DEFAULT_BASE_DIR, "robot"),
+        {
+          strict: false,
+          graceMs: Number(options.graceMs),
+        },
+      );
       if (violations.length) {
         console.log(`TDD check found ${violations.length} violation(s)`);
         violations.forEach((violation) => {
@@ -442,7 +526,9 @@ program
 
 program
   .command("skeleton <srcFile>")
-  .description("Generate a Robot Framework skeleton test file for a source file")
+  .description(
+    "Generate a Robot Framework skeleton test file for a source file",
+  )
   .action(async (srcFile) => {
     try {
       const generated = await generateSkeletonRobotFile(srcFile);
@@ -466,4 +552,3 @@ program
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   program.parse(process.argv);
 }
-
