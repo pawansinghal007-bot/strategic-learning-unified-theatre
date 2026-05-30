@@ -105,18 +105,14 @@ export async function getLlmStatus({ baseDir } = {}) {
   return {
     available: models.length > 0,
     models,
-    modelPath:
-      ggufModels.length > 0
-        ? path.join(dir, ggufModels[0])
-        : ollamaModels.length > 0
-          ? ollamaModels[0]
-          : null,
-    provider:
-      ggufModels.length > 0
-        ? "node-llama-cpp"
-        : ollamaModels.length > 0
-          ? "ollama"
-          : null,
+    modelPath: ((): string | null => {
+      const fallback = ollamaModels.length > 0 ? ollamaModels[0] : null;
+      return ggufModels.length > 0 ? path.join(dir, ggufModels[0]) : fallback;
+    })(),
+    provider: ((): string | null => {
+      const fallback = ollamaModels.length > 0 ? "ollama" : null;
+      return ggufModels.length > 0 ? "node-llama-cpp" : fallback;
+    })(),
     ollamaAvailable,
   };
 }
