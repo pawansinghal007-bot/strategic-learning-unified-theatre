@@ -9,7 +9,6 @@ import GitMonitor from "./screens/GitMonitor";
 import ProgressLog from "./screens/ProgressLog";
 import Settings from "./screens/Settings";
 import LocalLLM from "./screens/LocalLLM";
-import BrowserAutomation from "./screens/BrowserAutomation";
 import BrowserPanel from "./BrowserPanel";
 import PromptTemplates from "./screens/PromptTemplates";
 import RobotFramework from "./screens/RobotFramework";
