@@ -121,6 +121,7 @@
     "pdf-parse": "^2.4.5"
   },
   "devDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "^4.60.4",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
@@ -133,10 +134,10 @@
     "electron-builder": "^24.0.0",
     "jsdom": "^29.1.1",
     "tailwindcss": "^3.4.5",
-    "vite": "^8.0.14",
-    "vitest": "^4.1.7",
     "tsx": "^4.7.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vite": "^8.0.14",
+    "vitest": "^4.1.7"
   },
   "author": "Pawan Singhal"
 }

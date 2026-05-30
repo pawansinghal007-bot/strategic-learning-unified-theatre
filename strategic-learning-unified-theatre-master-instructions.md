@@ -96,3 +96,9 @@ Snapshot discipline:
   triage snapshots (4A-1 through 4A-4) must not be deleted
   until v1.4-stable is written and pushed
   always commit + push snapshot immediately after writing
+
+## Sprint 1b complete
+- 19/19 S3776 fixed at threshold 15 (18 original + 1 post-rescan)
+- Profile drift: Sonar way updated 2026-05-27 raised threshold
+- Always record threshold in triage snapshot
+- Post-rescan inline fixes: same file may have multiple functions

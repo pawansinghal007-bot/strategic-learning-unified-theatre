@@ -1,0 +1,15 @@
+SPRINT: S3776 sprint 1b
+STATUS: stable
+
+LOW  7/7 fixed: idea-store, document-ingester, plugin-loader,
+                reporter, browser-bridge, handoff, inference
+MED  7/7 fixed: training-exporter, check-sonar-readiness,
+                test-bc2, encrypt, collector, experience-db, config
+HIGH 4/4 fixed: health, paths(x2), embeddings
+EXTRA: idea-store.js:209 fixed post-rescan
+DEFERRED: 0
+S3776 rescan: 0 confirmed
+VALIDATION: 528 tests pass, typecheck pass, build pass
+PROFILE DRIFT: Sonar way updated 2026-05-27, threshold raised to 15
+PREVIOUS: S2004 0/v1.3-stable, S4123 0/v1.4-stable
+NEXT: Prompt 5 full rescan — baseline was 409
