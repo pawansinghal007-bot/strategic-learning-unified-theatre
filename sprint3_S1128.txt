@@ -1,0 +1,21 @@
+S1128: 20
+  tests/sprint18-smoke.test.js 8 Remove this unused import of 'DomainError'.
+  tests/browser-bridge.test.js 9 Remove this unused import of 'savePromptLibrary'.
+  BC2-INTEGRATION-GUIDE.js 9 Remove this unused import of 'existsSync'.
+  renderer/App.jsx 12 Remove this unused import of 'BrowserAutomation'.
+  scripts/plugin_test_runner.mjs 4 Remove this unused import of 'pathToFileURL'.
+  test-bc2-diagnostics.js 7 Remove this unused import of 'execSync'.
+  tests/auto-handoff.test.js 4 Remove this unused import of 'os'.
+  tests/config-validation.test.js 9 Remove this unused import of 'configPath'.
+  tests/config-policy.test.js 6 Remove this unused import of 'afterEach'.
+  tests/config-policy.test.js 6 Remove this unused import of 'beforeEach'.
+  tests/config-validation.test.js 10 Remove this unused import of 'DomainError'.
+  tests/regression/ingestion-error-handling.test.js 8 Remove this unused import of 'vi'.
+  tests/regression/malformed-payloads.test.js 9 Remove this unused import of 'vi'.
+  tests/ai-memory.test.js 24 Remove this unused import of 'CommandsRepo'.
+  vscode-extension/collector.js 3 Remove this unused import of 'os'.
+  src/commands/handoff.js 13 Remove this unused import of 'getActiveSprint'.
+  src/commands/browser.js 13 Remove this unused import of 'updatePrompt'.
+  src/test-runner.js 3 Remove this unused import of 'os'.
+  test/agent-handoff.test.js 16 Remove this unused import of 'generateResumePrompt'.
+  tests/idea-store.test.js 1 Remove this unused import of 'vi'.

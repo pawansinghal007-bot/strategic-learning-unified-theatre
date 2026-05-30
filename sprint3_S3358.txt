@@ -1,0 +1,22 @@
+S3358: 21
+  src/local-llm.js 100 Extract this nested ternary operation into an independent statement.
+  src/local-llm.js 103 Extract this nested ternary operation into an independent statement.
+  renderer/components/Sidebar.jsx 406 Extract this nested ternary operation into an independent statement.
+  renderer/components/Sidebar.jsx 488 Extract this nested ternary operation into an independent statement.
+  renderer/screens/Accounts.jsx 23 Extract this nested ternary operation into an independent statement.
+  renderer/screens/Accounts.jsx 549 Extract this nested ternary operation into an independent statement.
+  renderer/screens/PromptTemplates.jsx 148 Extract this nested ternary operation into an independent statement.
+  src/accounts/health.js 175 Extract this nested ternary operation into an independent statement.
+  src/accounts/health.js 234 Extract this nested ternary operation into an independent statement.
+  src/accounts/health.js 358 Extract this nested ternary operation into an independent statement.
+  src/internal/paths.js 226 Extract this nested ternary operation into an independent statement.
+  src/llm/local-llm.js 111 Extract this nested ternary operation into an independent statement.
+  src/llm/local-llm.js 117 Extract this nested ternary operation into an independent statement.
+  renderer/components/Sidebar.jsx 409 Extract this nested ternary operation into an independent statement.
+  tests/regression/scoring-invariants.test.js 25 Extract this nested ternary operation into an independent statement.
+  tests/regression/scoring-invariants.test.js 27 Extract this nested ternary operation into an independent statement.
+  tests/regression/scoring-invariants.test.js 30 Extract this nested ternary operation into an independent statement.
+  src/agent-handoff.js 492 Extract this nested ternary operation into an independent statement.
+  src/idea-store.js 165 Extract this nested ternary operation into an independent statement.
+  src/cli.js 546 Extract this nested ternary operation into an independent statement.
+  src/internal/reporter.js 18 Extract this nested ternary operation into an independent statement.

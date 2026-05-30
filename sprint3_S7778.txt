@@ -1,0 +1,21 @@
+S7778: 20
+  src/llm/training-exporter.js 145 Do not call `Array#push()` multiple times.
+  src/llm/training-exporter.js 146 Do not call `Array#push()` multiple times.
+  src/internal/paths.js 104 Do not call `Array#push()` multiple times.
+  src/internal/paths.js 118 Do not call `Array#push()` multiple times.
+  src/internal/paths.js 136 Do not call `Array#push()` multiple times.
+  src/internal/paths.js 142 Do not call `Array#push()` multiple times.
+  src/internal/paths.js 294 Do not call `Array#push()` multiple times.
+  src/internal/paths.js 295 Do not call `Array#push()` multiple times.
+  src/internal/paths.js 306 Do not call `Array#push()` multiple times.
+  src/internal/paths.js 307 Do not call `Array#push()` multiple times.
+  src/internal/paths.js 319 Do not call `Array#push()` multiple times.
+  src/internal/paths.js 320 Do not call `Array#push()` multiple times.
+  src/internal/paths.js 321 Do not call `Array#push()` multiple times.
+  src/internal/paths.js 322 Do not call `Array#push()` multiple times.
+  src/internal/paths.js 323 Do not call `Array#push()` multiple times.
+  src/internal/paths.js 324 Do not call `Array#push()` multiple times.
+  src/llm/inference.js 66 Do not call `Array#push()` multiple times.
+  vscode-extension/extension.js 122 Do not call `Array#push()` multiple times.
+  vscode-extension/extension.js 126 Do not call `Array#push()` multiple times.
+  vscode-extension/extension.js 148 Do not call `Array#push()` multiple times.

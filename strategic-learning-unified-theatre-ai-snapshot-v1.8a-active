@@ -1,0 +1,23 @@
+SLUT 3A: triage S3358+S7778+S1128
+
+Live API counts:
+- S3358: 21
+- S7778: 20
+- S1128: 20
+
+Rule summary:
+
+RULE | DESCRIPTION | FIX PATTERN | DIFFICULTY
+-----|-------------|-------------|-----------
+S3358 | Flags nested ternary operators that reduce readability. | Extract nested conditions into named variables and/or replace with if/else blocks. | MED
+S7778 | Flags repeated `Array.prototype.push()` calls on the same array. | Replace repeated pushes with a single literal/constructor, spread, or batch array concatenation. | EASY
+S1128 | Flags unused imports that should be removed. | Remove the import declarations that are never referenced. | EASY
+
+Top file distribution per rule:
+- S3358: tests/regression/scoring-invariants.test.js (3), src/accounts/health.js (3), renderer/components/Sidebar.jsx (3)
+- S7778: src/internal/paths.js (14), vscode-extension/extension.js (3), src/llm/training-exporter.js (2)
+- S1128: tests/config-validation.test.js (2), tests/config-policy.test.js (2), vscode-extension/collector.js (1)
+
+Notes:
+- `sonar_issues.csv` counts match live API output for all three rules.
+- Use the generated `sprint3_S3358.txt`, `sprint3_S7778.txt`, and `sprint3_S1128.txt` files as the detailed issue lists.
