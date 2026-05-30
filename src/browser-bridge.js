@@ -127,19 +127,20 @@ async function tagResponse(filename, { quality, notes, baseDir } = {}) {
       let rawEmbedding = row.embedding;
       if (rawEmbedding instanceof Float32Array) {
         const buf = Buffer.allocUnsafe(rawEmbedding.length * 4);
-        for (let i = 0; i < rawEmbedding.length; i++) buf.writeFloatLE(rawEmbedding[i], i * 4);
+        for (let i = 0; i < rawEmbedding.length; i++)
+          buf.writeFloatLE(rawEmbedding[i], i * 4);
         rawEmbedding = buf;
       }
       return {
-        content:     row.content,
-        embedding:   rawEmbedding,
+        content: row.content,
+        embedding: rawEmbedding,
         source_type: row.source_type,
-        platform:    row.platform,
-        file_ts:     row.file_ts,
-        turn_index:  row.turn_index  ?? null,
-        metadata:    row.metadata    ?? null,
-        quality:     normalized,
-        notes:       notes?.trim() ? notes.trim() : null,
+        platform: row.platform,
+        file_ts: row.file_ts,
+        turn_index: row.turn_index ?? null,
+        metadata: row.metadata ?? null,
+        quality: normalized,
+        notes: notes?.trim() ? notes.trim() : null,
       };
     });
     await db.replaceDocumentsForFile(responsePath, updatedChunks);
@@ -301,11 +302,17 @@ async function setupLauncher(normalizedType, config, executablePath) {
 
   if (normalizedType === "firefox") {
     launcher = firefox;
-    execPath = executablePath || process.env.FIREFOX_PATH || (config && config.browserPaths && config.browserPaths.firefox);
+    execPath =
+      executablePath ||
+      process.env.FIREFOX_PATH ||
+      (config && config.browserPaths && config.browserPaths.firefox);
   } else {
     launcher = chromium;
     if (normalizedType === "brave") {
-      execPath = executablePath || process.env.BRAVE_PATH || (config && config.browserPaths && config.browserPaths.brave);
+      execPath =
+        executablePath ||
+        process.env.BRAVE_PATH ||
+        (config && config.browserPaths && config.browserPaths.brave);
     }
   }
 
@@ -323,7 +330,11 @@ export async function launchBrowser(options = {}) {
   const config = await loadConfig();
 
   const normalizedType = browserType === "chrome" ? "chromium" : browserType;
-  const { launcher, executablePath: resolvedPath } = await setupLauncher(normalizedType, config, executablePath);
+  const { launcher, executablePath: resolvedPath } = await setupLauncher(
+    normalizedType,
+    config,
+    executablePath,
+  );
 
   const launchOptions = {
     headless,
@@ -399,16 +410,33 @@ export async function sendPrompt(options) {
   const captureId = `${platform}:${Date.now()}`;
 
   if (dryRun) {
-    log.info("browser.sendPrompt.start", { correlationId: captureId, platform, dryRun: true });
-    log.info("browser.sendPrompt.success", { correlationId: captureId, platform, dryRun: true });
-    return { platform, prompt, dryRun: true, message: `Would send prompt to ${platform}` };
+    log.info("browser.sendPrompt.start", {
+      correlationId: captureId,
+      platform,
+      dryRun: true,
+    });
+    log.info("browser.sendPrompt.success", {
+      correlationId: captureId,
+      platform,
+      dryRun: true,
+    });
+    return {
+      platform,
+      prompt,
+      dryRun: true,
+      message: `Would send prompt to ${platform}`,
+    };
   }
 
   let context;
 
   try {
     log.info("browser.sendPrompt.start", {
-      correlationId: captureId, platform, browserType, headless, timeout,
+      correlationId: captureId,
+      platform,
+      browserType,
+      headless,
+      timeout,
     });
     const adapter = await getAdapterModule(platform);
     context = await launchBrowser({ browserType, platform, headless, timeout });
@@ -453,7 +481,10 @@ ${response}
 `;
 
     const tmpPath = `${responsePath}.${process.pid}.${Date.now()}.tmp`;
-    await fs.writeFile(tmpPath, responseContent, { encoding: "utf8", mode: 0o600 });
+    await fs.writeFile(tmpPath, responseContent, {
+      encoding: "utf8",
+      mode: 0o600,
+    });
     const fh = await fs.open(tmpPath, "r+");
     try {
       await fh.sync();
@@ -474,21 +505,34 @@ ${response}
       await ingestBrowserResponseFile(responsePath);
     } catch (err) {
       log.error("browser.ingest.failure", {
-        correlationId: responsePath, responsePath, error: err,
+        correlationId: responsePath,
+        responsePath,
+        error: err,
         code: err?.code || "ROTATOR_BROWSER_INGEST_FAILED",
       });
     }
 
     const lastSendData = await loadPlatformLastSend();
     lastSendData[platform] = Date.now();
-    await fs.writeFile(platformLastSendPath(), JSON.stringify(lastSendData, null, 2), "utf8");
+    await fs.writeFile(
+      platformLastSendPath(),
+      JSON.stringify(lastSendData, null, 2),
+      "utf8",
+    );
 
-    log.info("browser.sendPrompt.success", { correlationId: captureId, platform, responsePath, timestamp });
+    log.info("browser.sendPrompt.success", {
+      correlationId: captureId,
+      platform,
+      responsePath,
+      timestamp,
+    });
 
     return { platform, prompt, response, responsePath, timestamp };
   } catch (err) {
     log.error("browser.sendPrompt.failure", {
-      correlationId: captureId, platform, error: err,
+      correlationId: captureId,
+      platform,
+      error: err,
       code: err?.code || "ROTATOR_BROWSER_SEND_FAILED",
     });
     throw err;
@@ -537,10 +581,16 @@ export async function comparePrompts(options) {
   } = options;
 
   if (!prompt) throw new Error("prompt is required");
-  if (platforms.length === 0) throw new Error("At least one platform is required");
+  if (platforms.length === 0)
+    throw new Error("At least one platform is required");
 
   if (dryRun) {
-    return { prompt, platforms, dryRun: true, message: `Would send prompt to: ${platforms.join(", ")}` };
+    return {
+      prompt,
+      platforms,
+      dryRun: true,
+      message: `Would send prompt to: ${platforms.join(", ")}`,
+    };
   }
 
   const results = [];
@@ -548,7 +598,14 @@ export async function comparePrompts(options) {
   for (const platform of platforms) {
     await waitForMinimumDelay(platform);
     try {
-      const result = await sendPrompt({ platform, prompt, browserType, headless, dryRun: false, timeout });
+      const result = await sendPrompt({
+        platform,
+        prompt,
+        browserType,
+        headless,
+        dryRun: false,
+        timeout,
+      });
       results.push(result);
     } catch (err) {
       results.push({ platform, error: String(err?.message ?? err) });
@@ -556,7 +613,10 @@ export async function comparePrompts(options) {
   }
 
   const timestamp = getTimestamp();
-  const reportPath = path.join(browserResponsesDir(), `${timestamp}-compare.md`);
+  const reportPath = path.join(
+    browserResponsesDir(),
+    `${timestamp}-compare.md`,
+  );
 
   let reportContent = `# Comparison Report\n\n**Date:** ${now()}\n**Prompt:** ${prompt}\n\n---\n\n`;
 
@@ -634,7 +694,7 @@ export async function runPromptTemplate(options) {
   const prompt = await findPrompt(promptId);
   let text = prompt.template;
   for (const [key, value] of Object.entries(variables)) {
-    text = text.replace(new RegExp(`{{${key}}}`, "g"), String(value));
+    text = text.replaceAll(new RegExp(`{{${key}}}`, "g"), String(value));
   }
   const now_iso = now();
   await updatePrompt(promptId, { lastUsed: now_iso });
@@ -646,24 +706,44 @@ export async function loginToPage(options) {
   if (!platform) throw new Error("platform is required");
 
   const adapter = await getAdapterModule(platform);
-  const context = await launchBrowser({ browserType, platform, headless: false, timeout });
+  const context = await launchBrowser({
+    browserType,
+    platform,
+    headless: false,
+    timeout,
+  });
 
   try {
     const page = await context.newPage();
     await page.goto(adapter.baseUrl);
-    log.info("browser.login.opened", { correlationId: platform, platform, url: adapter.baseUrl });
+    log.info("browser.login.opened", {
+      correlationId: platform,
+      platform,
+      url: adapter.baseUrl,
+    });
 
-    console.log(`\n✓ Browser opened. Please log in manually and close the browser when done.`);
+    console.log(
+      `\n✓ Browser opened. Please log in manually and close the browser when done.`,
+    );
     console.log(`  Platform: ${platform}`);
     console.log(`  URL: ${adapter.baseUrl}`);
-    console.log(`  If you want to keep the browser open, press ENTER after login.`);
+    console.log(
+      `  If you want to keep the browser open, press ENTER after login.`,
+    );
 
     const browserClosed = new Promise((resolve) => {
       context.browserHandle.once("disconnected", resolve);
     });
 
-    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-    const promptClosed = rl.question("Press ENTER after login is complete...\n").then(() => { rl.close(); });
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+    });
+    const promptClosed = rl
+      .question("Press ENTER after login is complete...\n")
+      .then(() => {
+        rl.close();
+      });
 
     await Promise.race([browserClosed, promptClosed]);
     rl.close();
@@ -677,12 +757,16 @@ export async function loginToPage(options) {
     return { platform, message: `Login completed and storage state saved` };
   } catch (err) {
     log.error("browser.login.failure", {
-      correlationId: platform, platform, error: err,
+      correlationId: platform,
+      platform,
+      error: err,
       code: err?.code || "ROTATOR_BROWSER_LOGIN_FAILED",
     });
     throw err;
   } finally {
-    try { await closeBrowser(context); } catch {}
+    try {
+      await closeBrowser(context);
+    } catch {}
   }
 }
 
@@ -748,7 +832,8 @@ export async function getResponseMetadata(filename) {
   const stat = await fs.stat(filepath);
   const content = await fs.readFile(filepath, "utf8");
   return {
-    filename, filepath,
+    filename,
+    filepath,
     size: stat.size,
     created: stat.birthtime.toISOString(),
     modified: stat.mtime.toISOString(),
@@ -802,10 +887,15 @@ async function captureThread(
 
   const selectorsOverrides = await loadSelectorOverrides();
   const threadSelectors = selectorsOverrides.threadSelectors || {};
-  const platformSelectors = threadSelectors[platform] || getDefaultThreadSelectors(platform);
+  const platformSelectors =
+    threadSelectors[platform] || getDefaultThreadSelectors(platform);
 
   if (!threadSelectors[platform]) {
-    log.warn("browser.threadSelectors.default", { correlationId: platform, platform, reason: "thread selectors missing" });
+    log.warn("browser.threadSelectors.default", {
+      correlationId: platform,
+      platform,
+      reason: "thread selectors missing",
+    });
   }
 
   const context = await launchBrowser({ platform, headless, timeout });
@@ -823,7 +913,9 @@ async function captureThread(
         return Array.from(containers)
           .map((container) => {
             const roleEl = container.querySelector(`[${roleAttr}]`);
-            const role = roleEl ? roleEl.getAttribute(roleAttr) || "unknown" : "unknown";
+            const role = roleEl
+              ? roleEl.getAttribute(roleAttr) || "unknown"
+              : "unknown";
             const contentEl = container.querySelector(contentSelector);
             const content = contentEl ? contentEl.textContent?.trim() : "";
             return { role: String(role).toLowerCase(), content };
@@ -834,14 +926,18 @@ async function captureThread(
     );
 
     if (turns.length === 0) {
-      throw new Error(`No conversation turns found. Check threadSelectors for ${platform} in browser-selectors.json`);
+      throw new Error(
+        `No conversation turns found. Check threadSelectors for ${platform} in browser-selectors.json`,
+      );
     }
 
-    const roles = new Set(turns.map((turn) => String(turn.role || "unknown").toLowerCase()));
+    const roles = new Set(
+      turns.map((turn) => String(turn.role || "unknown").toLowerCase()),
+    );
     if (!roles.has("user") || !roles.has("assistant")) {
       throw new Error(
         `Incomplete conversation thread: expected both user and assistant turns for ${platform}. ` +
-        `Found roles: ${Array.from(roles).join(", ")}`,
+          `Found roles: ${Array.from(roles).join(", ")}`,
       );
     }
 
@@ -878,14 +974,18 @@ async function captureThread(
       }
       const dirHandle = await fs.open(dir, "r");
       try {
-        try { await dirHandle.sync(); } catch {
+        try {
+          await dirHandle.sync();
+        } catch {
           // Some platforms (notably Windows) may not allow directory sync on open handles.
         }
       } finally {
         await dirHandle.close();
       }
     } catch (err) {
-      try { await fs.unlink(tmpFile).catch(() => null); } catch {}
+      try {
+        await fs.unlink(tmpFile).catch(() => null);
+      } catch {}
       throw err;
     }
 
@@ -932,10 +1032,18 @@ function getDefaultThreadSelectors(platform) {
 // been removed from exports. External callers must switch to these getter
 // functions, which resolve fresh on each call so process.env.HOME overrides
 // in tests are always respected.
-export function getBrowserProfilesDir()   { return browserProfilesDir(); }
-export function getBrowserResponsesDir()  { return browserResponsesDir(); }
-export function getBrowserSelectorsPath() { return browserSelectorsPath(); }
-export function getPromptLibraryPath()    { return promptLibraryPath(); }
+export function getBrowserProfilesDir() {
+  return browserProfilesDir();
+}
+export function getBrowserResponsesDir() {
+  return browserResponsesDir();
+}
+export function getBrowserSelectorsPath() {
+  return browserSelectorsPath();
+}
+export function getPromptLibraryPath() {
+  return promptLibraryPath();
+}
 
 export {
   getBrowserResponsePlatform,
