@@ -116,8 +116,8 @@ function TopBar({ screen, daemonRunning, onRefresh }) {
     const onStorage = (e) => {
       if (e.key === THEME_KEY && e.newValue) setThemeId(e.newValue);
     };
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
+    globalThis.addEventListener("storage", onStorage);
+    return () => globalThis.removeEventListener("storage", onStorage);
   }, []);
 
   const t = TOPBAR_THEMES[themeId] || TOPBAR_THEMES.teal;
@@ -224,13 +224,13 @@ export default function App() {
 
   // Daemon status + event listener
   useEffect(() => {
-    window.rotator.daemon
+    globalThis.rotator.daemon
       .status()
       .then(setDaemon)
       .catch(() => {});
     const handler = (evt) => {
       // Re-fetch daemon status on any daemon event
-      window.rotator.daemon
+      globalThis.rotator.daemon
         .status()
         .then(setDaemon)
         .catch(() => {});
@@ -243,8 +243,8 @@ export default function App() {
         setTotalDocs(evt.totalDocs);
       }
     };
-    window.rotator.daemon.onEvent(handler);
-    return () => window.rotator.daemon.offEvent(handler);
+    globalThis.rotator.daemon.onEvent(handler);
+    return () => globalThis.rotator.daemon.offEvent(handler);
   }, []);
 
   // Keyboard shortcuts Ctrl/Cmd + 1-0
@@ -267,14 +267,14 @@ export default function App() {
       const s = map[e.key];
       if (s) setScreen(s);
     };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    globalThis.addEventListener("keydown", onKey);
+    return () => globalThis.removeEventListener("keydown", onKey);
   }, []);
 
   // Show/hide browser panel when switching to/from browser screen
   useEffect(() => {
-    if (window.rotator?.browser?.setVisible) {
-      window.rotator.browser
+    if (globalThis.rotator?.browser?.setVisible) {
+      globalThis.rotator.browser
         .setVisible(screen === SCREENS.BROWSER)
         .catch(() => {});
     }
