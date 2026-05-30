@@ -96,3 +96,11 @@ Snapshot discipline:
   triage snapshots (4A-1 through 4A-4) must not be deleted
   until v1.4-stable is written and pushed
   always commit + push snapshot immediately after writing
+
+## Prompt 5 final rescan complete
+- Total reduction: 436 → 176 (-260 issues, -60%)
+- Critical: 45 → 2 (-43)
+- Major: 111 → 36 (-75)
+- Minor: 278 → 136 (-142)
+- All target rules clear: S3776=0, S2004=0, S4123=0
+- Next sprint: S7781 + S7763 (28 each) — highest count
