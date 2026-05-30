@@ -5,7 +5,7 @@ export const EMBEDDING_DIMENSIONS = 768;
 function normalizeText(text) {
   return String(text || "")
     .toLowerCase()
-    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .replaceAll(/[^\p{L}\p{N}]+/gu, " ")
     .trim();
 }
 
@@ -64,8 +64,19 @@ export function kMeans(vectors, k, maxIter = 50) {
     changed = !areAssignmentsEqual(assignments, nextAssignments);
     assignments = nextAssignments;
 
-    const { sums, counts } = accumulateClusterSums(assignments, floatVectors, centroids.length, dim);
-    centroids = updateCentroids(sums, counts, floatVectors, centroidIndices, dim);
+    const { sums, counts } = accumulateClusterSums(
+      assignments,
+      floatVectors,
+      centroids.length,
+      dim,
+    );
+    centroids = updateCentroids(
+      sums,
+      counts,
+      floatVectors,
+      centroidIndices,
+      dim,
+    );
   }
 
   return buildClusters(assignments, centroidIndices, k, n);
@@ -110,7 +121,10 @@ function areAssignmentsEqual(current, next) {
 }
 
 function accumulateClusterSums(assignments, floatVectors, clusterCount, dim) {
-  const sums = Array.from({ length: clusterCount }, () => new Float32Array(dim));
+  const sums = Array.from(
+    { length: clusterCount },
+    () => new Float32Array(dim),
+  );
   const counts = new Array(clusterCount).fill(0);
 
   for (let i = 0; i < floatVectors.length; i += 1) {
@@ -179,7 +193,7 @@ export async function clusterDocuments(db, k) {
     snippets: cluster.indices.slice(0, 3).map((vectorIndex) => {
       const source = docsWithEmbedding[vectorIndex]?.doc;
       const snippet = source?.content
-        ? String(source.content).slice(0, 80).replace(/\s+/g, " ").trim()
+        ? String(source.content).slice(0, 80).replaceAll(/\s+/g, " ").trim()
         : "";
       return snippet;
     }),
