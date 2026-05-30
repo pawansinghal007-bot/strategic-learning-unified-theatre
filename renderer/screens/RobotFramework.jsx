@@ -29,7 +29,7 @@ export default function RobotFramework() {
 
   const loadRobotFiles = async () => {
     try {
-      const files = await window.rotator.robot.listFiles()
+      const files = await globalThis.rotator.robot.listFiles()
       setRobotFiles(files)
       setStatus(`Loaded ${files.length} Robot files.`)
     } catch (err) {
@@ -43,7 +43,7 @@ export default function RobotFramework() {
     setSummary(null)
     setOutput('')
     try {
-      const content = await window.rotator.robot.readFile(file)
+      const content = await globalThis.rotator.robot.readFile(file)
       setPreviewContent(content)
       setStatus(`Preview loaded for ${file}`)
     } catch (err) {
@@ -56,7 +56,7 @@ export default function RobotFramework() {
   const openBrowserFile = async (file) => {
     setStatus(`Opening ${file}...`)
     try {
-      const result = await window.rotator.robot.openFile(file)
+      const result = await globalThis.rotator.robot.openFile(file)
       setStatus(`Opened file in editor: ${result.path}`)
     } catch (err) {
       setStatus(`Failed to open file: ${String(err)}`)
@@ -70,7 +70,7 @@ export default function RobotFramework() {
     setOutput('')
 
     try {
-      const result = await window.rotator.robot.runSuite({ suite })
+      const result = await globalThis.rotator.robot.runSuite({ suite })
       setSummary(result)
       setStatus(`Completed ${suite} suite with exit code ${result.exitCode}`)
       setOutput(JSON.stringify(result, null, 2))
@@ -94,7 +94,7 @@ export default function RobotFramework() {
     setOutput('')
 
     try {
-      const result = await window.rotator.robot.runFile(selectedRobotFile)
+      const result = await globalThis.rotator.robot.runFile(selectedRobotFile)
       setSummary(result)
       setStatus(`Completed ${selectedRobotFile} with exit code ${result.exitCode}`)
       setOutput(JSON.stringify(result, null, 2))
@@ -114,7 +114,7 @@ export default function RobotFramework() {
     setOutput('')
 
     try {
-      const result = await window.rotator.robot.tddCheck({ graceMs: 60000 })
+      const result = await globalThis.rotator.robot.tddCheck({ graceMs: 60000 })
       setSummary({ passed: result.length === 0 ? 1 : 0, failed: result.length })
       setStatus(result.length === 0 ? 'TDD check passed.' : 'TDD check found violations.')
       setOutput(JSON.stringify(result, null, 2))
@@ -127,7 +127,7 @@ export default function RobotFramework() {
   }
 
   const pickRobotFile = async () => {
-    const file = await window.rotator.robot.pickRobotFile()
+    const file = await globalThis.rotator.robot.pickRobotFile()
     if (file) {
       setSelectedRobotFile(file)
       setStatus(`Selected Robot file: ${file}`)
@@ -135,7 +135,7 @@ export default function RobotFramework() {
   }
 
   const pickSourceFile = async () => {
-    const file = await window.rotator.robot.pickSourceFile()
+    const file = await globalThis.rotator.robot.pickSourceFile()
     if (file) {
       setSelectedSourceFile(file)
       setGeneratedRobotFile('')
@@ -154,7 +154,7 @@ export default function RobotFramework() {
     setOutput('')
 
     try {
-      const generatedPath = await window.rotator.robot.generateSkeleton(selectedSourceFile)
+      const generatedPath = await globalThis.rotator.robot.generateSkeleton(selectedSourceFile)
       setGeneratedRobotFile(generatedPath)
       setStatus(`Skeleton generated at: ${generatedPath}`)
       setOutput(generatedPath)
