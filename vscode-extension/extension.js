@@ -10,8 +10,6 @@ let collectorDisposable = null;
 
 function activate(context) {
   const output = vscode.window.createOutputChannel("Strategic Learning Unified Theatre");
-  context.subscriptions.push(output);
-
   const projectRoot = path.join(context.extensionPath, "..");
   const cliPath = path.join(projectRoot, "src", "cli.js");
   const outPath = path.join(os.homedir(), ".vscode-rotator", "knowledge-graph.json");
@@ -62,10 +60,6 @@ function activate(context) {
       output.appendLine(`Error: ${String(err.message)}`);
     }
   }
-
-  context.subscriptions.push(
-    vscode.commands.registerCommand("strategic-learning-unified-theatre.showKnowledgeGraph", exportKnowledgeGraph)
-  );
 
   async function flushStagedSignals() {
     output.show(true);
@@ -120,10 +114,9 @@ function activate(context) {
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("strategic-learning-unified-theatre.ingestStagedSignals", flushStagedSignals)
-  );
-
-  context.subscriptions.push(
+    output,
+    vscode.commands.registerCommand("strategic-learning-unified-theatre.showKnowledgeGraph", exportKnowledgeGraph),
+    vscode.commands.registerCommand("strategic-learning-unified-theatre.ingestStagedSignals", flushStagedSignals),
     vscode.commands.registerCommand("strategic-learning-unified-theatre.togglePassiveLearning", async () => {
       output.show(true);
       output.appendLine("Toggling passive learning...");
@@ -141,20 +134,18 @@ function activate(context) {
       const status = next.vscodeLearn.enabled ? "enabled" : "disabled";
       output.appendLine(`[vscode-learn] passive learning ${status}`);
       vscode.window.showInformationMessage(`Passive learning ${status}. Restart extension to apply.`);
-    })
-  );
-
-  // Register disposable for collector cleanup
-  context.subscriptions.push({
-    dispose: () => {
-      if (collectorDisposable && typeof collectorDisposable.dispose === "function") {
-        collectorDisposable.dispose();
-      }
-      if (collectorInstance && typeof collectorInstance.deactivate === "function") {
-        collectorInstance.deactivate();
+    }),
+    {
+      dispose: () => {
+        if (collectorDisposable && typeof collectorDisposable.dispose === "function") {
+          collectorDisposable.dispose();
+        }
+        if (collectorInstance && typeof collectorInstance.deactivate === "function") {
+          collectorInstance.deactivate();
+        }
       }
     }
-  });
+  );
 }
 
 async function initializeCollector(context, projectRoot, output) {
