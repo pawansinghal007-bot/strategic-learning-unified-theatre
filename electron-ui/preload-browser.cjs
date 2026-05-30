@@ -6,6 +6,7 @@
  */
 
 const { ipcRenderer } = require('electron');
+const { location } = globalThis; // NOSONAR
 
 // Inline selector config (embedded to avoid requiring from page context)
 const INLINE_SELECTORS = {
@@ -32,11 +33,11 @@ const INLINE_SELECTORS = {
 };
 
 /**
- * Detect platform from window.location.hostname
+ * Detect platform from globalThis.location.hostname
  * @returns {string|null} - Platform name or null if not detected
  */
 function detectPlatform() {
-  const hostname = window.location.hostname;
+  const hostname = location.hostname;
   if (hostname.includes('openai.com') || hostname.includes('chat.openai.com')) {
     return 'chatgpt';
   }
@@ -104,7 +105,7 @@ function captureResponse(responseEl, platform) {
     platform,
     html: responseEl.innerHTML,
     text: responseEl.innerText,
-    url: window.location.href,
+    url: location.href,
     ts: Date.now()
   };
 
@@ -174,7 +175,7 @@ function setupObserver(platform, selectors) {
 function init() {
   const platform = detectPlatform();
   if (!platform) {
-    console.warn('[preload-browser] Could not detect platform from hostname:', window.location.hostname);
+    console.warn('[preload-browser] Could not detect platform from hostname:', location.hostname);
     return;
   }
 
