@@ -1,0 +1,58 @@
+SPRINT: Prompt 6 triage
+STATUS: active
+
+RULES THIS SPRINT:
+  S7764 — 66 issues
+  S7781 — 38 issues
+  S7763 — 31 issues
+
+RULE SUMMARIES:
+
+S7764 — Prefer `globalThis` over `window`.
+  DESCRIPTION: flags use of `window` in environments where `globalThis` is the more portable standard object reference.
+  COUNT: 66
+  TOP FILES:
+    10 renderer/App.jsx
+    10 renderer/screens/Accounts.jsx
+    9  renderer/screens/RobotFramework.jsx
+  SAMPLE ISSUES:
+    • renderer/App.jsx:119  Prefer `globalThis` over `window`.
+    • renderer/App.jsx:120  Prefer `globalThis` over `window`.
+    • renderer/App.jsx:227  Prefer `globalThis` over `window`.
+  FIX PATTERN: replace `window` with `globalThis` where the global object is intended and not browser-specific.
+  DIFFICULTY: EASY
+
+S7781 — Prefer `String#replaceAll()` over `String#replace()`.
+  DESCRIPTION: flags `String.replace()` calls that should use `replaceAll()` for replacing all occurrences, improving correctness and intent.
+  COUNT: 38
+  TOP FILES:
+    7 src/storage/vscode-learn-utils.js
+    7 vscode-extension/collector.js
+    5 src/llm/knowledge-graph.js
+  SAMPLE ISSUES:
+    • src/browser-bridge.js:637  Prefer `String#replaceAll()` over `String#replace()`.
+    • src/accounts/profile-manager.js:163  Prefer `String#replaceAll()` over `String#replace()`.
+    • src/llm/embeddings.js:182  Prefer `String#replaceAll()` over `String#replace()`.
+  FIX PATTERN: switch `replace()` to `replaceAll()` when replacing all matches; confirm regex/string usage and browser compatibility.
+  DIFFICULTY: MED
+
+S7763 — Use `export…from` to re-export.
+  DESCRIPTION: flags explicit re-exports that can be simplified using `export { ... } from 'module'` syntax.
+  COUNT: 31
+  TOP FILES:
+    27 src/domain/types.js
+    1  src/browser-bridge.js
+    1  plugins/acme-browser-platform.js
+  SAMPLE ISSUES:
+    • src/browser-bridge.js:945  Use `export…from` to re-export `parseFrontmatter`.
+    • plugins/acme-browser-platform.js:3  Use `export…from` to re-export `PLUGIN_API_VERSION`.
+    • plugins/acme-llm-provider.js:3  Use `export…from` to re-export `PLUGIN_API_VERSION`.
+  FIX PATTERN: convert explicit re-export declarations to modern `export { name } from './module'` statements.
+  DIFFICULTY: MED
+
+RANKING BY FIXABILITY:
+  EASY: S7764
+  MED: S7781, S7763
+  HARD: none
+
+NEXT: 2B fixes start with S7764 easy mechanical replacements, then S7781/S7763 context review.
