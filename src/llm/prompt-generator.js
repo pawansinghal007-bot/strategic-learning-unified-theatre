@@ -168,7 +168,7 @@ export class PromptGenerator {
 
     const documentLines = related.documents.map((doc) => {
       const title = doc.content
-        ? String(doc.content).slice(0, 80).replace(/\s+/g, " ").trim()
+        ? String(doc.content).slice(0, 80).replaceAll(/\s+/g, " ").trim()
         : "(no content)";
       return `- ${title} [source_type: ${doc.source_type ?? "unknown"}][platform: ${doc.platform ?? "unknown"}]`;
     });
