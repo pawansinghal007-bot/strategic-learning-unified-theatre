@@ -4,10 +4,12 @@ import path from "node:path";
 import { listIdeas } from "../idea-store.js";
 
 function firstLine(text) {
-  return String(text || "")
-    .split(/\r?\n/)
-    .find((line) => String(line).trim())
-    ?.trim() || "(no title)";
+  return (
+    String(text || "")
+      .split(/\r?\n/)
+      .find((line) => String(line).trim())
+      ?.trim() || "(no title)"
+  );
 }
 
 async function writeAtomicJson(filePath, value) {
@@ -52,8 +54,8 @@ export async function buildGraph(db, ideaDir, outputPath) {
       title: sprint.goal || "(no goal)",
       meta: {
         status: sprint.status || null,
-        startedAt: sprint.date || null
-      }
+        startedAt: sprint.date || null,
+      },
     });
   });
 
@@ -62,87 +64,116 @@ export async function buildGraph(db, ideaDir, outputPath) {
     nodes.push({
       id: `document-${doc.id}`,
       type: "document",
-      title: String(doc.content || "").slice(0, 80).replace(/\s+/g, " ").trim() || "(no content)",
+      title:
+        String(doc.content || "")
+          .slice(0, 80)
+          .replaceAll(/\s+/g, " ")
+          .trim() || "(no content)",
       meta: {
         source_type: doc.source_type || null,
         platform: doc.platform || null,
-        filename: doc.filename || null
-      }
+        filename: doc.filename || null,
+      },
     });
   });
 
-  const mistakeNodes = Array.isArray(db.state.mistakes) ? db.state.mistakes : [];
+  const mistakeNodes = Array.isArray(db.state.mistakes)
+    ? db.state.mistakes
+    : [];
   mistakeNodes.forEach((mistake) => {
     nodes.push({
       id: `mistake-${mistake.id}`,
       type: "mistake",
-      title: String(mistake.description || "").slice(0, 80).replace(/\s+/g, " ").trim() || "(no description)",
+      title:
+        String(mistake.description || "")
+          .slice(0, 80)
+          .replaceAll(/\s+/g, " ")
+          .trim() || "(no description)",
       meta: {
-        category: mistake.category || null
-      }
+        category: mistake.category || null,
+      },
     });
   });
 
-  const ruleNodes = Array.isArray(db.state.rubric_rules) ? db.state.rubric_rules : [];
+  const ruleNodes = Array.isArray(db.state.rubric_rules)
+    ? db.state.rubric_rules
+    : [];
   ruleNodes.forEach((rule) => {
     nodes.push({
       id: `rubricRule-${rule.id}`,
       type: "rubricRule",
-      title: String(rule.rule || "").slice(0, 80).replace(/\s+/g, " ").trim() || "(no rule)",
+      title:
+        String(rule.rule || "")
+          .slice(0, 80)
+          .replaceAll(/\s+/g, " ")
+          .trim() || "(no rule)",
       meta: {
-        category: rule.category || null
-      }
+        category: rule.category || null,
+      },
     });
     if (rule.created_from_mistake_id != null) {
       edges.push({
         from: `mistake-${rule.created_from_mistake_id}`,
         to: `rubricRule-${rule.id}`,
-        relation: "promotedTo"
+        relation: "promotedTo",
       });
     }
   });
 
-  const promptNodes = Array.isArray(db.state.prompt_history) ? db.state.prompt_history : [];
+  const promptNodes = Array.isArray(db.state.prompt_history)
+    ? db.state.prompt_history
+    : [];
   promptNodes.forEach((prompt) => {
     nodes.push({
       id: `promptHistory-${prompt.id}`,
       type: "promptHistory",
-      title: String(prompt.goal || prompt.prompt || "").slice(0, 80).replace(/\s+/g, " ").trim() || "(no prompt)",
+      title:
+        String(prompt.goal || prompt.prompt || "")
+          .slice(0, 80)
+          .replaceAll(/\s+/g, " ")
+          .trim() || "(no prompt)",
       meta: {
         platform: prompt.platform || null,
-        ts: prompt.cycle_ts || prompt.date || null
-      }
+        ts: prompt.cycle_ts || prompt.date || null,
+      },
     });
     if (prompt.sprint_id != null) {
       edges.push({
         from: `promptHistory-${prompt.id}`,
         to: `sprint-${prompt.sprint_id}`,
-        relation: "usedInSprint"
+        relation: "usedInSprint",
       });
     }
   });
 
-  const threadNodes = Array.isArray(db.state.conversation_threads) ? db.state.conversation_threads : [];
+  const threadNodes = Array.isArray(db.state.conversation_threads)
+    ? db.state.conversation_threads
+    : [];
   threadNodes.forEach((thread) => {
     nodes.push({
       id: `thread-${thread.id}`,
       type: "thread",
-      title: String(thread.platform || "thread").slice(0, 80).replace(/\s+/g, " ").trim(),
+      title: String(thread.platform || "thread")
+        .slice(0, 80)
+        .replaceAll(/\s+/g, " ")
+        .trim(),
       meta: {
         platform: thread.platform || null,
         capturedAt: thread.captured_at || null,
         turnCount: thread.turn_count ?? null,
-        filePath: thread.file_path || null
-      }
+        filePath: thread.file_path || null,
+      },
     });
   });
 
   const ideaNodes = [];
   try {
-    const ideaRoot = ideaDir ? path.dirname(path.dirname(ideaDir)) : os.homedir();
+    const ideaRoot = ideaDir
+      ? path.dirname(path.dirname(ideaDir))
+      : os.homedir();
     const ideas = await listIdeas({
       cwd: ideaRoot,
-      status: undefined
+      status: undefined,
     });
     ideas.forEach((idea) => {
       ideaNodes.push({
@@ -153,14 +184,14 @@ export async function buildGraph(db, ideaDir, outputPath) {
           status: idea.status || null,
           linkedSprint: idea.linkedSprint || null,
           project: idea.project || null,
-          tags: Array.isArray(idea.tags) ? idea.tags : []
-        }
+          tags: Array.isArray(idea.tags) ? idea.tags : [],
+        },
       });
       if (idea.linkedSprint) {
         edges.push({
           from: `idea-${idea.id}`,
           to: `sprint-${idea.linkedSprint}`,
-          relation: "linkedSprint"
+          relation: "linkedSprint",
         });
       }
     });
@@ -177,15 +208,17 @@ export async function buildGraph(db, ideaDir, outputPath) {
         edges.push({
           from: `document-${doc.id}`,
           to: `thread-${docThreadId}`,
-          relation: "partOfThread"
+          relation: "partOfThread",
         });
       } else if (doc.filename) {
-        const matchingThread = threadNodes.find((thread) => thread.file_path === doc.filename);
+        const matchingThread = threadNodes.find(
+          (thread) => thread.file_path === doc.filename,
+        );
         if (matchingThread) {
           edges.push({
             from: `document-${doc.id}`,
             to: `thread-${matchingThread.id}`,
-            relation: "partOfThread"
+            relation: "partOfThread",
           });
         }
       }
@@ -195,14 +228,16 @@ export async function buildGraph(db, ideaDir, outputPath) {
   const graph = {
     exportedAt: new Date().toISOString(),
     nodes,
-    edges
+    edges,
   };
 
-  const targetPath = outputPath || path.join(os.homedir(), ".vscode-rotator", "knowledge-graph.json");
+  const targetPath =
+    outputPath ||
+    path.join(os.homedir(), ".vscode-rotator", "knowledge-graph.json");
   await writeAtomicJson(targetPath, graph);
   return {
     outputPath: targetPath,
     nodeCount: nodes.length,
-    edgeCount: edges.length
+    edgeCount: edges.length,
   };
 }
