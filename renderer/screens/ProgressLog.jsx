@@ -4,9 +4,10 @@ import { marked } from 'marked'
 export default function ProgressLog() {
   const [md, setMd] = useState('')
   const [view, setView] = useState('markdown')
+  const journal = globalThis.rotator.journal // NOSONAR
 
   const load = async () => {
-    const raw = await window.rotator.journal.rawMd().catch(() => '')
+    const raw = await journal.rawMd().catch(() => '')
     setMd(raw)
   }
 
