@@ -46,10 +46,12 @@ export default function Accounts() {
   });
   const [status, setStatus] = useState("");
   const [capturing, setCapturing] = useState(false);
+  const rotator = globalThis.rotator; // NOSONAR
+  const confirmGlobal = globalThis.confirm; // NOSONAR
 
   const loadHealth = async (id) => {
     try {
-      const health = await globalThis.rotator.accounts.health(id);
+      const health = await rotator.accounts.health(id);
       setHealthById((current) => ({ ...current, [id]: health }));
     } catch (err) {
       setHealthById((current) => ({
@@ -60,7 +62,7 @@ export default function Accounts() {
   };
 
   const load = () =>
-    globalThis.rotator.accounts
+    rotator.accounts
       .listDetails()
       .then((list) => {
         setRows(list);
@@ -68,7 +70,7 @@ export default function Accounts() {
         list.forEach((row) => loadHealth(row.id));
       })
       .catch(async () => {
-        const list = await globalThis.rotator.accounts.list();
+        const list = await rotator.accounts.list();
         setRows(list);
         if (list.length > 0 && !selectedAccount) setSelectedAccount(list[0]);
         list.forEach((row) => loadHealth(row.id));
@@ -89,16 +91,16 @@ export default function Accounts() {
     if (
       health &&
       health.error &&
-      !window.confirm(
+      !confirmGlobal(
         `Account health warning: ${health.error}. Continue switching?`,
       )
     ) {
       return;
     }
 
-    if (!window.confirm("Switch to this account?")) return;
+    if (!confirmGlobal("Switch to this account?")) return;
     try {
-      await globalThis.rotator.switcher.switch(id);
+      await rotator.switcher.switch(id);
       await load();
     } catch (err) {
       alert(String(err));
@@ -113,7 +115,7 @@ export default function Accounts() {
 
   const handleManualAdd = async () => {
     try {
-      await globalThis.rotator.accounts.add({
+      await rotator.accounts.add({
         email: form.email,
         agentType: form.agentType,
         authBlob: form.authBlob,
@@ -142,7 +144,7 @@ export default function Accounts() {
     const url = getLoginUrl(form.agentType);
 
     try {
-      await globalThis.rotator.app.openUrl(url);
+      await rotator.app.openUrl(url);
     } catch (err) {
       alert(String(err));
     }
@@ -152,7 +154,7 @@ export default function Accounts() {
     try {
       setCapturing(true);
       setStatus("Starting capture...");
-      await globalThis.rotator.accounts.capture({
+      await rotator.accounts.capture({
         email: form.email,
         agentType: form.agentType,
         profileName: form.profileName || null,
@@ -637,7 +639,7 @@ export default function Accounts() {
                   const url =
                     selectedAccount.loginUrl ||
                     getLoginUrl(selectedAccount.agentType);
-                  await globalThis.rotator.app.openUrl(url);
+                  await rotator.app.openUrl(url);
                 }}
               >
                 {selectedAccount.loginUrl ||
