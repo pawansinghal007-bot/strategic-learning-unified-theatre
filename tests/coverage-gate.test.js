@@ -13,7 +13,7 @@ const coreModules = [
 const threshold = 70;
 
 function normalizeKey(filePath) {
-  return filePath.replaceAll(/\\/g, "/");
+  return filePath.replaceAll("\\", "/");
 }
 
 function findSummaryEntry(summary, modulePath) {
