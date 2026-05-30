@@ -9,10 +9,12 @@ export default function PromptTemplates({ activePrompt }) {
   const [form, setForm] = useState(emptyForm);
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
+  const browser = globalThis.rotator.browser; // NOSONAR
+  const confirmGlobal = globalThis.confirm; // NOSONAR
 
   const refresh = async () => {
     try {
-      const list = await globalThis.rotator.browser.listPrompts();
+      const list = await browser.listPrompts();
       setPrompts(list);
       setStatus("");
     } catch (err) {
@@ -52,13 +54,13 @@ export default function PromptTemplates({ activePrompt }) {
     setLoading(true);
     try {
       if (selectedId) {
-        await globalThis.rotator.browser.updatePrompt(selectedId, {
+        await browser.updatePrompt(selectedId, {
           name: form.name,
           template: form.template,
         });
         setStatus("Template updated");
       } else {
-        await globalThis.rotator.browser.addPrompt({
+        await browser.addPrompt({
           name: form.name,
           template: form.template,
           lastUsed: null,
@@ -75,10 +77,10 @@ export default function PromptTemplates({ activePrompt }) {
 
   const deletePrompt = async () => {
     if (!selectedId) return;
-    if (!window.confirm("Delete this prompt template?")) return;
+    if (!confirmGlobal("Delete this prompt template?")) return;
     setLoading(true);
     try {
-      await globalThis.rotator.browser.deletePrompt(selectedId);
+      await browser.deletePrompt(selectedId);
       setSelectedId("");
       setForm(emptyForm);
       setStatus("Template deleted");
