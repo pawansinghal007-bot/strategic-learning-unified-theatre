@@ -12,7 +12,7 @@ export default function PromptTemplates({ activePrompt }) {
 
   const refresh = async () => {
     try {
-      const list = await window.rotator.browser.listPrompts();
+      const list = await globalThis.rotator.browser.listPrompts();
       setPrompts(list);
       setStatus("");
     } catch (err) {
@@ -52,13 +52,13 @@ export default function PromptTemplates({ activePrompt }) {
     setLoading(true);
     try {
       if (selectedId) {
-        await window.rotator.browser.updatePrompt(selectedId, {
+        await globalThis.rotator.browser.updatePrompt(selectedId, {
           name: form.name,
           template: form.template,
         });
         setStatus("Template updated");
       } else {
-        await window.rotator.browser.addPrompt({
+        await globalThis.rotator.browser.addPrompt({
           name: form.name,
           template: form.template,
           lastUsed: null,
@@ -78,7 +78,7 @@ export default function PromptTemplates({ activePrompt }) {
     if (!window.confirm("Delete this prompt template?")) return;
     setLoading(true);
     try {
-      await window.rotator.browser.deletePrompt(selectedId);
+      await globalThis.rotator.browser.deletePrompt(selectedId);
       setSelectedId("");
       setForm(emptyForm);
       setStatus("Template deleted");
