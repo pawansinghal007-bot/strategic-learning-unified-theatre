@@ -22,8 +22,8 @@ export default function BrowserAutomation({ onEditTemplate }) {
   const refresh = async () => {
     try {
       const [respList, promptList] = await Promise.all([
-        window.rotator.browser.listResponses({ platform, limit: 10 }),
-        window.rotator.browser.listPrompts(),
+        globalThis.rotator.browser.listResponses({ platform, limit: 10 }),
+        globalThis.rotator.browser.listPrompts(),
       ]);
       setResponses(respList);
       setPrompts(promptList);
@@ -42,7 +42,7 @@ export default function BrowserAutomation({ onEditTemplate }) {
     setStatus("Sending prompt...");
     setResult(null);
     try {
-      const res = await window.rotator.browser.send({
+      const res = await globalThis.rotator.browser.send({
         platform,
         prompt,
         browserType: "chromium",
@@ -62,7 +62,7 @@ export default function BrowserAutomation({ onEditTemplate }) {
     setLoading(true);
     setStatus("Opening browser login flow...");
     try {
-      const res = await window.rotator.browser.login({
+      const res = await globalThis.rotator.browser.login({
         platform,
         browserType: "chromium",
       });
