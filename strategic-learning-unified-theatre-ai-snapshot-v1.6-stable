@@ -30,3 +30,24 @@ TOP 5 REMAINING (next sprint):
 
 VALIDATION: 528 tests / typecheck / build all pass
 REGRESSION: clean
+
+BASELINE CORRECTION (post profile update):
+  Previous recorded: 176
+  Actual current:    392
+  Cause: Sonar quality profile updated again (same pattern as 2026-05-27)
+  Fixed rules still clear: S3776=0, S2004=0, S4123=0
+
+CORRECTED TOP 10:
+  66 javascript:S7764
+  38 javascript:S7781
+  31 javascript:S7763
+  21 javascript:S3358
+  20 javascript:S7778
+  20 javascript:S1128
+  19 javascript:S6582
+  17 javascript:S6853
+  13 javascript:S7785
+  11 javascript:S2486
+
+SPRINT 2 TARGET: S7764 (66) + S7781 (38) + S7763 (31)
+  Combined: 135 issues — highest impact sprint possible
