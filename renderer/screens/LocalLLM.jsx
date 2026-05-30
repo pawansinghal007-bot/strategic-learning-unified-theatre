@@ -9,13 +9,14 @@ export default function LocalLLM() {
   const [status, setStatus] = useState({ available: false, models: [], modelPath: null })
   const [model, setModel] = useState('phi3')
   const [question, setQuestion] = useState('Explain the purpose of a VS Code auth switcher in a browser automation tool.')
+  const llm = globalThis.rotator.llm // NOSONAR
   const [answer, setAnswer] = useState('')
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
 
   const refreshStatus = async () => {
     try {
-      const stat = await window.rotator.llm.status()
+      const stat = await llm.status()
       setStatus(stat)
     } catch (err) {
       setStatus({ available: false, models: [], modelPath: null })
@@ -31,7 +32,7 @@ export default function LocalLLM() {
     setLoading(true)
     setMessage('Downloading and validating model...')
     try {
-      const result = await window.rotator.llm.setup({ model })
+      const result = await llm.setup({ model })
       setMessage(`Model ready at ${result.modelPath}`)
       await refreshStatus()
     } catch (err) {
@@ -49,7 +50,7 @@ export default function LocalLLM() {
     setAnswer('')
     setMessage('Querying local LLM...')
     try {
-      const response = await window.rotator.llm.ask({ question, modelPath: status.modelPath })
+      const response = await llm.ask({ question, modelPath: status.modelPath })
       setAnswer(typeof response === 'string' ? response : JSON.stringify(response, null, 2))
       setMessage('Answer received')
     } catch (err) {
