@@ -29,7 +29,7 @@ export class Journal {
     if (!AllowedTypes.has(type)) {
       throw new Error(`Invalid journal event type: ${type}`);
     }
-    const detail = String(event?.detail ?? "").replace(/\r?\n/g, " ").trim();
+    const detail = String(event?.detail ?? "").replaceAll(/\r?\n/g, " ").trim();
     const line = `- ${new Date().toISOString()} | ${type} | ${detail}\n`;
     await ensureDir(this.filePath);
     await fs.appendFile(this.filePath, line, { encoding: "utf8" });
