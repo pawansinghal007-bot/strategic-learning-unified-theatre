@@ -12,12 +12,14 @@ export class Reporter {
   }
 
   async daily(date) {
-    const day =
-      date instanceof Date
-        ? date.toISOString().slice(0, 10)
-        : typeof date === "string"
-          ? date.slice(0, 10)
-          : new Date().toISOString().slice(0, 10);
+    let day;
+    if (date instanceof Date) {
+      day = date.toISOString().slice(0, 10);
+    } else if (typeof date === "string") {
+      day = date.slice(0, 10);
+    } else {
+      day = new Date().toISOString().slice(0, 10);
+    }
 
     let raw = "";
     try {
