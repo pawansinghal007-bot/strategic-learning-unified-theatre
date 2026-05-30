@@ -6,35 +6,6 @@
  */
 
 import { z } from 'zod';
-import {
-  AccountSchema,
-  AgentTypeSchema,
-  AccountStatusSchema,
-  IsoDateString,
-  VscodeLearnConfigSchema,
-  CaptureScheduleSchema,
-  AppConfigSchema,
-  parseAppConfig,
-  SprintAgentSchema,
-  SprintStatusSchema,
-  SprintTaskPriority,
-  CompletedTaskSchema,
-  PendingTaskSchema,
-  BlockerSchema,
-  TestFailureSchema,
-  HandoffSprintSchema,
-  IdeaStatusSchema,
-  IdeaPrioritySchema,
-  IdeaSchema,
-  BrowserCapturePayloadSchema,
-  HealthStatusSchema,
-  RobotRunResultSchema,
-  HandoffStatusSchema,
-  PositiveIntSchema,
-  BrowserPlatformSchema,
-  BrowserTypeSchema,
-  TimeoutMsSchema
-} from './schemas.js';
 
 export {
   AccountSchema,
@@ -64,7 +35,7 @@ export {
   BrowserPlatformSchema,
   BrowserTypeSchema,
   TimeoutMsSchema
-};
+} from './schemas.js';
 
 // Re-export error classes from src/error.js
 export {
