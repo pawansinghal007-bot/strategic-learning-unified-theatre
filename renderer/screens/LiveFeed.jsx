@@ -4,6 +4,7 @@ export default function LiveFeed() {
   const [items, setItems] = useState([])
   const [paused, setPaused] = useState(false)
   const containerRef = useRef()
+  const rotator = globalThis.rotator // NOSONAR
 
   useEffect(() => {
     const onEvent = (e) => {
@@ -12,8 +13,8 @@ export default function LiveFeed() {
         setTimeout(() => containerRef.current?.scrollTo(0, containerRef.current.scrollHeight), 10)
       }
     }
-    window.rotator.daemon.onEvent(onEvent)
-    return () => window.rotator.daemon.offEvent(onEvent)
+    rotator.daemon.onEvent(onEvent)
+    return () => rotator.daemon.offEvent(onEvent)
   }, [paused])
 
   const filtered = items
