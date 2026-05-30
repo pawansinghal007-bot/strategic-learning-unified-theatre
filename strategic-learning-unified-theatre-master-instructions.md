@@ -112,3 +112,31 @@ Snapshot discipline:
 - NOSONAR: alias declarations are legitimate suppression.
 - `window.location` = browser window — do NOT convert.
 - `replace()` without `/g` = first match only — do NOT convert.
+
+## S1128 Unused Import Tooling (added sprint 3B)
+
+Tools available for finding unused imports:
+  - ESLint (installed) — flags unused vars/imports via no-unused-vars rule
+  - Knip (installed) — finds unused exports, imports, files across project
+  - Sonar S1128 — flags unused import declarations
+
+Workflow for S1128 fixes:
+  1. Get flagged lines from Sonar API (source of truth for what to fix)
+  2. Before removing any import, verify with one of:
+       grep -n "ImportName" <file>   — quick manual check
+       ESLint — run on file to confirm unused
+       Knip   — project-wide unused import scan
+  3. If import appears in file body → LEAVE (Sonar false positive)
+  4. If import unused → remove line, validate, commit
+
+ESLint usage:
+  npx eslint <file> --rule '{"no-unused-vars": "warn"}'
+
+Knip usage (project-wide):
+  npx knip --reporter compact
+  Use output to cross-reference Sonar S1128 list
+
+Anti-pattern:
+  Never remove an import solely because Sonar flags it
+  without confirming it is unused — some imports have
+  side effects or are used via dynamic references
