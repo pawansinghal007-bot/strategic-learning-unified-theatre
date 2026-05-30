@@ -137,7 +137,7 @@ export async function verifyNodeLlamaCppInstalled() {
 }
 
 function parseOllamaOutput(output) {
-  const lines = output.replaceAll(/\r/g, "").split(/\n/);
+  const lines = output.replaceAll("\r", "").split(/\n/);
   while (lines.length > 0 && lines[lines.length - 1].trim() === "---") {
     lines.pop();
   }
@@ -146,7 +146,7 @@ function parseOllamaOutput(output) {
 
 function parseOllamaListOutput(output) {
   const normalized = String(output ?? "")
-    .replaceAll(/\r/g, "")
+    .replaceAll("\r", "")
     .trim();
   if (!normalized) return [];
 
