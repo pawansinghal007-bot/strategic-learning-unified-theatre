@@ -6,7 +6,6 @@ import * as browserBridge from "../src/browser-bridge.js";
 
 import {
   loadPromptLibrary,
-  savePromptLibrary,
   addPrompt,
   findPrompt,
   updatePrompt,
