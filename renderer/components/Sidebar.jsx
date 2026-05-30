@@ -391,6 +391,21 @@ Sidebar.propTypes = {
 // --- NavItem ---
 function NavItem({ item, isActive, t, iconFilter, onSelect }) {
   const [hovered, setHovered] = useState(false);
+  const borderLeft = `2px solid ${isActive ? t.activeBorder : "transparent"}`;
+  let background = "transparent";
+  if (isActive) {
+    background = t.activeBg;
+  } else if (hovered) {
+    background = t.itemHover;
+  }
+
+  let color = t.itemText;
+  if (isActive) {
+    color = t.activeText;
+  } else if (hovered) {
+    color = t.itemHoverText;
+  }
+
   return (
     <button
       style={{
@@ -400,13 +415,9 @@ function NavItem({ item, isActive, t, iconFilter, onSelect }) {
         padding: "7px 14px",
         fontSize: "12.5px",
         cursor: "pointer",
-        borderLeft: `2px solid ${isActive ? t.activeBorder : "transparent"}`,
-        background: isActive
-          ? t.activeBg
-          : hovered
-            ? t.itemHover
-            : "transparent",
-        color: isActive ? t.activeText : hovered ? t.itemHoverText : t.itemText,
+        borderLeft,
+        background,
+        color,
         width: "100%",
         textAlign: "left",
         border: "none",
@@ -473,6 +484,16 @@ NavItem.propTypes = {
 // --- PickerRow ---
 function PickerRow({ id, th, active, t, onPick }) {
   const [hovered, setHovered] = useState(false);
+  let background = "transparent";
+  if (active) {
+    background = t.activeBg;
+  } else if (hovered) {
+    background = t.itemHover;
+  }
+
+  const color = active ? t.activeText : t.itemText;
+  const fontWeight = active ? 600 : 400;
+
   return (
     <button
       onClick={() => onPick(id)}
@@ -485,7 +506,7 @@ function PickerRow({ id, th, active, t, onPick }) {
         padding: "6px 8px",
         borderRadius: "7px",
         cursor: "pointer",
-        background: active ? t.activeBg : hovered ? t.itemHover : "transparent",
+        background,
         border: "none",
         width: "100%",
         textAlign: "left",
@@ -506,8 +527,8 @@ function PickerRow({ id, th, active, t, onPick }) {
         style={{
           fontSize: "12px",
           flex: 1,
-          color: active ? t.activeText : t.itemText,
-          fontWeight: active ? 600 : 400,
+          color,
+          fontWeight,
         }}
       >
         {th.name}

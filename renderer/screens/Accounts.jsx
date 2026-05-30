@@ -17,12 +17,14 @@ const AGENT_LABELS = {
 };
 
 function StatusChip({ status }) {
-  const cls =
-    status === "active"
-      ? "bg-teal-100 text-teal-800"
-      : status === "cooldown"
-        ? "bg-amber-100 text-amber-800"
-        : "bg-gray-100 text-gray-600";
+  const isActive = status === "active";
+  const isCooldown = status === "cooldown";
+  let cls = "bg-gray-100 text-gray-600";
+  if (isActive) {
+    cls = "bg-teal-100 text-teal-800";
+  } else if (isCooldown) {
+    cls = "bg-amber-100 text-amber-800";
+  }
   return <span className={`px-2 py-0.5 rounded text-xs ${cls}`}>{status}</span>;
 }
 
@@ -544,11 +546,14 @@ export default function Accounts() {
           <tbody>
             {filteredRows.map((r) => {
               const health = healthById[r.id];
-              const healthLabel = health?.valid
-                ? "ok"
-                : health?.error
-                  ? health.error
-                  : "unknown";
+              let healthLabel;
+              if (health?.valid) {
+                healthLabel = "ok";
+              } else if (health?.error) {
+                healthLabel = health.error;
+              } else {
+                healthLabel = "unknown";
+              }
               const switchDisabled = health && !health.valid;
               return (
                 <tr
