@@ -1,0 +1,25 @@
+SPRINT: Prompt 6 triage
+STATUS: active
+
+RULES THIS SPRINT:
+  S7781 — 12 issues
+
+FILE LIST:
+  src/accounts/profile-manager.js
+  src/browser-bridge.js
+  src/idea-store.js
+  src/llm/embeddings.js
+  src/llm/inference.js
+  src/llm/knowledge-graph.js
+  src/llm/prompt-generator.js
+  src/test-runner.js
+  src/utils/redactor.js
+  test-bc2-integration.js
+  tests/chaos-workflow.test.js
+  tests/coverage-gate.test.js
+  vscode-extension/collector.js
+
+RULE SUMMARY:
+  S7781 — Prefer `String#replaceAll()` over `String#replace()` when replacing all occurrences.
+  DESCRIPTION: switched safe string and global-regex replace calls to `replaceAll` across the affected S7781 files.
+  DIFFICULTY: MED
