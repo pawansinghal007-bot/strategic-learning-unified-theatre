@@ -109,7 +109,7 @@ export class VscodeContextCollector {
 
   _matchesHardExclude(filePath) {
     if (!filePath) return false;
-    const normalized = String(filePath).replace(/\\/g, "/").toLowerCase();
+    const normalized = String(filePath).replaceAll("\\", "/").toLowerCase();
     if (isSecretPath(filePath)) return true;
     return this._hardExcludePatterns.some((pattern) => {
       if (pattern === "**/.env*")
@@ -120,17 +120,17 @@ export class VscodeContextCollector {
       if (pattern === "**/id_ed25519")
         return normalized.endsWith("/id_ed25519");
       return normalized.includes(
-        pattern.replaceAll(/\*\*/g, "").replaceAll(/\*/g, ""),
+        pattern.replaceAll("**", "").replaceAll("*", ""),
       );
     });
   }
 
   _matchesSoftExclude(filePath) {
-    const normalized = String(filePath).replace(/\\/g, "/").toLowerCase();
+    const normalized = String(filePath).replaceAll("\\", "/").toLowerCase();
     const patterns = this.vscodeLearn.excludePatterns || [];
     return patterns.some((pattern) =>
       normalized.includes(
-        pattern.replaceAll(/\*\*/g, "").replaceAll(/\*/g, ""),
+        pattern.replaceAll("**", "").replaceAll("*", ""),
       ),
     );
   }
@@ -482,7 +482,7 @@ export class VscodeContextCollector {
         : null;
       if (!folderPath) continue;
       if (normalized.startsWith(folderPath + path.sep)) {
-        return path.relative(folderPath, normalized).replaceAll(/\\/g, "/");
+        return path.relative(folderPath, normalized).replaceAll("\\", "/");
       }
     }
     return path.basename(filePath);
