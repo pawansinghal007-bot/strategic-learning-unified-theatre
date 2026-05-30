@@ -93,6 +93,7 @@ function activate(context) {
   }
 
   context.subscriptions.push(
+    output,
     vscode.commands.registerCommand("strategic-learning-unified-theatre.openLlmPanel", async () => {
       const panel = vscode.window.createWebviewPanel(
         "strategicLearningUnifiedTheatreAssistant",
@@ -110,11 +111,7 @@ function activate(context) {
           await exportKnowledgeGraph();
         }
       });
-    })
-  );
-
-  context.subscriptions.push(
-    output,
+    }),
     vscode.commands.registerCommand("strategic-learning-unified-theatre.showKnowledgeGraph", exportKnowledgeGraph),
     vscode.commands.registerCommand("strategic-learning-unified-theatre.ingestStagedSignals", flushStagedSignals),
     vscode.commands.registerCommand("strategic-learning-unified-theatre.togglePassiveLearning", async () => {
