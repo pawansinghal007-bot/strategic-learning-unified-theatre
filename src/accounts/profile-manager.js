@@ -160,7 +160,7 @@ export class ProfileManager {
     const files = await listFilesRecursively(profileDir);
     const data = {};
     for (const abs of files) {
-      const rel = path.relative(profileDir, abs).replace(/\\/g, "/");
+      const rel = path.relative(profileDir, abs).replaceAll(/\\/g, "/");
       data[rel] = new Uint8Array(await fs.readFile(abs));
     }
 
