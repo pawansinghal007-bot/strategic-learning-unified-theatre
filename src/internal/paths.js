@@ -210,12 +210,12 @@ function getAllowedPathRoots() {
     ],
   };
 
-  const plat =
-    process.platform === "darwin"
-      ? "darwin"
-      : process.platform === "win32"
-        ? "win32"
-        : "linux";
+  let plat = "linux";
+  if (process.platform === "darwin") {
+    plat = "darwin";
+  } else if (process.platform === "win32") {
+    plat = "win32";
+  }
 
   return (platformAllowed[plat] || []).map((p) => path.resolve(p));
 }
