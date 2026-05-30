@@ -6,7 +6,6 @@
  * Browser Extension → Native Host → SQLite DB → Flask API → Ollama LLM
  */
 
-import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 
