@@ -13,7 +13,7 @@ const coreModules = [
 const threshold = 70;
 
 function normalizeKey(filePath) {
-  return filePath.replace(/\\/g, "/");
+  return filePath.replaceAll(/\\/g, "/");
 }
 
 function findSummaryEntry(summary, modulePath) {
@@ -23,7 +23,11 @@ function findSummaryEntry(summary, modulePath) {
 }
 
 function readCoverageSummary() {
-  const summaryPath = path.resolve(process.cwd(), "coverage", "coverage-summary.json");
+  const summaryPath = path.resolve(
+    process.cwd(),
+    "coverage",
+    "coverage-summary.json",
+  );
   if (!fs.existsSync(summaryPath)) return null;
   return JSON.parse(fs.readFileSync(summaryPath, "utf8"));
 }
@@ -47,7 +51,9 @@ function collectGateFailures(summary, thresholds) {
 describe("Coverage gate", () => {
   it("keeps Vitest coverage thresholds locked for core modules", async () => {
     const configPath = path.resolve(process.cwd(), "vitest.config.js");
-    const config = await import(`${pathToFileURL(configPath).href}?coverage-gate=${Date.now()}`);
+    const config = await import(
+      `${pathToFileURL(configPath).href}?coverage-gate=${Date.now()}`
+    );
     const coverage = config.default?.test?.coverage;
 
     expect(coverage?.provider).toBe("v8");
@@ -65,12 +71,16 @@ describe("Coverage gate", () => {
     if (!summary) return;
 
     const configPath = path.resolve(process.cwd(), "vitest.config.js");
-    const config = await import(`${pathToFileURL(configPath).href}?coverage-summary=${Date.now()}`);
+    const config = await import(
+      `${pathToFileURL(configPath).href}?coverage-summary=${Date.now()}`
+    );
     const thresholds = config.default?.test?.coverage?.thresholds;
     const failures = collectGateFailures(summary, thresholds);
 
     for (const failure of failures) {
-      expect(failure).toMatch(/src\/.+\.js: (missing coverage summary entry|(?:statements|branches) [\d.]+% < \d+%)/);
+      expect(failure).toMatch(
+        /src\/.+\.js: (missing coverage summary entry|(?:statements|branches) [\d.]+% < \d+%)/,
+      );
     }
 
     const coverageRun =
