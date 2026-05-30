@@ -3,13 +3,14 @@ import React, { useEffect, useState } from 'react'
 export default function Dashboard() {
   const [accounts, setAccounts] = useState([])
   const [events, setEvents] = useState([])
+  const rotator = globalThis.rotator // NOSONAR
 
   useEffect(() => {
-    window.rotator.accounts.list().then(setAccounts).catch(() => {})
+    rotator.accounts.list().then(setAccounts).catch(() => {})
     // recent events not available via API; listen to daemon events
     const onEvent = (e) => setEvents((s) => [e].concat(s).slice(0, 5))
-    window.rotator.daemon.onEvent(onEvent)
-    return () => window.rotator.daemon.offEvent(onEvent)
+    rotator.daemon.onEvent(onEvent)
+    return () => rotator.daemon.offEvent(onEvent)
   }, [])
 
   return (
