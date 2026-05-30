@@ -10,7 +10,6 @@ import {
   addBlocker,
   closeSprint,
   setTokenBudget,
-  getActiveSprint,
   generateResumePrompt
 } from "../agent-handoff.js";
 import { HandoffStatusSchema, PositiveIntSchema } from "../domain/schemas.js";

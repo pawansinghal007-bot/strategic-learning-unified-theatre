@@ -1,0 +1,21 @@
+SLUT 3B: clear S1128 + S7778
+
+Live API counts:
+- S1128: 0
+- S7778: 0
+
+Rule summary:
+
+RULE | DESCRIPTION | FIX PATTERN | DIFFICULTY
+-----|-------------|-------------|-----------
+S1128 | Flags unused imports that should be removed. | Remove import declarations that are never referenced. | EASY
+S7778 | Flags repeated `Array.prototype.push()` calls on the same array. | Replace repeated pushes with a single literal, spread constructor, or batch concatenation. | EASY
+
+Top file distribution per rule:
+- S1128: tests/config-validation.test.js, tests/config-policy.test.js, vscode-extension/collector.js
+- S7778: src/internal/paths.js, vscode-extension/extension.js, src/llm/training-exporter.js
+
+Notes:
+- Final baseline validation completed: 528 tests pass, `npx tsc --noEmit` pass, `npm run ui:build` pass.
+- Sonar scan confirmed zero remaining issues for targeted rules S1128 and S7778.
+- This active snapshot marks the completion of SLUT 3B recovery and the current active baseline.

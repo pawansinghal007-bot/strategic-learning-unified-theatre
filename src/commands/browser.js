@@ -10,7 +10,6 @@ import {
   loadPromptLibrary,
   addPrompt,
   findPrompt,
-  updatePrompt,
   deletePrompt,
   runPromptTemplate,
   loginToPage,

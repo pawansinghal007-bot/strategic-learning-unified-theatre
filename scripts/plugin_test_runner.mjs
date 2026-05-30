@@ -1,7 +1,6 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { pathToFileURL } from "node:url";
 
 (async function () {
   const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "pltest-"));
