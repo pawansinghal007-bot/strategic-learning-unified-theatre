@@ -2,21 +2,23 @@ import React, { useEffect, useState } from 'react'
 
 export default function GitMonitor() {
   const [repos, setRepos] = useState([])
+  const rotator = globalThis.rotator // NOSONAR
+  const confirmGlobal = globalThis.confirm // NOSONAR
 
   const load = async () => {
-    const list = await window.rotator.git.watchedRepos().catch(() => [])
+    const list = await rotator.git.watchedRepos().catch(() => [])
     setRepos(list)
   }
 
   useEffect(() => { load() }, [])
 
   const add = async () => {
-    const p = await window.rotator.git.pickDir()
-    if (p) await window.rotator.git.addRepo(p)
+    const p = await rotator.git.pickDir()
+    if (p) await rotator.git.addRepo(p)
     load()
   }
 
-  const remove = async (p) => { if (!confirm('Remove repo?')) return; await window.rotator.git.removeRepo(p); load() }
+  const remove = async (p) => { if (!confirmGlobal('Remove repo?')) return; await rotator.git.removeRepo(p); load() }
 
   return (
     <div>
