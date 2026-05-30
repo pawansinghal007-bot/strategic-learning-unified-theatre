@@ -58,18 +58,18 @@ export function sanitizeFilename(value) {
     String(value ?? "")
       .trim()
       .toLowerCase()
-      .replace(/[^a-z0-9-_.]+/g, "-")
-      .replace(/^-+|-+$/g, "")
+      .replaceAll(/[^a-z0-9-_.]+/g, "-")
+      .replaceAll(/^-+|-+$/g, "")
       .slice(0, 64) || "signal"
   );
 }
 
 export function fileTimestamp() {
-  return new Date().toISOString().replace(/[:.]/g, "-");
+  return new Date().toISOString().replaceAll(/[:.]/g, "-");
 }
 
 export function isSecretPath(filePath) {
-  const normalized = String(filePath).replace(/\\/g, "/");
+  const normalized = String(filePath).replaceAll(/\\/g, "/");
   const filename = path.basename(filePath);
   return SECRET_PATTERNS.some(
     (pattern) => pattern.test(filename) || pattern.test(normalized),
@@ -77,7 +77,7 @@ export function isSecretPath(filePath) {
 }
 
 export function isExcludedPath(filePath) {
-  const normalized = String(filePath).replace(/\\/g, "/").toLowerCase();
+  const normalized = String(filePath).replaceAll(/\\/g, "/").toLowerCase();
   return DEFAULT_EXCLUDED_PATH_SEGMENTS.some(
     (segment) =>
       normalized.includes(`/${segment}/`) || normalized.endsWith(`/${segment}`),
@@ -120,14 +120,14 @@ export function parseFrontmatter(raw) {
     if (!line.trim()) continue;
     const [key, ...rest] = line.split(":");
     if (!key || rest.length === 0) continue;
-    data[key.trim()] = rest.join(":").trim().replace(/^"|"$/g, "");
+    data[key.trim()] = rest.join(":").trim().replaceAll(/^"|"$/g, "");
   }
   return { data, body: text.slice(match[0].length) };
 }
 
 export function splitStagedSignalDocuments(raw) {
   const normalized = String(raw ?? "")
-    .replace(/\r\n/g, "\n")
+    .replaceAll(/\r\n/g, "\n")
     .trim();
   if (!normalized) return [];
   if (!normalized.startsWith("---\n")) return [normalized];
