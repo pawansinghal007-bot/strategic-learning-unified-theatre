@@ -12,18 +12,20 @@ const IdeaPrioritySchema = z.union([z.literal(1), z.literal(2), z.literal(3)]);
 const IdeaSchema = z.object({
   id: z.string().uuid(),
   created: z.string().refine((value) => !Number.isNaN(Date.parse(value)), {
-    message: "Invalid ISO date"
+    message: "Invalid ISO date",
   }),
   project: z.string().min(1),
   tags: z.array(z.string()).default([]),
   status: IdeaStatusSchema,
   priority: IdeaPrioritySchema,
-  linkedSprint: z.string().uuid().nullable().optional().default(null)
+  linkedSprint: z.string().uuid().nullable().optional().default(null),
 });
 
 function formatValidationError(error) {
   if (error instanceof z.ZodError) {
-    return error.issues.map((issue) => `${issue.path.join(".") || "root"}: ${issue.message}`).join("; ");
+    return error.issues
+      .map((issue) => `${issue.path.join(".") || "root"}: ${issue.message}`)
+      .join("; ");
   }
   return error instanceof Error ? error.message : String(error);
 }
@@ -32,7 +34,7 @@ function createIdeaInvalidError(error, context = {}) {
   const detail = formatValidationError(error);
   return new DomainError("ROTATOR_IDEA_INVALID", `Invalid idea: ${detail}`, {
     ...context,
-    error: detail
+    error: detail,
   });
 }
 
@@ -47,15 +49,16 @@ function parseIdeaOrThrowDomainError(raw, context = {}) {
 function slugify(text) {
   const slug = String(text || "")
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "")
+    .replaceAll(/[^a-z0-9]+/g, "-")
+    .replaceAll(/(^-|-$)/g, "")
     .slice(0, 40);
   return slug || "idea";
 }
 
 function normalizeTags(tags) {
   if (tags == null) return [];
-  if (Array.isArray(tags)) return tags.map((tag) => String(tag).trim()).filter(Boolean);
+  if (Array.isArray(tags))
+    return tags.map((tag) => String(tag).trim()).filter(Boolean);
   return String(tags)
     .split(/[ ,]+/)
     .map((tag) => tag.trim())
@@ -63,7 +66,10 @@ function normalizeTags(tags) {
 }
 
 function extractTitle(body) {
-  const lines = String(body || "").split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  const lines = String(body || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
   if (lines.length === 0) return "Untitled";
   return lines[0].replace(/^#+\s*/, "") || "Untitled";
 }
@@ -99,7 +105,10 @@ async function quarantineFile(filePath, reason) {
   try {
     const corruptDir = path.join(path.dirname(filePath), "corrupt");
     await fs.mkdir(corruptDir, { recursive: true, mode: 0o700 });
-    const targetPath = path.join(corruptDir, `${path.basename(filePath)}.${Date.now()}.${reason}`);
+    const targetPath = path.join(
+      corruptDir,
+      `${path.basename(filePath)}.${Date.now()}.${reason}`,
+    );
     await fs.rename(filePath, targetPath);
   } catch {
     // Quarantine is best-effort; callers still skip invalid records.
@@ -110,15 +119,18 @@ async function readIdeaFile(filePath) {
   const raw = await fs.readFile(filePath, "utf8");
   try {
     const parsed = matter(raw);
-    const meta = parseIdeaOrThrowDomainError({
-      ...parsed.data,
-      tags: normalizeTags(parsed.data.tags),
-      linkedSprint: parsed.data.linkedSprint ?? null
-    }, { operation: "listIdeas", filePath });
+    const meta = parseIdeaOrThrowDomainError(
+      {
+        ...parsed.data,
+        tags: normalizeTags(parsed.data.tags),
+        linkedSprint: parsed.data.linkedSprint ?? null,
+      },
+      { operation: "listIdeas", filePath },
+    );
     return {
       ...meta,
       body: String(parsed.content || "").trim(),
-      filePath
+      filePath,
     };
   } catch (err) {
     await quarantineFile(filePath, "invalid-metadata");
@@ -151,14 +163,14 @@ export async function getIdeaContext({ cwd = process.cwd(), project } = {}) {
   const resolvedProject = project
     ? String(project).trim()
     : gitRoot
-    ? path.basename(gitRoot)
-    : path.basename(root) || "global";
+      ? path.basename(gitRoot)
+      : path.basename(root) || "global";
   const ideaDir = path.join(root, ".vscode-rotator", "ideas");
   return {
     root,
     gitRoot,
     ideaDir,
-    project: resolvedProject
+    project: resolvedProject,
   };
 }
 
@@ -169,7 +181,7 @@ export async function createIdea({
   priority = 3,
   linkedSprint = null,
   body,
-  cwd
+  cwd,
 } = {}) {
   const context = await getIdeaContext({ cwd, project });
   await ensureDirectory(context.ideaDir);
@@ -188,9 +200,11 @@ export async function createIdea({
     tags: normalizeTags(tags),
     status,
     priority: Number(priority),
-    linkedSprint: linkedSprint ? String(linkedSprint).trim() : null
+    linkedSprint: linkedSprint ? String(linkedSprint).trim() : null,
   };
-  const parsedIdea = parseIdeaOrThrowDomainError(idea, { operation: "createIdea" });
+  const parsedIdea = parseIdeaOrThrowDomainError(idea, {
+    operation: "createIdea",
+  });
 
   const title = extractTitle(content);
   const slug = slugify(title);
@@ -224,7 +238,9 @@ async function readIdeaFileIfMarkdown(directory, name) {
 }
 
 function sortIdeasByCreatedDesc(ideas) {
-  return ideas.sort((a, b) => new Date(b.created).getTime() - new Date(a.created).getTime());
+  return ideas.sort(
+    (a, b) => new Date(b.created).getTime() - new Date(a.created).getTime(),
+  );
 }
 
 async function readIdeasFromDirectory(directory, filterOptions) {
@@ -238,12 +254,21 @@ async function readIdeasFromDirectory(directory, filterOptions) {
   return ideas;
 }
 
-export async function listIdeas({ cwd = process.cwd(), project, status, tag } = {}) {
+export async function listIdeas({
+  cwd = process.cwd(),
+  project,
+  status,
+  tag,
+} = {}) {
   const context = await getIdeaContext({ cwd, project });
   if (!(await pathExists(context.ideaDir))) {
     return [];
   }
-  const ideas = await readIdeasFromDirectory(context.ideaDir, { project, status, tag });
+  const ideas = await readIdeasFromDirectory(context.ideaDir, {
+    project,
+    status,
+    tag,
+  });
   return sortIdeasByCreatedDesc(ideas);
 }
 
@@ -265,12 +290,17 @@ export async function updateIdea(id, patch = {}, options = {}) {
     tags: normalizeTags(patch.tags ?? idea.tags),
     status: patch.status ? patch.status : idea.status,
     priority: patch.priority ? Number(patch.priority) : idea.priority,
-    linkedSprint: patch.linkedSprint === undefined ? idea.linkedSprint : patch.linkedSprint
+    linkedSprint:
+      patch.linkedSprint === undefined ? idea.linkedSprint : patch.linkedSprint,
   };
-  const parsedData = parseIdeaOrThrowDomainError(data, { operation: "updateIdea", id, filePath: idea.filePath });
+  const parsedData = parseIdeaOrThrowDomainError(data, {
+    operation: "updateIdea",
+    id,
+    filePath: idea.filePath,
+  });
   const updated = {
     ...parsedData,
-    body: patch.body !== undefined ? String(patch.body).trim() : idea.body
+    body: patch.body !== undefined ? String(patch.body).trim() : idea.body,
   };
 
   const markdown = matter.stringify(updated.body, parsedData);
@@ -286,14 +316,22 @@ export async function linkIdeaToSprint(id, sprintId, options = {}) {
   return updateIdea(id, { linkedSprint: String(sprintId).trim() }, options);
 }
 
-export async function exportIdeas({ cwd = process.cwd(), project, status = "active" } = {}) {
+export async function exportIdeas({
+  cwd = process.cwd(),
+  project,
+  status = "active",
+} = {}) {
   const ideas = await listIdeas({ cwd, project, status });
   if (ideas.length === 0) {
     return "";
   }
 
   const reportProject = project || ideas[0].project || "project";
-  const header = `## ${String(status || "active").charAt(0).toUpperCase() + String(status || "active").slice(1)} ideas for ${reportProject}`;
+  const header = `## ${
+    String(status || "active")
+      .charAt(0)
+      .toUpperCase() + String(status || "active").slice(1)
+  } ideas for ${reportProject}`;
 
   const renderIdea = (ideaBody, ideaPriority) => {
     const title = extractTitle(ideaBody);
