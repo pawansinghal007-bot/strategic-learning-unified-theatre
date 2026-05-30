@@ -69,7 +69,7 @@ export function fileTimestamp() {
 }
 
 export function isSecretPath(filePath) {
-  const normalized = String(filePath).replaceAll(/\\/g, "/");
+  const normalized = String(filePath).replaceAll("\\", "/");
   const filename = path.basename(filePath);
   return SECRET_PATTERNS.some(
     (pattern) => pattern.test(filename) || pattern.test(normalized),
@@ -77,7 +77,7 @@ export function isSecretPath(filePath) {
 }
 
 export function isExcludedPath(filePath) {
-  const normalized = String(filePath).replaceAll(/\\/g, "/").toLowerCase();
+  const normalized = String(filePath).replaceAll("\\", "/").toLowerCase();
   return DEFAULT_EXCLUDED_PATH_SEGMENTS.some(
     (segment) =>
       normalized.includes(`/${segment}/`) || normalized.endsWith(`/${segment}`),
@@ -127,7 +127,7 @@ export function parseFrontmatter(raw) {
 
 export function splitStagedSignalDocuments(raw) {
   const normalized = String(raw ?? "")
-    .replaceAll(/\r\n/g, "\n")
+    .replaceAll("\r\n", "\n")
     .trim();
   if (!normalized) return [];
   if (!normalized.startsWith("---\n")) return [normalized];
