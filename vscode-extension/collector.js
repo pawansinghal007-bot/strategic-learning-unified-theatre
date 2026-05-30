@@ -120,7 +120,7 @@ export class VscodeContextCollector {
       if (pattern === "**/id_ed25519")
         return normalized.endsWith("/id_ed25519");
       return normalized.includes(
-        pattern.replace(/\*\*/g, "").replace(/\*/g, ""),
+        pattern.replaceAll(/\*\*/g, "").replaceAll(/\*/g, ""),
       );
     });
   }
@@ -129,7 +129,9 @@ export class VscodeContextCollector {
     const normalized = String(filePath).replace(/\\/g, "/").toLowerCase();
     const patterns = this.vscodeLearn.excludePatterns || [];
     return patterns.some((pattern) =>
-      normalized.includes(pattern.replace(/\*\*/g, "").replace(/\*/g, "")),
+      normalized.includes(
+        pattern.replaceAll(/\*\*/g, "").replaceAll(/\*/g, ""),
+      ),
     );
   }
 
@@ -247,11 +249,17 @@ export class VscodeContextCollector {
   _shouldSkipEditSignal(built) {
     if (built.signal_type !== "vscode-edit") return false;
     const filePath = built.file_path;
-    if (!filePath || !isAllowedExtension(filePath, this.vscodeLearn.allowedExtensions)) {
+    if (
+      !filePath ||
+      !isAllowedExtension(filePath, this.vscodeLearn.allowedExtensions)
+    ) {
       return true;
     }
 
-    if (Buffer.byteLength(built.content, "utf8") > Number(this.vscodeLearn.maxFileSizeBytes)) {
+    if (
+      Buffer.byteLength(built.content, "utf8") >
+      Number(this.vscodeLearn.maxFileSizeBytes)
+    ) {
       this.outputChannel.appendLine(
         "[vscode-learn] staged signal skipped: content exceeds maxFileSizeBytes.",
       );
@@ -266,7 +274,10 @@ export class VscodeContextCollector {
     if (built.severity !== 0) return true;
 
     const filePath = built.file_path;
-    if (!filePath || !isAllowedExtension(filePath, this.vscodeLearn.allowedExtensions)) {
+    if (
+      !filePath ||
+      !isAllowedExtension(filePath, this.vscodeLearn.allowedExtensions)
+    ) {
       return true;
     }
 
@@ -290,8 +301,7 @@ export class VscodeContextCollector {
   _shouldSkipTaskErrorSignal(built) {
     if (built.signal_type !== "vscode-task-error") return false;
     return (
-      Number.isNaN(Number(built.exit_code)) ||
-      Number(built.exit_code) === 0
+      Number.isNaN(Number(built.exit_code)) || Number(built.exit_code) === 0
     );
   }
 
@@ -472,7 +482,7 @@ export class VscodeContextCollector {
         : null;
       if (!folderPath) continue;
       if (normalized.startsWith(folderPath + path.sep)) {
-        return path.relative(folderPath, normalized).replace(/\\/g, "/");
+        return path.relative(folderPath, normalized).replaceAll(/\\/g, "/");
       }
     }
     return path.basename(filePath);
