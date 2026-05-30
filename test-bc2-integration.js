@@ -224,7 +224,7 @@ async function runTests() {
         if (recentContext.trim().length > 0) {
           console.log("   → Context sample (first 200 chars):");
           console.log(
-            `      ${recentContext.substring(0, 200).replaceAll(/\n/g, "\n      ")}`,
+            `      ${recentContext.substring(0, 200).replaceAll("\n", "\n      ")}`,
           );
         } else {
           console.log(
