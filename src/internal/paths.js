@@ -88,59 +88,49 @@ function normalizeProfileName(profileName) {
 
 function getGithubAuthCandidates(normalizedProfile) {
   const userDir = resolveVSCodeUserDir();
-  const candidates = [];
-
-  if (normalizedProfile) {
-    candidates.push(
-      path.join(
-        userDir,
-        "profiles",
-        normalizedProfile,
-        "globalStorage",
-        "github.copilot",
-        "auth.json",
-      ),
-    );
-    candidates.push(
-      path.join(
-        userDir,
-        "profiles",
-        normalizedProfile,
-        "github.copilot",
-        "auth.json",
-      ),
-    );
-  }
-
-  candidates.push(
+  return [
+    ...(normalizedProfile
+      ? [
+          path.join(
+            userDir,
+            "profiles",
+            normalizedProfile,
+            "globalStorage",
+            "github.copilot",
+            "auth.json",
+          ),
+          path.join(
+            userDir,
+            "profiles",
+            normalizedProfile,
+            "github.copilot",
+            "auth.json",
+          ),
+        ]
+      : []),
     path.join(resolveVSCodeGlobalStorageDir(), "github.copilot", "auth.json"),
-  );
-  candidates.push(homedirPath(".github-copilot", "auth.json"));
-  return candidates;
+    homedirPath(".github-copilot", "auth.json"),
+  ];
 }
 
 function getVscodeAuthCandidates(normalizedProfile) {
   const userDir = resolveVSCodeUserDir();
-  const candidates = [];
-
-  if (normalizedProfile) {
-    candidates.push(
-      path.join(
-        userDir,
-        "profiles",
-        normalizedProfile,
-        "globalStorage",
-        "saml.secret",
-      ),
-    );
-    candidates.push(
-      path.join(userDir, "profiles", normalizedProfile, "saml.secret"),
-    );
-  }
-
-  candidates.push(path.join(resolveVSCodeGlobalStorageDir(), "saml.secret"));
-  candidates.push(path.join(os.homedir(), ".vscode", "argv.json"));
-  return candidates;
+  return [
+    ...(normalizedProfile
+      ? [
+          path.join(
+            userDir,
+            "profiles",
+            normalizedProfile,
+            "globalStorage",
+            "saml.secret",
+          ),
+          path.join(userDir, "profiles", normalizedProfile, "saml.secret"),
+        ]
+      : []),
+    path.join(resolveVSCodeGlobalStorageDir(), "saml.secret"),
+    path.join(os.homedir(), ".vscode", "argv.json"),
+  ];
 }
 
 function getConfiguredOtherAuthPath(config) {
@@ -287,57 +277,48 @@ export async function resolveVSCodeBin() {
   if (typeof overridden === "string" && overridden.trim()) return overridden;
 
   const platform = process.platform;
-  const candidates = [];
-
-  if (platform === "win32") {
-    candidates.push(...resolvePathCandidates("code.cmd"));
-    candidates.push(...resolvePathCandidates("code.exe"));
-    candidates.push(...resolvePathCandidates("code"));
-
-    const local = process.env.LOCALAPPDATA;
-    const pf = process.env.ProgramFiles;
-    const pf86 = process.env["ProgramFiles(x86)"];
-    const rootCandidates = [local, pf, pf86].filter(Boolean);
-
-    for (const root of rootCandidates) {
-      candidates.push(
-        path.join(root, "Programs", "Microsoft VS Code", "bin", "code.cmd"),
-      );
-      candidates.push(path.join(root, "Microsoft VS Code", "bin", "code.cmd"));
-      candidates.push(
-        path.join(
-          root,
-          "Programs",
-          "Microsoft VS Code Insiders",
-          "bin",
-          "code-insiders.cmd",
-        ),
-      );
-    }
-  } else {
-    candidates.push(...resolvePathCandidates("code"));
-    candidates.push("/usr/local/bin/code");
-    candidates.push("/opt/homebrew/bin/code");
-    candidates.push("/usr/bin/code");
-    candidates.push("/snap/bin/code");
-    candidates.push("/var/lib/flatpak/exports/bin/com.visualstudio.code");
-    candidates.push(
-      homedirPath(
-        ".local",
-        "share",
-        "flatpak",
-        "exports",
-        "bin",
-        "com.visualstudio.code",
-      ),
-    );
-
-    if (platform === "darwin") {
-      candidates.push(
-        "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code",
-      );
-    }
-  }
+  const candidates = [
+    ...(platform === "win32"
+      ? [
+          ...resolvePathCandidates("code.cmd"),
+          ...resolvePathCandidates("code.exe"),
+          ...resolvePathCandidates("code"),
+          ...[process.env.LOCALAPPDATA, process.env.ProgramFiles, process.env["ProgramFiles(x86)"]]
+            .filter(Boolean)
+            .flatMap((root) => [
+              path.join(root, "Programs", "Microsoft VS Code", "bin", "code.cmd"),
+              path.join(root, "Microsoft VS Code", "bin", "code.cmd"),
+              path.join(
+                root,
+                "Programs",
+                "Microsoft VS Code Insiders",
+                "bin",
+                "code-insiders.cmd",
+              ),
+            ]),
+        ]
+      : [
+          ...resolvePathCandidates("code"),
+          "/usr/local/bin/code",
+          "/opt/homebrew/bin/code",
+          "/usr/bin/code",
+          "/snap/bin/code",
+          "/var/lib/flatpak/exports/bin/com.visualstudio.code",
+          homedirPath(
+            ".local",
+            "share",
+            "flatpak",
+            "exports",
+            "bin",
+            "com.visualstudio.code",
+          ),
+          ...(platform === "darwin"
+            ? [
+                "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code",
+              ]
+            : []),
+        ]),
+  ];
 
   for (const p of candidates) {
     if (await exists(p)) return p;
