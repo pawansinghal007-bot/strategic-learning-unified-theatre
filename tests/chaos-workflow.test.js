@@ -14,7 +14,7 @@ describe("Chaos workflow file", () => {
   });
 
   it("does not hardcode password or token outside of secrets context", () => {
-    const cleaned = workflowText.replace(/\${{\s*secrets\.[^}]+}}/g, "");
+    const cleaned = workflowText.replaceAll(/\${{\s*secrets\.[^}]+}}/g, "");
     expect(cleaned).not.toMatch(/password/i);
     expect(cleaned).not.toMatch(/token/i);
   });
