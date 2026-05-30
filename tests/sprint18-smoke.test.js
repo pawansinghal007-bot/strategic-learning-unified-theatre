@@ -5,7 +5,6 @@ import {
   tokenChunkSchema,
 } from "../src/shared/schemas/provider.schema.js";
 import {
-  DomainError,
   ProviderQuotaError,
   RoutingNoProviderError,
   MemoryNotFoundError,
