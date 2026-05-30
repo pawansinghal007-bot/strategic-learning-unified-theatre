@@ -1,0 +1,16 @@
+strategic-learning-unified-theatre:src/accounts/profile-manager.js|163
+strategic-learning-unified-theatre:src/llm/inference.js|140
+strategic-learning-unified-theatre:src/llm/inference.js|149
+strategic-learning-unified-theatre:src/storage/vscode-learn-utils.js|72
+strategic-learning-unified-theatre:src/storage/vscode-learn-utils.js|80
+strategic-learning-unified-theatre:src/storage/vscode-learn-utils.js|130
+strategic-learning-unified-theatre:test-bc2-integration.js|227
+strategic-learning-unified-theatre:tests/coverage-gate.test.js|16
+strategic-learning-unified-theatre:vscode-extension/collector.js|123
+strategic-learning-unified-theatre:vscode-extension/collector.js|123
+strategic-learning-unified-theatre:vscode-extension/collector.js|133
+strategic-learning-unified-theatre:vscode-extension/collector.js|133
+strategic-learning-unified-theatre:vscode-extension/collector.js|485
+strategic-learning-unified-theatre:vscode-extension/collector.js|112
+strategic-learning-unified-theatre:vscode-extension/collector.js|129
+strategic-learning-unified-theatre:src/internal/journal.js|32

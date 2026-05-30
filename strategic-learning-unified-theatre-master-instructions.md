@@ -104,3 +104,11 @@ Snapshot discipline:
 - Minor: 278 → 136 (-142)
 - All target rules clear: S3776=0, S2004=0, S4123=0
 - Next sprint: S7781 + S7763 (28 each) — highest count
+
+## SLUT 2D Sprint 2 Complete
+
+- S7764 + S7781 + S7763 all = 0.
+- Use `sonar-scanner`, not `npx @sonar/scan`.
+- NOSONAR: alias declarations are legitimate suppression.
+- `window.location` = browser window — do NOT convert.
+- `replace()` without `/g` = first match only — do NOT convert.

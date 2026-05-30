@@ -1,0 +1,23 @@
+SPRINT: SLUT 2D recovery / sprint 2 lock
+STATUS: stable
+
+LOCK: v1.7-stable
+
+SONAR TARGET RULES:
+  S7764 — 0 remaining
+  S7781 — 0 remaining
+  S7763 — 0 remaining
+
+BASELINE:
+  528 tests pass
+  npx tsc --noEmit pass
+  npm run ui:build pass
+
+NOTES:
+  - Use sonar-scanner, not npx @sonar/scan.
+  - NOSONAR alias declarations are legitimate suppression.
+  - window.location means browser window; do not convert it.
+  - replace() without /g is first-match only; do not convert it.
+
+NEXT:
+  sprint 3 — S3358(21) + S7778(20) + S1128(20)
