@@ -10,7 +10,7 @@ import { StorageMonitor } from "./storage/storage-monitor.js";
 import { DocumentIngester } from "./llm/document-ingester.js";
 import { ExperienceDb } from "./llm/experience-db.js";
 import { MistakeTracker } from "./llm/mistake-tracker.js";
-import { parseFrontmatter } from "./storage/vscode-learn-utils.js";
+export { parseFrontmatter } from "./storage/vscode-learn-utils.js";
 import { createLogger } from "./logger.js";
 
 const log = createLogger("browser-bridge");
@@ -1050,5 +1050,4 @@ export {
   ingestBrowserResponseFile,
   tagResponse,
   captureThread,
-  parseFrontmatter,
 };
