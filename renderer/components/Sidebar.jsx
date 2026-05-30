@@ -196,7 +196,7 @@ export default function Sidebar({ active, onSelect }) {
   const iconFilter = ICON_FILTERS[t.iconStyle] || "none";
 
   useEffect(() => {
-    window.rotator.app
+    globalThis.rotator.app
       .version()
       .then((v) => setVersion(v))
       .catch(() => {});
