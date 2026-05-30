@@ -19,6 +19,7 @@ const PLATFORMS = [
  * @returns {React.ReactElement}
  */
 export default function BrowserPanel({ initialPlatform = "chatgpt" }) {
+  const browser = globalThis.rotator.browser; // NOSONAR
   const [activePlatform, setActivePlatform] = useState(initialPlatform);
   const [lastCapturedAt, setLastCapturedAt] = useState(null);
   const [captureCount, setCaptureCount] = useState(0);
@@ -34,7 +35,7 @@ export default function BrowserPanel({ initialPlatform = "chatgpt" }) {
 
     setLoading(true);
     try {
-      await window.rotator.browser.switchPlatform(platform);
+      await browser.switchPlatform(platform);
       setActivePlatform(platform);
     } catch (err) {
       console.error("[BrowserPanel] switch platform failed:", err);
@@ -44,7 +45,7 @@ export default function BrowserPanel({ initialPlatform = "chatgpt" }) {
   };
 
   /**
-   * Subscribe to capture events (via window.rotator.browser.onCapture)
+   * Subscribe to capture events (via globalThis.rotator.browser.onCapture)
    */
   useEffect(() => {
     const handleCapture = (payload) => {
@@ -56,7 +57,7 @@ export default function BrowserPanel({ initialPlatform = "chatgpt" }) {
     };
 
     // Subscribe to capture events
-    const unsubscribe = window.rotator.browser.onCapture(handleCapture);
+    const unsubscribe = browser.onCapture(handleCapture);
     return () => {
       if (typeof unsubscribe === "function") {
         unsubscribe();
@@ -76,7 +77,7 @@ export default function BrowserPanel({ initialPlatform = "chatgpt" }) {
 
     // Subscribe to navigation events via generic daemon event listener
     // This is forwarded from ipcRenderer.on('browser:navigation')
-    const unsubscribe = window.rotator.browser.onNavigation(handleNavigation);
+    const unsubscribe = browser.onNavigation(handleNavigation);
     return () => {
       if (typeof unsubscribe === "function") {
         unsubscribe();
