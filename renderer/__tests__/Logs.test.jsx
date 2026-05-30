@@ -4,14 +4,14 @@ import '@testing-library/jest-dom'
 import Logs from '../Logs.jsx'
 
 describe('Logs.jsx', () => {
-  const originalRotator = window.rotator
+  const originalRotator = globalThis.rotator
 
   afterEach(() => {
-    window.rotator = originalRotator
+    globalThis.rotator = originalRotator
   })
 
-  it('renders without crashing when window.rotator.logs is not present', () => {
-    window.rotator = {}
+  it('renders without crashing when globalThis.rotator.logs is not present', () => {
+    globalThis.rotator = {}
 
     const { container } = render(<Logs />)
 
@@ -19,7 +19,7 @@ describe('Logs.jsx', () => {
   })
 
   it('renders "No log entries yet." placeholder on mount', () => {
-    window.rotator = {}
+    globalThis.rotator = {}
 
     render(<Logs />)
 

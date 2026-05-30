@@ -9,7 +9,7 @@ export default function Logs() {
   const [correlationFilter, setCorrelationFilter] = useState("");
 
   useEffect(() => {
-    const subscribe = window.rotator?.logs?.onEvent;
+    const subscribe = globalThis.rotator?.logs?.onEvent;
     if (typeof subscribe !== "function") return undefined;
 
     const unsubscribe = subscribe((entry) => {
