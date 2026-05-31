@@ -1,0 +1,5 @@
+S3358: 0 remaining
+files fixed: local-llm.js, Sidebar.jsx, Accounts.jsx,
+             PromptTemplates.jsx, idea-store.js, cli.js,
+             health.js, document-ingester.js, agent-handoff.js
+528 tests / typecheck pass

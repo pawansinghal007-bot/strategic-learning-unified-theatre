@@ -1,4 +1,4 @@
-v1.8b-active
+v1.8c-active
 
 TOOLING ADDED SPRINT 3B:
 	ESLint — installed, use for unused import verification
