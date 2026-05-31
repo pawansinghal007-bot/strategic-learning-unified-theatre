@@ -52,7 +52,6 @@ function httpGet(url) {
 function httpPost(url, body) {
   return new Promise((resolve, reject) => {
     const data = JSON.stringify(body);
-    const options = new URL(url);
     const req = http.request(
       url,
       {

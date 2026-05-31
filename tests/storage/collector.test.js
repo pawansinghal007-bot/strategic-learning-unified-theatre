@@ -621,7 +621,6 @@ describe("VscodeSignalCollector", () => {
     it("should count recurring diagnostics across multiple stagings", async () => {
       const filePath = "/home/user/project/src/app.ts";
       const message1 = "Cannot find name 'x'";
-      const message2 = "Cannot find name 'y'";
 
       // Different message first
       const sig1 = { signal_type: "vscode-diagnostic", filePath, severity: 0, message: message1, content: message1, captured_at: new Date().toISOString() };

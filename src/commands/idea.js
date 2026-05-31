@@ -138,7 +138,6 @@ export async function bindIdeaCommands(program) {
           priority,
           body: `# ${title}\n\n${body}`
         });
-        created = ideaDoc;
         console.log(chalk.green("Created idea:"), chalk.cyan(ideaDoc.id));
       } catch (err) {
         console.error(chalk.red(String(err?.message ?? err)));

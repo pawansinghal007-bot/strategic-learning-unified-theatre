@@ -557,7 +557,7 @@ export class ExperienceDb {
 
     // Sort each thread by turn_index
     const result = [];
-    for (const [filename, docs] of threadsMap.entries()) {
+    for (const [, docs] of threadsMap.entries()) {
       docs.sort((a, b) => Number(a.turn_index) - Number(b.turn_index));
       result.push(...docs);
     }
