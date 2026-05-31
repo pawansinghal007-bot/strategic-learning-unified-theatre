@@ -398,8 +398,8 @@ function mapLocalLlmStatus(raw) {
 
 export async function computeLocalLlmHealth() {
   const raw = await getLocalLlmStatus();
-  const modelDir =
-    raw?.modelDir ?? (raw?.modelPath ? path.dirname(raw.modelPath) : null);
+  const inner = raw?.modelPath ? path.dirname(raw.modelPath) : null;
+  const modelDir = raw?.modelDir ?? inner;
   return {
     status: mapLocalLlmStatus(raw),
     modelDir,
