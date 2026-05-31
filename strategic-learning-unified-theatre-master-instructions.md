@@ -147,3 +147,8 @@ Anti-pattern:
 - S1128: remove unused imports — always run vitest to confirm
 - false positive rule: tsc passing does not mean import is unused
 - always run full vitest after every S1128 fix
+
+## Sprint 3 complete
+S3358+S7778+S1128 all = 0
+Token updated: squ_5ec46c588908bbc8d58d416cb29af04cffb7b007
+Sprint 4 started: S7744 (3/10 fixed)

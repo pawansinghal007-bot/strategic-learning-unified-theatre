@@ -1,22 +1,7 @@
-SPRINT: 3 — S3358 + S7778 + S1128
+SPRINT: 3 complete — S3358 + S7778 + S1128
 STATUS: stable
-
-S3358 nested ternary:  0 remaining — 9 files fixed
-S7778 batch push:      0 remaining — 3 files fixed
-S1128 unused imports:  0 remaining — multiple files fixed
-  false positives found: pathToFileURL, updatePrompt,
-  getActiveSprint, os — restored after test regression
-
-REGRESSION FOUND + FIXED:
-  S1128 wrongly removed runtime-used imports
-  Lesson: always run vitest after each S1128 fix
-  tsc alone is not sufficient
-
+S3358: 0  S7778: 0  S1128: 0
 VALIDATION: 528 tests / typecheck / build pass
-PREVIOUS SPRINTS:
-  S3776 sprint 1  — 18 fixed — v1.2-stable
-  S2004           — 16 fixed — v1.3-stable
-  S4123           — 9 fixed  — v1.4-stable
-  S3776 sprint 1b — 19 fixed — v1.5-stable
-  S7764+S7781+S7763 — sprint 2 — v1.7-stable
-NEXT: sprint 4 — check top remaining rules
+TOTAL ISSUES: 194
+TOP REMAINING: S6582(19) S6853(17) S7785(13) S2486(11) S1874(11)
+S7744: 10 remaining — 3 fixes already committed (sprint 4 started)
