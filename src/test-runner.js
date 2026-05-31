@@ -431,7 +431,6 @@ export async function runSuite({
 }
 
 function collectJsFiles(dir) {
-  const results = [];
   const entries = fs.readdir(dir, { withFileTypes: true });
   return entries.then((items) =>
     Promise.all(

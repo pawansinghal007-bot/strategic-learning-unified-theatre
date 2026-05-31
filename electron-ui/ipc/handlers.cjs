@@ -96,10 +96,6 @@ module.exports = async function register({ ipcMain, dialog, watcher, app }) {
     }
   };
 
-  const registerChannel = (name, handler) => {
-    ipcMain.handle(name, handler);
-  };
-
   ipcMain.handle("accounts:list", async () => {
     await secretStore.migrateLegacy({ storePath: store.storePath });
     return await store.list();
