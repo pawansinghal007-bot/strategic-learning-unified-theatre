@@ -486,11 +486,11 @@ function mapSprintManifestToHandoff(manifest) {
     ? manifest.completedTasks.map((task) => (typeof task === "string" ? task : task.description || ""))
     : [];
   const pendingTasks = Array.isArray(manifest.pendingTasks)
-    ? manifest.pendingTasks.map((task) =>
-        typeof task === "string"
-          ? task
-          : `${task.description || ""}${task.priority ? ` (priority ${task.priority})` : ""}`.trim()
-      )
+    ? manifest.pendingTasks.map((task) => {
+        if (typeof task === "string") return task;
+        const inner = task.priority ? ` (priority ${task.priority})` : "";
+        return `${task.description || ""}${inner}`.trim();
+      })
     : [];
 
   return {
