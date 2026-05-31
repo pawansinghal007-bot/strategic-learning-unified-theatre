@@ -228,12 +228,13 @@ export class DocumentIngester {
       // For regular documents, use paragraph chunking
       const chunkContents = chunkText(text);
       const inferredPlatform = source_type === "llm-response" ? platform : null;
+      const inferredMetadata = tags ? { tags } : undefined;
       chunks = chunkContents.map((content, index) => ({
         content,
         source_type: source_type ?? sourceType(absolute),
         platform: inferredPlatform,
         file_ts: ts,
-        metadata: metadata ?? (tags ? { tags } : undefined),
+        metadata: metadata ?? inferredMetadata,
       }));
     }
 
