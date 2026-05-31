@@ -1084,17 +1084,6 @@ ${body}
         ].join("\n---\n"),
       );
 
-      let callCount = 0;
-      const ingestSpy = vi
-        .spyOn(DocumentIngester.prototype, "ingestFile")
-        .mockImplementation(async () => {
-          callCount++;
-          if (callCount === 1) {
-            throw new Error("First chunk fails");
-          }
-          return { chunks: 1 };
-        });
-
       await ingestStagedSignalsFromDirectory(stagedDir, tempDir);
 
       // File should still exist because one chunk failed

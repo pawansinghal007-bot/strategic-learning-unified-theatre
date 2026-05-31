@@ -715,7 +715,6 @@ describe("Browser Bridge", () => {
       });
 
       const tracker = new MistakeTracker({ baseDir: tempDir });
-      const mistakes = await tracker.listRubric();
       // MistakeTracker.listRubric returns rules not mistakes, so we verify via ExperienceDb directly
       const db2 = new ExperienceDb({
         baseDir: path.join(tempDir, ".vscode-rotator"),

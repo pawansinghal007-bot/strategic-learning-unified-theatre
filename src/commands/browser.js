@@ -671,7 +671,7 @@ export function bindBrowserCommands(program, { log = null } = {}) {
         `Capturing conversation thread from ${options.platform}...`,
       ).start();
       try {
-        const { filename, turns, platform, chunksIngested } =
+        const { turns, platform, chunksIngested } =
           await captureAndIngest(options.platform, {
             outputDir: options.outputDir,
             timeout: parseTimeoutMs(options.timeout),

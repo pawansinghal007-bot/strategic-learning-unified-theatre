@@ -67,7 +67,6 @@ describe('e2e enhance schedule', () => {
     // eslint-disable-next-line no-console
     console.log('calledWith', calledWith, 'events', events.length);
 
-    const history = (await db.recentSprints()) || [];
     // prompt_history stored in DB; open raw state
     await db.ensureOpen();
     const state = db.state;
