@@ -271,7 +271,7 @@ function parseUserConfig(raw, path, isStrict) {
       ...json,
       vscodeLearn: {
         ...DEFAULT_CONFIG.vscodeLearn,
-        ...(json?.vscodeLearn || {}),
+        ...(json?.vscodeLearn),
       },
     };
   } catch (err) {
@@ -316,16 +316,16 @@ export async function loadConfig() {
   // Merge: DEFAULT_CONFIG → userConfig → enterpriseOverride
   const merged = {
     ...userConfig,
-    ...(enterpriseOverride || {}),
+    ...(enterpriseOverride),
 
     vscodeLearn: {
       ...userConfig.vscodeLearn,
-      ...(enterpriseOverride?.vscodeLearn || {}),
+      ...(enterpriseOverride?.vscodeLearn),
     },
 
     policy: {
       ...userConfig.policy,
-      ...(enterpriseOverride?.policy || {}),
+      ...(enterpriseOverride?.policy),
     },
   };
 
