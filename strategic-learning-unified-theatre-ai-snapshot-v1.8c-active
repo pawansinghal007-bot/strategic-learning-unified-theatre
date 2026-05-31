@@ -1,0 +1,17 @@
+SPRINT: 3C — S3358 nested ternary
+STATUS: active — rule cleared
+
+S3358 nested ternary: 0 remaining
+  Files fixed: local-llm.js, Sidebar.jsx, Accounts.jsx,
+               PromptTemplates.jsx, idea-store.js, cli.js,
+               health.js, document-ingester.js, agent-handoff.js
+  Pattern: extracted inner ternary to named const / if-else
+
+ALL SPRINT 3 RULES CONFIRMED CLEAR:
+  S3358: 0
+  S7778: 0
+  S1128: 0
+
+VALIDATION: 528 tests / typecheck pass
+PREVIOUS: v1.8b-active (S1128+S7778)
+NEXT: 3D lock v1.8-stable
