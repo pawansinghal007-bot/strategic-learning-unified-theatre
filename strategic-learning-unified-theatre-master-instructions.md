@@ -140,3 +140,10 @@ Anti-pattern:
   Never remove an import solely because Sonar flags it
   without confirming it is unused — some imports have
   side effects or are used via dynamic references
+
+## Sprint 3 complete — S3358 + S7778 + S1128 all = 0
+- S3358: extract nested ternary to named const or if/else
+- S7778: arr.push(a);arr.push(b) → arr.push(a,b)
+- S1128: remove unused imports — always run vitest to confirm
+- false positive rule: tsc passing does not mean import is unused
+- always run full vitest after every S1128 fix
