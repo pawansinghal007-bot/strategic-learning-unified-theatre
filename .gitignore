@@ -26,3 +26,5 @@ project_snapshot.txt
 full_project_audit.txt
 exports/
 report-task.txt
+*.env
+.env*
