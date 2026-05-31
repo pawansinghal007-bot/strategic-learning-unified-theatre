@@ -91,20 +91,29 @@ export async function getLlmStatus({ baseDir } = {}) {
   }
 
   const models = [...ggufModels, ...ollamaModels];
+  let fallbackModel = null;
+  if (ollamaModels.length > 0) {
+    fallbackModel = ollamaModels[0];
+  }
+
+  let modelPath = fallbackModel;
+  if (ggufModels.length > 0) {
+    modelPath = path.join(dir, ggufModels[0]);
+  }
+
+  let provider = null;
+  if (ggufModels.length > 0) {
+    provider = "node-llama-cpp";
+  } else if (ollamaModels.length > 0) {
+    provider = "ollama";
+  }
+
   return {
     available: models.length > 0,
     models,
-    // prefer a GGUF model path, otherwise use the first ollama model or null
-    modelPath: ((): string | null => {
-      const fallbackModel = ollamaModels.length > 0 ? ollamaModels[0] : null;
-      return ggufModels.length > 0 ? path.join(dir, ggufModels[0]) : fallbackModel;
-    })(),
-    // provider name derived from what model source is available
-    provider: ((): string | null => {
-      const fallbackProvider = ollamaModels.length > 0 ? "ollama" : null;
-      return ggufModels.length > 0 ? "node-llama-cpp" : fallbackProvider;
-    })(),
-    ollamaAvailable
+    modelPath,
+    provider,
+    ollamaAvailable,
   };
 }
 
@@ -135,9 +144,12 @@ export async function getLocalLlmStatus({ verifyRuntime = verifyLocalLlmRuntime 
 export async function setupModel({ model = "phi3", modelPath, baseDir } = {}) {
   const provider = await resolvePreferredLlmProvider();
   if (provider === "ollama") {
-    const requestedModel = modelPath
-      ? String(modelPath).trim()
-      : OLLAMA_MODEL_REGISTRY[model] ?? OLLAMA_MODEL_REGISTRY.phi3;
+    let requestedModel;
+    if (modelPath) {
+      requestedModel = String(modelPath).trim();
+    } else {
+      requestedModel = OLLAMA_MODEL_REGISTRY[model] ?? OLLAMA_MODEL_REGISTRY.phi3;
+    }
     if (!requestedModel) {
       throw new Error("Ollama model name is required for setup.");
     }
@@ -150,10 +162,13 @@ export async function setupModel({ model = "phi3", modelPath, baseDir } = {}) {
   if (model === "custom" && !modelPath) {
     throw new Error("--model custom requires --model-path /path/to/model.gguf");
   }
-  const registry =
-    model === "custom" && modelPath
-      ? { name: path.basename(modelPath), url: null, sha256: null }
-      : MODEL_REGISTRY[model] ?? MODEL_REGISTRY.phi3;
+
+  let registry;
+  if (model === "custom" && modelPath) {
+    registry = { name: path.basename(modelPath), url: null, sha256: null };
+  } else {
+    registry = MODEL_REGISTRY[model] ?? MODEL_REGISTRY.phi3;
+  }
   const target = path.join(dir, registry.name);
 
   if (modelPath) {
@@ -183,10 +198,18 @@ export async function ingestDocuments(options = {}) {
   log.info("llm.ingest.start", { correlationId, targetPath: options.targetPath || null });
   try {
     const ingester = new DocumentIngester(options);
-    const result = options.targetPath
-      ? await ingester.ingestPath(options.targetPath)
-      : await ingester.ingestFromSnapshot(options);
-    const actionsCount = Array.isArray(result) ? result.length : result?.actions?.length ?? 0;
+    let result;
+    if (options.targetPath) {
+      result = await ingester.ingestPath(options.targetPath);
+    } else {
+      result = await ingester.ingestFromSnapshot(options);
+    }
+    let actionsCount = 0;
+    if (Array.isArray(result)) {
+      actionsCount = result.length;
+    } else if (result?.actions?.length) {
+      actionsCount = result.actions.length;
+    }
     log.info("llm.ingest.success", { correlationId, actions: actionsCount });
     return result;
   } catch (err) {

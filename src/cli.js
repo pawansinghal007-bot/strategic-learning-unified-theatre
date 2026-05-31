@@ -540,12 +540,12 @@ profileCmd
       const existing = await pm.list();
       if (!existing.includes(desiredProfile)) {
         spinner.text = "Creating profile...";
-        const template =
-          account.agentType === "codex"
-            ? "codex"
-            : account.agentType === "trae"
-              ? "trae"
-              : "default";
+        let template = "default";
+        if (account.agentType === "codex") {
+          template = "codex";
+        } else if (account.agentType === "trae") {
+          template = "trae";
+        }
         await pm.create(desiredProfile, template);
       }
 

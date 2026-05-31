@@ -98,6 +98,12 @@ export default function PromptTemplates({ activePrompt }) {
     setStatus("Creating new template");
   };
 
+  const saveButtonLabel = (() => {
+    if (loading) return "Saving...";
+    if (selectedId) return "Save changes";
+    return "Create template";
+  })();
+
   return (
     <div>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-3">
@@ -143,11 +149,7 @@ export default function PromptTemplates({ activePrompt }) {
               disabled={loading}
               className="px-4 py-2 bg-teal-600 text-white rounded"
             >
-              {loading
-                ? "Saving..."
-                : selectedId
-                  ? "Save changes"
-                  : "Create template"}
+              {saveButtonLabel}
             </button>
             <button
               onClick={startNew}

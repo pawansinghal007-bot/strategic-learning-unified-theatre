@@ -160,11 +160,14 @@ async function ensureDirectory(dir) {
 export async function getIdeaContext({ cwd = process.cwd(), project } = {}) {
   const gitRoot = await findGitRoot(cwd);
   const root = gitRoot ?? path.resolve(cwd);
-  const resolvedProject = project
-    ? String(project).trim()
-    : gitRoot
-      ? path.basename(gitRoot)
-      : path.basename(root) || "global";
+  let resolvedProject;
+  if (project) {
+    resolvedProject = String(project).trim();
+  } else if (gitRoot) {
+    resolvedProject = path.basename(gitRoot);
+  } else {
+    resolvedProject = path.basename(root) || "global";
+  }
   const ideaDir = path.join(root, ".vscode-rotator", "ideas");
   return {
     root,
