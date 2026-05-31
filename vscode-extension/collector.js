@@ -54,7 +54,7 @@ export class VscodeContextCollector {
     this.config = config;
     this.vscodeLearn = {
       ...DEFAULT_CONFIG.vscodeLearn,
-      ...(config.vscodeLearn || {}),
+      ...(config.vscodeLearn),
     };
     this.baseDir = this.config.baseDir ?? null;
     this.stagedSignalsDir = this.vscodeLearn.stagedSignalsDir
