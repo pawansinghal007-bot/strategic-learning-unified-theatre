@@ -286,7 +286,7 @@ export class DocumentIngester {
         platform: chunk.platform ?? platform ?? null,
         file_ts: chunk.file_ts ?? ts,
         metadata: chunk.metadata
-          ? { ...chunk.metadata, ...(metadata || {}) }
+          ? { ...chunk.metadata, ...(metadata) }
           : (metadata ?? undefined),
         turn_index: chunk.turn_index ?? null,
         quality: chunk.quality ?? null,
