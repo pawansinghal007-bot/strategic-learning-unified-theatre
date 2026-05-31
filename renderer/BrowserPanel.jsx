@@ -24,7 +24,6 @@ export default function BrowserPanel({ initialPlatform = "chatgpt" }) {
   const [lastCapturedAt, setLastCapturedAt] = useState(null);
   const [captureCount, setCaptureCount] = useState(0);
   const [totalDocs, setTotalDocs] = useState(0);
-  const [browserUrl, setBrowserUrl] = useState("");
   const [loading, setLoading] = useState(false);
 
   /**
@@ -58,26 +57,6 @@ export default function BrowserPanel({ initialPlatform = "chatgpt" }) {
 
     // Subscribe to capture events
     const unsubscribe = browser.onCapture(handleCapture);
-    return () => {
-      if (typeof unsubscribe === "function") {
-        unsubscribe();
-      }
-    };
-  }, []);
-
-  /**
-   * Subscribe to browser navigation events
-   */
-  useEffect(() => {
-    const handleNavigation = (payload) => {
-      if (payload.url) {
-        setBrowserUrl(payload.url);
-      }
-    };
-
-    // Subscribe to navigation events via generic daemon event listener
-    // This is forwarded from ipcRenderer.on('browser:navigation')
-    const unsubscribe = browser.onNavigation(handleNavigation);
     return () => {
       if (typeof unsubscribe === "function") {
         unsubscribe();
