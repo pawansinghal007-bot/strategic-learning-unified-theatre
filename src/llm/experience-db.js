@@ -176,7 +176,7 @@ export class ExperienceDb {
           : defaultState();
       this.state.counters = {
         ...defaultState().counters,
-        ...(this.state.counters ?? {}),
+        ...(this.state.counters || {}),
       };
       return this;
     } catch (err) {
