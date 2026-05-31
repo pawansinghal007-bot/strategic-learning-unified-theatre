@@ -466,7 +466,8 @@ function mapSprintManifestToSnapshot(manifest) {
   const nextSteps = Array.isArray(manifest.pendingTasks)
     ? manifest.pendingTasks.map((task) => {
         if (typeof task === "string") return task;
-        return `${task.description || ""}${task.priority ? ` (priority ${task.priority})` : ""}`.trim();
+        const inner = task.priority ? ` (priority ${task.priority})` : "";
+        return `${task.description || ""}${inner}`.trim();
       })
     : [];
 
