@@ -8,7 +8,7 @@ import { ExperienceDb } from "./experience-db.js";
 function parseSince(since) {
   if (!since) return null;
   const when = new Date(String(since));
-  if (!isFinite(when.getTime())) {
+  if (!Number.isFinite(when.getTime())) {
     throw new Error(`Invalid since date: ${since}`);
   }
   return when;
@@ -26,7 +26,7 @@ function documentTimestamp(doc) {
     doc.metadata?.captured_at;
   if (!candidate) return null;
   const date = new Date(String(candidate));
-  return isFinite(date.getTime()) ? date : null;
+  return Number.isFinite(date.getTime()) ? date : null;
 }
 
 function groupDocuments(documents) {
