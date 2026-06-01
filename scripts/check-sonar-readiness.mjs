@@ -82,9 +82,9 @@ async function main() {
 
     const isProtectedBranch = deriveBranchProtection(config);
 
-    const status = (qg.projectStatus && qg.projectStatus.status) || "UNKNOWN";
+    const status = (qg.projectStatus?.status) || "UNKNOWN";
     const conditions = summarizeConditions(
-      qg.projectStatus && qg.projectStatus.conditions,
+      qg.projectStatus?.conditions,
     );
 
     const unresolvedHotspots = (hotspots.hotspots || []).length;
@@ -98,7 +98,7 @@ async function main() {
   } catch (err) {
     console.error(
       "Error during Sonar readiness check:",
-      err && err.message ? err.message : err,
+      err?.message ? err.message : err,
     );
     process.exit(2);
   }
