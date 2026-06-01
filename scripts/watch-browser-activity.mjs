@@ -81,7 +81,9 @@ async function run() {
   }, POLL_INTERVAL_MS);
 }
 
-run().catch((error) => {
+try {
+  await run();
+} catch (error) {
   console.error("Failed to start watch:", error?.message ?? error);
   process.exit(1);
-});
+}
