@@ -62,7 +62,10 @@ function renderSummary({
   if (snapshotPointer?.tag || snapshotPointer?.path) {
     console.log(
       chalk.bold("Snapshot tag:"),
-      `${snapshotPointer.tag || "<none>"}${snapshotPointer.path ? ` (${snapshotPointer.path})` : ""}`
+      (() => {
+        const pathSuffix = snapshotPointer.path ? ` (${snapshotPointer.path})` : "";
+        return `${snapshotPointer.tag || "<none>"}${pathSuffix}`;
+      })()
     );
   }
   console.log();
