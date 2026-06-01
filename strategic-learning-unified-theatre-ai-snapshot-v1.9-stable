@@ -1,24 +1,8 @@
-SPRINT: 4 — S7744 empty object spread
-STATUS: stable
-
-S7744: 0 remaining
-Files fixed:
-  src/llm/document-ingester.js
-  vscode-extension/collector.js
-  src/llm/experience-db.js
-  src/internal/config.js
-  electron-ui/ipc/handlers.cjs
-
-Fix pattern:
-  ...(x || {}) → ...x
-  ...(x ?? {}) → ...x
-  Spreading undefined is safe in JS: {...undefined} = {}
-
-Regression found + fixed:
-  llm.test.js line 1086 — test never made chunk fail
-  Fixed: added mock so chunk 2 rejects
-
-VALIDATION: 528 tests / typecheck pass
-TOTAL ISSUES: 169 (pre-sprint) → check after lock
-PREVIOUS: v1.8-stable (S3358+S7778+S1128)
-NEXT: sprint 5 — S6582(19) + S6853(17) + S7785(13)
+SPRINT 5 COMPLETE: S6582+S6853+S7785 all = 0
+S6582 optional chaining: 19 fixed
+S6853 form labels: 17 fixed  
+S7785 top-level await: 13 fixed
+TOTAL FIXED THIS SPRINT: 49
+VALIDATION: 528 tests pass
+TOTAL REMAINING: ~118 issues
+NEXT: S2486(11) + S1874(11) + S7780(8)

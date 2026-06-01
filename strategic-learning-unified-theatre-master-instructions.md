@@ -157,3 +157,6 @@ Anti-pattern:
 S3358+S7778+S1128 all = 0
 Token updated: squ_5ec46c588908bbc8d58d416cb29af04cffb7b007
 Sprint 4 started: S7744 (3/10 fixed)
+
+## Sprint 5 complete
+S6582+S6853+S7785 all = 0. 49 fixes.
