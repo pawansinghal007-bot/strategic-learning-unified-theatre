@@ -1,4 +1,4 @@
-import fs from "fs/promises";
+import fs from "node:fs/promises";
 
 const WAIVERS_PATH = "./docs/security/hotspots/waivers.json";
 const HOTSPOTS_PATH = "./reports/sonar/hotspots.json";
