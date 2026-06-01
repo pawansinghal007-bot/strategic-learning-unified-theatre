@@ -17,7 +17,9 @@ async function run() {
   await db.close();
 }
 
-run().catch((err) => {
-  console.error('ERROR', err?.message ?? err);
-  process.exit(1);
-});
+  try {
+    await run();
+  } catch (err) {
+    console.error('ERROR', err?.message ?? err);
+    process.exit(1);
+  }
