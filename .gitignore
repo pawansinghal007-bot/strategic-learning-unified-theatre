@@ -28,3 +28,4 @@ exports/
 report-task.txt
 *.env
 .env*
+.scannerwork/
