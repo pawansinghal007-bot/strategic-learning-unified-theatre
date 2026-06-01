@@ -204,9 +204,9 @@ function getAllowedPathRoots() {
     win32: [
       process.env.WINDIR
         ? path.join(process.env.WINDIR, "System32")
-        : "C:\\Windows\\System32",
-      process.env.ProgramFiles || "C:\\Program Files",
-      process.env["ProgramFiles(x86)"] || "C:\\Program Files (x86)",
+        : String.raw`C:\Windows\System32`,
+      process.env.ProgramFiles || String.raw`C:\Program Files`,
+      process.env["ProgramFiles(x86)"] || String.raw`C:\Program Files (x86)`,
     ],
   };
 
