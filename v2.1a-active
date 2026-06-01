@@ -1,0 +1,26 @@
+SPRINT 7 TRIAGE: S4624+S7772+S7773+S7721
+VALIDATION: 528 tests / typecheck pass
+TOTAL ISSUES: 92
+TOP REMAINING:
+  7 javascript:S4624
+  6 javascript:S7772
+  6 javascript:S7773
+  5 javascript:S7721
+  4 javascript:S7735
+  4 javascript:S6594
+  4 javascript:S7748
+  3 javascript:S6535
+
+TRIAGE SUMMARY:
+  S4624: nested template literals should be refactored to avoid nested template expressions.
+  S7772: prefer explicit node: built-in module specifiers instead of plain core module paths.
+  S7773: prefer Number.NaN / Number.isFinite over global NaN / isFinite.
+  S7721: move nested functions (including async functions) to the outer scope.
+
+TOP FILES:
+  S4624: electron-ui/ipc/handlers.cjs, test-bc2-integration.js, renderer/screens/Accounts.jsx
+  S7772: test-bc2-integration.js, scripts/check-sonar-readiness.mjs, scripts/reconcile-hotspot-register.mjs
+  S7773: vscode-extension/collector.js, src/commands/bc2-sync.js, src/llm/training-exporter.js
+  S7721: tests/llm/llm.test.js, tests/regression/scoring-invariants.test.js, src/plugin-loader.js
+
+NEXT: sprint 7 fixes (EASY first)
