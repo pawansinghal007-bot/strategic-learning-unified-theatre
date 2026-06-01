@@ -1,0 +1,19 @@
+SLUT 7C: S4624 + S7721 Complete
+
+Status: All nested template literals (S4624) and nested function declarations (S7721) fixed.
+
+Fixed Rules:
+- S4624 (nested template literals): 7 → 0
+- S7721 (nested function declarations): 5 → 0
+
+Commits:
+- SLUT 7C: S4624 nested template electron-ui/ipc/handlers.cjs (2 fixes)
+- SLUT 7C: S4624 nested template test-bc2-integration.js
+- SLUT 7C: S4624 nested template renderer/screens/Accounts.jsx
+- SLUT 7C: S4624 nested template src/commands/ai.js
+- SLUT 7C: S4624+S7721 fixes (config, inference, plugin-loader, scorer helpers)
+- SLUT 7C: S7721 hoist staged helpers in llm.test.js
+- SLUT 7C: S7721 remove duplicate nested functions in llm.test.js
+
+Validation: npx vitest (75 files, 528 tests passed) + npx tsc --noEmit ✓
+Sonar: ANALYSIS SUCCESSFUL | S4624=0 | S7721=0
