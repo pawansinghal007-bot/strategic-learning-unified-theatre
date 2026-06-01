@@ -35,7 +35,9 @@ export function initializeStartupBootstrap(logger = noopLogger) {
     } catch (error) {
       activeLogger.error(
         "[Supervisor] Bootstrap failed gracefully. Action required: Check secure storage.",
+        { error },
       );
+      console.error("[startup-bootstrap] bootstrap failed", error);
     }
   }, 0);
   return { status: "initializing_in_background" };
