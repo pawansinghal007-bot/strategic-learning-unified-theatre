@@ -1,4 +1,4 @@
-import fs from "fs/promises";
+import fs from "node:fs/promises";
 
 const CONFIG_PATH = "./config/security-governance.json";
 const QG_PATH = "./reports/sonar/quality-gate.json";
