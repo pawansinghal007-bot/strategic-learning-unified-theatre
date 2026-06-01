@@ -106,8 +106,9 @@ export default function BrowserAutomation({ onEditTemplate }) {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 mb-4">
         <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded shadow p-4">
           <div className="mb-3">
-            <label className="block text-sm font-medium">Platform</label>
+            <label htmlFor="browser-platform" className="block text-sm font-medium">Platform</label>
             <select
+              id="browser-platform"
               value={platform}
               onChange={(e) => setPlatform(e.target.value)}
               className="mt-1 p-2 border rounded w-full"
@@ -120,8 +121,9 @@ export default function BrowserAutomation({ onEditTemplate }) {
             </select>
           </div>
           <div className="mb-3">
-            <label className="block text-sm font-medium">Prompt</label>
+            <label htmlFor="browser-prompt" className="block text-sm font-medium">Prompt</label>
             <textarea
+              id="browser-prompt"
               rows={5}
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
@@ -168,8 +170,9 @@ export default function BrowserAutomation({ onEditTemplate }) {
         <div className="bg-white dark:bg-gray-800 rounded shadow p-4">
           <h3 className="font-medium mb-3">Prompt library</h3>
           <div className="mb-3">
-            <label className="block text-sm">Use template</label>
+            <label htmlFor="browser-template" className="block text-sm">Use template</label>
             <select
+              id="browser-template"
               value={selectedPromptId}
               onChange={(e) => setSelectedPromptId(e.target.value)}
               className="mt-1 p-2 border rounded w-full"

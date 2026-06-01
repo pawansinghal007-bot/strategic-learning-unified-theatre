@@ -180,8 +180,8 @@ export default function RobotFramework() {
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-4 mb-4">
         <div className="xl:col-span-2 bg-white dark:bg-gray-800 rounded shadow p-4">
           <div className="mb-4">
-            <label className="block text-sm font-medium">Suite</label>
-            <select value={suite} onChange={(e) => setSuite(e.target.value)} className="mt-1 p-2 border rounded w-full">
+            <label htmlFor=\"robot-suite\" className=\"block text-sm font-medium\">Suite</label>
+            <select id=\"robot-suite\" value={suite} onChange={(e) => setSuite(e.target.value)} className=\"mt-1 p-2 border rounded w-full\">
               {SUITES.map((opt) => (
                 <option key={opt.id} value={opt.id}>{opt.label}</option>
               ))}

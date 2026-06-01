@@ -121,8 +121,9 @@ export default function PromptTemplates({ activePrompt }) {
       <div className="grid gap-4 lg:grid-cols-3 mb-4">
         <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded shadow p-4">
           <div className="mb-4">
-            <label className="block text-sm font-medium">Template name</label>
+            <label htmlFor="prompt-name" className="block text-sm font-medium">Template name</label>
             <input
+              id="prompt-name"
               value={form.name}
               onChange={(e) =>
                 setForm((prev) => ({ ...prev, name: e.target.value }))
@@ -132,8 +133,9 @@ export default function PromptTemplates({ activePrompt }) {
             />
           </div>
           <div className="mb-4">
-            <label className="block text-sm font-medium">Template body</label>
+            <label htmlFor="prompt-body" className="block text-sm font-medium">Template body</label>
             <textarea
+              id="prompt-body"
               rows={8}
               value={form.template}
               onChange={(e) =>
