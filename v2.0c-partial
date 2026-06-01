@@ -1,0 +1,22 @@
+SLUT 6C: S2486 source fixes complete, Sonar confirmation blocked
+
+S2486 source fixes:
+  all 11 targeted catches fixed
+  first batch: test-bc2-integration.js, src/idea-store.js, src/cli.js
+  remaining batch: scripts/check-sonar-readiness.mjs, src/daemon/daemonStatus.js,
+    electron-ui/ipc/handlers.cjs, src/internal/config.js,
+    src/startup-bootstrap.js, electron-ui/ipc/capture-handlers.cjs,
+    src/browser-bridge.js
+
+VALIDATION:
+  528 tests pass
+  npx tsc --noEmit passes
+  local empty-catch grep over target files: 0 matches
+
+SONAR:
+  sonar-scanner unavailable in PATH
+  localhost:9000 refused connection
+  S2486 API confirmation not completed in this session
+
+NEXT:
+  run sonar-scanner where available, confirm S2486 = 0, then write v2.0c-active
