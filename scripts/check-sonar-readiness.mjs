@@ -9,6 +9,7 @@ async function loadJson(p) {
     const raw = await fs.readFile(p, "utf8");
     return JSON.parse(raw);
   } catch (e) {
+    console.warn("[check-sonar-readiness] failed to load JSON", p, e);
     return null;
   }
 }
@@ -82,13 +83,15 @@ async function main() {
 
     const isProtectedBranch = deriveBranchProtection(config);
 
-    const status = (qg.projectStatus?.status) || "UNKNOWN";
-    const conditions = summarizeConditions(
-      qg.projectStatus?.conditions,
-    );
+    const status = qg.projectStatus?.status || "UNKNOWN";
+    const conditions = summarizeConditions(qg.projectStatus?.conditions);
 
     const unresolvedHotspots = (hotspots.hotspots || []).length;
-    const reasons = accumulateFailureReasons(status, conditions, unresolvedHotspots);
+    const reasons = accumulateFailureReasons(
+      status,
+      conditions,
+      unresolvedHotspots,
+    );
 
     if (isProtectedBranch) {
       handleProtectedBranch(reasons);
@@ -104,4 +107,4 @@ async function main() {
   }
 }
 
-  await main();
+await main();
