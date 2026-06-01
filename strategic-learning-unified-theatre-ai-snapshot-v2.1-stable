@@ -1,0 +1,10 @@
+SPRINT 7 COMPLETE: S4624+S7721+S7772+S7773 all = 0
+
+S7772 node: prefix:        0 — 6 files fixed
+S7773 Number.* globals:    0 — 3 files fixed
+S4624 nested templates:    0 — 6 files fixed
+S7721 nested functions:    0 — 3 files fixed
+
+VALIDATION: 528 tests / typecheck pass
+
+NEXT: sprint 8 — S7735(4)+S6594(4)+S7748(4)+S6535(3)

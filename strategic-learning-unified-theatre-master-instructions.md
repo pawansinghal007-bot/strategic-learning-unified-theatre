@@ -163,3 +163,6 @@ S6582+S6853+S7785 all = 0. 49 fixes.
 
 ## Sprint 6 complete
 S7780+S2486+S1874 all = 0. Total: 122→92.
+
+## Sprint 7 complete
+S4624+S7721+S7772+S7773 all = 0
