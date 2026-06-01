@@ -37,7 +37,7 @@ function rotatorPath(...segments) {
     "os.homedir()": os.homedir(),
     resolved,
     result: path.join(resolved, ".vscode-rotator", ...segments),
-    stack: new Error().stack?.split("\n")[2]?.trim() ?? "unknown",
+    stack: new Error("browser rotator path resolution").stack?.split("\n")[2]?.trim() ?? "unknown",
   });
   return path.join(resolved, ".vscode-rotator", ...segments);
 }
@@ -795,7 +795,7 @@ export async function listResponses(options = {}) {
     files = files.filter((f) => !f.includes("-compare.md"));
   }
 
-  files.sort().reverse();
+  files = files.toSorted((a, b) => b.localeCompare(a));
 
   if (limit) {
     files = files.slice(0, limit);

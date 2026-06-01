@@ -85,8 +85,8 @@ export function kMeans(vectors, k, maxIter = 50) {
 function chooseInitialCentroidIndices(n, k) {
   const chosen = new Set();
   while (chosen.size < Math.min(k, n)) {
-    // NOSONAR javascript:S2245 - weak PRNG acceptable for ML clustering initialization; not security-sensitive
-    chosen.add(Math.floor(Math.random() * n));
+    // Use cryptographically-strong random integers for centroid selection
+    chosen.add(crypto.randomInt(0, n));
   }
   return Array.from(chosen);
 }
@@ -143,8 +143,8 @@ function accumulateClusterSums(assignments, floatVectors, clusterCount, dim) {
 function updateCentroids(sums, counts, floatVectors, centroidIndices, dim) {
   return sums.map((sum, j) => {
     if (counts[j] === 0) {
-      // NOSONAR javascript:S2245 - weak PRNG acceptable for ML clustering; empty cluster reassignment is not security-sensitive
-      const randomIndex = Math.floor(Math.random() * floatVectors.length);
+      // Reassign empty cluster using a cryptographically-strong random index
+      const randomIndex = crypto.randomInt(0, floatVectors.length);
       centroidIndices[j] = randomIndex;
       return floatVectors[randomIndex].slice();
     }
@@ -165,7 +165,7 @@ function buildClusters(assignments, centroidIndices, k, n) {
   }));
 
   for (let i = 0; i < n; i += 1) {
-    const clusterIndex = assignments[i] >= 0 ? assignments[i] : 0;
+    const clusterIndex = Math.max(assignments[i], 0);
     clusters[clusterIndex].indices.push(i);
   }
 

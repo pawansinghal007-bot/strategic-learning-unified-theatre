@@ -27,8 +27,8 @@ export default function LiveFeed() {
         </div>
       </div>
       <div ref={containerRef} className="bg-white dark:bg-gray-800 rounded shadow p-3 h-96 overflow-auto text-sm">
-        {filtered.map((it, i) => (
-          <div key={i} className="py-1 border-b last:border-b-0">
+        {filtered.map((it) => (
+          <div key={`${it.ts ?? ''}-${it.type}-${it.detail ?? ''}`} className="py-1 border-b last:border-b-0">
             <div className="text-xs text-gray-500">{it.ts ?? ''}</div>
             <div className="font-medium">{it.type}</div>
             <div className="text-gray-600 text-sm">{it.detail ?? JSON.stringify(it)}</div>

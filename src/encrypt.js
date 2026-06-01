@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
-import { execSync } from "node:child_process";
+import { execFileSync, execSync } from "node:child_process";
 import { sanitizeEnvForSpawn } from "./internal/paths.js";
 
 let machineIdCache = null;
@@ -62,8 +62,7 @@ function getWindowsMachineId() {
       .toString("utf8")
       .split(/\r?\n/g)
       .map((s) => s.trim())
-      .filter(Boolean)
-      .slice(-1)[0];
+      .findLast(Boolean);
 
     if (out) return out;
   } catch {}
@@ -73,18 +72,22 @@ function getWindowsMachineId() {
 
 function getMacMachineId() {
   try {
-    const out = execSync(
-      String.raw`ioreg -rd1 -c IOPlatformExpertDevice | awk -F" '/IOPlatformUUID/{print $(NF-1)}'`,
+    const out = execFileSync(
+      "ioreg",
+      ["-rd1", "-c", "IOPlatformExpertDevice"],
       {
         stdio: ["ignore", "pipe", "ignore"],
         timeout: 1000,
         env: sanitizeEnvForSpawn(process.env),
+        encoding: "utf8",
       },
-    )
-      .toString("utf8")
-      .trim();
+    );
 
-    if (out) return out;
+    const match = /"IOPlatformUUID"\s*=\s*"([^"]+)"/.exec(out);
+
+    if (match?.[1]) {
+      return match[1].trim();
+    }
   } catch {}
 
   return null;

@@ -124,7 +124,7 @@ function activate(context) {
         ...config,
         vscodeLearn: {
           ...config.vscodeLearn,
-          enabled: !Boolean(config.vscodeLearn?.enabled)
+          enabled: !config.vscodeLearn?.enabled
         }
       };
       await saveConfig(next);

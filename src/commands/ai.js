@@ -33,7 +33,7 @@ function renderArray(label, items) {
     return `${label}: None`;
   }
 
-  return `${label}: ${items.map((item) => String(item)).join(", ")}`;
+  return `${label}: ${items.map(String).join(", ")}`;
 }
 
 function aiSnapshotPointerPath() {

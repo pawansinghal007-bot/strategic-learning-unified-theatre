@@ -14,7 +14,7 @@ function createProgram() {
 }
 
 function errorText(spy) {
-  return spy.mock.calls.flat().map((part) => String(part)).join("\n");
+  return spy.mock.calls.flat().map(String).join("\n");
 }
 
 describe("CLI validation", () => {

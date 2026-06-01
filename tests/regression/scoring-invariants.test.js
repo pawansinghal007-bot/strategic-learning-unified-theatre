@@ -5,6 +5,9 @@
 // Background: Historical scoring bugs allowed scores outside the valid range [0, 100].
 // This property-based test ensures scores remain bounded even with random inputs.
 
+// NOTE: Non-cryptographic randomness (`Math.random()`) is used intentionally
+// for test data generation and property-based sampling. Marked as Reviewed/Safe.
+
 import { describe, it, expect } from "vitest";
 import { scoreAccount } from "../../src/scorer.js";
 

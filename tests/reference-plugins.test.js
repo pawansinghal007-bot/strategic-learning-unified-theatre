@@ -41,8 +41,8 @@ describe("Reference plugins v1", () => {
 
   it("registers capabilities into registries and updates MODEL_REGISTRY and PLATFORM_URLS", async () => {
     // Snapshot originals to restore later
-    const originalModelKeys = Object.keys(MODEL_REGISTRY).slice();
-    const originalPlatformKeys = Object.keys(PLATFORM_URLS).slice();
+    const originalModelKeys = new Set(Object.keys(MODEL_REGISTRY));
+    const originalPlatformKeys = new Set(Object.keys(PLATFORM_URLS));
 
     const llmCaps = (acmeLlm.getCapabilities()).llmProviders || [];
     const browserCaps =
@@ -56,12 +56,12 @@ describe("Reference plugins v1", () => {
 
     // cleanup: remove newly added keys so subsequent tests are unaffected
     for (const k of Object.keys(MODEL_REGISTRY)) {
-      if (!originalModelKeys.includes(k)) {
+      if (!originalModelKeys.has(k)) {
         delete MODEL_REGISTRY[k];
       }
     }
     for (const p of Object.keys(PLATFORM_URLS)) {
-      if (!originalPlatformKeys.includes(p)) {
+      if (!originalPlatformKeys.has(p)) {
         delete PLATFORM_URLS[p];
       }
     }

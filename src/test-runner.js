@@ -179,16 +179,25 @@ export async function enforceTdd(
   };
 }
 
+const DEFAULT_TDD_OPTIONS = Object.freeze({
+  strict: true,
+  graceMs: 0,
+});
+
 export async function assertTddGate(
   srcFiles,
+  options = DEFAULT_TDD_OPTIONS,
   robotDir = path.resolve(DEFAULT_BASE_DIR, "robot"),
-  options = { strict: true, graceMs: 0 },
 ) {
+  options = options ?? { strict: true, graceMs: 0 };
+
   const violations = [];
+
   for (const file of srcFiles) {
     const result = await enforceTdd(file, robotDir, {
       graceMs: options.graceMs,
     });
+
     if (!result.compliant) {
       violations.push(result);
     }

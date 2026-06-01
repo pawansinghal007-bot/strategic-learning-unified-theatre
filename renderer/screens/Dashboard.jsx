@@ -32,8 +32,8 @@ export default function Dashboard() {
         <div className="p-4 bg-white dark:bg-gray-800 rounded shadow">
           <h3 className="font-medium">Recent Events</h3>
           <ul className="mt-2 space-y-1 text-sm">
-            {events.map((ev, i) => (
-              <li key={i} className="flex justify-between">
+            {events.map((ev) => (
+              <li key={`${ev.ts ?? ''}-${ev.type}-${ev.detail ?? ''}`} className="flex justify-between">
                 <span className="text-gray-600 dark:text-gray-300">{ev.type}</span>
                 <span className="text-gray-400 text-xs">{ev.detail ?? ''}</span>
               </li>

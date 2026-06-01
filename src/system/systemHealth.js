@@ -23,8 +23,8 @@ export function deriveSubsystemStatus(parts) {
       })
     : [];
 
-  if (statuses.some((status) => status === "ERROR")) return "ERROR";
-  if (statuses.some((status) => status === "DEGRADED")) return "DEGRADED";
+  if (statuses.includes("ERROR")) return "ERROR";
+  if (statuses.includes("DEGRADED")) return "DEGRADED";
   return "OK";
 }
 

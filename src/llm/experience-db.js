@@ -151,11 +151,12 @@ export class ExperienceDb {
     this.dbPath = dbPath ?? path.join(this.baseDir, "experience.db");
     this.state = null;
     // Serialize writes to avoid concurrent rename/copy issues on Windows.
-    this._writeLock = Promise.resolve();
+    this._writeLock = null;
   }
 
   async _serializeWrite(task) {
-    this._writeLock = this._writeLock.catch(() => {}).then(() => task());
+    const previousWrite = this._writeLock ?? Promise.resolve();
+    this._writeLock = previousWrite.catch(() => {}).then(() => task());
     return this._writeLock;
   }
 

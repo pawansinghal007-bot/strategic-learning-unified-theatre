@@ -16,7 +16,9 @@ export default function GitMonitor() {
 
   const add = async () => {
     const p = await rotator.git.pickDir();
-    if (p) await rotator.git.addRepo(p);
+    if (p) {
+      await rotator.git.addRepo(p);
+    }
     load();
   };
 

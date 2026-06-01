@@ -120,8 +120,7 @@ export async function verifyLocalLlmRuntime() {
     await importOptional("node-llama-cpp");
     return true;
   }
-  await verifyOllamaInstalled();
-  return true;
+  return await verifyOllamaInstalled();
 }
 
 export async function verifyNodeLlamaCppInstalled() {
@@ -226,15 +225,6 @@ function defaultModelDir(baseDir) {
   );
 }
 
-async function exists(filePath) {
-  try {
-    await fs.stat(filePath);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 async function ollamaModelExists(modelName) {
   if (!modelName) return false;
   const models = await listOllamaModels();
@@ -272,7 +262,7 @@ export class LocalLlmInference {
 
     if (provider === "node-llama-cpp") {
       const modelPath = await this.resolveModelPath();
-      if (!modelPath || !(await exists(modelPath))) {
+      if (!modelPath || !(await fileExists(modelPath))) {
         throw new Error(
           "No local LLM model found. Run: strategic-learning-unified-theatre llm setup --model phi3",
         );
@@ -283,7 +273,7 @@ export class LocalLlmInference {
 
     if (provider === "ollama") {
       if (this.modelPath) {
-        if (await exists(this.modelPath)) {
+        if (await fileExists(this.modelPath)) {
           return this.modelPath;
         }
         if (await ollamaModelExists(this.modelPath)) {

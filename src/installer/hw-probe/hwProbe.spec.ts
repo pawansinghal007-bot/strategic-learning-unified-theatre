@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("os", () => ({
   platform: vi.fn(() => "linux"),
-  cpus: vi.fn(() => Array(8).fill({ model: "Intel Core i9" })),
+  cpus: vi.fn(() => new Array(8).fill({ model: "Intel Core i9" })),
   totalmem: vi.fn(() => 32 * 1024 * 1024 * 1024),
 }));
 

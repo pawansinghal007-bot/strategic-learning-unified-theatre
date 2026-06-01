@@ -68,7 +68,7 @@ function getSelectors(platform) {
  * @returns {boolean}
  */
 function isAlreadyCaptured(el) {
-  return el.getAttribute('data-captured') === 'true';
+  return el.dataset.captured === 'true';
 }
 
 /**
@@ -76,7 +76,7 @@ function isAlreadyCaptured(el) {
  * @param {Element} el
  */
 function markCaptured(el) {
-  el.setAttribute('data-captured', 'true');
+  el.dataset.captured = 'true';
 }
 
 /**

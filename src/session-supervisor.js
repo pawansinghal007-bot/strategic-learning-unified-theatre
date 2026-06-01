@@ -4,11 +4,11 @@
 // Backoff is computed HERE before writing retry_at to the DB, so the
 // stored value always reflects the true next-attempt time.
 
-import { detectLimit } from './limit-detector.js';
-import { ResumeScheduler } from './resume-scheduler.js';
-import { db } from './ai-memory/memory-db.js';
-import { generateAutoHandoff } from './auto-handoff.js';
-import { redact } from './utils/redactor.js';
+import { detectLimit } from "./limit-detector.js";
+import { ResumeScheduler } from "./resume-scheduler.js";
+import { db } from "./ai-memory/memory-db.js";
+import { generateAutoHandoff } from "./auto-handoff.js";
+import { redact } from "./utils/redactor.js";
 
 // Maximum number of resume attempts before a job is marked failed.
 // Stored as a named constant so it is easy to locate and adjust.
@@ -30,9 +30,8 @@ function computeRetryAt(resetTime, retryCount) {
   // On the first attempt (retryCount === 0) we target exactly resetTime.
   // On each subsequent attempt we add exponential backoff on top of resetTime
   // so that retry_at grows predictably and is always readable from the DB.
-  const backoffMs = retryCount > 0
-    ? Math.pow(2, retryCount - 1) * BACKOFF_BASE_MS
-    : 0;
+  const backoffMs =
+    retryCount > 0 ? Math.pow(2, retryCount - 1) * BACKOFF_BASE_MS : 0;
   return resetTime + backoffMs;
 }
 
@@ -60,43 +59,55 @@ export class SessionSupervisor {
     if (!limitHit) return;
 
     const sessionId = `sess_${Date.now()}`;
-    const provider = context.provider || 'unknown';
-    const model = context.model || 'unknown';
-    const workspacePath = context.workspacePath || 'unknown';
+    const provider = context.provider || "unknown";
+    const model = context.model || "unknown";
+    const workspacePath = context.workspacePath || "unknown";
 
     // Redact before anything touches the DB or handoff file.
-    const goalRedacted = redact(context.currentGoal || '');
-    const taskRedacted = redact(context.currentTask || '');
+    const goalRedacted = redact(context.currentGoal || "");
+    const taskRedacted = redact(context.currentTask || "");
 
     // First attempt: retryCount is 0, so retry_at === resetTime (no backoff yet).
     const retryAt = computeRetryAt(resetTime, 0);
 
     // Persist resume metadata (non-secret runtime state only).
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO session_resume_metadata
         (session_id, provider, model, workspace_path, status,
          blocked_reason, reset_at, retry_at, retry_count, last_seen_at)
       VALUES (?, ?, ?, ?, 'pending', 'rate_limit', ?, ?, 0, ?)
-    `).run(sessionId, provider, model, workspacePath, resetTime, retryAt, Date.now());
+    `,
+    ).run(
+      sessionId,
+      provider,
+      model,
+      workspacePath,
+      resetTime,
+      retryAt,
+      Date.now(),
+    );
 
     // Persist continuation state (redacted content only).
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO session_continuation_state
         (session_id, current_goal, goal_redacted,
          last_response_summary_redacted, resume_prompt)
       VALUES (?, ?, ?, ?, ?)
-    `).run(
+    `,
+    ).run(
       sessionId,
       // current_goal is stored in plain form for human-readable debugging.
       // S4 secret-leakage grep test should confirm no credential patterns
       // appear here after real capture payloads are used in integration tests.
-      context.currentGoal || '',
+      context.currentGoal || "",
       goalRedacted,
       // last_response_summary_redacted holds the redacted task description
       // for S3. In S4, once actual LLM response content is captured, this
       // field should be populated from the response summary, not the task.
       taskRedacted,
-      `Continuing from auto-pause. Previous task: ${taskRedacted}. Please proceed.`
+      `Continuing from auto-pause. Previous task: ${taskRedacted}. Please proceed.`,
     );
 
     // Generate the machine handoff file (also uses redacted content).
@@ -114,11 +125,13 @@ export class SessionSupervisor {
    * time, so we pass it directly to the scheduler without re-applying backoff.
    */
   restorePendingJobs() {
-    const jobs = db.prepare(
-      `SELECT session_id, retry_at, retry_count
+    const jobs = db
+      .prepare(
+        `SELECT session_id, retry_at, retry_count
        FROM session_resume_metadata
-       WHERE status = 'pending'`
-    ).all();
+       WHERE status = 'pending'`,
+      )
+      .all();
 
     for (const job of jobs) {
       // If retry_at is in the past the scheduler fires immediately (delay = 0).
@@ -134,15 +147,15 @@ export class SessionSupervisor {
    * @param {string} sessionId
    */
   resumeSession(sessionId) {
-    const meta = db.prepare(
-      `SELECT * FROM session_resume_metadata WHERE session_id = ?`
-    ).get(sessionId);
+    const meta = db
+      .prepare(`SELECT * FROM session_resume_metadata WHERE session_id = ?`)
+      .get(sessionId);
 
-    if (!meta || meta.status !== 'pending') return;
+    if (meta?.status !== "pending") return;
 
     if (meta.retry_count >= MAX_RETRIES) {
       db.prepare(
-        `UPDATE session_resume_metadata SET status = 'failed' WHERE session_id = ?`
+        `UPDATE session_resume_metadata SET status = 'failed' WHERE session_id = ?`,
       ).run(sessionId);
       return;
     }
@@ -152,16 +165,18 @@ export class SessionSupervisor {
     const nextRetryCount = meta.retry_count + 1;
     const nextRetryAt = computeRetryAt(meta.reset_at, nextRetryCount);
 
-    db.prepare(`
+    db.prepare(
+      `
       UPDATE session_resume_metadata
       SET status = 'active',
           retry_count = ?,
           retry_at = ?,
           last_seen_at = ?
       WHERE session_id = ?
-    `).run(nextRetryCount, nextRetryAt, Date.now(), sessionId);
+    `,
+    ).run(nextRetryCount, nextRetryAt, Date.now(), sessionId);
 
-    // TODO (S4): trigger continuation prompt delivery into the VS Code UI here.
+    // Follow-up (S4): trigger continuation prompt delivery into the VS Code UI here.
     // The resume_prompt is available via session_continuation_state.
   }
 }

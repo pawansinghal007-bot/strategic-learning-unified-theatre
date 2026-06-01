@@ -13,7 +13,7 @@ export type Validator<T> = (value: unknown) => value is T;
 
 export type HandlerEntry<T> = {
   validate: Validator<T>;
-  run: (payload: T, event: IpcMainInvokeEvent) => Promise<unknown> | unknown;
+  run: (payload: T, event: IpcMainInvokeEvent) => unknown;
 };
 
 export type HandlerMap = Partial<

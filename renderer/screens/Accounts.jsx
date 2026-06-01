@@ -423,8 +423,14 @@ export default function Accounts() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium">Agent type</label>
+            <label
+              htmlFor="capture-agent-type"
+              className="block text-sm font-medium"
+            >
+              Agent type
+            </label>
             <select
+              id="capture-agent-type"
               value={form.agentType}
               onChange={(e) => updateForm({ agentType: e.target.value })}
               className="mt-1 p-2 border rounded w-full"
@@ -437,10 +443,14 @@ export default function Accounts() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium">
+            <label
+              htmlFor="capture-profile-name"
+              className="block text-sm font-medium"
+            >
               Profile name (optional)
             </label>
             <input
+              id="capture-profile-name"
               value={form.profileName}
               onChange={(e) => updateForm({ profileName: e.target.value })}
               className="mt-1 p-2 border rounded w-full"
@@ -530,7 +540,6 @@ export default function Accounts() {
               Auth blob
             </label>
             <textarea
-              id="manual-auth-blob"
               id="manual-auth-blob"
               value={form.authBlob}
               onChange={(e) => updateForm({ authBlob: e.target.value })}
@@ -675,9 +684,8 @@ export default function Accounts() {
             </div>
             <div>
               <strong>Login URL:</strong>{" "}
-              <a
+              <button
                 className="text-indigo-600 dark:text-indigo-400 underline"
-                href="#"
                 onClick={async (e) => {
                   e.preventDefault();
                   const url =
@@ -688,7 +696,7 @@ export default function Accounts() {
               >
                 {selectedAccount.loginUrl ||
                   getLoginUrl(selectedAccount.agentType)}
-              </a>
+              </button>
             </div>
           </div>
         </div>

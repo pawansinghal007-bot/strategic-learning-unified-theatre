@@ -42,7 +42,7 @@ describe("redact()", () => {
 
       // Avoid empty-string edge cases caused by trailing quotes.
       const parts = c.split(/[=:'"]+/).filter(Boolean);
-      const value = parts[parts.length - 1];
+      const value = parts.at(-1);
 
       if (value) {
         expect(result).not.toContain(value);

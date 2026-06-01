@@ -1,6 +1,7 @@
 import child_process from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
+import crypto from "node:crypto";
 import { resolveBinary, sanitizeEnvForSpawn } from "../src/internal/paths.js";
 import { DocumentIngester } from "../src/llm/document-ingester.js";
 import { MistakeTracker } from "../src/llm/mistake-tracker.js";
@@ -457,9 +458,9 @@ export class VscodeContextCollector {
 
   async _writeTempSignalFile(sourceFilePath, documentText) {
     const tempDir = path.dirname(sourceFilePath);
-    // Non-cryptographic randomness — used to create a reasonably-unique temp filename only.
-    // This value is not used for authentication, session IDs, or telemetry keys. // NOSONAR javascript:S2245
-    const tempName = `${path.basename(sourceFilePath, ".md")}-${Math.random().toString(36).slice(2, 10)}.signal.md`;
+    // Use a UUID for the temporary filename to avoid using Math.random()
+    // This value is not used for authentication, session IDs, or telemetry keys.
+    const tempName = `${path.basename(sourceFilePath, ".md")}-${crypto.randomUUID()}.signal.md`;
     const tempPath = path.join(tempDir, tempName);
     await fs.writeFile(tempPath, documentText, {
       encoding: "utf8",
