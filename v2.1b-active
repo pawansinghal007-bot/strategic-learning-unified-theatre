@@ -1,0 +1,9 @@
+SPRINT 7 FIXES: S7772+S7773 COMPLETE
+VALIDATION: 528 tests / typecheck pass
+TOTAL ISSUES: 92 → updated via Sonar rescan
+FIX SUMMARY:
+  S7772: Replaced core imports with node: prefixed specifiers in test-bc2-integration.js, scripts/check-sonar-readiness.mjs, scripts/reconcile-hotspot-register.mjs, scripts/validate-waivers.mjs, tests/chaos-slo.test.js, tests/chaos-utils.test.js
+  S7773: Replaced global numeric/NaN usages with Number.* equivalents in vscode-extension/collector.js, src/commands/bc2-sync.js, src/llm/training-exporter.js
+VERIFICATION:
+  Sonar rescan reports S7772 = 0 and S7773 = 0 (see rescan at analysis time)
+NEXT: Sprint 7C — address S4624 and S7721 (MED difficulty)
