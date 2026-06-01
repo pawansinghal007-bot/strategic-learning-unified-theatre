@@ -747,11 +747,13 @@ daemonCmd
     });
   });
 
-program.parseAsync(process.argv).catch((err) => {
-  log.error("cli.fatal", {
-    error: err,
-    code: err?.code || "ROTATOR_CLI_FAILURE",
-  });
-  console.error(chalk.red(String(err?.message ?? err)));
-  process.exitCode = 1;
-});
+  try {
+    await program.parseAsync(process.argv);
+  } catch (err) {
+    log.error("cli.fatal", {
+      error: err,
+      code: err?.code || "ROTATOR_CLI_FAILURE",
+    });
+    console.error(chalk.red(String(err?.message ?? err)));
+    process.exitCode = 1;
+  }
