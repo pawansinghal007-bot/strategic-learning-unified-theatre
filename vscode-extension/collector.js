@@ -181,7 +181,7 @@ export class VscodeContextCollector {
     if (signalType === "vscode-task-error") {
       base.command = signal.command;
       base.exit_code = Number(
-        signal.exit_code ?? signal.exitCode ?? signal.code ?? NaN,
+        signal.exit_code ?? signal.exitCode ?? signal.code ?? Number.NaN,
       );
     }
 
@@ -195,7 +195,7 @@ export class VscodeContextCollector {
 
     if (signalType === "vscode-diagnostic") {
       base.severity = Number(
-        signal.severity ?? signal.diagnostic?.severity ?? NaN,
+        signal.severity ?? signal.diagnostic?.severity ?? Number.NaN,
       );
       base.message = signal.message || signal.diagnostic?.message || "";
     }
