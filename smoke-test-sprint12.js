@@ -276,7 +276,9 @@ test("Passive learning disabled returns empty disposable", async () => {
 });
 
 // Run all tests
-runTests().catch((err) => {
+try {
+  await runTests();
+} catch (err) {
   console.error("❌ Fatal error:", err);
   process.exit(1);
-});
+}
