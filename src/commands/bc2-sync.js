@@ -20,7 +20,7 @@ function parseSince(since) {
   if (!since) return null;
   const value = String(since).trim();
   const date = new Date(value);
-  if (!isFinite(date.getTime())) {
+  if (!Number.isFinite(date.getTime())) {
     throw new Error(`Invalid --since value: ${value}`);
   }
   return date.toISOString();
@@ -49,7 +49,7 @@ export async function fetchBc2Messages(captureDbPath, { platform, since } = {}) 
     const sinceDate = new Date(since);
     return rows.filter((row) => {
       const ts = new Date(String(row.created_at ?? ""));
-      return isFinite(ts.getTime()) && ts >= sinceDate;
+      return Number.isFinite(ts.getTime()) && ts >= sinceDate;
     });
   } finally {
     db.close();
