@@ -180,7 +180,7 @@ export async function clusterDocuments(db, k) {
     : [];
   const docsWithEmbedding = documents
     .map((doc, index) => ({ doc, index }))
-    .filter(({ doc }) => doc && doc.embedding);
+    .filter(({ doc }) => doc?.embedding);
   const vectorData = docsWithEmbedding.map(({ doc }) =>
     toFloat32Array(decodeEmbedding(doc.embedding)),
   );

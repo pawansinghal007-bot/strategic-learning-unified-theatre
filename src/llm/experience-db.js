@@ -413,7 +413,7 @@ export class ExperienceDb {
 
     for (const document of this.state.documents) {
       const metadata = document.metadata ? fromJson(document.metadata, {}) : {};
-      if (metadata && metadata[uniqueBy] != null) {
+      if (metadata?.[uniqueBy] != null) {
         existingKeys.add(String(metadata[uniqueBy]));
       }
     }
@@ -422,7 +422,7 @@ export class ExperienceDb {
   }
 
   _extractUniqueValue(uniqueBy, metadata) {
-    return uniqueBy && metadata && metadata[uniqueBy] != null
+    return uniqueBy && metadata?.[uniqueBy] != null
       ? String(metadata[uniqueBy])
       : null;
   }

@@ -82,7 +82,7 @@ export async function getMemoryDbHealth(dbPath) {
     await memoryDb.init();
     const db = memoryDb.getDb();
     const result = db.prepare("SELECT 1 AS value").get();
-    const success = result && result.value === 1;
+    const success = result?.value === 1;
     return {
       status: success ? "OK" : "ERROR",
       dbPath: memoryDb.dbPath,

@@ -38,7 +38,7 @@ export const PLUGIN_API_VERSION = 1;
  * @param {string} pluginId
  */
 export function assertPluginApiCompatible(pluginModule, pluginId) {
-  const found = pluginModule && pluginModule.PLUGIN_API_VERSION;
+  const found = pluginModule?.PLUGIN_API_VERSION;
   if (found === undefined) {
     throw new Error(
       `Plugin "${pluginId}" missing PLUGIN_API_VERSION (expected ${PLUGIN_API_VERSION})`,

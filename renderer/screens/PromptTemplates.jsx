@@ -27,7 +27,7 @@ export default function PromptTemplates({ activePrompt }) {
   }, []);
 
   useEffect(() => {
-    if (activePrompt && activePrompt.id) {
+    if (activePrompt?.id) {
       setSelectedId(activePrompt.id);
       setForm({ name: activePrompt.name, template: activePrompt.template });
       setStatus(`Copied "${activePrompt.name}" from Browser Automation`);

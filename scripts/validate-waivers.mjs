@@ -52,7 +52,7 @@ async function main() {
 
       // renewal limit
       const maxRenewals =
-        (config.acknowledgedWaiver && config.acknowledgedWaiver.maxRenewals) ||
+        config.acknowledgedWaiver?.maxRenewals ||
         0;
       if (typeof w.renewalCount === "number" && w.renewalCount > maxRenewals) {
         errors.push({

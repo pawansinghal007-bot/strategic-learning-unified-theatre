@@ -366,7 +366,7 @@ export class StorageMonitor {
         .sort((a, b) => b.path.length - a.path.length)[0];
       if (!match || match.recursive) return false;
       const relative = path.relative(match.path, absolute);
-      return Boolean(relative && relative.includes(path.sep));
+      return Boolean(relative?.includes(path.sep));
     };
     this.watcher = chokidar.watch(roots, {
       ignoreInitial: false,

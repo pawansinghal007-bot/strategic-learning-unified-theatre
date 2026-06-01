@@ -91,8 +91,7 @@ export default function Accounts() {
   const doSwitch = async (id) => {
     const health = healthById[id];
     if (
-      health &&
-      health.error &&
+      health?.error &&
       !confirmGlobal(
         `Account health warning: ${health.error}. Continue switching?`,
       )

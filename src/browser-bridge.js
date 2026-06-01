@@ -305,14 +305,14 @@ async function setupLauncher(normalizedType, config, executablePath) {
     execPath =
       executablePath ||
       process.env.FIREFOX_PATH ||
-      (config && config.browserPaths && config.browserPaths.firefox);
+      config?.browserPaths?.firefox;
   } else {
     launcher = chromium;
     if (normalizedType === "brave") {
       execPath =
         executablePath ||
         process.env.BRAVE_PATH ||
-        (config && config.browserPaths && config.browserPaths.brave);
+        config?.browserPaths?.brave;
     }
   }
 

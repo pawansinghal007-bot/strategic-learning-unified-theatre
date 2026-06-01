@@ -66,7 +66,7 @@ async function main() {
   } catch (err) {
     console.error(
       "Error running reconciliation:",
-      err && err.message ? err.message : err,
+      err?.message ? err.message : err,
     );
     process.exit(2);
   }

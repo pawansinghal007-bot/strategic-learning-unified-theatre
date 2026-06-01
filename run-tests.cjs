@@ -62,7 +62,7 @@ for (const test of tests) {
     }
   } catch (err) {
     console.error("FAILED:", test);
-    console.error(err && err.message ? err.message : err);
+    console.error(err?.message ? err.message : err);
     process.exit(1);
   }
 }

@@ -234,7 +234,7 @@ export default function App() {
         .then(setDaemon)
         .catch(() => {});
       // If the event carries capture data, update counters
-      if (evt && evt.type === "capture") {
+      if (evt?.type === "capture") {
         setCaptureCount((n) => n + 1);
         setLastCapturedAt(Date.now());
       }
