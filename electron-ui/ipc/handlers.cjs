@@ -438,7 +438,7 @@ module.exports = async function register({ ipcMain, dialog, watcher, app }) {
 
   ipcMain.handle("config:set", async (e, patch) => {
     const cfg = await loadConfig();
-    const next = { ...(cfg ), ...(patch ) };
+    const next = { ...cfg, ...patch };
     await saveConfig(next);
     return next;
   });
