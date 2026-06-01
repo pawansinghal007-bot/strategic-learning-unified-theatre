@@ -138,7 +138,8 @@ export default function Accounts() {
 
   const getLoginUrl = (agentType) => {
     if (LOGIN_TARGETS[agentType]) return LOGIN_TARGETS[agentType];
-    return `https://www.google.com/search?q=${encodeURIComponent(`login ${agentType}`)}`;
+    const loginQuery = `login ${agentType}`;
+    return `https://www.google.com/search?q=${encodeURIComponent(loginQuery)}`;
   };
 
   const handleOpenLoginPage = async () => {
