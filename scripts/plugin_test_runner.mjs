@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
-(async function () {
+{
   const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "pltest-"));
   const pluginPath = path.join(tmp, "good-plugin.mjs");
   const code = `export const PLUGIN_API_VERSION = 1;
@@ -36,4 +36,4 @@ export function getCapabilities(){
       await fs.rm(tmp, { recursive: true, force: true });
     } catch {}
   }
-})();
+}
