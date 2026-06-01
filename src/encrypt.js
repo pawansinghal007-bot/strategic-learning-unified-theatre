@@ -74,7 +74,7 @@ function getWindowsMachineId() {
 function getMacMachineId() {
   try {
     const out = execSync(
-      "ioreg -rd1 -c IOPlatformExpertDevice | awk -F\\\" '/IOPlatformUUID/{print $(NF-1)}'",
+      String.raw`ioreg -rd1 -c IOPlatformExpertDevice | awk -F" '/IOPlatformUUID/{print $(NF-1)}'`,
       {
         stdio: ["ignore", "pipe", "ignore"],
         timeout: 1000,
