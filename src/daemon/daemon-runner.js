@@ -405,7 +405,9 @@ async function main() {
 // Run
 // --------------------------------------------------
 
-main().catch(async (err) => {
+try {
+  await main();
+} catch (err) {
   console.error("FATAL DAEMON ERROR:", err);
 
   await appendLogLine(logPath, {
@@ -416,4 +418,4 @@ main().catch(async (err) => {
   process.exitCode = 1;
 
   await cleanup(1, err);
-});
+}
