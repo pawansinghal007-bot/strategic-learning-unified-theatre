@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { createRequire } from "module";
+import { createRequire } from "node:module";
 const require = createRequire(import.meta.url);
 const utils = require("../scripts/chaos/utils.js");
 
