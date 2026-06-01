@@ -180,7 +180,7 @@ export const TestFailureSchema = z.object({
  * Matches the SprintSchema from src/agent-handoff.js.
  */
 export const HandoffSprintSchema = z.object({
-  sprintId: z.string().uuid(),
+  sprintId: z.uuid(),
   date: IsoDateString,
   agent: SprintAgentSchema,
   model: z.string().min(1),
@@ -221,13 +221,13 @@ export const IdeaPrioritySchema = z.union([
  * Matches IdeaSchema from src/idea-store.js.
  */
 export const IdeaSchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
   created: IsoDateString,
   project: z.string().min(1),
   tags: z.array(z.string()).default([]),
   status: IdeaStatusSchema,
   priority: IdeaPrioritySchema,
-  linkedSprint: z.string().uuid().nullable().default(null),
+  linkedSprint: z.uuid().nullable().default(null),
 });
 
 // ============================================================================
@@ -243,7 +243,7 @@ export const BrowserCapturePayloadSchema = z.object({
   platform: z.string().min(1),
   html: z.string(),
   text: z.string(),
-  url: z.string().url(),
+  url: z.url(),
   ts: z.number().int().positive().describe("milliseconds since epoch"),
 });
 

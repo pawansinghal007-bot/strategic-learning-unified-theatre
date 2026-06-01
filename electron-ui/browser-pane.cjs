@@ -116,22 +116,31 @@ class BrowserPane {
         }
       });
 
+      const browserViewWebContents =
+        typeof this.BrowserView?.getWebContents === 'function'
+          ? this.BrowserView.getWebContents(bv)
+          : bv['webContents'];
+
+      if (!browserViewWebContents) {
+        throw new Error('Unable to resolve BrowserView web contents');
+      }
+
       // Emit 'browser:navigation' on every navigation
-      bv.webContents.on('did-navigate', (event, url) => {
+      browserViewWebContents.on('did-navigate', (event, url) => {
         this.parentWindow.webContents.send('browser:navigation', {
           platform,
           url
         });
       });
 
-      bv.webContents.on('did-navigate-in-page', (event, url) => {
+      browserViewWebContents.on('did-navigate-in-page', (event, url) => {
         this.parentWindow.webContents.send('browser:navigation', {
           platform,
           url
         });
       });
 
-      return { view: bv, webContents: bv.webContents, type: 'BrowserView' };
+      return { view: bv, webContents: browserViewWebContents, type: 'BrowserView' };
     }
 
     if (process.env.VITEST || process.env.NODE_ENV === 'test') {

@@ -10,7 +10,7 @@ const IdeaStatusSchema = z.enum(["inbox", "active", "parked", "done"]);
 const IdeaPrioritySchema = z.union([z.literal(1), z.literal(2), z.literal(3)]);
 
 const IdeaSchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
   created: z.string().refine((value) => !Number.isNaN(Date.parse(value)), {
     message: "Invalid ISO date",
   }),
@@ -18,7 +18,7 @@ const IdeaSchema = z.object({
   tags: z.array(z.string()).default([]),
   status: IdeaStatusSchema,
   priority: IdeaPrioritySchema,
-  linkedSprint: z.string().uuid().nullable().optional().default(null),
+  linkedSprint: z.uuid().nullable().default(null),
 });
 
 function formatValidationError(error) {
