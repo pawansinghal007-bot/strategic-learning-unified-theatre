@@ -129,9 +129,10 @@ async function assertEventStats() {
     throw new Error("Missing total field");
   console.log(`   → Total events: ${res.data.total}`);
   console.log(`   → Today: ${res.data.today}`);
-  if (res.data.by_type?.length > 0) {
+    if (res.data.by_type?.length > 0) {
+    const eventTypes = res.data.by_type.map((t) => `${t.event_type}(${t.count})`).join(", ");
     console.log(
-      `   → Event types: ${res.data.by_type.map((t) => `${t.event_type}(${t.count})`).join(", ")}`,
+      `   → Event types: ${eventTypes}`,
     );
   }
 }
