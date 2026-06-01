@@ -1083,6 +1083,9 @@ ${body}
           ),
         ].join("\n---\n"),
       );
+      vi.spyOn(DocumentIngester.prototype, "ingestFile")
+        .mockResolvedValueOnce({ chunks: 1, skipped: false })
+        .mockRejectedValueOnce(new Error("Second chunk fails"));
 
       await ingestStagedSignalsFromDirectory(stagedDir, tempDir);
 

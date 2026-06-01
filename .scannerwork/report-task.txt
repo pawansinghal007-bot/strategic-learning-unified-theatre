@@ -2,5 +2,5 @@ projectKey=strategic-learning-unified-theatre
 serverUrl=http://localhost:9000
 serverVersion=26.5.0.122743
 dashboardUrl=http://localhost:9000/dashboard?id=strategic-learning-unified-theatre
-ceTaskId=016013f8-b3da-4fc9-ac7d-b305aa46fc45
-ceTaskUrl=http://localhost:9000/api/ce/task?id=016013f8-b3da-4fc9-ac7d-b305aa46fc45
+ceTaskId=b77b4c8b-d9dc-497d-aafe-a63e54bb26b7
+ceTaskUrl=http://localhost:9000/api/ce/task?id=b77b4c8b-d9dc-497d-aafe-a63e54bb26b7

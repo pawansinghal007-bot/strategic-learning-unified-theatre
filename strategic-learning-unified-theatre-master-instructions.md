@@ -48,6 +48,11 @@ node ./src/cli.js ai snapshot
 ## S2004 Refactor Guidance
 
 - S2004 sprint complete: 16 items fixed across LOW and MED; no HIGH items remained in the active lock snapshot.
+
+## Sprint 4 complete — S7744 = 0
+- Fix: ...(x || {}) → ...x  (spreading undefined = {} in JS)
+- Always check test failures are regression not pre-existing
+- llm.test.js had a test that never made its chunk fail — fixed
 - ARROW_CONVERT -> place `const` at the top of the parent function to preserve scope closure.
 - HOIST -> move to module scope above the parent only when there are zero parent-scope references.
 - DOUBLE_NESTED -> fix the innermost function first, then re-assess each outer level.
