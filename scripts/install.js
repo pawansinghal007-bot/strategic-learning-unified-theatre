@@ -137,7 +137,9 @@ async function main() {
   console.log("Service installer completed.");
 }
 
-main().catch((err) => {
+try {
+  await main();
+} catch (err) {
   console.error("Install failed:", err.message);
   process.exit(1);
-});
+}
