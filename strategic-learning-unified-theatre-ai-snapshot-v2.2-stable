@@ -1,0 +1,10 @@
+SPRINT 8 COMPLETE: S7735+S6594+S7748+S6535 all = 0
+S7735 negated condition:  0 — 3 files fixed
+S6594 RegExp.exec():      0 — 4 files fixed
+S7748 zero fraction:      0 — 2 files fixed
+S6535 unnecessary escape: 0 — 2 files fixed
+REGRESSION FIXED: handoff.js orphaned brace + browser-bridge.js capture group index
+VALIDATION: 528 tests / typecheck pass
+TOTAL AFTER: [fill in]
+TOP REMAINING: [fill in]
+NEXT: sprint 9

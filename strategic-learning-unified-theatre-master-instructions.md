@@ -166,3 +166,6 @@ S7780+S2486+S1874 all = 0. Total: 122→92.
 
 ## Sprint 7 complete
 S4624+S7721+S7772+S7773 all = 0
+
+## Sprint 8 complete
+S7735+S6594+S7748+S6535 all = 0
