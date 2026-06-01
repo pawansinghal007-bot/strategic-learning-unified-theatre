@@ -1,4 +1,4 @@
-import fs from "fs/promises";
+import fs from "node:fs/promises";
 import Ajv from "ajv";
 
 const CONFIG_PATH = "./config/security-governance.json";
