@@ -36,7 +36,7 @@ export class Gateway {
     const parsedRequest = providerRequestSchema.safeParse(request);
     if (!parsedRequest.success) {
       throw new ValidationFailedError("Invalid provider request", {
-        issues: parsedRequest.error.flatten(),
+        issues: parsedRequest.error.issues,
       });
     }
 
@@ -79,7 +79,7 @@ export class Gateway {
         if (!parsedResponse.success) {
           throw new ValidationFailedError("Invalid provider response", {
             provider: providerName,
-            issues: parsedResponse.error.flatten(),
+            issues: parsedResponse.error.issues,
           });
         }
 

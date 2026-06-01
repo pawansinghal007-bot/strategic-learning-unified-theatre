@@ -23,7 +23,7 @@ function parseSince(since) {
   const value = String(since).trim();
   const date = new Date(value);
   if (!Number.isFinite(date.getTime())) {
-    throw new Error(`Invalid --since value: ${value}`);
+    throw new TypeError(`Invalid --since value: ${value}`);
   }
   return date.toISOString();
 }

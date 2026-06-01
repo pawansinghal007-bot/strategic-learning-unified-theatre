@@ -15,12 +15,12 @@ export function redact(text) {
   return (
     text
       // Bearer tokens (JWT or opaque).
-      .replaceAll(/bearer\s+[\w\-._]+/gi, "Bearer [REDACTED]")
+      .replaceAll(/bearer\s+[\w\-.]+/gi, "Bearer [REDACTED]")
       // sk- prefixed API keys (OpenAI, Anthropic, etc.) — minimum 20 chars.
       .replaceAll(/sk-[a-zA-Z0-9]{20,}/g, "sk-[REDACTED]")
       // Generic key=value / key: value patterns for common secret field names.
       .replaceAll(
-        /(password|secret|token|api_key|apikey)(["'\s:=]+)([^"'\s,;\n]+)/gi,
+        /(password|secret|token|api_key|apikey)(["'\s:=]+)([^"'\s,;]+)/gi,
         "$1$2[REDACTED]",
       )
   );

@@ -15,8 +15,7 @@ const DB_PATH = join(
   "BrowserCapture",
   "capture.db",
 );
-const SCHEMA_PATH =
-  String.raw`c:\SW Development\VS Code Agent\files\bc2-native-host\native-host\schema.sql`;
+const SCHEMA_PATH = String.raw`c:\SW Development\VS Code Agent\files\bc2-native-host\native-host\schema.sql`;
 
 console.log("\n╔════════════════════════════════════════════════════════════╗");
 console.log("║         Browser Capture v2 Diagnostics                     ║");

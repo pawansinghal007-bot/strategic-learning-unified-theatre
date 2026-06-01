@@ -130,7 +130,7 @@ module.exports = async function register({ ipcMain, dialog, watcher, app }) {
       lastUsed: null,
       status: "active",
     });
-    return JSON.parse(JSON.stringify(added));
+    return structuredClone(added);
   });
 
   ipcMain.handle("accounts:capture", async (e, payload) => {
@@ -165,7 +165,7 @@ module.exports = async function register({ ipcMain, dialog, watcher, app }) {
         lastUsed: null,
         status: "active",
       });
-      return JSON.parse(JSON.stringify(added));
+      return structuredClone(added);
     } catch (err) {
       throw new Error(String(err?.message ?? err));
     }
@@ -207,7 +207,7 @@ module.exports = async function register({ ipcMain, dialog, watcher, app }) {
           lastUsed: null,
           status: "active",
         });
-        return JSON.parse(JSON.stringify(added));
+        return structuredClone(added);
       });
   });
 

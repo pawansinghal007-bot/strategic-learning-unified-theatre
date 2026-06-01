@@ -9,7 +9,7 @@ function parseSince(since) {
   if (!since) return null;
   const when = new Date(String(since));
   if (!Number.isFinite(when.getTime())) {
-    throw new Error(`Invalid since date: ${since}`);
+    throw new TypeError(`Invalid since date: ${since}`);
   }
   return when;
 }

@@ -37,7 +37,7 @@ export class Reporter {
       if (!m) continue;
       const [, ts, type] = m;
       if (!isSameDay(ts, day)) continue;
-      if (Object.prototype.hasOwnProperty.call(counts, type)) counts[type]++;
+      if (Object.hasOwn(counts, type)) counts[type]++;
     }
 
     const section = [
@@ -47,11 +47,13 @@ export class Reporter {
       `- Cooldowns: ${counts.COOLDOWN}`,
       `- Recovers: ${counts.RECOVER}`,
       `- Git warnings: ${counts.GIT_WARN}`,
-      ""
+      "",
     ].join("\n");
 
     await fs.appendFile(this.journal.filePath, section, { encoding: "utf8" });
-    await this.journal.append({ type: "REPORT", detail: `daily summary for ${day}` });
+    await this.journal.append({
+      type: "REPORT",
+      detail: `daily summary for ${day}`,
+    });
   }
 }
-

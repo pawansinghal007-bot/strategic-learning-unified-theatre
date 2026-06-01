@@ -18,7 +18,9 @@ const makeUnitVector = (index) => {
 const tempDirs = [];
 
 afterEach(async () => {
-  await Promise.all(tempDirs.map((dir) => fs.rm(dir, { recursive: true, force: true })));
+  await Promise.all(
+    tempDirs.map((dir) => fs.rm(dir, { recursive: true, force: true })),
+  );
   tempDirs.length = 0;
 });
 
@@ -30,13 +32,25 @@ describe("LLM Related Search", () => {
     await db.open();
 
     await db.replaceDocumentsForFile("alpha.txt", [
-      { content: "alpha document", embedding: makeUnitVector(0), source_type: "document" }
+      {
+        content: "alpha document",
+        embedding: makeUnitVector(0),
+        source_type: "document",
+      },
     ]);
     await db.replaceDocumentsForFile("beta.txt", [
-      { content: "beta document", embedding: makeUnitVector(1), source_type: "document" }
+      {
+        content: "beta document",
+        embedding: makeUnitVector(1),
+        source_type: "document",
+      },
     ]);
     await db.replaceDocumentsForFile("gamma.txt", [
-      { content: "gamma document", embedding: makeUnitVector(2), source_type: "document" }
+      {
+        content: "gamma document",
+        embedding: makeUnitVector(2),
+        source_type: "document",
+      },
     ]);
 
     const related = await db.relatedTo(makeUnitVector(0), { topDocs: 2 });
@@ -45,13 +59,25 @@ describe("LLM Related Search", () => {
   });
 
   it("relatedTo includes recent sprints regardless of query", async () => {
-    const baseDir = await fs.mkdtemp(path.join(os.tmpdir(), "related-sprints-"));
+    const baseDir = await fs.mkdtemp(
+      path.join(os.tmpdir(), "related-sprints-"),
+    );
     tempDirs.push(baseDir);
     const db = new ExperienceDb({ baseDir });
     await db.open();
 
-    await db.upsertSprint({ id: "sprint-old", goal: "Old goal", date: "2025-01-01T00:00:00Z", status: "active" });
-    await db.upsertSprint({ id: "sprint-new", goal: "New goal", date: "2025-02-01T00:00:00Z", status: "active" });
+    await db.upsertSprint({
+      id: "sprint-old",
+      goal: "Old goal",
+      date: "2025-01-01T00:00:00Z",
+      status: "active",
+    });
+    await db.upsertSprint({
+      id: "sprint-new",
+      goal: "New goal",
+      date: "2025-02-01T00:00:00Z",
+      status: "active",
+    });
 
     const related = await db.relatedTo(makeUnitVector(0), { topDocs: 5 });
     expect(related.sprints).toHaveLength(2);
@@ -60,12 +86,19 @@ describe("LLM Related Search", () => {
   });
 
   it("findRelated returns a markdown report containing expected headings", async () => {
-    const baseDir = await fs.mkdtemp(path.join(os.tmpdir(), "related-generator-"));
+    const baseDir = await fs.mkdtemp(
+      path.join(os.tmpdir(), "related-generator-"),
+    );
     tempDirs.push(baseDir);
     const inference = new LocalLlmInference({ baseDir });
     const generator = new PromptGenerator({ baseDir, inference, cwd: baseDir });
     await generator.db.open();
-    await generator.db.upsertSprint({ id: "sprint-health", goal: "Build health checks", date: "2025-01-01T00:00:00Z", status: "active" });
+    await generator.db.upsertSprint({
+      id: "sprint-health",
+      goal: "Build health checks",
+      date: "2025-01-01T00:00:00Z",
+      status: "active",
+    });
 
     const result = await generator.findRelated("health endpoint");
     expect(result.report).toContain("## Related Sprints");
@@ -74,8 +107,8 @@ describe("LLM Related Search", () => {
       expect.objectContaining({
         documents: expect.any(Array),
         sprints: expect.any(Array),
-        promptHistory: expect.any(Array)
-      })
+        promptHistory: expect.any(Array),
+      }),
     );
   });
 });

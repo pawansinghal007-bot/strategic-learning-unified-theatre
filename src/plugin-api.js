@@ -40,12 +40,12 @@ export const PLUGIN_API_VERSION = 1;
 export function assertPluginApiCompatible(pluginModule, pluginId) {
   const found = pluginModule?.PLUGIN_API_VERSION;
   if (found === undefined) {
-    throw new Error(
+    throw new TypeError(
       `Plugin "${pluginId}" missing PLUGIN_API_VERSION (expected ${PLUGIN_API_VERSION})`,
     );
   }
   if (!Number.isInteger(found)) {
-    throw new Error(
+    throw new TypeError(
       `Plugin "${pluginId}" has non-integer PLUGIN_API_VERSION=${found} (expected integer ${PLUGIN_API_VERSION})`,
     );
   }

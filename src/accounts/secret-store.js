@@ -62,7 +62,7 @@ class FileSecretAdapter {
   async deletePassword(service, accountId) {
     const data = await this.load();
     const key = this.key(service, accountId);
-    const existed = Object.prototype.hasOwnProperty.call(data, key);
+    const existed = Object.hasOwn(data, key);
     delete data[key];
     await this.save(data);
     return existed;

@@ -39,7 +39,7 @@ export default function Logs() {
     <div className="space-y-4">
       <div className="flex flex-col gap-3 md:flex-row">
         <label className="flex flex-col gap-1 text-sm font-medium">
-          Module
+          Module{' '}
           <select
             value={moduleFilter}
             onChange={(event) => setModuleFilter(event.target.value)}
@@ -55,7 +55,7 @@ export default function Logs() {
         </label>
 
         <label className="flex flex-col gap-1 text-sm font-medium">
-          Level
+          Level{' '}
           <select
             value={levelFilter}
             onChange={(event) => setLevelFilter(event.target.value)}
@@ -71,7 +71,7 @@ export default function Logs() {
         </label>
 
         <label className="flex flex-1 flex-col gap-1 text-sm font-medium">
-          Correlation ID
+          Correlation ID{' '}
           <input
             type="text"
             value={correlationFilter}

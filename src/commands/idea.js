@@ -107,7 +107,6 @@ export async function bindIdeaCommands(program) {
     .option("--priority <n>", "Priority level", "3")
     .action(async (options) => {
       const spinner = ora("Preparing idea...").start();
-      let created = null;
       try {
         const priority = parseIdeaPriority(options.priority);
         spinner.stop();

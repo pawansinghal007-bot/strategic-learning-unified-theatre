@@ -92,9 +92,9 @@ function deriveRobotPath(srcFile, robotDir) {
 function extractExportedNames(source) {
   const names = new Set();
   for (const regex of [
-    /export\s+function\s+([A-Za-z0-9_]+)/g,
-    /export\s+(?:const|let|var)\s+([A-Za-z0-9_]+)\s*=/g,
-    /export\s+default\s+function(?:\s+([A-Za-z0-9_]+))?/g,
+    /export\s+function\s+(\w+)/g,
+    /export\s+(?:const|let|var)\s+(\w+)\s*=/g,
+    /export\s+default\s+function(?:\s+(\w+))?/g,
   ]) {
     let match;
     while ((match = regex.exec(source))) {
