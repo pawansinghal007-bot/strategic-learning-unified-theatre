@@ -54,7 +54,7 @@ export class VscodeContextCollector {
     this.config = config;
     this.vscodeLearn = {
       ...DEFAULT_CONFIG.vscodeLearn,
-      ...(config.vscodeLearn),
+      ...config.vscodeLearn,
     };
     this.baseDir = this.config.baseDir ?? null;
     this.stagedSignalsDir = this.vscodeLearn.stagedSignalsDir
@@ -128,9 +128,7 @@ export class VscodeContextCollector {
     const normalized = String(filePath).replaceAll("\\", "/").toLowerCase();
     const patterns = this.vscodeLearn.excludePatterns || [];
     return patterns.some((pattern) =>
-      normalized.includes(
-        pattern.replaceAll("**", "").replaceAll("*", ""),
-      ),
+      normalized.includes(pattern.replaceAll("**", "").replaceAll("*", "")),
     );
   }
 

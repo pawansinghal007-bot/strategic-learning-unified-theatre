@@ -12,7 +12,9 @@ const DEFAULT_LOG_PATH = "bc2-sync";
 const SCHEDULE_INTERVAL_MS = 5 * 60 * 1000;
 
 function normalizeRole(role) {
-  const normalized = String(role ?? "").trim().toLowerCase();
+  const normalized = String(role ?? "")
+    .trim()
+    .toLowerCase();
   return normalized === "assistant" ? "assistant" : "user";
 }
 
@@ -39,8 +41,14 @@ function buildParams(platform) {
   return params;
 }
 
-export async function fetchBc2Messages(captureDbPath, { platform, since } = {}) {
-  const db = new Database(captureDbPath, { readonly: true, fileMustExist: true });
+export async function fetchBc2Messages(
+  captureDbPath,
+  { platform, since } = {},
+) {
+  const db = new Database(captureDbPath, {
+    readonly: true,
+    fileMustExist: true,
+  });
   try {
     const query = buildQuery(platform);
     const rows = db.prepare(query).all(...buildParams(platform));
@@ -56,10 +64,21 @@ export async function fetchBc2Messages(captureDbPath, { platform, since } = {}) 
   }
 }
 
-export async function syncBc2Messages({ captureDbPath, baseDir, since, platform, dryRun = false, schedule = false } = {}) {
+export async function syncBc2Messages({
+  captureDbPath,
+  baseDir,
+  since,
+  platform,
+  dryRun = false,
+  schedule = false,
+} = {}) {
   const capturePath = captureDbPath
     ? path.resolve(captureDbPath)
-    : path.join(process.env.APPDATA || path.join(os.homedir(), "AppData", "Roaming"), "BrowserCapture", "capture.db");
+    : path.join(
+        process.env.APPDATA || path.join(os.homedir(), "AppData", "Roaming"),
+        "BrowserCapture",
+        "capture.db",
+      );
 
   if (!(await fs.stat(capturePath).catch(() => null))) {
     throw new Error(`Capture DB not found: ${capturePath}`);
@@ -67,7 +86,10 @@ export async function syncBc2Messages({ captureDbPath, baseDir, since, platform,
 
   const sinceIso = parseSince(since);
   const runOnce = async () => {
-    const allRows = await fetchBc2Messages(capturePath, { platform, since: sinceIso });
+    const allRows = await fetchBc2Messages(capturePath, {
+      platform,
+      since: sinceIso,
+    });
     const chunks = allRows
       .map((row) => ({
         content: String(row.content ?? ""),
@@ -78,8 +100,8 @@ export async function syncBc2Messages({ captureDbPath, baseDir, since, platform,
           bc2_message_id: String(row.bc2_message_id ?? ""),
           bc2_session_id: String(row.chat_session_id ?? ""),
           role: normalizeRole(row.role),
-          created_at: String(row.created_at ?? new Date().toISOString())
-        }
+          created_at: String(row.created_at ?? new Date().toISOString()),
+        },
       }))
       .filter((chunk) => chunk.content.trim().length > 0);
 
@@ -88,7 +110,14 @@ export async function syncBc2Messages({ captureDbPath, baseDir, since, platform,
     }
 
     if (dryRun) {
-      return { total: chunks.length, inserted: chunks.length, skipped: 0, platform, since: sinceIso, dryRun: true };
+      return {
+        total: chunks.length,
+        inserted: chunks.length,
+        skipped: 0,
+        platform,
+        since: sinceIso,
+        dryRun: true,
+      };
     }
 
     const ingester = new DocumentIngester({ baseDir });
@@ -97,20 +126,29 @@ export async function syncBc2Messages({ captureDbPath, baseDir, since, platform,
       filename: DEFAULT_LOG_PATH,
       source_type: "bc2-chat",
       uniqueBy: "bc2_message_id",
-      logPath: DEFAULT_LOG_PATH
+      logPath: DEFAULT_LOG_PATH,
     });
     await ingester.db.close();
 
     const inserted = Array.isArray(result.rows) ? result.rows.length : 0;
     const skipped = chunks.length - inserted;
-    return { total: chunks.length, inserted, skipped, platform, since: sinceIso, dryRun: false };
+    return {
+      total: chunks.length,
+      inserted,
+      skipped,
+      platform,
+      since: sinceIso,
+      dryRun: false,
+    };
   };
 
   if (!schedule) {
     return runOnce();
   }
 
-  const spinner = ora(`Starting scheduled bc2-sync every ${SCHEDULE_INTERVAL_MS / 60000} minutes...`).start();
+  const spinner = ora(
+    `Starting scheduled bc2-sync every ${SCHEDULE_INTERVAL_MS / 60000} minutes...`,
+  ).start();
   let active = false;
   await runOnce();
   const timer = setInterval(async () => {
@@ -136,14 +174,21 @@ export async function syncBc2Messages({ captureDbPath, baseDir, since, platform,
 }
 
 export function bindBc2SyncCommand(program) {
-  const command = program.command("bc2-sync").description("Sync Browser Capture v2 chat messages into the experience database");
+  const command = program
+    .command("bc2-sync")
+    .description(
+      "Sync Browser Capture v2 chat messages into the experience database",
+    );
 
   command
     .option("--capture-db <path>", "Path to Browser Capture v2 SQLite database")
     .option("--base-dir <dir>", "Local storage base directory")
     .option("--since <date>", "Fetch messages on or after this ISO date")
     .option("--platform <name>", "Platform site filter")
-    .option("--dry-run", "Show what would be ingested without writing to the experience database")
+    .option(
+      "--dry-run",
+      "Show what would be ingested without writing to the experience database",
+    )
     .option("--schedule", "Run sync every 5 minutes")
     .action(async (options) => {
       const spinner = ora("Running bc2-sync...").start();
@@ -154,15 +199,21 @@ export function bindBc2SyncCommand(program) {
           since: options.since,
           platform: options.platform,
           dryRun: Boolean(options.dryRun),
-          schedule: Boolean(options.schedule)
+          schedule: Boolean(options.schedule),
         });
         spinner.succeed("bc2-sync completed");
         if (result.dryRun) {
-          console.log(`dry-run: ${result.total} message(s) available for ingestion`);
+          console.log(
+            `dry-run: ${result.total} message(s) available for ingestion`,
+          );
         } else if (result.scheduled) {
-          console.log("bc2-sync scheduling enabled; running in background until interrupted.");
+          console.log(
+            "bc2-sync scheduling enabled; running in background until interrupted.",
+          );
         } else {
-          console.log(`ingested: ${result.inserted} / ${result.total} messages (${result.skipped} skipped)`);
+          console.log(
+            `ingested: ${result.inserted} / ${result.total} messages (${result.skipped} skipped)`,
+          );
         }
       } catch (err) {
         spinner.stop();

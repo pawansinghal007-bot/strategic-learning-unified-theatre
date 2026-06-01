@@ -8,6 +8,51 @@
 import { describe, it, expect } from "vitest";
 import { scoreAccount } from "../../src/scorer.js";
 
+// Helper: Create a random account
+function randomAccount(seed = Math.random()) {
+  const now = Date.now();
+  let status;
+  if (seed < 0.3) {
+    status = "active";
+  } else if (seed < 0.6) {
+    status = "cooldown";
+  } else if (seed < 0.9) {
+    status = "retired";
+  } else {
+    status = "active";
+  }
+
+  let cooldownOffset;
+  if (seed < 0.3) {
+    cooldownOffset = -1000;
+  } else if (seed < 0.6) {
+    cooldownOffset = 60000;
+  } else {
+    cooldownOffset = 0;
+  }
+
+  return {
+    id: `acc-${Math.random().toString(36).slice(2)}`,
+    email: `test${Math.random()}@example.com`,
+    agentType: "codex",
+    authBlob: "x",
+    cooldownUntil: cooldownOffset > 0 ? new Date(now + cooldownOffset) : null,
+    lastUsed:
+      seed > 0.5 ? new Date(now - Math.random() * 1000 * 60 * 60 * 24) : null,
+    status,
+  };
+}
+
+// Helper: Create random health result
+function randomHealthResult() {
+  return {
+    valid: Math.random() > 0.5,
+    remainingRequests: Math.floor(Math.random() * 500),
+    resetAt: null,
+    error: Math.random() > 0.8 ? "random error" : null,
+  };
+}
+
 describe("Regression: Scoring Invariants", () => {
   /**
    * INVARIANT: Score must always be in range [0, 100]
@@ -15,57 +60,8 @@ describe("Regression: Scoring Invariants", () => {
    * This is enforced by the implementation: Math.max(0, Math.min(100, Math.round(score)))
    */
 
-  // Non-cryptographic randomness — used for generating test accounts only. // NOSONAR javascript:S2245
-  // Helper: Create a random account
-  function randomAccount(seed = Math.random()) {
-    const now = Date.now();
-    let status;
-    if (seed < 0.3) {
-      status = "active";
-    } else if (seed < 0.6) {
-      status = "cooldown";
-    } else if (seed < 0.9) {
-      status = "retired";
-    } else {
-      status = "active";
-    }
 
-    let cooldownOffset;
-    if (seed < 0.3) {
-      cooldownOffset = -1000;
-    } else if (seed < 0.6) {
-      cooldownOffset = 60000;
-    } else {
-      cooldownOffset = 0;
-    }
 
-    return {
-      // Non-cryptographic randomness — used for unique test id generation only. // NOSONAR javascript:S2245
-      id: `acc-${Math.random().toString(36).slice(2)}`,
-      // Non-cryptographic randomness — used for unique test email generation only. // NOSONAR javascript:S2245
-      email: `test${Math.random()}@example.com`,
-      agentType: "codex",
-      authBlob: "x",
-      cooldownUntil: cooldownOffset > 0 ? new Date(now + cooldownOffset) : null,
-      // Non-cryptographic randomness — used for generating a random lastUsed timestamp only. // NOSONAR javascript:S2245
-      lastUsed:
-        seed > 0.5 ? new Date(now - Math.random() * 1000 * 60 * 60 * 24) : null, // 0-24 hours ago
-      status,
-    };
-  }
-
-  // Helper: Create random health result
-  function randomHealthResult() {
-    return {
-      // Non-cryptographic randomness — used for generating randomized health flags only. // NOSONAR javascript:S2245
-      valid: Math.random() > 0.5,
-      // Non-cryptographic randomness — used for generating randomized remainingRequests only. // NOSONAR javascript:S2245
-      remainingRequests: Math.floor(Math.random() * 500),
-      resetAt: null,
-      // Non-cryptographic randomness — used to sometimes inject an error in test data only. // NOSONAR javascript:S2245
-      error: Math.random() > 0.8 ? "random error" : null,
-    };
-  }
 
   // Test 1: Active account with valid health
   it("[0/50] invariant: active valid account scores > 0", () => {

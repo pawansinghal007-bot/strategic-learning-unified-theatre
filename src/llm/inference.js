@@ -300,7 +300,8 @@ export class LocalLlmInference {
 
   async generate({ prompt, system = "" }) {
     if (process.env.VSCODE_ROTATOR_MOCK_LLM) {
-      return `${system ? `${system}\n\n` : ""}${prompt}`.slice(0, 1200);
+      const systemPrefix = system ? `${system}\n\n` : "";
+      return `${systemPrefix}${prompt}`.slice(0, 1200);
     }
 
     const fullPrompt = system ? `${system}\n\n${prompt}` : prompt;

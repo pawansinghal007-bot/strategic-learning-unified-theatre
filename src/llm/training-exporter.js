@@ -138,7 +138,8 @@ function buildThreadRecords(threadGroups) {
 }
 
 function buildExportRecords(documents, qualityFilter) {
-  const { sessionGroups, threadGroups, llmResponses } = groupDocuments(documents);
+  const { sessionGroups, threadGroups, llmResponses } =
+    groupDocuments(documents);
   const records = [
     ...llmResponses,
     ...buildSessionRecords(sessionGroups),

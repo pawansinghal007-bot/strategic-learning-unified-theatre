@@ -51,9 +51,7 @@ async function main() {
       }
 
       // renewal limit
-      const maxRenewals =
-        config.acknowledgedWaiver?.maxRenewals ||
-        0;
+      const maxRenewals = config.acknowledgedWaiver?.maxRenewals || 0;
       if (typeof w.renewalCount === "number" && w.renewalCount > maxRenewals) {
         errors.push({
           index: i,
@@ -76,4 +74,4 @@ async function main() {
   }
 }
 
-  await main();
+await main();

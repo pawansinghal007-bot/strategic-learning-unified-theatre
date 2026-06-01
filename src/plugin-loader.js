@@ -2,6 +2,19 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { assertPluginApiCompatible } from "./plugin-api.js";
 
+function applyCapabilities(caps, llmProviders, browserPlatforms, healthChecks) {
+  if (!caps) return;
+  if (caps.llmProviders && Array.isArray(caps.llmProviders)) {
+    llmProviders.push(...caps.llmProviders);
+  }
+  if (caps.browserPlatforms && Array.isArray(caps.browserPlatforms)) {
+    browserPlatforms.push(...caps.browserPlatforms);
+  }
+  if (caps.healthChecks && Array.isArray(caps.healthChecks)) {
+    healthChecks.push(...caps.healthChecks);
+  }
+}
+
 async function discoverPluginPaths() {
   const { loadConfig } = await import("./internal/config.js");
   const cfg = await loadConfig();
@@ -38,19 +51,6 @@ export async function loadPlugins() {
   const browserPlatforms = [];
   const healthChecks = [];
   const errors = [];
-  function applyCapabilities(caps, llmProviders, browserPlatforms, healthChecks) {
-    if (!caps) return;
-    if (caps.llmProviders && Array.isArray(caps.llmProviders)) {
-      llmProviders.push(...caps.llmProviders);
-    }
-    if (caps.browserPlatforms && Array.isArray(caps.browserPlatforms)) {
-      browserPlatforms.push(...caps.browserPlatforms);
-    }
-    if (caps.healthChecks && Array.isArray(caps.healthChecks)) {
-      healthChecks.push(...caps.healthChecks);
-    }
-  }
-
   for (const filePath of paths) {
     const id = path.basename(filePath);
     try {
