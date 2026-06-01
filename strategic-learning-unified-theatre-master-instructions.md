@@ -160,3 +160,6 @@ Sprint 4 started: S7744 (3/10 fixed)
 
 ## Sprint 5 complete
 S6582+S6853+S7785 all = 0. 49 fixes.
+
+## Sprint 6 complete
+S7780+S2486+S1874 all = 0. Total: 122→92.

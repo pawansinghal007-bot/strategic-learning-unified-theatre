@@ -1,0 +1,16 @@
+SPRINT 6 COMPLETE: S7780+S2486+S1874 all = 0
+S7780 String.raw:      0 — 5 files fixed
+S2486 empty catch:     0 — 10 files fixed
+S1874 deprecated API:  0 — 5 files fixed
+VALIDATION: 528 tests / typecheck pass
+TOTAL BEFORE: 122  TOTAL AFTER: 92  DELTA: -30
+TOP REMAINING:
+  7 javascript:S4624
+  6 javascript:S7772
+  6 javascript:S7773
+  5 javascript:S7721
+  4 javascript:S7735
+  4 javascript:S6594
+  4 javascript:S7748
+  3 javascript:S6535
+NEXT: sprint 7 — S4624(7)+S7772(6)+S7773(6)
