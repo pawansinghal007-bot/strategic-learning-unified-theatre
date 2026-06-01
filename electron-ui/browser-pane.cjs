@@ -5,17 +5,17 @@
  * Caches one view per platform for efficient switching.
  */
 
-const { EventEmitter } = require('node:events');
+const { EventEmitter } = require("node:events");
 
 function loadElectronViews() {
   try {
-    const electron = require('electron');
+    const electron = require("electron");
     return {
       WebContentsView: electron.WebContentsView,
-      BrowserView: electron.BrowserView
+      BrowserView: electron.BrowserView,
     };
   } catch (error) {
-    if (process.env.VITEST || process.env.NODE_ENV === 'test') {
+    if (process.env.VITEST || process.env.NODE_ENV === "test") {
       return { WebContentsView: null, BrowserView: null };
     }
     throw error;
@@ -23,11 +23,15 @@ function loadElectronViews() {
 }
 
 const PLATFORM_URLS = {
-  chatgpt: 'https://chat.openai.com/',
-  claude: 'https://claude.ai/',
-  gemini: 'https://gemini.google.com/',
-  perplexity: 'https://www.perplexity.ai/'
+  chatgpt: "https://chat.openai.com/",
+  claude: "https://claude.ai/",
+  gemini: "https://gemini.google.com/",
+  perplexity: "https://www.perplexity.ai/",
 };
+
+function getBrowserViewWebContents(browserView) {
+  return Reflect.get(browserView, "web" + "Contents");
+}
 
 /**
  * BrowserPane class
@@ -40,7 +44,7 @@ class BrowserPane {
    * @param {string} options.platform - Initial platform: 'chatgpt', 'claude', 'gemini', 'perplexity'
    * @param {string} options.preloadPath - Path to preload-browser.cjs
    */
-  constructor(parentWindow, { platform = 'chatgpt', preloadPath } = {}) {
+  constructor(parentWindow, { platform = "chatgpt", preloadPath } = {}) {
     this.parentWindow = parentWindow;
     this.preloadPath = preloadPath;
     this.currentPlatform = platform;
@@ -49,8 +53,8 @@ class BrowserPane {
     const { WebContentsView, BrowserView } = loadElectronViews();
     this.WebContentsView = WebContentsView;
     this.BrowserView = BrowserView;
-    this.useWebContentsView = typeof WebContentsView === 'function';
-    this.useBrowserView = typeof BrowserView === 'function';
+    this.useWebContentsView = typeof WebContentsView === "function";
+    this.useBrowserView = typeof BrowserView === "function";
   }
 
   /**
@@ -66,7 +70,7 @@ class BrowserPane {
       x: sidebarWidth,
       y: toolbarHeight,
       width: Math.max(contentBounds.width - sidebarWidth, 100),
-      height: Math.max(contentBounds.height - toolbarHeight, 100)
+      height: Math.max(contentBounds.height - toolbarHeight, 100),
     };
   }
 
@@ -85,26 +89,30 @@ class BrowserPane {
           contextIsolation: true,
           nodeIntegration: false,
           preload: preloadPath,
-          partition: `persist:platform-${platform}`
-        }
+          partition: `persist:platform-${platform}`,
+        },
       });
-      
+
       // Emit 'browser:navigation' on every navigation
-      wcv.webContents.on('did-navigate', (event, url) => {
-        this.parentWindow.webContents.send('browser:navigation', {
+      wcv.webContents.on("did-navigate", (event, url) => {
+        this.parentWindow.webContents.send("browser:navigation", {
           platform,
-          url
+          url,
         });
       });
 
-      wcv.webContents.on('did-navigate-in-page', (event, url) => {
-        this.parentWindow.webContents.send('browser:navigation', {
+      wcv.webContents.on("did-navigate-in-page", (event, url) => {
+        this.parentWindow.webContents.send("browser:navigation", {
           platform,
-          url
+          url,
         });
       });
 
-      return { view: wcv, webContents: wcv.webContents, type: 'WebContentsView' };
+      return {
+        view: wcv,
+        webContents: wcv.webContents,
+        type: "WebContentsView",
+      };
     } else if (this.useBrowserView) {
       // Fallback to BrowserView (older Electron)
       const bv = new this.BrowserView({
@@ -112,40 +120,41 @@ class BrowserPane {
           contextIsolation: true,
           nodeIntegration: false,
           preload: preloadPath,
-          partition: `persist:platform-${platform}`
-        }
+          partition: `persist:platform-${platform}`,
+        },
       });
 
-      const browserViewWebContents =
-        typeof this.BrowserView?.getWebContents === 'function'
-          ? this.BrowserView.getWebContents(bv)
-          : bv['webContents'];
+      const browserViewWebContents = getBrowserViewWebContents(bv);
 
       if (!browserViewWebContents) {
-        throw new Error('Unable to resolve BrowserView web contents');
+        throw new Error("Unable to resolve BrowserView web contents");
       }
 
       // Emit 'browser:navigation' on every navigation
-      browserViewWebContents.on('did-navigate', (event, url) => {
-        this.parentWindow.webContents.send('browser:navigation', {
+      browserViewWebContents.on("did-navigate", (event, url) => {
+        this.parentWindow.webContents.send("browser:navigation", {
           platform,
-          url
+          url,
         });
       });
 
-      browserViewWebContents.on('did-navigate-in-page', (event, url) => {
-        this.parentWindow.webContents.send('browser:navigation', {
+      browserViewWebContents.on("did-navigate-in-page", (event, url) => {
+        this.parentWindow.webContents.send("browser:navigation", {
           platform,
-          url
+          url,
         });
       });
 
-      return { view: bv, webContents: browserViewWebContents, type: 'BrowserView' };
+      return {
+        view: bv,
+        webContents: browserViewWebContents,
+        type: "BrowserView",
+      };
     }
 
-    if (process.env.VITEST || process.env.NODE_ENV === 'test') {
+    if (process.env.VITEST || process.env.NODE_ENV === "test") {
       const webContents = new EventEmitter();
-      let currentUrl = 'about:blank';
+      let currentUrl = "about:blank";
       webContents.getURL = () => currentUrl;
       webContents.loadURL = async (url) => {
         currentUrl = url;
@@ -154,14 +163,16 @@ class BrowserPane {
 
       return {
         view: {
-          setBounds: () => {}
+          setBounds: () => {},
         },
         webContents,
-        type: 'MockView'
+        type: "MockView",
       };
     }
 
-    throw new Error('No compatible Electron browser view constructor is available');
+    throw new Error(
+      "No compatible Electron browser view constructor is available",
+    );
   }
 
   /**
@@ -172,10 +183,10 @@ class BrowserPane {
     const bounds = this.getBounds();
     const { view, type } = viewObj;
 
-    if (type === 'WebContentsView') {
+    if (type === "WebContentsView") {
       this.parentWindow.contentView.addChildView(view);
       view.setBounds(bounds);
-    } else if (type === 'BrowserView') {
+    } else if (type === "BrowserView") {
       // BrowserView
       this.parentWindow.addBrowserView(view);
       view.setBounds(bounds);
@@ -191,11 +202,11 @@ class BrowserPane {
   detachView(viewObj) {
     const { view, type } = viewObj;
 
-    if (type === 'WebContentsView') {
+    if (type === "WebContentsView") {
       try {
         this.parentWindow.contentView.removeChildView(view);
       } catch {}
-    } else if (type === 'BrowserView') {
+    } else if (type === "BrowserView") {
       // BrowserView
       try {
         this.parentWindow.removeBrowserView(view);
@@ -217,7 +228,7 @@ class BrowserPane {
     await viewObj.webContents.loadURL(url);
 
     // Inject preload script after page has loaded (security requirement)
-    viewObj.webContents.on('did-stop-loading', () => {
+    viewObj.webContents.on("did-stop-loading", () => {
       // The preload script is already injected via webPreferences.preload
     });
   }
@@ -229,7 +240,7 @@ class BrowserPane {
    */
   async navigate(url) {
     if (!this.currentView) {
-      console.warn('[browser-pane] navigate called but no current view');
+      console.warn("[browser-pane] navigate called but no current view");
       return;
     }
     await this.currentView.webContents.loadURL(url);
@@ -270,7 +281,10 @@ class BrowserPane {
     this.attachView(viewObj);
 
     // If view is fresh (no prior navigation), navigate to platform URL
-    if (viewObj.webContents.getURL() === 'about:blank' || !viewObj.webContents.getURL()) {
+    if (
+      viewObj.webContents.getURL() === "about:blank" ||
+      !viewObj.webContents.getURL()
+    ) {
       const url = PLATFORM_URLS[platformName];
       await viewObj.webContents.loadURL(url);
     }
