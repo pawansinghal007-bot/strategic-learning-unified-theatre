@@ -6,7 +6,7 @@
  * Run: node test-bc2-integration.js
  */
 
-import http from "http";
+import http from "node:http";
 import { fileURLToPath } from "node:url";
 import { dirname } from "node:path";
 
