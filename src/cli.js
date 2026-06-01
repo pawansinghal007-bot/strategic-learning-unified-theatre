@@ -716,6 +716,7 @@ daemonCmd
       );
     } catch (err) {
       spinner.stop();
+      log.error("daemon.status.failure", { error: err });
       console.log(chalk.red("not running"));
     }
   });
@@ -724,9 +725,9 @@ daemonCmd
   .command("watch")
   .description("Stream daemon log output")
   .action(async () => {
-      const { logPath } = daemonPaths();
-      await fs.mkdir(path.dirname(logPath), { recursive: true, mode: 0o700 });
-      await fs.appendFile(logPath, "", { encoding: "utf8" });
+    const { logPath } = daemonPaths();
+    await fs.mkdir(path.dirname(logPath), { recursive: true, mode: 0o700 });
+    await fs.appendFile(logPath, "", { encoding: "utf8" });
 
     let offset = 0;
     try {
@@ -747,13 +748,13 @@ daemonCmd
     });
   });
 
-  try {
-    await program.parseAsync(process.argv);
-  } catch (err) {
-    log.error("cli.fatal", {
-      error: err,
-      code: err?.code || "ROTATOR_CLI_FAILURE",
-    });
-    console.error(chalk.red(String(err?.message ?? err)));
-    process.exitCode = 1;
-  }
+try {
+  await program.parseAsync(process.argv);
+} catch (err) {
+  log.error("cli.fatal", {
+    error: err,
+    code: err?.code || "ROTATOR_CLI_FAILURE",
+  });
+  console.error(chalk.red(String(err?.message ?? err)));
+  process.exitCode = 1;
+}

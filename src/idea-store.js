@@ -133,6 +133,7 @@ async function readIdeaFile(filePath) {
       filePath,
     };
   } catch (err) {
+    console.warn("[idea-store] invalid idea metadata", filePath, err);
     await quarantineFile(filePath, "invalid-metadata");
     return null;
   }

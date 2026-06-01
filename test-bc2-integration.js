@@ -37,6 +37,7 @@ function httpGet(url) {
             data: JSON.parse(data),
           });
         } catch (e) {
+          console.warn("[test-bc2-integration] invalid JSON response", e);
           resolve({ status: res.statusCode, headers: res.headers, data });
         }
       });
@@ -73,6 +74,7 @@ function httpPost(url, body) {
               data: JSON.parse(respData),
             });
           } catch (e) {
+            console.warn("[test-bc2-integration] invalid JSON response", e);
             resolve({
               status: res.statusCode,
               headers: res.headers,
