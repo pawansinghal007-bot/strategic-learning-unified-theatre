@@ -210,7 +210,7 @@ describe("AI Memory Foundation", () => {
       "--category",
       "setup",
       "--powershell-command",
-      "Set-Location 'C:\\temp'",
+      String.raw`Set-Location 'C:\temp'`,
       "--notes",
       "Test command"
     ]);
@@ -225,7 +225,7 @@ describe("AI Memory Foundation", () => {
 
     expect(output.some((line) => line.includes("Command saved"))).toBe(true);
     expect(output.some((line) => line.includes("setup"))).toBe(true);
-    expect(output.some((line) => line.includes("Set-Location 'C:\\temp'"))).toBe(true);
+    expect(output.some((line) => line.includes(String.raw`Set-Location 'C:\temp'`))).toBe(true);
   });
 
   it("records a new test baseline with ai baseline add", async () => {
