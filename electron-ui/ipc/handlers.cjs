@@ -72,23 +72,25 @@ module.exports = async function register({ ipcMain, dialog, watcher, app }) {
         profileName: account.profileName ?? null,
         preferExisting: true,
       });
+      const loginQuery = `login ${account.agentType}`;
       return {
         authPath,
         authPathExists: await pathExists(authPath),
         loginUrl:
           LOGIN_TARGETS[account.agentType] ||
-          `https://www.google.com/search?q=${encodeURIComponent(`login ${account.agentType}`)}`,
+          `https://www.google.com/search?q=${encodeURIComponent(loginQuery)}`,
         supportsVsCodeAuth: ["vscode", "github", "codex", "trae"].includes(
           account.agentType,
         ),
       };
     } catch {
+      const loginQuery = `login ${account.agentType}`;
       return {
         authPath: null,
         authPathExists: false,
         loginUrl:
           LOGIN_TARGETS[account.agentType] ||
-          `https://www.google.com/search?q=${encodeURIComponent(`login ${account.agentType}`)}`,
+          `https://www.google.com/search?q=${encodeURIComponent(loginQuery)}`,
         supportsVsCodeAuth: ["vscode", "github", "codex", "trae"].includes(
           account.agentType,
         ),
