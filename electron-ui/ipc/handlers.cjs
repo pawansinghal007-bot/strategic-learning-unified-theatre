@@ -251,23 +251,23 @@ module.exports = async function register({ ipcMain, dialog, watcher, app }) {
   });
 
   ipcMain.handle("llm:setup", async (e, payload) => {
-    return await setupModel(payload );
+    return await setupModel(payload);
   });
 
   ipcMain.handle("llm:ask", async (e, payload) => {
-    return await askLocalLlm(payload );
+    return await askLocalLlm(payload);
   });
 
   ipcMain.handle("browser:send", async (e, payload) => {
-    return await browserBridge.sendPrompt(payload );
+    return await browserBridge.sendPrompt(payload);
   });
 
   ipcMain.handle("browser:login", async (e, payload) => {
-    return await browserBridge.loginToPage(payload );
+    return await browserBridge.loginToPage(payload);
   });
 
   ipcMain.handle("browser:listResponses", async (e, payload) => {
-    return await browserBridge.listResponses(payload );
+    return await browserBridge.listResponses(payload);
   });
 
   ipcMain.handle("browser:getResponse", async (e, filename) => {
@@ -275,7 +275,7 @@ module.exports = async function register({ ipcMain, dialog, watcher, app }) {
   });
 
   ipcMain.handle("browser:clearResponses", async (e, payload) => {
-    return await browserBridge.clearResponses(payload );
+    return await browserBridge.clearResponses(payload);
   });
 
   ipcMain.handle("browser:listPrompts", async () => {
@@ -283,11 +283,11 @@ module.exports = async function register({ ipcMain, dialog, watcher, app }) {
   });
 
   ipcMain.handle("browser:addPrompt", async (e, prompt) => {
-    return await browserBridge.addPrompt(prompt );
+    return await browserBridge.addPrompt(prompt);
   });
 
   ipcMain.handle("browser:updatePrompt", async (e, id, updates) => {
-    return await browserBridge.updatePrompt(id, updates );
+    return await browserBridge.updatePrompt(id, updates);
   });
 
   ipcMain.handle("browser:deletePrompt", async (e, id) => {
@@ -295,15 +295,15 @@ module.exports = async function register({ ipcMain, dialog, watcher, app }) {
   });
 
   ipcMain.handle("browser:runPrompt", async (e, payload) => {
-    return await browserBridge.runPromptTemplate(payload );
+    return await browserBridge.runPromptTemplate(payload);
   });
 
   ipcMain.handle("robot:runSuite", async (e, opts) => {
-    return await testRunner.runSuite(opts );
+    return await testRunner.runSuite(opts);
   });
 
   ipcMain.handle("robot:tddCheck", async (e, opts) => {
-    return await testRunner.assertTddGate(opts );
+    return await testRunner.assertTddGate(opts);
   });
 
   ipcMain.handle("robot:generateSkeleton", async (e, filePath) => {
@@ -428,6 +428,7 @@ module.exports = async function register({ ipcMain, dialog, watcher, app }) {
       const raw = await fs.readFile(p, "utf8");
       return raw;
     } catch (err) {
+      console.warn("[ipc] failed to read journal raw markdown", err);
       return "";
     }
   });
