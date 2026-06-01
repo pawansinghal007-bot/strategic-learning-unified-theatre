@@ -291,7 +291,8 @@ async function getAdapterModule(platform) {
     const module = await import(`./browser-adapters/${platform}.js`);
     return module.adapter;
   } catch (err) {
-    throw new Error(`Adapter not found for platform: ${platform}`);
+    console.warn("[browser-bridge] adapter module load failed", err);
+    throw new Error(`Adapter not found for platform: ${platform}`, { cause: err });
   }
 }
 
@@ -310,9 +311,7 @@ async function setupLauncher(normalizedType, config, executablePath) {
     launcher = chromium;
     if (normalizedType === "brave") {
       execPath =
-        executablePath ||
-        process.env.BRAVE_PATH ||
-        config?.browserPaths?.brave;
+        executablePath || process.env.BRAVE_PATH || config?.browserPaths?.brave;
     }
   }
 
