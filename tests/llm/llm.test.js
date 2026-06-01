@@ -689,24 +689,6 @@ describe("Local Dev-LLM", () => {
   });
 
   describe("staged VS Code signal ingestion", () => {
-    async function writeStagedFileAt(tempDir, name, content) {
-      const stagedDir = path.join(tempDir, "vscode-signals");
-      await fs.mkdir(stagedDir, { recursive: true });
-      const filePath = path.join(stagedDir, name);
-      await fs.writeFile(filePath, content, "utf8");
-      return { stagedDir, filePath };
-    }
-
-    function stagedSignal(frontmatter, body = "Captured signal body") {
-      return `---
-${Object.entries(frontmatter)
-  .map(([key, value]) => `${key}: ${JSON.stringify(String(value))}`)
-  .join("\n")}
----
-${body}
-`;
-    }
-
     it("exits cleanly for an empty staging directory", async () => {
       const stagedDir = path.join(tempDir, "empty-signals");
       await fs.mkdir(stagedDir, { recursive: true });
