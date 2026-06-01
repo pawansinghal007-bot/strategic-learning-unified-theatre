@@ -129,7 +129,9 @@ async function main() {
   console.log("Governance and runtime config validation passed.");
 }
 
-main().catch((err) => {
-  console.error(err?.message ?? err);
-  process.exit(1);
-});
+  try {
+    await main();
+  } catch (err) {
+    console.error(err?.message ?? err);
+    process.exit(1);
+  }
