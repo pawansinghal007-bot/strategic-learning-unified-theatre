@@ -1,0 +1,15 @@
+SPRINT: 6 triage — S2486+S1874+S7780
+STATUS: active
+TOTAL: 122 issues
+
+S7780: 8  EASY  — String.raw for escaped backslashes
+S2486: 11 MED   — empty/ineffective catch blocks
+S1874: 11 MED   — deprecated Zod API usage
+
+TOP FILES:
+  S7780: paths.js(3), ai-memory.test.js(2), test-bc2-diagnostics.js
+  S2486: test-bc2-integration.js(2), cli.js, idea-store.js
+  S1874: schemas.js(4), browser-pane.cjs(3), idea-store.js(2)
+
+CSVs: sprint6_S2486.csv, sprint6_S1874.csv, sprint6_S7780.csv
+NEXT: 6B — fix S7780 first (EASY)
