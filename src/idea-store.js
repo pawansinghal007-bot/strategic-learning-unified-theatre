@@ -304,7 +304,7 @@ export async function updateIdea(id, patch = {}, options = {}) {
   });
   const updated = {
     ...parsedData,
-    body: patch.body !== undefined ? String(patch.body).trim() : idea.body,
+    body: patch.body === undefined ? idea.body : String(patch.body).trim(),
   };
 
   const markdown = matter.stringify(updated.body, parsedData);

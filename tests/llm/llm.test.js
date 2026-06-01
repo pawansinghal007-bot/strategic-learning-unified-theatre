@@ -702,7 +702,8 @@ describe("Local Dev-LLM", () => {
     });
 
     it("ingests every chunk in a staged file and deletes it after success", async () => {
-      const { stagedDir, filePath } = await writeStagedFileAt(tempDir,
+      const { stagedDir, filePath } = await writeStagedFileAt(
+        tempDir,
         "signals.md",
         [
           stagedSignal(
@@ -745,7 +746,8 @@ describe("Local Dev-LLM", () => {
     });
 
     it("retains a staged file when one chunk fails and continues non-fatally", async () => {
-      const { stagedDir, filePath } = await writeStagedFileAt(tempDir, 
+      const { stagedDir, filePath } = await writeStagedFileAt(
+        tempDir,
         "failing-signals.md",
         stagedSignal(
           {
@@ -780,7 +782,8 @@ describe("Local Dev-LLM", () => {
           matched: false,
           promoted: false,
         });
-      const { stagedDir } = await writeStagedFileAt(tempDir, 
+      const { stagedDir } = await writeStagedFileAt(
+        tempDir,
         "diagnostic-signals.md",
         stagedSignal(
           {
@@ -810,7 +813,8 @@ describe("Local Dev-LLM", () => {
     });
 
     it("stores editor/file-save tags for vscode-edit chunks", async () => {
-      const { stagedDir } = await writeStagedFileAt(tempDir, 
+      const { stagedDir } = await writeStagedFileAt(
+        tempDir,
         "edit-signals.md",
         stagedSignal(
           {
@@ -836,7 +840,8 @@ describe("Local Dev-LLM", () => {
     });
 
     it("stores editor/diagnostic tags for vscode-diagnostic chunks", async () => {
-      const { stagedDir } = await writeStagedFileAt(tempDir, 
+      const { stagedDir } = await writeStagedFileAt(
+        tempDir,
         "diagnostic-signals.md",
         stagedSignal(
           {
@@ -863,7 +868,8 @@ describe("Local Dev-LLM", () => {
     });
 
     it("stores editor/git tags for vscode-git chunks", async () => {
-      const { stagedDir } = await writeStagedFileAt(tempDir, 
+      const { stagedDir } = await writeStagedFileAt(
+        tempDir,
         "git-signals.md",
         stagedSignal(
           {
@@ -889,7 +895,8 @@ describe("Local Dev-LLM", () => {
     });
 
     it("stores editor/task-error tags for vscode-task-error chunks", async () => {
-      const { stagedDir } = await writeStagedFileAt(tempDir, 
+      const { stagedDir } = await writeStagedFileAt(
+        tempDir,
         "task-signals.md",
         stagedSignal(
           {
@@ -916,7 +923,8 @@ describe("Local Dev-LLM", () => {
 
     it("preserves captured_at timestamp through ingestion", async () => {
       const fixedTimestamp = "2026-05-21T14:30:45.123Z";
-      const { stagedDir } = await writeStagedFileAt(tempDir, 
+      const { stagedDir } = await writeStagedFileAt(
+        tempDir,
         "timestamp-signals.md",
         stagedSignal(
           {
@@ -942,7 +950,8 @@ describe("Local Dev-LLM", () => {
     });
 
     it("handles staged file with mixed signal types", async () => {
-      const { stagedDir } = await writeStagedFileAt(tempDir, 
+      const { stagedDir } = await writeStagedFileAt(
+        tempDir,
         "mixed-signals.md",
         [
           stagedSignal(
@@ -1005,7 +1014,8 @@ describe("Local Dev-LLM", () => {
     });
 
     it("handles ingestion error on first chunk and continues with rest", async () => {
-      const { stagedDir } = await writeStagedFileAt(tempDir, 
+      const { stagedDir } = await writeStagedFileAt(
+        tempDir,
         "partial-fail-signals.md",
         [
           stagedSignal(
@@ -1060,7 +1070,8 @@ describe("Local Dev-LLM", () => {
     });
 
     it("does not delete staged file when any chunk fails", async () => {
-      const { stagedDir, filePath } = await writeStagedFileAt(tempDir, 
+      const { stagedDir, filePath } = await writeStagedFileAt(
+        tempDir,
         "fail-no-delete.md",
         [
           stagedSignal(
@@ -1094,7 +1105,8 @@ describe("Local Dev-LLM", () => {
     });
 
     it("stores source_type field in database documents", async () => {
-      const { stagedDir } = await writeStagedFileAt(tempDir, 
+      const { stagedDir } = await writeStagedFileAt(
+        tempDir,
         "source-type-signals.md",
         stagedSignal(
           {
@@ -1140,7 +1152,8 @@ describe("Local Dev-LLM", () => {
           promoted: false,
         });
 
-      const { stagedDir } = await writeStagedFileAt(tempDir, 
+      const { stagedDir } = await writeStagedFileAt(
+        tempDir,
         "recurring-diagnostic.md",
         stagedSignal(
           {

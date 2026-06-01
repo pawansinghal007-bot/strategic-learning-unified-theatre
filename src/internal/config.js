@@ -382,8 +382,6 @@ export async function saveConfig(next) {
 export function assertFeatureEnabled(cfg, featureKey, context) {
   if (cfg?.policy?.features?.[featureKey] === false) {
     const ctx = context ? ` (${context})` : "";
-    throw new Error(
-      `Feature "${featureKey}" is disabled by policy${ctx}.`,
-    );
+    throw new Error(`Feature "${featureKey}" is disabled by policy${ctx}.`);
   }
 }

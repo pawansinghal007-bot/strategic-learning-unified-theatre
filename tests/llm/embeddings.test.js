@@ -14,7 +14,7 @@ import {
 
 const makeUnitVector = (index) => {
   const vector = Array.from({ length: 768 }, () => 0);
-  vector[index] = 1.0;
+  vector[index] = 1;
   return vector;
 };
 
@@ -51,13 +51,13 @@ describe("LLM Embeddings", () => {
 
   it("cosineSimilarity of identical vectors returns 1.0", () => {
     const vector = makeUnitVector(0);
-    expect(cosineSimilarity(vector, vector)).toBeCloseTo(1.0, 5);
+    expect(cosineSimilarity(vector, vector)).toBeCloseTo(1, 5);
   });
 
   it("cosineSimilarity of orthogonal vectors returns 0.0", () => {
     const v1 = makeUnitVector(0);
     const v2 = makeUnitVector(1);
-    expect(cosineSimilarity(v1, v2)).toBeCloseTo(0.0, 5);
+    expect(cosineSimilarity(v1, v2)).toBeCloseTo(0, 5);
   });
 
   it("encodeEmbedding / decodeEmbedding round-trip preserves vector values", () => {

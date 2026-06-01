@@ -31,7 +31,7 @@ export default function GitMonitor() {
       <div className="grid grid-cols-2 gap-4">
         {repos.map((p) => (
           <div key={p} className="p-3 bg-white dark:bg-gray-800 rounded shadow">
-            <div className="font-medium">{p.split(/[\\\/]/).pop()}</div>
+            <div className="font-medium">{p.split(/[/\\]/).pop()}</div>
             <div className="text-xs text-gray-500 break-all">{p}</div>
             <div className="mt-2 flex gap-2"><button onClick={() => remove(p)} className="px-2 py-1 bg-red-500 text-white rounded">Remove</button></div>
           </div>

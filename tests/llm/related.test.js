@@ -11,7 +11,7 @@ import { LocalLlmInference } from "../../src/llm/inference.js";
 
 const makeUnitVector = (index) => {
   const vector = new Float32Array(768);
-  vector[index] = 1.0;
+  vector[index] = 1;
   return vector;
 };
 

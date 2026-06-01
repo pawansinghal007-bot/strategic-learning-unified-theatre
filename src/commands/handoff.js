@@ -57,14 +57,15 @@ function truncate(value, limit) {
 }
 
 async function handleUpdateTokenBudget(sprintId, options, sprint, warnings) {
-  if (options.tokensUsed !== undefined || options.tokensLimit !== undefined) {
-    const result = await setTokenBudget(sprintId, {
-      tokensUsed: options.tokensUsed !== undefined ? parsePositiveInt(options.tokensUsed, "--tokens-used") : sprint.tokensUsed,
-      tokensLimit: options.tokensLimit !== undefined ? parsePositiveInt(options.tokensLimit, "--tokens-limit") : sprint.tokensLimit
-    });
+  if (options.tokensUsed === undefined && options.tokensLimit === undefined) {
+    return { sprint, warnings };
+  }
+  const result = await setTokenBudget(sprintId, {
+    tokensUsed: options.tokensUsed === undefined ? sprint.tokensUsed : parsePositiveInt(options.tokensUsed, "--tokens-used"),
+    tokensLimit: options.tokensLimit === undefined ? sprint.tokensLimit : parsePositiveInt(options.tokensLimit, "--tokens-limit")
+  });
     sprint = result.sprint;
     warnings.push(...result.warnings);
-  }
   return { sprint, warnings };
 }
 

@@ -60,9 +60,6 @@ describe("Regression: Scoring Invariants", () => {
    * This is enforced by the implementation: Math.max(0, Math.min(100, Math.round(score)))
    */
 
-
-
-
   // Test 1: Active account with valid health
   it("[0/50] invariant: active valid account scores > 0", () => {
     const account = randomAccount(0.15); // Active

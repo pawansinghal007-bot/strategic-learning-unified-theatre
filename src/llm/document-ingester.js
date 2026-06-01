@@ -20,7 +20,7 @@ function browserResponsesDir(baseDir) {
 
 function parseBrowserResponsePlatform(filePath) {
   const filename = path.basename(filePath);
-  const match = filename.match(/(\d{4}-\d{2}-\d{2}T[\d-]+-([a-z]+)\.md)$/);
+  const match = /(\d{4}-\d{2}-\d{2}T[\d-]+-([a-z]+)\.md)$/.exec(filename);
   return match ? match[2] : null;
 }
 

@@ -69,8 +69,8 @@ function browserResponsesDir() {
 
 function getBrowserResponsePlatform(filePath) {
   const filename = path.basename(filePath);
-  const match = filename.match(/(\d{4}-\d{2}-\d{2}T[\d-]+-([a-z]+)\.md)$/);
-  return match ? match[2] : null;
+  const match = /(?:\d{4}-\d{2}-\d{2}T[\d-]+-([a-z]+)\.md)$/.exec(filename);
+  return match ? match[1] : null;
 }
 
 // CHANGED (round 3): tagResponse now accepts an optional `baseDir` in its

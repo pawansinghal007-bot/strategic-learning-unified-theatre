@@ -290,22 +290,29 @@ export default function Accounts() {
             </p>
           </div>
           <div>
-            <label htmlFor="auth-email" className="block text-sm font-medium">Email</label>
+            <label htmlFor="auth-email" className="block text-sm font-medium">
+              Email
+            </label>
             <input
               id="auth-email"
               value={form.email}
-              onChange={(e) => updateForm({ email: e.target.value })}  
+              onChange={(e) => updateForm({ email: e.target.value })}
               className="mt-1 p-2 border rounded w-full"
             />
           </div>
           <div>
-            <label htmlFor="auth-agent-type" className="block text-sm font-medium">Agent type</label>
+            <label
+              htmlFor="auth-agent-type"
+              className="block text-sm font-medium"
+            >
+              Agent type
+            </label>
             <select
               id="auth-agent-type"
               value={form.agentType}
               onChange={(e) => updateForm({ agentType: e.target.value })}
               className="mt-1 p-2 border rounded w-full"
-              disabled={selectedAgentType !== "all"}  
+              disabled={selectedAgentType !== "all"}
             >
               <option value="vscode">vscode</option>
               <option value="github">github</option>
@@ -315,13 +322,16 @@ export default function Accounts() {
             </select>
           </div>
           <div>
-            <label htmlFor="manual-profile-name" className="block text-sm font-medium">
+            <label
+              htmlFor="manual-profile-name"
+              className="block text-sm font-medium"
+            >
               Profile name (optional)
             </label>
             <input
               id="manual-profile-name"
               value={form.profileName}
-              onChange={(e) => updateForm({ profileName: e.target.value })}  
+              onChange={(e) => updateForm({ profileName: e.target.value })}
               className="mt-1 p-2 border rounded w-full"
             />
           </div>
@@ -399,11 +409,16 @@ export default function Accounts() {
             </p>
           </div>
           <div>
-            <label htmlFor="capture-email" className="block text-sm font-medium">Email</label>
+            <label
+              htmlFor="capture-email"
+              className="block text-sm font-medium"
+            >
+              Email
+            </label>
             <input
               id="capture-email"
               value={form.email}
-              onChange={(e) => updateForm({ email: e.target.value })}  
+              onChange={(e) => updateForm({ email: e.target.value })}
               className="mt-1 p-2 border rounded w-full"
             />
           </div>
@@ -477,16 +492,23 @@ export default function Accounts() {
       {mode === "manual" && (
         <div className="mb-4 bg-white dark:bg-gray-800 rounded shadow p-4 space-y-3">
           <div>
-            <label htmlFor="manual-email" className="block text-sm font-medium">Email</label>
+            <label htmlFor="manual-email" className="block text-sm font-medium">
+              Email
+            </label>
             <input
               id="manual-email"
               value={form.email}
-              onChange={(e) => updateForm({ email: e.target.value })}  
+              onChange={(e) => updateForm({ email: e.target.value })}
               className="mt-1 p-2 border rounded w-full"
             />
           </div>
           <div>
-            <label htmlFor="manual-agent-type" className="block text-sm font-medium">Agent type</label>
+            <label
+              htmlFor="manual-agent-type"
+              className="block text-sm font-medium"
+            >
+              Agent type
+            </label>
             <select
               id="manual-agent-type"
               value={form.agentType}
@@ -501,18 +523,26 @@ export default function Accounts() {
             </select>
           </div>
           <div>
-            <label htmlFor="manual-auth-blob" className="block text-sm font-medium">Auth blob</label>
+            <label
+              htmlFor="manual-auth-blob"
+              className="block text-sm font-medium"
+            >
+              Auth blob
+            </label>
             <textarea
               id="manual-auth-blob"
               id="manual-auth-blob"
               value={form.authBlob}
-              onChange={(e) => updateForm({ authBlob: e.target.value })}  
+              onChange={(e) => updateForm({ authBlob: e.target.value })}
               rows={4}
               className="mt-1 p-2 border rounded w-full"
             />
           </div>
           <div>
-            <label htmlFor="manual-profile-name" className="block text-sm font-medium">
+            <label
+              htmlFor="manual-profile-name"
+              className="block text-sm font-medium"
+            >
               Profile name (optional)
             </label>
             <input

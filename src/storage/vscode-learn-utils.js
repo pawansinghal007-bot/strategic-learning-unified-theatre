@@ -111,7 +111,7 @@ export function formatFrontmatter(data) {
 
 export function parseFrontmatter(raw) {
   const text = String(raw ?? "");
-  const match = text.match(/^---\n([\s\S]*?)\n---\n/);
+  const match = /^---\n([\s\S]*?)\n---\n/.exec(text);
   if (!match) {
     return { data: {}, body: text };
   }

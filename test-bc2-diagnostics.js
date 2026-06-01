@@ -83,6 +83,6 @@ console.log(
 console.log("5. Test direct Python SQLite access (for debugging):");
 console.log("   Check database tables with:");
 console.log(
-  `   python3 -c "import sqlite3; db=sqlite3.connect('${DB_PATH}'); cursor=db.execute('SELECT name FROM sqlite_master WHERE type=\"table\"'); print([row[0] for row in cursor])"`,
+  `   python3 -c "import sqlite3; db=sqlite3.connect('${DB_PATH}'); cursor=db.execute('SELECT name FROM sqlite_master WHERE type="table"'); print([row[0] for row in cursor])"`,
 );
 console.log("\n");

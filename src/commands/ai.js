@@ -14,7 +14,7 @@ import { CommandsRepo } from "../ai-memory/repositories/commands-repo.js";
 import {
   loadLatestSprintManifest,
   mapSprintManifestToSnapshot,
-  mapSprintManifestToHandoff
+  mapSprintManifestToHandoff,
 } from "../agent-handoff.js";
 
 function safeJson(value) {
@@ -56,16 +56,18 @@ function renderSummary({
   lessons = [],
   decisions = [],
   commands = [],
-  snapshotPointer = null
+  snapshotPointer = null,
 }) {
   console.log(chalk.bold("AI Memory Snapshot"));
   if (snapshotPointer?.tag || snapshotPointer?.path) {
     console.log(
       chalk.bold("Snapshot tag:"),
       (() => {
-        const pathSuffix = snapshotPointer.path ? ` (${snapshotPointer.path})` : "";
+        const pathSuffix = snapshotPointer.path
+          ? ` (${snapshotPointer.path})`
+          : "";
         return `${snapshotPointer.tag || "<none>"}${pathSuffix}`;
-      })()
+      })(),
     );
   }
   console.log();
@@ -90,7 +92,7 @@ function renderSummary({
     console.log(renderArray("Pending tasks", handoff.pending_tasks));
     console.log(
       chalk.bold("Last agent output:"),
-      handoff.last_agent_output || "<none>"
+      handoff.last_agent_output || "<none>",
     );
     console.log(chalk.bold("Updated:"), handoff.updated_at);
   } else {
@@ -168,7 +170,7 @@ async function createDbContext() {
     decisionsRepo: new DecisionsRepo(db),
     baselineRepo: new TestBaselineRepo(db),
     commandsRepo: new CommandsRepo(db),
-    close: () => db.close()
+    close: () => db.close(),
   };
 }
 
@@ -201,7 +203,7 @@ async function loadAiMemoryContext() {
     decisions: context.decisionsRepo.list(),
     lessons: context.lessonsRepo.list(),
     commands: context.commandsRepo.list(),
-    snapshotPointer: await loadSnapshotPointer()
+    snapshotPointer: await loadSnapshotPointer(),
   };
   context.close();
   return snapshot;
@@ -225,7 +227,7 @@ export function bindAiCommands(program) {
           decisions,
           lessons,
           commands,
-          snapshotPointer
+          snapshotPointer,
         } = await loadAiMemoryContext();
 
         spinner.stop();
@@ -237,7 +239,7 @@ export function bindAiCommands(program) {
           lessons,
           decisions,
           commands,
-          snapshotPointer
+          snapshotPointer,
         });
       } catch (err) {
         spinner.stop();
@@ -259,7 +261,7 @@ export function bindAiCommands(program) {
           decisions,
           lessons,
           commands,
-          snapshotPointer
+          snapshotPointer,
         } = await loadAiMemoryContext();
 
         spinner.stop();
@@ -271,7 +273,7 @@ export function bindAiCommands(program) {
           lessons,
           decisions,
           commands,
-          snapshotPointer
+          snapshotPointer,
         });
       } catch (err) {
         spinner.stop();
@@ -288,7 +290,8 @@ export function bindAiCommands(program) {
     .command("lessons")
     .description("Manage AI lessons learned");
 
-  lessons.command("add")
+  lessons
+    .command("add")
     .description("Add an AI lesson learned")
     .requiredOption("--problem <problem>", "Problem statement")
     .requiredOption("--fix <fix>", "Fix applied")
@@ -309,7 +312,7 @@ export function bindAiCommands(program) {
                 .split(",")
                 .map((value) => value.trim())
                 .filter(Boolean)
-            : []
+            : [],
         });
         context.close();
 
@@ -324,7 +327,8 @@ export function bindAiCommands(program) {
       }
     });
 
-  lessons.command("list")
+  lessons
+    .command("list")
     .description("List AI lessons learned")
     .action(async () => {
       const spinner = ora("Loading lessons...").start();
@@ -347,8 +351,8 @@ export function bindAiCommands(program) {
             id: row.id,
             problem: row.problem,
             prevention_rule: row.prevention_rule,
-            created_at: row.created_at
-          }))
+            created_at: row.created_at,
+          })),
         );
       } catch (err) {
         spinner.stop();
@@ -365,7 +369,8 @@ export function bindAiCommands(program) {
     .command("decisions")
     .description("Manage architectural decisions");
 
-  decisions.command("add")
+  decisions
+    .command("add")
     .description("Add an architectural decision")
     .requiredOption("--title <title>", "Decision title")
     .requiredOption("--rationale <rationale>", "Decision rationale")
@@ -388,7 +393,7 @@ export function bindAiCommands(program) {
                 .map((value) => value.trim())
                 .filter(Boolean)
             : [],
-          superseded_by: options.supersededBy ?? null
+          superseded_by: options.supersededBy ?? null,
         });
         context.close();
 
@@ -403,7 +408,8 @@ export function bindAiCommands(program) {
       }
     });
 
-  decisions.command("list")
+  decisions
+    .command("list")
     .description("List architectural decisions")
     .action(async () => {
       const spinner = ora("Loading decisions...").start();
@@ -426,8 +432,8 @@ export function bindAiCommands(program) {
             id: row.id,
             title: row.title,
             created_at: row.created_at,
-            superseded_by: row.superseded_by || ""
-          }))
+            superseded_by: row.superseded_by || "",
+          })),
         );
       } catch (err) {
         spinner.stop();
@@ -440,11 +446,10 @@ export function bindAiCommands(program) {
   // Baselines
   // ---------------------------------------------------------------------------
 
-  const baseline = ai
-    .command("baseline")
-    .description("Manage test baselines");
+  const baseline = ai.command("baseline").description("Manage test baselines");
 
-  baseline.command("add")
+  baseline
+    .command("add")
     .description("Record a new test baseline")
     .requiredOption("--passing <n>", "Passing tests count")
     .requiredOption("--failing <n>", "Failing tests count")
@@ -468,7 +473,7 @@ export function bindAiCommands(program) {
         if (failing > 0 && !options.allowFailing) {
           throw new Error(
             "Refusing to record a failing test baseline without --allow-failing. " +
-              "Run the full suite and record passing=actual, failing=0 for acceptance snapshots."
+              "Run the full suite and record passing=actual, failing=0 for acceptance snapshots.",
           );
         }
 
@@ -477,7 +482,7 @@ export function bindAiCommands(program) {
         const baselineRecord = context.baselineRepo.add({
           passing_tests: passing,
           failing_tests: failing,
-          notes: options.notes ?? ""
+          notes: options.notes ?? "",
         });
         context.close();
 
@@ -500,13 +505,11 @@ export function bindAiCommands(program) {
     .command("commands")
     .description("Manage important PowerShell commands");
 
-  commands.command("add")
+  commands
+    .command("add")
     .description("Add an important PowerShell command")
     .requiredOption("--category <category>", "Command category")
-    .requiredOption(
-      "--powershell-command <command>",
-      "PowerShell command"
-    )
+    .requiredOption("--powershell-command <command>", "PowerShell command")
     .option("--notes <notes>", "Notes")
     .action(async (options) => {
       const spinner = ora("Saving command...").start();
@@ -517,14 +520,12 @@ export function bindAiCommands(program) {
         // Commander normalizes:
         // --powershell-command => powershellCommand
         const powershellCommand =
-          options.powershellCommand ??
-          options["powershell-command"] ??
-          "";
+          options.powershellCommand ?? options["powershell-command"] ?? "";
 
         const record = context.commandsRepo.add({
           category: options.category,
           powershell_command: powershellCommand,
-          notes: options.notes ?? ""
+          notes: options.notes ?? "",
         });
         context.close();
 
@@ -539,7 +540,8 @@ export function bindAiCommands(program) {
       }
     });
 
-  commands.command("list")
+  commands
+    .command("list")
     .description("List important PowerShell commands")
     .action(async () => {
       const spinner = ora("Loading commands...").start();
@@ -561,7 +563,7 @@ export function bindAiCommands(program) {
           console.log(
             `[${row.category}] ${row.powershell_command} | ${
               row.notes || ""
-            } (${row.created_at})`
+            } (${row.created_at})`,
           );
         });
       } catch (err) {

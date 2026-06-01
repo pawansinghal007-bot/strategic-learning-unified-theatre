@@ -33,7 +33,7 @@ export class Reporter {
     const counts = { SWITCH: 0, COOLDOWN: 0, RECOVER: 0, GIT_WARN: 0 };
 
     for (const line of lines) {
-      const m = line.match(/^- ([^ ]+) \| ([A-Z_]+) \|/);
+      const m = /^- ([^ ]+) \| ([A-Z_]+) \|/.exec(line);
       if (!m) continue;
       const [, ts, type] = m;
       if (!isSameDay(ts, day)) continue;

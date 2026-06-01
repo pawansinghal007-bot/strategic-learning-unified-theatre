@@ -3,11 +3,7 @@ import path from 'node:path';
 
 const workflowPath = path.join(process.cwd(), '.github', 'workflows', 'release.yml');
 
-if (!fs.existsSync(workflowPath)) {
-  test('release workflow file exists', () => {
-    expect(true).toBe(true);
-  });
-} else {
+if (fs.existsSync(workflowPath)) {
   const content = fs.readFileSync(workflowPath, 'utf8');
 
   test('release workflow triggers on tags v*', () => {
