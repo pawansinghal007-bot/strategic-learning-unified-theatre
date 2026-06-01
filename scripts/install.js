@@ -60,7 +60,7 @@ async function installWindows() {
   const startupDir = path.join(process.env.APPDATA || path.join(os.homedir(), "AppData", "Roaming"),
     "Microsoft", "Windows", "Start Menu", "Programs", "Startup");
   const shortcutPath = path.join(startupDir, "strategic-learning-unified-theatre-daemon.cmd");
-  const shortcutContent = [`@echo off`, `"${nodePath}" "${runnerPath}" >> "%USERPROFILE%\\.vscode-rotator\\daemon.log" 2>&1`].join("\r\n");
+  const shortcutContent = [`@echo off`, String.raw`"${nodePath}" "${runnerPath}" >> "%USERPROFILE%\.vscode-rotator\daemon.log" 2>&1`].join("\r\n");
   await writeFile(shortcutPath, shortcutContent);
   console.log(`Created startup shortcut at ${shortcutPath}`);
 }
