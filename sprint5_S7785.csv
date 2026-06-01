@@ -1,0 +1,13 @@
+javascript:S7785,src/cli.js,750,Prefer top-level await over using a promise chain.
+javascript:S7785,scripts/check-sonar-readiness.mjs,107,Prefer top-level await over an async function `main` call.
+javascript:S7785,scripts/reconcile-hotspot-register.mjs,75,Prefer top-level await over an async function `main` call.
+javascript:S7785,scripts/validate-governance-config.mjs,132,Prefer top-level await over using a promise chain.
+javascript:S7785,scripts/validate-waivers.mjs,79,Prefer top-level await over an async function `main` call.
+javascript:S7785,src/daemon/daemon-runner.js,408,Prefer top-level await over using a promise chain.
+javascript:S7785,debug-plugin-run.mjs,48,Prefer top-level await over using a promise chain.
+javascript:S7785,scripts/plugin_test_runner.mjs,5,Prefer top-level await over an async IIFE.
+javascript:S7785,scripts/audit-experience-db.mjs,20,Prefer top-level await over using a promise chain.
+javascript:S7785,scripts/one-time-capture.mjs,16,Prefer top-level await over using a promise chain.
+javascript:S7785,scripts/watch-browser-activity.mjs,84,Prefer top-level await over using a promise chain.
+javascript:S7785,smoke-test-sprint12.js,279,Prefer top-level await over using a promise chain.
+javascript:S7785,scripts/install.js,140,Prefer top-level await over using a promise chain.

@@ -1,0 +1,73 @@
+SPRINT: 5 — S6582+S6853+S7785 TRIAGE
+STATUS: active — classify & prepare fixes
+
+LIVE COUNTS (as of 2026-06-01):
+  S6582: 19 issues
+  S6853: 17 issues
+  S7785: 13 issues
+  TOTAL: 49 issues
+
+═══════════════════════════════════════════════════════════════
+
+RULE CLASSIFICATION:
+
+S6582 — Optional Chaining (19 issues)
+  DESCRIPTION: Prefer optional chaining instead of manual null checks
+  MESSAGE: "Prefer using an optional chain expression instead, as it's more concise and easier to read."
+  FIX PATTERN: 
+    obj && obj.prop  →  obj?.prop
+    obj && obj.method()  →  obj?.method()
+    a && a.b && a.b.c  →  a?.b?.c
+  DIFFICULTY: EASY
+  TOP 3 FILES:
+    1. scripts/check-sonar-readiness.mjs (3)
+    2. src/llm/experience-db.js (2)
+    3. src/browser-bridge.js (2)
+
+S6853 — Form Label Association (17 issues)
+  DESCRIPTION: A form label must be associated with a control
+  MESSAGE: "A form label must be associated with a control."
+  FIX PATTERN:
+    Option A: <label htmlFor="id"><input id="id" /></label>
+    Option B: <label><input /></label>  (nest input inside label)
+  DIFFICULTY: EASY
+  TOP 3 FILES:
+    1. renderer/screens/Accounts.jsx (10) ← 59% of issues here
+    2. renderer/screens/BrowserAutomation.jsx (3)
+    3. renderer/screens/PromptTemplates.jsx (2)
+
+S7785 — Top-Level Await (13 issues)
+  DESCRIPTION: Prefer top-level await over promise chains or async IIFE wrappers
+  MESSAGE: "Prefer top-level await over using a promise chain." / "Prefer top-level await over an async function `main` call."
+  FIX PATTERN:
+    .then(result => { ... }).catch(err => { ... })  →  const result = await ...
+    (async () => { await ... })()  →  await ...  (at module level)
+  DIFFICULTY: MED (module ESM requirement)
+  DISTRIBUTION: Scattered across 13 files (1 each)
+    Top: src/cli.js, scripts/check-sonar-readiness.mjs, scripts/reconcile-hotspot-register.mjs
+
+═══════════════════════════════════════════════════════════════
+
+STRATEGY:
+
+FIX ORDER (easiest first):
+  1. S6582 (EASY) — optional chaining
+  2. S6853 (EASY) — form labels (concentrated in Accounts.jsx)
+  3. S7785 (MED) — top-level await (distributed)
+
+RISK ASSESSMENT:
+  - S6582: Low risk, mechanical refactoring
+  - S6853: Low risk, JSX attribute changes only
+  - S7785: Medium risk, requires ESM module verification per file
+
+VALIDATION:
+  - 528 tests / typecheck pass
+  - No new issues expected from optional chaining (no behavior change)
+  - Form label fixes are accessibility only (no logic change)
+  - Top-level await requires test coverage confirmation
+
+═══════════════════════════════════════════════════════════════
+
+PREVIOUS: v1.9-stable (S7744 complete)
+CURRENT: v1.9a-active (triage complete)
+NEXT: 5B fixes (EASY: S6582, S6853) → then 5C (MED: S7785)
