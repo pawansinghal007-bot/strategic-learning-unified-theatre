@@ -12,7 +12,7 @@ export const AccountStatusSchema = z.enum(["active", "cooldown", "retired"]);
 
 export const AccountSchema = z.object({
   id: z.string().min(1),
-  email: z.string().email(),
+  email: z.email(),
   agentType: AgentTypeSchema,
   authBlob: z.preprocess((v) => (v === undefined ? null : v), z.string().min(1).nullable()),
   profileName: z.preprocess((v) => (v === undefined ? null : v), z.string().min(1).nullable()),

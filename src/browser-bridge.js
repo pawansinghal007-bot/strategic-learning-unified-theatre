@@ -233,7 +233,7 @@ const PromptSchema = z.object({
   name: z.string().min(1),
   template: z.string().min(1),
   tags: z.array(z.string()).default([]),
-  lastUsed: z.string().datetime().nullable().default(null),
+  lastUsed: z.iso.datetime().nullable().default(null),
   platforms: z.array(z.string()).default([]),
 });
 
@@ -292,7 +292,9 @@ async function getAdapterModule(platform) {
     return module.adapter;
   } catch (err) {
     console.warn("[browser-bridge] adapter module load failed", err);
-    throw new Error(`Adapter not found for platform: ${platform}`, { cause: err });
+    throw new Error(`Adapter not found for platform: ${platform}`, {
+      cause: err,
+    });
   }
 }
 
