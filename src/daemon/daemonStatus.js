@@ -34,10 +34,11 @@ export async function getDaemonStatus() {
       };
     }
   } catch (err) {
+    console.warn("[daemonStatus] failed to read PID file", err);
     return {
       ...result,
       status: "DEGRADED",
-      reason: `PID file missing: ${DAEMON_PID_FILE}`,
+      reason: `PID file missing: ${DAEMON_PID_FILE} (${String(err)})`,
     };
   }
 
