@@ -1,0 +1,3 @@
+./src/auth-capture.js
+./src/shared/errors/provider.error.ts
+./src/shared/errors/validation.error.ts

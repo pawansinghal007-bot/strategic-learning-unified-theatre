@@ -1,0 +1,3 @@
+./src/storage/storageStatus.js
+./src/browser-adapters/claude.js
+./src/browser-adapters/perplexity.js

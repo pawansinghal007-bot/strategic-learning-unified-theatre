@@ -1,0 +1,3 @@
+./test-bc2-integration.js
+./e2e/browser-pane.e2e.js
+./coverage/prettify.js

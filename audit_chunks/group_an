@@ -1,0 +1,3 @@
+./src/internal/git-monitor.js
+./src/internal/paths.js
+./src/internal/config.js

@@ -1,0 +1,3 @@
+./tests/scorer.test.js
+./tests/chaos-slo.test.js
+./tests/watcher.test.js

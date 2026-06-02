@@ -1,0 +1,3 @@
+./src/startup-plugins.js
+./src/test-runner.js
+./src/scheduler.js

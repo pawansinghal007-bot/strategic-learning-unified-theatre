@@ -1,0 +1,3 @@
+./vitest.integration.config.js
+./BC2-INTEGRATION-GUIDE.js
+./test/agent-handoff.test.js

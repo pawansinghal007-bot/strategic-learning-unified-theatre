@@ -1,0 +1,3 @@
+./src/browser-selectors.js
+./src/__tests__/browser-selectors.test.js
+./src/__tests__/capture-pipeline.integration.test.js

@@ -1,0 +1,3 @@
+./tests/ci-test-workflow.test.js
+./tests/plugin-loader.test.js
+./tests/regression/health-edge-cases.test.js

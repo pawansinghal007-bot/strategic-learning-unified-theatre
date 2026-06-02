@@ -1,0 +1,3 @@
+./src/ai-memory/repositories/commands-repo.js
+./src/domain/schemas.js
+./src/domain/types.js

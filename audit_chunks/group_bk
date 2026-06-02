@@ -1,0 +1,3 @@
+./tests/coverage-gate.test.js
+./tests/system/systemHealth.test.js
+./tests/health.test.js

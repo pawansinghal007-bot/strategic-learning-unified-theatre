@@ -1,0 +1,3 @@
+./tests/llm/related.test.js
+./tests/llm/ollama-inference.test.js
+./tests/llm/llm.test.js

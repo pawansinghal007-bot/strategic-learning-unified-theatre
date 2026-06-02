@@ -1,0 +1,3 @@
+./src/plugin-loader.js
+./src/startup-bootstrap.js
+./src/local-llm.js

@@ -1,0 +1,3 @@
+./vscode-extension/extension.js
+./vscode-extension/collector.js
+./tailwind.config.js

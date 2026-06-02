@@ -1,0 +1,3 @@
+./tests/knowledge-graph.test.js
+./tests/cli-validation.test.js
+./tests/auto-handoff.test.js

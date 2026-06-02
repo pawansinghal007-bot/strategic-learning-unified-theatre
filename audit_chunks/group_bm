@@ -1,0 +1,3 @@
+./tests/idea-validation.test.js
+./tests/updater-config.test.js
+./tests/workspace.test.js

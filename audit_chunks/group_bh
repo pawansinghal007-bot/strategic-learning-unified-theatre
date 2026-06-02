@@ -1,0 +1,3 @@
+./test-error.ts
+./tests/logger-redaction.test.js
+./tests/fixtures/plugins/bad-version.js

@@ -1,0 +1,3 @@
+./coverage/block-navigation.js
+./coverage/sorter.js
+./plugins/sample-healthcheck.js

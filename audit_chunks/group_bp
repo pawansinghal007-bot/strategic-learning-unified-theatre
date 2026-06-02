@@ -1,0 +1,3 @@
+./tests/chaos-runner.test.js
+./tests/sprint-validation.test.js
+./tests/session-supervisor.test.js

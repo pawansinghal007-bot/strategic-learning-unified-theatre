@@ -1,0 +1,3 @@
+./tests/plugin-api.test.js
+./tests/browser-bridge.test.js
+./tests/window-security.test.js

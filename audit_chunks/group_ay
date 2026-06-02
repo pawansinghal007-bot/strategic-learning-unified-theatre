@@ -1,0 +1,3 @@
+./src/installer/hw-probe/vitest.config.ts
+./src/installer/hw-probe/test-probe.ts
+./src/installer/hw-probe/hwProbe.ts

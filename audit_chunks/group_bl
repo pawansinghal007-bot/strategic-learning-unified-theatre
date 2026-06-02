@@ -1,0 +1,3 @@
+./tests/chaos-workflow.test.js
+./tests/capture-payload-validation.test.js
+./tests/chaos-utils.test.js

@@ -1,0 +1,3 @@
+./scripts/generate-icons.js
+./scripts/chaos/utils.js
+./scripts/chaos/run-chaos.js

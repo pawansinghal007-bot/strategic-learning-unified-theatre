@@ -1,0 +1,3 @@
+./tests/ci-workflow.test.js
+./tests/agent-handoff.test.js
+./tests/ai-memory.test.js

@@ -1,0 +1,3 @@
+./tests/test-runner.test.js
+./tests/config-validation.test.js
+./tests/sprint18-smoke.test.js

@@ -1,0 +1,3 @@
+./src/ai-memory/repositories/handoff-repo.js
+./src/ai-memory/repositories/lessons-repo.js
+./src/ai-memory/repositories/sprint-state-repo.js

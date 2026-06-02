@@ -1,0 +1,3 @@
+./src/shared/errors/memory.error.ts
+./src/shared/errors/routing.error.ts
+./src/shared/errors/index.ts

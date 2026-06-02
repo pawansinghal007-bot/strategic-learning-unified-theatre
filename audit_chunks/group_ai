@@ -1,0 +1,3 @@
+./src/commands/storage.js
+./src/limit-detector.js
+./src/vscode.js

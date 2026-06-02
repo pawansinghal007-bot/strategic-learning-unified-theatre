@@ -1,0 +1,3 @@
+./scripts/chaos/scenarios/kill-daemon.js
+./scripts/chaos/scenarios/corrupt-config.js
+./scripts/chaos/scenarios/burst-load.js

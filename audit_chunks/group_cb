@@ -1,0 +1,3 @@
+./tests/regression/ingestion-error-handling.test.js
+./tests/regression/malformed-payloads.test.js
+./tests/regression/scoring-invariants.test.js

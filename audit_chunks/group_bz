@@ -1,0 +1,3 @@
+./tests/preload-surface.test.js
+./tests/run-tests-smoke.test.js
+./tests/idea-store.test.js

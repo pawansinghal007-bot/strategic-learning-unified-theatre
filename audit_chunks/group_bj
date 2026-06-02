@@ -1,0 +1,3 @@
+./tests/llm/embeddings.test.js
+./tests/config-policy.test.js
+./tests/llm-training-exporter.test.js

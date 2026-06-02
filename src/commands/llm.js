@@ -12,11 +12,19 @@ import { PromptGenerator } from "../llm/prompt-generator.js";
 import { buildGraph } from "../llm/knowledge-graph.js";
 import { MistakeTracker } from "../llm/mistake-tracker.js";
 import { DocumentIngester } from "../llm/document-ingester.js";
-import { sendPrompt, listResponses, ensureBrowserDirs } from "../browser-bridge.js";
+import {
+  sendPrompt,
+  listResponses,
+  ensureBrowserDirs,
+} from "../browser-bridge.js";
 import { PositiveIntSchema } from "../domain/schemas.js";
 import { DomainError } from "../error.js";
 import { createLogger } from "../logger.js";
-import { defaultStagedSignalsDir, parseFrontmatter, splitStagedSignalDocuments } from "../storage/vscode-learn-utils.js";
+import {
+  defaultStagedSignalsDir,
+  parseFrontmatter,
+  splitStagedSignalDocuments,
+} from "../storage/vscode-learn-utils.js";
 
 const log = createLogger("local-llm");
 
@@ -32,7 +40,9 @@ async function loadConfigForLlm(options) {
 export async function listStagedFiles(stagingDir) {
   try {
     const files = await fs.readdir(stagingDir, { withFileTypes: true });
-    return files.filter((entry) => entry.isFile() && entry.name.endsWith(".md")).map((entry) => path.join(stagingDir, entry.name));
+    return files
+      .filter((entry) => entry.isFile() && entry.name.endsWith(".md"))
+      .map((entry) => path.join(stagingDir, entry.name));
   } catch {
     return [];
   }
@@ -40,7 +50,11 @@ export async function listStagedFiles(stagingDir) {
 
 function tagsForStagedSignal(sourceType) {
   if (sourceType === "vscode-edit") return ["editor", "file-save"];
-  if (sourceType === "vscode-diagnostic" || sourceType === "vscode-diagnostic-recurring") return ["editor", "diagnostic"];
+  if (
+    sourceType === "vscode-diagnostic" ||
+    sourceType === "vscode-diagnostic-recurring"
+  )
+    return ["editor", "diagnostic"];
   if (sourceType === "vscode-git") return ["editor", "git"];
   if (sourceType === "vscode-task-error") return ["editor", "task-error"];
   return ["editor"];
@@ -49,7 +63,7 @@ function tagsForStagedSignal(sourceType) {
 async function writeTempStagedDocument(stageFile, index, documentText) {
   const tempPath = path.join(
     path.dirname(stageFile),
-    `${path.basename(stageFile, ".md")}-${index + 1}-${Date.now()}.signal.md`
+    `${path.basename(stageFile, ".md")}-${index + 1}-${Date.now()}.signal.md`,
   );
   await fs.writeFile(tempPath, documentText, { encoding: "utf8", mode: 0o600 });
   return tempPath;
@@ -57,7 +71,11 @@ async function writeTempStagedDocument(stageFile, index, documentText) {
 
 export async function ingestStagedSignalsFromDirectory(stageRoot, baseDir) {
   const correlationId = stageRoot;
-  log.info("llm.staged.ingest.start", { correlationId, stageRoot, baseDir: baseDir || null });
+  log.info("llm.staged.ingest.start", {
+    correlationId,
+    stageRoot,
+    baseDir: baseDir || null,
+  });
   let ingester;
   try {
     const files = await listStagedFiles(stageRoot);
@@ -73,10 +91,15 @@ export async function ingestStagedSignalsFromDirectory(stageRoot, baseDir) {
         for (let index = 0; index < documents.length; index += 1) {
           const documentText = documents[index];
           const { data } = parseFrontmatter(documentText);
-          const sourceType = data.source_type || data.signal_type || "vscode-signal";
+          const sourceType =
+            data.source_type || data.signal_type || "vscode-signal";
           const platform = data.platform || "vscode";
           const signalType = data.signal_type || "vscode-signal";
-          const tempPath = await writeTempStagedDocument(filePath, index, documentText);
+          const tempPath = await writeTempStagedDocument(
+            filePath,
+            index,
+            documentText,
+          );
           try {
             const result = await ingester.ingestFile(tempPath, {
               source_type: sourceType,
@@ -87,21 +110,39 @@ export async function ingestStagedSignalsFromDirectory(stageRoot, baseDir) {
                 tags: tagsForStagedSignal(sourceType),
                 staged_file: path.basename(filePath),
                 signal_type: signalType,
-                source_file: data.file_path || null
-              }
+                source_file: data.file_path || null,
+              },
             });
-            if (signalType === "vscode-diagnostic-recurring" || (sourceType === "vscode-diagnostic-recurring" && data.recurring === "true")) {
+            if (
+              signalType === "vscode-diagnostic-recurring" ||
+              (sourceType === "vscode-diagnostic-recurring" &&
+                data.recurring === "true")
+            ) {
               await tracker.addMistake({
-                description: data.message || data.description || `Recurring diagnostic detected in ${path.basename(filePath)}`,
+                description:
+                  data.message ||
+                  data.description ||
+                  `Recurring diagnostic detected in ${path.basename(filePath)}`,
                 category: "vscode-diagnostic",
-                fix_applied: data.fix_applied || "Resolve the recurring diagnostic and update the root cause.",
-                root_cause: data.root_cause || data.message || "Recurring diagnostic marker"
+                fix_applied:
+                  data.fix_applied ||
+                  "Resolve the recurring diagnostic and update the root cause.",
+                root_cause:
+                  data.root_cause ||
+                  data.message ||
+                  "Recurring diagnostic marker",
               });
             }
             results.push({ file: filePath, chunkPath: tempPath, ...result });
           } catch (error) {
             fileFailed = true;
-            results.push({ file: filePath, chunkPath: tempPath, chunks: 0, skipped: true, error: String(error?.message ?? error) });
+            results.push({
+              file: filePath,
+              chunkPath: tempPath,
+              chunks: 0,
+              skipped: true,
+              error: String(error?.message ?? error),
+            });
           } finally {
             await fs.rm(tempPath, { force: true });
           }
@@ -110,24 +151,32 @@ export async function ingestStagedSignalsFromDirectory(stageRoot, baseDir) {
           await fs.rm(filePath, { force: true });
         }
       } catch (error) {
-        results.push({ file: filePath, chunks: 0, skipped: true, error: String(error) });
+        results.push({
+          file: filePath,
+          chunks: 0,
+          skipped: true,
+          error: String(error),
+        });
       }
     }
-    const chunks = results.reduce((sum, row) => sum + Number(row.chunks || 0), 0);
+    const chunks = results.reduce(
+      (sum, row) => sum + Number(row.chunks || 0),
+      0,
+    );
     const skipped = results.filter((row) => row.skipped).length;
     log.info("llm.staged.ingest.success", {
       correlationId,
       files: files.length,
       results: results.length,
       chunks,
-      skipped
+      skipped,
     });
     return results;
   } catch (err) {
     log.error("llm.staged.ingest.failure", {
       correlationId,
       error: err,
-      code: err?.code || "ROTATOR_LLM_STAGED_INGEST_FAILED"
+      code: err?.code || "ROTATOR_LLM_STAGED_INGEST_FAILED",
     });
     throw err;
   } finally {
@@ -141,7 +190,7 @@ import {
   getLocalLlmStatus,
   importSprints,
   ingestDocuments,
-  setupModel
+  setupModel,
 } from "../llm/local-llm.js";
 import { exportTrainingData } from "../llm/training-exporter.js";
 
@@ -162,7 +211,7 @@ function parseRating(value) {
     throw new DomainError(
       "ROTATOR_CLI_INVALID",
       `ROTATOR_CLI_INVALID: Invalid --rating: ${formatValidationError(err)}`,
-      { err: formatValidationError(err), option: "--rating" }
+      { err: formatValidationError(err), option: "--rating" },
     );
   }
 
@@ -170,7 +219,7 @@ function parseRating(value) {
     throw new DomainError(
       "ROTATOR_CLI_INVALID",
       "ROTATOR_CLI_INVALID: Invalid --rating: expected an integer from 1 to 5.",
-      { err: "Rating is greater than 5.", option: "--rating" }
+      { err: "Rating is greater than 5.", option: "--rating" },
     );
   }
 
@@ -188,7 +237,9 @@ async function prompt(label) {
 
 export async function bindLlmCommands(program, { log: cliLog = null } = {}) {
   const commandLog = cliLog;
-  const llm = program.command("llm").description("Local Dev-LLM setup, ingestion, and prompt generation");
+  const llm = program
+    .command("llm")
+    .description("Local Dev-LLM setup, ingestion, and prompt generation");
 
   llm
     .command("setup")
@@ -209,7 +260,7 @@ export async function bindLlmCommands(program, { log: cliLog = null } = {}) {
         const result = await setupModel({
           model: options.model,
           modelPath: options.modelPath,
-          baseDir: options.baseDir
+          baseDir: options.baseDir,
         });
         spinner.succeed("Local model ready");
         console.log(chalk.gray(result.modelPath));
@@ -244,7 +295,7 @@ export async function bindLlmCommands(program, { log: cliLog = null } = {}) {
           question,
           system: options.system,
           modelPath: options.modelPath,
-          baseDir: options.baseDir
+          baseDir: options.baseDir,
         });
         spinner.stop();
         console.log(response);
@@ -257,7 +308,9 @@ export async function bindLlmCommands(program, { log: cliLog = null } = {}) {
 
   llm
     .command("generate-prompt")
-    .description("Generate an implementation-ready prompt using local experience context")
+    .description(
+      "Generate an implementation-ready prompt using local experience context",
+    )
     .requiredOption("--goal <goal>", "Implementation goal")
     .option("--platform <name>", "claude or chatgpt", "chatgpt")
     .option("--project <name>", "Project name")
@@ -269,7 +322,7 @@ export async function bindLlmCommands(program, { log: cliLog = null } = {}) {
           goal: options.goal,
           platform: options.platform,
           project: options.project,
-          baseDir: options.baseDir
+          baseDir: options.baseDir,
         });
         spinner.succeed(`Generated prompt #${result.history.id}`);
         console.log(result.prompt);
@@ -295,13 +348,17 @@ export async function bindLlmCommands(program, { log: cliLog = null } = {}) {
         const clusters = await clusterDocuments(db, k);
         if (clusters.length < k) {
           spinner.stop();
-          console.warn(`Warning: only ${clusters.length} cluster(s) were produced because there are fewer documents with embeddings than requested clusters (${k}).`);
+          console.warn(
+            `Warning: only ${clusters.length} cluster(s) were produced because there are fewer documents with embeddings than requested clusters (${k}).`,
+          );
           if (options.json) {
             console.log(JSON.stringify({ clusters }, null, 2));
           } else {
             clusters.forEach((cluster, index) => {
               console.log(`Cluster ${index + 1}:`);
-              cluster.snippets.forEach((snippet) => console.log(`  - ${snippet}`));
+              cluster.snippets.forEach((snippet) =>
+                console.log(`  - ${snippet}`),
+              );
               console.log("");
             });
           }
@@ -314,7 +371,9 @@ export async function bindLlmCommands(program, { log: cliLog = null } = {}) {
         }
         clusters.forEach((cluster, index) => {
           console.log(`Cluster ${index + 1}:`);
-          cluster.snippets.slice(0, 3).forEach((snippet) => console.log(`  - ${snippet}`));
+          cluster.snippets
+            .slice(0, 3)
+            .forEach((snippet) => console.log(`  - ${snippet}`));
           console.log("");
         });
       } catch (err) {
@@ -364,10 +423,14 @@ export async function bindLlmCommands(program, { log: cliLog = null } = {}) {
         const db = new ExperienceDb();
         await db.open();
         const ideaDir = path.join(os.homedir(), ".vscode-rotator", "ideas");
-        const outPath = options.out ? path.resolve(options.out) : path.join(os.homedir(), ".vscode-rotator", "knowledge-graph.json");
+        const outPath = options.out
+          ? path.resolve(options.out)
+          : path.join(os.homedir(), ".vscode-rotator", "knowledge-graph.json");
         const result = await buildGraph(db, ideaDir, outPath);
         spinner.stop();
-        console.log(`Knowledge graph exported to ${result.outputPath} � ${result.nodeCount} nodes, ${result.edgeCount} edges`);
+        console.log(
+          `Knowledge graph exported to ${result.outputPath}  ${result.nodeCount} nodes, ${result.edgeCount} edges`,
+        );
       } catch (err) {
         spinner.stop();
         console.error(chalk.red(String(err?.message ?? err)));
@@ -377,12 +440,18 @@ export async function bindLlmCommands(program, { log: cliLog = null } = {}) {
 
   llm
     .command("export-training")
-    .description("Export JSONL training data from the local experience database")
+    .description(
+      "Export JSONL training data from the local experience database",
+    )
     .option("--out <path>", "Output JSONL file path")
     .option("--since <date>", "Include only documents on or after this date")
     .option("--platform <name>", "Filter training data by platform")
     .option("--quality <label>", "Filter training data by quality label")
-    .option("--min-pairs <number>", "Require a minimum number of paired examples", "0")
+    .option(
+      "--min-pairs <number>",
+      "Require a minimum number of paired examples",
+      "0",
+    )
     .option("--dry-run", "Preview the export without writing output")
     .option("--base-dir <dir>", "Local storage base directory")
     .action(async (options) => {
@@ -395,11 +464,13 @@ export async function bindLlmCommands(program, { log: cliLog = null } = {}) {
           platform: options.platform,
           quality: options.quality,
           dryRun: Boolean(options.dryRun),
-          minPairs: Number(options.minPairs ?? 0)
+          minPairs: Number(options.minPairs ?? 0),
         });
         spinner.stop();
         if (result.dryRun) {
-          console.log(`Training export would produce ${result.recordsCount} record(s) to ${result.outputPath}`);
+          console.log(
+            `Training export would produce ${result.recordsCount} record(s) to ${result.outputPath}`,
+          );
         } else {
           console.log(`Training export written to ${result.outputPath}`);
         }
@@ -412,9 +483,15 @@ export async function bindLlmCommands(program, { log: cliLog = null } = {}) {
 
   llm
     .command("enhance")
-    .description("Generate an enhancement prompt and optionally send it to an online LLM")
+    .description(
+      "Generate an enhancement prompt and optionally send it to an online LLM",
+    )
     .requiredOption("--goal <goal>", "Enhancement goal")
-    .option("--platform <name>", "Platform (chatgpt|claude|perplexity|gemini)", "chatgpt")
+    .option(
+      "--platform <name>",
+      "Platform (chatgpt|claude|perplexity|gemini)",
+      "chatgpt",
+    )
     .option("--project <name>", "Project name")
     .option("--auto", "Send prompt automatically via browser bridge", false)
     .option("--rate", "Ask for response quality rating after capture", false)
@@ -427,7 +504,7 @@ export async function bindLlmCommands(program, { log: cliLog = null } = {}) {
           platform: options.platform,
           project: options.project,
           baseDir: options.baseDir,
-          skipHistory: true
+          skipHistory: true,
         });
 
         spinner.succeed("Prompt generated");
@@ -445,31 +522,45 @@ export async function bindLlmCommands(program, { log: cliLog = null } = {}) {
             prompt: result.prompt,
             browserType: "chromium",
             headless: false,
-            dryRun: false
+            dryRun: false,
           });
 
           responseFile = sendResult.responsePath;
           const ingester = new DocumentIngester({ baseDir: options.baseDir });
-          await ingester.ingestFile(responseFile, { source_type: "llm-response", platform });
+          await ingester.ingestFile(responseFile, {
+            source_type: "llm-response",
+            platform,
+          });
           spinner.succeed(`Response captured to ${responseFile}`);
         } else {
           const previous = await listResponses({ platform, limit: 1 });
           const previousFilename = previous[0]?.filename;
 
-          console.log(chalk.yellow("Prompt copied to clipboard. Send it to the target platform and save the response file to ~/.vscode-rotator/browser-responses/."));
+          console.log(
+            chalk.yellow(
+              "Prompt copied to clipboard. Send it to the target platform and save the response file to ~/.vscode-rotator/browser-responses/.",
+            ),
+          );
           await prompt("Press Enter when the response file is available...");
 
           const latest = await listResponses({ platform, limit: 1 });
           if (!latest[0]) {
-            throw new Error("No response detected. Ensure a response file exists in ~/.vscode-rotator/browser-responses/.");
+            throw new Error(
+              "No response detected. Ensure a response file exists in ~/.vscode-rotator/browser-responses/.",
+            );
           }
           if (latest[0].filename === previousFilename) {
-            throw new Error("No new response detected. Please save a new response file before continuing.");
+            throw new Error(
+              "No new response detected. Please save a new response file before continuing.",
+            );
           }
 
           responseFile = latest[0].filepath;
           const ingester = new DocumentIngester({ baseDir: options.baseDir });
-          await ingester.ingestFile(responseFile, { source_type: "llm-response", platform });
+          await ingester.ingestFile(responseFile, {
+            source_type: "llm-response",
+            platform,
+          });
           spinner.succeed(`Detected response file ${latest[0].filename}`);
         }
 
@@ -481,11 +572,13 @@ export async function bindLlmCommands(program, { log: cliLog = null } = {}) {
           promptText: result.prompt,
           responseFile,
           cycleTs: new Date().toISOString(),
-          rating: null
+          rating: null,
         });
 
         if (options.rate) {
-          const ratingValue = await prompt("Rate this response 1�5 (or press Enter to skip): ");
+          const ratingValue = await prompt(
+            "Rate this response 15 (or press Enter to skip): ",
+          );
           if (ratingValue) {
             const rating = parseRating(ratingValue);
             await db.ratePromptHistory(history.id, rating);
@@ -514,25 +607,37 @@ export async function bindLlmCommands(program, { log: cliLog = null } = {}) {
         correlationId,
         targetPath: target || null,
         force: Boolean(options.force),
-        baseDir: options.baseDir || null
+        baseDir: options.baseDir || null,
       });
       try {
         const result = await ingestDocuments({
           targetPath: target,
           force: Boolean(options.force),
-          baseDir: options.baseDir
+          baseDir: options.baseDir,
         });
         spinner.succeed("Ingestion complete");
         commandLog?.info("llm.ingest.success", {
           correlationId,
           targetPath: target || null,
           force: Boolean(options.force),
-          baseDir: options.baseDir || null
+          baseDir: options.baseDir || null,
         });
         if (Array.isArray(result)) {
-          console.table(result.map((row) => ({ path: row.path, chunks: row.chunks, skipped: row.skipped })));
+          console.table(
+            result.map((row) => ({
+              path: row.path,
+              chunks: row.chunks,
+              skipped: row.skipped,
+            })),
+          );
         } else {
-          console.table(result.actions.map((row) => ({ type: row.type, path: row.path, chunks: row.chunks })));
+          console.table(
+            result.actions.map((row) => ({
+              type: row.type,
+              path: row.path,
+              chunks: row.chunks,
+            })),
+          );
         }
       } catch (err) {
         spinner.stop();
@@ -540,7 +645,7 @@ export async function bindLlmCommands(program, { log: cliLog = null } = {}) {
           correlationId,
           targetPath: target || null,
           error: err,
-          code: err?.code || "ROTATOR_LLM_INGEST_FAILED"
+          code: err?.code || "ROTATOR_LLM_INGEST_FAILED",
         });
         console.error(chalk.red(String(err?.message ?? err)));
         process.exitCode = 1;
@@ -563,14 +668,26 @@ export async function bindLlmCommands(program, { log: cliLog = null } = {}) {
       const spinner = ora("Ingesting staged VS Code signals...").start();
       try {
         const config = await loadConfigForLlm(options);
-        const stageRoot = stagedDir ? path.resolve(stagedDir) : defaultStagedSignalsDir(config);
-        const results = await ingestStagedSignalsFromDirectory(stageRoot, options.baseDir);
+        const stageRoot = stagedDir
+          ? path.resolve(stagedDir)
+          : defaultStagedSignalsDir(config);
+        const results = await ingestStagedSignalsFromDirectory(
+          stageRoot,
+          options.baseDir,
+        );
         spinner.succeed(`Ingested staged signals from ${stageRoot}`);
         if (results.length === 0) {
           console.log(`No staged signals found in ${stageRoot}`);
           return;
         }
-        console.table(results.map((row) => ({ path: row.file, chunks: row.chunks, skipped: row.skipped ?? false, error: row.error ?? "" })));
+        console.table(
+          results.map((row) => ({
+            path: row.file,
+            chunks: row.chunks,
+            skipped: row.skipped ?? false,
+            error: row.error ?? "",
+          })),
+        );
       } catch (err) {
         spinner.stop();
         console.error(chalk.red(String(err?.message ?? err)));
@@ -578,7 +695,9 @@ export async function bindLlmCommands(program, { log: cliLog = null } = {}) {
       }
     });
 
-  const mistake = llm.command("mistake").description("Capture recurring sprint mistakes");
+  const mistake = llm
+    .command("mistake")
+    .description("Capture recurring sprint mistakes");
   mistake
     .command("add")
     .requiredOption("--description <text>", "Mistake description")
@@ -592,10 +711,14 @@ export async function bindLlmCommands(program, { log: cliLog = null } = {}) {
           description: options.description,
           category: options.category,
           fix: options.fix,
-          root_cause: options.rootCause
+          root_cause: options.rootCause,
         });
-        spinner.succeed(result.promoted ? "Mistake promoted to rubric" : "Mistake recorded");
-        console.log(`Mistake #${result.mistake.id}, recurrence ${result.mistake.recurrence_count}`);
+        spinner.succeed(
+          result.promoted ? "Mistake promoted to rubric" : "Mistake recorded",
+        );
+        console.log(
+          `Mistake #${result.mistake.id}, recurrence ${result.mistake.recurrence_count}`,
+        );
       } catch (err) {
         spinner.stop();
         console.error(chalk.red(String(err?.message ?? err)));
@@ -603,23 +726,30 @@ export async function bindLlmCommands(program, { log: cliLog = null } = {}) {
       }
     });
 
-  const rubric = llm.command("rubric").description("Manage prompt rubric rules");
-  rubric
-    .command("list")
-    .action(async () => {
-      const tracker = new MistakeTracker();
-      try {
-        const rules = await tracker.listRubric();
-        if (rules.length === 0) {
-          console.log(chalk.yellow("No rubric rules."));
-          return;
-        }
-        console.table(rules.map((rule) => ({ id: rule.id, active: rule.active, category: rule.category, rule: rule.rule })));
-      } catch (err) {
-        console.error(chalk.red(String(err?.message ?? err)));
-        process.exitCode = 1;
+  const rubric = llm
+    .command("rubric")
+    .description("Manage prompt rubric rules");
+  rubric.command("list").action(async () => {
+    const tracker = new MistakeTracker();
+    try {
+      const rules = await tracker.listRubric();
+      if (rules.length === 0) {
+        console.log(chalk.yellow("No rubric rules."));
+        return;
       }
-    });
+      console.table(
+        rules.map((rule) => ({
+          id: rule.id,
+          active: rule.active,
+          category: rule.category,
+          rule: rule.rule,
+        })),
+      );
+    } catch (err) {
+      console.error(chalk.red(String(err?.message ?? err)));
+      process.exitCode = 1;
+    }
+  });
 
   rubric
     .command("disable")
@@ -685,7 +815,7 @@ export async function bindLlmCommands(program, { log: cliLog = null } = {}) {
             await addMistake({
               description,
               category: "prompt-quality",
-              fix: "Refine prompt generation context and rubric."
+              fix: "Refine prompt generation context and rubric.",
             });
           }
         }
@@ -701,12 +831,16 @@ export async function bindLlmCommands(program, { log: cliLog = null } = {}) {
 // status command - added by verify-sprints fix
 export function registerStatus(parent) {
   parent
-    .command('status')
-    .description('Show local LLM status (model path, loaded state)')
+    .command("status")
+    .description("Show local LLM status (model path, loaded state)")
     .action(async () => {
       const { modelDir, models, status } = await getLocalLlmStatus();
       console.log(`Model dir : ${modelDir}`);
-      console.log(`Models    : ${models.length === 0 ? 'none' : models.join(', ')}`);
-      console.log(`Status    : ${status === 'unavailable' ? 'no model downloaded - run: llm setup' : status}`);
+      console.log(
+        `Models    : ${models.length === 0 ? "none" : models.join(", ")}`,
+      );
+      console.log(
+        `Status    : ${status === "unavailable" ? "no model downloaded - run: llm setup" : status}`,
+      );
     });
 }

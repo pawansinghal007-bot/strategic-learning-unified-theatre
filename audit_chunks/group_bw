@@ -1,0 +1,3 @@
+./tests/git-monitor.test.js
+./tests/bc2-sync.test.js
+./tests/e2e/rotation.test.js

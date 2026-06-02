@@ -1,0 +1,3 @@
+./src/shared/schemas/provider.schema.ts
+./src/shared/contracts/provider.ts
+./src/scorer.js

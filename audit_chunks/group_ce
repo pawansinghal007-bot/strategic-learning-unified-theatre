@@ -1,0 +1,3 @@
+./tests/agent-handoff-quarantine.test.js
+./tests/lock.test.js
+./tests/chaos-runbook.test.js

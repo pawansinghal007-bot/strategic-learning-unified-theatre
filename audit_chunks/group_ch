@@ -1,0 +1,3 @@
+./scripts/chaos/slo.js
+./scripts/install.js
+./vitest.config.js

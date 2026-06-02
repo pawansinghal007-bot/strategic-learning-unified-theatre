@@ -1,0 +1,3 @@
+./src/daemon/daemon-runner.js
+./src/daemon/watcher.js
+./src/daemon/daemonStatus.js

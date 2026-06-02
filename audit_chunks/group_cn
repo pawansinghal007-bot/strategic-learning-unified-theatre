@@ -1,0 +1,3 @@
+./plugins/acme-llm-provider.js
+./plugins/acme-browser-platform.js
+./electron-ui/__tests__/capture-handlers.test.js

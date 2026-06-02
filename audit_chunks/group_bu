@@ -1,0 +1,3 @@
+./tests/feature-gates.test.js
+./tests/storage/storage-monitor.test.js
+./tests/storage/collector.test.js

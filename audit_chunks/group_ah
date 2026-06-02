@@ -1,0 +1,3 @@
+./src/commands/browser.js
+./src/commands/idea.js
+./src/commands/llm.js

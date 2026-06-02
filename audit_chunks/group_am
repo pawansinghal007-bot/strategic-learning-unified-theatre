@@ -1,0 +1,3 @@
+./src/main/ipc/ipcAdapter.ts
+./src/main/ipc/__tests__/ipcAdapter.test.ts
+./src/main/updater/__tests__/healthState.test.ts

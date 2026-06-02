@@ -1,0 +1,3 @@
+./tests/e2e/enhance-schedule.test.js
+./tests/e2e/response-feedback.test.js
+./tests/reference-plugins.test.js

@@ -1,0 +1,3 @@
+./src/error.js
+./src/plugin-llm-registry.js
+./src/accounts/secret-store.js

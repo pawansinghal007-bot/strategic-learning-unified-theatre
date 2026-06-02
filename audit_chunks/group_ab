@@ -1,0 +1,3 @@
+./src/llm/document-ingester.js
+./src/llm/inference.js
+./src/llm/providers/local.ts

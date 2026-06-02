@@ -1,0 +1,3 @@
+./tests/robot-suites.test.js
+./tests/dashboard.test.js
+./tests/switcher.test.js

@@ -1,0 +1,3 @@
+./src/commands/bc2-sync.js
+./src/commands/ai.js
+./src/commands/handoff.js

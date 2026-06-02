@@ -1,0 +1,3 @@
+./tests/domain-error.test.js
+./tests/backwards-compat.test.js
+./tests/startup-plugins.test.js

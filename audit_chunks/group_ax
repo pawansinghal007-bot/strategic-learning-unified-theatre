@@ -1,0 +1,3 @@
+./src/auto-handoff.js
+./src/plugin-browser-registry.js
+./src/installer/hw-probe/hwProbe.spec.ts

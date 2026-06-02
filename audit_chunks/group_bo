@@ -1,0 +1,3 @@
+./tests/idea-store-quarantine.test.js
+./tests/sprint19-smoke.test.ts
+./tests/startup-bootstrap.test.js
