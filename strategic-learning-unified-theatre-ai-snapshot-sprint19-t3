@@ -1,0 +1,4 @@
+SPRINT 19 — T3 COMPLETE
+FILE: src/llm/gateway.ts, src/llm/index.ts
+STATUS: gateway + barrel created, compile clean, sonar clean
+NEXT: T4 — docs
