@@ -36,7 +36,9 @@ export class Gateway {
     const parsedRequest = providerRequestSchema.safeParse(request);
     if (!parsedRequest.success) {
       throw new ValidationFailedError("Invalid provider request", {
-          issues: parsedRequest.error.flatten(),
+        issues: parsedRequest.error.flatten(),
+      });
+    }
     const candidates = this.resolveCandidates(parsedRequest.data);
     if (!candidates.length) {
       throw new RoutingNoProviderError("No provider candidates available");
@@ -71,7 +73,8 @@ export class Gateway {
           parsedRequest.data.requestId,
         );
 
-        const parsedResponse = providerResponseSchema.safeParse(normalizedResponse);
+        const parsedResponse =
+          providerResponseSchema.safeParse(normalizedResponse);
         if (!parsedResponse.success) {
           throw new ValidationFailedError("Invalid provider response", {
             provider: providerName,

@@ -1,0 +1,21 @@
+SPRINT 19 COMPLETE: BASE GATEWAY DELIVERED
+
+SPRINT SUMMARY:
+  T1  logger created                  src/shared/logging/logger.ts
+  T2  local provider adapter          src/llm/providers/local.ts
+  T3  gateway + barrel export         src/llm/gateway.ts, src/llm/index.ts
+  T4  docs                            sprint-19-scope, checklist, INTEGRATION
+  T5  smoke tests + closure           sprint19-smoke.test.ts
+
+VALIDATION:
+  vitest pass / typecheck clean / sonar clean
+
+ACCEPTANCE CRITERIA:
+  [x] Gateway.ask() validates request input
+  [x] LocalProviderAdapter wired and callable
+  [x] Response normalization in place
+  [x] Structured logs for start/try/success/failure
+  [x] Failures surface as domain errors
+
+NEXT SPRINT:
+  Sprint 20 — provider expansion (OpenAI / Anthropic / Groq adapter)
