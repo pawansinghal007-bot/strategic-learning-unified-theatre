@@ -1,0 +1,4 @@
+SPRINT 19 — T2 COMPLETE
+FILE: src/llm/providers/local.ts
+STATUS: local adapter created, compile clean, sonar clean
+NEXT: T3 — gateway + barrel export
