@@ -1,24 +1,34 @@
-import { ProviderCapability, ProviderRequest, ProviderResponse } from '../../shared/contracts/provider';
-import { BaseProviderAdapter } from './base';
+import {
+  ProviderCapability,
+  ProviderRequest,
+  ProviderResponse,
+} from "../../shared/contracts/provider";
+import { BaseProviderAdapter } from "./base";
 
 export class OpenAIProviderAdapter extends BaseProviderAdapter {
-  readonly name = 'openai' as const;
+  readonly name = "openai" as const;
 
   capabilities(): ProviderCapability[] {
-    return ['chat', 'streaming', 'tool_use', 'summarization', 'code_generation'];
+    return [
+      "chat",
+      "streaming",
+      "tool_use",
+      "summarization",
+      "code_generation",
+    ];
   }
 
   protected async execute(req: ProviderRequest): Promise<ProviderResponse> {
     if (!process.env.OPENAI_API_KEY) {
-      throw new Error('Missing OPENAI_API_KEY');
+      throw new Error("Missing OPENAI_API_KEY");
     }
 
     return {
       requestId: req.requestId,
       provider: this.name,
-      model: 'gpt-4o-mini',
+      model: "gpt-4o-mini",
       outputText: `[openai stub] ${req.prompt}`,
-      finishReason: 'stop',
+      finishReason: "stop",
       usage: {
         inputTokens: req.prompt.length,
         outputTokens: Math.ceil(req.prompt.length * 0.8),
@@ -28,11 +38,11 @@ export class OpenAIProviderAdapter extends BaseProviderAdapter {
       },
       routingReasons: [
         {
-          code: 'default_selection',
-          message: 'OpenAI adapter selected from configured provider set.',
+          code: "default_selection",
+          message: "OpenAI adapter selected from configured provider set.",
         },
       ],
-      raw: { stub: true, provider: 'openai' },
+      raw: { stub: true, provider: "openai" },
     };
   }
 }

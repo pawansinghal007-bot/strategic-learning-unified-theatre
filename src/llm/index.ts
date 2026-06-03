@@ -1,2 +1,2 @@
 export * from "./gateway";
-export * from "./providers/local";
+export * from "./providers";

@@ -3,17 +3,25 @@ import {
   ProviderName,
   ProviderRequest,
   ProviderResponse,
+  TokenChunk,
 } from "../shared/contracts/provider";
 import {
   providerRequestSchema,
   providerResponseSchema,
+  tokenChunkSchema,
 } from "../shared/schemas/provider.schema";
 import {
   RoutingNoProviderError,
   ValidationFailedError,
 } from "../shared/errors";
 import { logger } from "../shared/logging/logger";
-import { LocalProviderAdapter } from "./providers/local";
+import {
+  GeminiProviderAdapter,
+  GroqProviderAdapter,
+  LocalProviderAdapter,
+  OpenAIProviderAdapter,
+  PerplexityProviderAdapter,
+} from "./providers";
 
 export interface GatewayOptions {
   providers?: Partial<Record<ProviderName, ProviderAdapter>>;
@@ -27,9 +35,19 @@ export class Gateway {
   constructor(options: GatewayOptions = {}) {
     this.providers = {
       local: new LocalProviderAdapter(),
+      openai: new OpenAIProviderAdapter(),
+      gemini: new GeminiProviderAdapter(),
+      groq: new GroqProviderAdapter(),
+      perplexity: new PerplexityProviderAdapter(),
       ...options.providers,
     };
-    this.defaultOrder = options.defaultOrder ?? ["local"];
+    this.defaultOrder = options.defaultOrder ?? [
+      "groq",
+      "gemini",
+      "openai",
+      "perplexity",
+      "local",
+    ];
   }
 
   async ask(request: ProviderRequest): Promise<ProviderResponse> {
@@ -39,6 +57,7 @@ export class Gateway {
         issues: parsedRequest.error.flatten(),
       });
     }
+
     const candidates = this.resolveCandidates(parsedRequest.data);
     if (!candidates.length) {
       throw new RoutingNoProviderError("No provider candidates available");
@@ -107,6 +126,55 @@ export class Gateway {
 
     throw new RoutingNoProviderError("All providers failed for the request", {
       errors,
+    });
+  }
+
+  async *stream(request: ProviderRequest): AsyncIterable<TokenChunk> {
+    const parsedRequest = providerRequestSchema.safeParse(request);
+    if (!parsedRequest.success) {
+      throw new ValidationFailedError("Invalid provider request for stream", {
+        issues: parsedRequest.error.flatten(),
+      });
+    }
+
+    const candidates = this.resolveCandidates(parsedRequest.data);
+    if (!candidates.length) {
+      throw new RoutingNoProviderError(
+        "No provider candidates available for stream",
+      );
+    }
+
+    const providerName = candidates[0];
+    const provider = this.providers[providerName];
+
+    if (!provider?.stream) {
+      throw new RoutingNoProviderError(
+        `Provider ${providerName} does not support streaming`,
+      );
+    }
+
+    logger.info("gateway.stream.start", {
+      requestId: parsedRequest.data.requestId,
+      provider: providerName,
+    });
+
+    for await (const chunk of provider.stream(parsedRequest.data)) {
+      const parsedChunk = tokenChunkSchema.safeParse(chunk);
+      if (!parsedChunk.success) {
+        throw new ValidationFailedError(
+          "Invalid token chunk from provider stream",
+          {
+            provider: providerName,
+            issues: parsedChunk.error.flatten(),
+          },
+        );
+      }
+      yield parsedChunk.data;
+    }
+
+    logger.info("gateway.stream.success", {
+      requestId: parsedRequest.data.requestId,
+      provider: providerName,
     });
   }
 

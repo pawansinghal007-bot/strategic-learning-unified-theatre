@@ -1,0 +1,26 @@
+SPRINT 20 — T3 COMPLETE
+
+FILES:
+src/llm/providers/openai.ts
+src/llm/providers/gemini.ts
+src/llm/providers/groq.ts
+src/llm/providers/perplexity.ts
+src/llm/providers/index.ts
+
+STATUS:
+all 4 provider stubs created
+providers barrel added
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] OpenAI stub adapter committed
+[x] Gemini stub adapter committed
+[x] Groq stub adapter committed
+[x] Perplexity stub adapter committed
+[x] Providers barrel index committed
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+T4 — expanded gateway + llm barrel
