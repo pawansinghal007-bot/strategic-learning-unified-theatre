@@ -11,6 +11,7 @@ import {
   tokenChunkSchema,
 } from "../shared/schemas/provider.schema";
 import {
+  DomainError,
   RoutingNoProviderError,
   ValidationFailedError,
 } from "../shared/errors";
@@ -22,6 +23,11 @@ import {
   OpenAIProviderAdapter,
   PerplexityProviderAdapter,
 } from "./providers";
+import {
+  getProviderHealthSnapshot,
+  isProviderAvailable,
+  markProviderFromError,
+} from "./provider-health";
 
 export interface GatewayOptions {
   providers?: Partial<Record<ProviderName, ProviderAdapter>>;
@@ -68,6 +74,7 @@ export class Gateway {
       workspaceId: parsedRequest.data.workspaceId,
       intent: parsedRequest.data.intent,
       candidates,
+      health: getProviderHealthSnapshot(),
     });
 
     const errors: Array<{ provider: string; message: string }> = [];
@@ -76,6 +83,13 @@ export class Gateway {
       const provider = this.providers[providerName];
       if (!provider) {
         logger.warn("gateway.provider.missing", { provider: providerName });
+        continue;
+      }
+
+      if (!isProviderAvailable(providerName)) {
+        logger.info("gateway.provider.skipped_unhealthy", {
+          provider: providerName,
+        });
         continue;
       }
 
@@ -110,7 +124,13 @@ export class Gateway {
         return parsedResponse.data;
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
+
+        if (error instanceof DomainError) {
+          markProviderFromError(providerName, error);
+        }
+
         errors.push({ provider: providerName, message });
+
         logger.warn("gateway.provider.failed", {
           requestId: parsedRequest.data.requestId,
           provider: providerName,
@@ -122,6 +142,7 @@ export class Gateway {
     logger.error("gateway.ask.failed", {
       requestId: parsedRequest.data.requestId,
       errors,
+      health: getProviderHealthSnapshot(),
     });
 
     throw new RoutingNoProviderError("All providers failed for the request", {
@@ -144,38 +165,58 @@ export class Gateway {
       );
     }
 
-    const providerName = candidates[0];
-    const provider = this.providers[providerName];
+    const providerName = candidates.find((name) => {
+      const provider = this.providers[name];
+      return provider?.stream && isProviderAvailable(name);
+    });
 
-    if (!provider?.stream) {
+    if (!providerName) {
       throw new RoutingNoProviderError(
-        `Provider ${providerName} does not support streaming`,
+        "No streaming-capable healthy provider available",
       );
     }
+
+    const provider = this.providers[providerName]!;
 
     logger.info("gateway.stream.start", {
       requestId: parsedRequest.data.requestId,
       provider: providerName,
     });
 
-    for await (const chunk of provider.stream(parsedRequest.data)) {
-      const parsedChunk = tokenChunkSchema.safeParse(chunk);
-      if (!parsedChunk.success) {
-        throw new ValidationFailedError(
-          "Invalid token chunk from provider stream",
-          {
-            provider: providerName,
-            issues: parsedChunk.error.flatten(),
-          },
-        );
+    try {
+      for await (const chunk of provider.stream!(parsedRequest.data)) {
+        const parsedChunk = tokenChunkSchema.safeParse(chunk);
+        if (!parsedChunk.success) {
+          throw new ValidationFailedError(
+            "Invalid token chunk from provider stream",
+            {
+              provider: providerName,
+              issues: parsedChunk.error.flatten(),
+            },
+          );
+        }
+        yield parsedChunk.data;
       }
-      yield parsedChunk.data;
-    }
 
-    logger.info("gateway.stream.success", {
-      requestId: parsedRequest.data.requestId,
-      provider: providerName,
-    });
+      logger.info("gateway.stream.success", {
+        requestId: parsedRequest.data.requestId,
+        provider: providerName,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+
+      if (error instanceof DomainError) {
+        markProviderFromError(providerName, error);
+      }
+
+      logger.warn("gateway.stream.failed", {
+        requestId: parsedRequest.data.requestId,
+        provider: providerName,
+        error: message,
+      });
+
+      throw error;
+    }
   }
 
   private resolveCandidates(request: ProviderRequest): ProviderName[] {

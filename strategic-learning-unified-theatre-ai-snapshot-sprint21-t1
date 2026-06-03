@@ -1,0 +1,22 @@
+SPRINT 21 — T1 COMPLETE
+
+FILES:
+src/llm/provider-health.ts
+
+STATUS:
+health tracker created
+cooldown windows defined
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] ProviderHealthState type defined
+[x] markProviderFromError() implemented
+[x] isProviderAvailable() with cooldown recovery implemented
+[x] getProviderHealthSnapshot() implemented
+[x] resetProviderHealth() implemented
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+T2 — health-aware gateway

@@ -1,18 +1,18 @@
-import { ProviderName } from '../shared/contracts/provider';
+import { ProviderName } from "../shared/contracts/provider";
 import {
   DomainError,
   ProviderAuthError,
   ProviderQuotaError,
   ProviderTimeoutError,
   ProviderUnavailableError,
-} from '../shared/errors';
-import { logger } from '../shared/logging/logger';
+} from "../shared/errors";
+import { logger } from "../shared/logging/logger";
 
 export type ProviderHealthState =
-  | 'healthy'
-  | 'exhausted'
-  | 'temporarily_down'
-  | 'auth_error';
+  | "healthy"
+  | "exhausted"
+  | "temporarily_down"
+  | "auth_error";
 
 export interface ProviderHealthRecord {
   provider: ProviderName;
@@ -32,10 +32,13 @@ const COOLDOWN_MS = {
 };
 
 function stateFromError(err) {
-  if (err instanceof ProviderAuthError) return 'auth_error';
-  if (err instanceof ProviderQuotaError) return 'exhausted';
-  if (err instanceof ProviderTimeoutError || err instanceof ProviderUnavailableError) {
-    return 'temporarily_down';
+  if (err instanceof ProviderAuthError) return "auth_error";
+  if (err instanceof ProviderQuotaError) return "exhausted";
+  if (
+    err instanceof ProviderTimeoutError ||
+    err instanceof ProviderUnavailableError
+  ) {
+    return "temporarily_down";
   }
   return null;
 }
@@ -60,7 +63,7 @@ export function markProviderFromError(provider, err) {
 
   healthState.set(provider, record);
 
-  logger.warn('provider.health.mark', {
+  logger.warn("provider.health.mark", {
     provider,
     state,
     recoversAt,
@@ -74,12 +77,12 @@ export function isProviderAvailable(provider) {
 
   const cooldown = COOLDOWN_MS[record.state];
   if (cooldown == null) {
-    return record.state === 'healthy';
+    return record.state === "healthy";
   }
 
   if (record.recoversAt && Date.now() > record.recoversAt) {
     healthState.delete(provider);
-    logger.info('provider.health.recovered', { provider });
+    logger.info("provider.health.recovered", { provider });
     return true;
   }
 
@@ -93,9 +96,9 @@ export function getProviderHealthSnapshot() {
 export function resetProviderHealth(provider) {
   if (!provider) {
     healthState.clear();
-    logger.info('provider.health.reset_all');
+    logger.info("provider.health.reset_all");
     return;
   }
   healthState.delete(provider);
-  logger.info('provider.health.reset', { provider });
+  logger.info("provider.health.reset", { provider });
 }
