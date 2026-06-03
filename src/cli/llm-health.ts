@@ -17,9 +17,10 @@ export function registerLlmHealth(program) {
             ? ` (recovers in ${p.recoversInMinutes}m)`
             : "";
         const reason = p.reason ? ` — ${p.reason}` : "";
+        const usage = ` | req=${p.requestCount} ok=${p.successCount} fail=${p.failureCount} tokens=${p.totalTokens}`;
 
         console.log(
-          `${icon} ${p.name.padEnd(12)} ${p.state.padEnd(16)}${eta}${reason}`,
+          `${icon} ${p.name.padEnd(12)} ${p.state.padEnd(16)}${eta}${reason}${usage}`,
         );
       }
 

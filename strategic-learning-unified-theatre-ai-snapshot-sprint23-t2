@@ -1,0 +1,22 @@
+SPRINT 23 — T2 COMPLETE
+
+FILES:
+src/llm/status.ts
+src/llm/gateway.ts
+
+STATUS:
+status rows enriched with usage fields
+gateway records success and failure on ask and stream
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] status.ts merges health and usage into combined rows
+[x] gateway.ask() calls recordProviderSuccess on success
+[x] gateway.ask() calls recordProviderFailure on failure
+[x] gateway.stream() calls recordProviderFailure on stream error
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+T3 — llm:usage CLI commands + updated llm:health
