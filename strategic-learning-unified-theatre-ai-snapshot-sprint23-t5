@@ -1,0 +1,21 @@
+SPRINT 23 — T5 COMPLETE
+
+FILES:
+tests/sprint23-smoke.test.js
+
+STATUS:
+11 smoke tests written in plain JS
+usage tracker tests passing
+gateway hook tests passing
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] Usage counter tests — success, failure, accumulation, reset
+[x] Gateway hook tests — success recorded, failure recorded, tokens accumulated
+[x] No TypeScript syntax in test file
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+T6 — sprint closure + stable snapshot
