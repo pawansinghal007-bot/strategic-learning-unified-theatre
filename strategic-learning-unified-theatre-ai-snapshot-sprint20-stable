@@ -1,0 +1,28 @@
+SPRINT 20 COMPLETE: PROVIDER EXPANSION DELIVERED
+
+SPRINT SUMMARY:
+T1  error normalizer               src/shared/errors/provider-map.ts
+T2  base adapter + local update    src/llm/providers/base.ts, local.ts
+T3  openai, gemini, groq, ppl      src/llm/providers/*.ts + index.ts
+T4  expanded gateway + barrel      src/llm/gateway.ts, src/llm/index.ts
+T5  docs                           sprint-20-scope, checklist, INTEGRATION
+T6  smoke tests + closure          tests/sprint20-smoke.test.js (10 tests)
+
+STATUS:
+vitest pass
+typecheck clean
+sonar clean
+tagged sprint-20-complete
+
+DELIVERABLES:
+[x] Multiple provider adapters wired through gateway
+[x] Shared base adapter committed
+[x] Streaming returns normalized token chunk shape
+[x] Provider errors map into domain-level errors
+[x] Gateway works without router rewrites when providers added
+[x] 10 smoke tests passing in plain JS
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+Sprint 21 — health engine and fallback routing

@@ -178,3 +178,6 @@ All 436 Sonar issues resolved. Final total: 0.
 
 ## Sprint 19 Complete
 Base gateway delivered. Logger, local adapter, gateway, smoke tests. Sonar clean.
+
+## Sprint 20 Complete
+Provider expansion delivered. Base adapter, 5 providers, streaming, error normalizer. Sonar clean.
