@@ -1,0 +1,21 @@
+SPRINT 20 — T2 COMPLETE
+
+FILES:
+  src/llm/providers/base.ts
+  src/llm/providers/local.ts
+
+STATUS:
+  base adapter created
+  local provider updated
+  compile clean
+  sonar clean
+
+DELIVERABLES:
+  [x] Base provider abstraction implemented
+  [x] Local provider migrated to base adapter
+  [x] Provider contract alignment verified
+  [x] Compilation successful
+  [x] Sonar validation clean
+
+NEXT:
+  T3 — OpenAI, Gemini, Groq, Perplexity adapters

@@ -6,9 +6,9 @@ import {
   ProviderRequest,
   ProviderResponse,
   TokenChunk,
-} from '../../shared/contracts/provider';
-import { normalizeProviderError } from '../../shared/errors';
-import { logger } from '../../shared/logging/logger';
+} from "../../shared/contracts/provider";
+import { normalizeProviderError } from "../../shared/errors";
+import { logger } from "../../shared/logging/logger";
 
 export abstract class BaseProviderAdapter implements ProviderAdapter {
   abstract readonly name: ProviderName;
@@ -19,7 +19,7 @@ export abstract class BaseProviderAdapter implements ProviderAdapter {
     return {
       provider: this.name,
       available: true,
-      status: 'healthy',
+      status: "healthy",
       lastCheckedAt: new Date().toISOString(),
       message: `${this.name} adapter loaded`,
     };
@@ -42,15 +42,15 @@ export abstract class BaseProviderAdapter implements ProviderAdapter {
         requestId: req.requestId,
         provider: this.name,
         model: result.model || `${this.name}-unknown-model`,
-        outputText: result.outputText ?? '',
-        finishReason: result.finishReason ?? 'unknown',
+        outputText: result.outputText ?? "",
+        finishReason: result.finishReason ?? "unknown",
         usage: result.usage,
         routingReasons: result.routingReasons,
         raw: result.raw ?? result,
       };
     } catch (error) {
       const normalized = normalizeProviderError(this.name, error);
-      logger.warn('provider.execute.failed', {
+      logger.warn("provider.execute.failed", {
         provider: this.name,
         requestId: req.requestId,
         error: normalized.message,
