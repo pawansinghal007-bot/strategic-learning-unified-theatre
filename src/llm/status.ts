@@ -1,23 +1,29 @@
-import { ProviderName } from '../shared/contracts/provider';
+import { ProviderName } from "../shared/contracts/provider";
 import {
   getProviderHealthSnapshot,
   isProviderAvailable,
   resetProviderHealth,
-} from './provider-health';
+} from "./provider-health";
 
-const KNOWN_PROVIDERS: ProviderName[] = ['groq', 'gemini', 'openai', 'perplexity', 'local'];
+const KNOWN_PROVIDERS: ProviderName[] = [
+  "groq",
+  "gemini",
+  "openai",
+  "perplexity",
+  "local",
+];
 
 function envKeyForProvider(provider: ProviderName) {
   switch (provider) {
-    case 'groq':
-      return 'GROQ_API_KEY';
-    case 'gemini':
-      return 'GEMINI_API_KEY';
-    case 'openai':
-      return 'OPENAI_API_KEY';
-    case 'perplexity':
-      return 'PERPLEXITY_API_KEY';
-    case 'local':
+    case "groq":
+      return "GROQ_API_KEY";
+    case "gemini":
+      return "GEMINI_API_KEY";
+    case "openai":
+      return "OPENAI_API_KEY";
+    case "perplexity":
+      return "PERPLEXITY_API_KEY";
+    case "local":
       return null;
     default:
       return null;
@@ -30,7 +36,10 @@ function hasApiKey(provider: ProviderName) {
   return Boolean(process.env[keyName]);
 }
 
-function recordFor(provider: ProviderName, records: Array<{ provider: ProviderName }>) {
+function recordFor(
+  provider: ProviderName,
+  records: Array<{ provider: ProviderName }>,
+) {
   return records.find((r) => r.provider === provider);
 }
 
@@ -51,7 +60,7 @@ export function getProviderStatus() {
     return {
       name,
       hasKey,
-      state: rec ? rec.state : 'unknown',
+      state: rec ? rec.state : "unknown",
       available,
       recoversInMinutes,
       reason: rec?.reason,

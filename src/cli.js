@@ -29,6 +29,7 @@ import { bindStorageCommands } from "./commands/storage.js";
 import { bindLlmCommands } from "./commands/llm.js";
 import { bindBc2SyncCommand } from "./commands/bc2-sync.js";
 import { bindAiCommands } from "./commands/ai.js";
+import { registerLlmHealth } from "./cli/llm-health.js";
 import { createLogger } from "./logger.js";
 import { loadConfig } from "./internal/config.js";
 import { getSystemHealth as getSystemHealthSystem } from "./system/systemHealth.js";
@@ -613,6 +614,7 @@ bindStorageCommands(program);
 bindLlmCommands(program, { log });
 bindBc2SyncCommand(program);
 bindAiCommands(program);
+registerLlmHealth(program);
 
 profileCmd
   .command("import")

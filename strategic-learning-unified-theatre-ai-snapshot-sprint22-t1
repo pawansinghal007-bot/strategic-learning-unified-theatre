@@ -1,0 +1,21 @@
+SPRINT 22 — T1 COMPLETE
+
+FILES:
+src/llm/status.ts
+
+STATUS:
+provider status helper created
+builds on Sprint 21 health engine
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] getProviderStatus() returns rows for all 5 known providers
+[x] hasApiKey() checks env vars per provider
+[x] recoversInMinutes computed from cooldown window
+[x] resetProviderStatus() delegates to resetProviderHealth()
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+T2 — CLI health commands
