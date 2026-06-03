@@ -1,25 +1,19 @@
-# Sprint 20 Patch Integration
+# Sprint 21 Patch Integration
 
 ## Prerequisites
-
-Sprint 18 and Sprint 19 files must already exist in the repo.
+Sprint 18, 19, and 20 files must already exist in the repo.
 
 ## Files added or replaced
-
-- src/shared/errors/provider-map.ts
-- src/shared/errors/index.ts
-- src/llm/providers/base.ts
-- src/llm/providers/local.ts
-- src/llm/providers/openai.ts
-- src/llm/providers/gemini.ts
-- src/llm/providers/groq.ts
-- src/llm/providers/perplexity.ts
-- src/llm/providers/index.ts
+- src/llm/provider-health.ts
 - src/llm/gateway.ts
-- src/llm/index.ts
+
+## Fallback semantics
+- Providers tried in order: groq > gemini > openai > perplexity > local
+- On domain errors, provider is marked unhealthy with a cooldown
+- Unhealthy providers are skipped on subsequent calls until cooldown expires
+- Local is always last resort unless explicitly excluded
 
 ## Suggested next sprint hooks
-
-- Add health classification and cooldown logic
-- Add fallback routing
-- Add provider status inspection
+- Expose getProviderHealthSnapshot() via a CLI health command
+- Add per-provider cooldown configuration
+- Add latency and cost-aware routing

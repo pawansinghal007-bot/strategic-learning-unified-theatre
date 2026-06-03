@@ -1,0 +1,22 @@
+SPRINT 21 — T2 COMPLETE
+
+FILES:
+src/llm/gateway.ts
+
+STATUS:
+gateway replaced with health-aware version
+unhealthy provider skip logic added
+domain error health marking added
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] Gateway skips providers marked unhealthy
+[x] Domain errors trigger markProviderFromError()
+[x] Health snapshot logged on ask.start and ask.failed
+[x] stream() uses isProviderAvailable() for provider selection
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+T3 — docs
