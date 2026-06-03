@@ -1,0 +1,23 @@
+SPRINT 22 — T2 COMPLETE
+
+FILES:
+src/cli/llm-health.ts
+src/cli/index.ts
+
+STATUS:
+llm:health command created
+llm:health:reset command created
+CLI barrel wired
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] llm:health prints row per provider with state and availability
+[x] llm:health:reset clears all or single provider health
+[x] registerLlmHealth() wired into CLI entrypoint
+[x] No changes to gateway or adapters
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+T3 — docs

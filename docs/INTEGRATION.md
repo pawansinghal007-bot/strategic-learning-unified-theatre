@@ -1,23 +1,21 @@
-# Sprint 21 Patch Integration
+# Sprint 22 Patch Integration
 
 ## Prerequisites
+Sprints 18–21 must already be integrated.
 
-Sprint 18, 19, and 20 files must already exist in the repo.
+## Files added
+- src/llm/status.ts
+- src/cli/llm-health.ts
 
-## Files added or replaced
+## Wiring
+registerLlmHealth() is wired into cli.js alongside other commands.
 
-- src/llm/provider-health.ts
-- src/llm/gateway.ts
-
-## Fallback semantics
-
-- Providers tried in order: groq > gemini > openai > perplexity > local
-- On domain errors, provider is marked unhealthy with a cooldown
-- Unhealthy providers are skipped on subsequent calls until cooldown expires
-- Local is always last resort unless explicitly excluded
+## Usage
+node cli.js llm:health
+node cli.js llm:health:reset
+node cli.js llm:health:reset groq
 
 ## Suggested next sprint hooks
-
-- Expose getProviderHealthSnapshot() via a CLI health command
-- Add per-provider cooldown configuration
+- Add token usage logging per provider
+- Expose llm:usage CLI command
 - Add latency and cost-aware routing
