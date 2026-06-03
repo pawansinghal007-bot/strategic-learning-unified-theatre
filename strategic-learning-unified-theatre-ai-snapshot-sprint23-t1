@@ -1,0 +1,22 @@
+SPRINT 23 — T1 COMPLETE
+
+FILES:
+src/llm/provider-usage.ts
+
+STATUS:
+usage tracker created
+auto-reset schedules defined
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] recordProviderSuccess() increments counters and token totals
+[x] recordProviderFailure() increments failure counters
+[x] getProviderUsage() returns rows for all 5 known providers
+[x] resetProviderUsage() clears all or single provider
+[x] auto-reset schedules for groq, gemini, perplexity
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+T2 — updated status.ts + gateway with usage hooks

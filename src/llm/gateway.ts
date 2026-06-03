@@ -27,7 +27,8 @@ import {
   getProviderHealthSnapshot,
   isProviderAvailable,
   markProviderFromError,
-} from "./provider-health";
+} from './provider-health';
+import { recordProviderFailure, recordProviderSuccess } from './provider-usage';
 
 export interface GatewayOptions {
   providers?: Partial<Record<ProviderName, ProviderAdapter>>;
@@ -115,6 +116,8 @@ export class Gateway {
           });
         }
 
+        recordProviderSuccess(providerName, parsedResponse.data);
+
         logger.info("gateway.ask.success", {
           requestId: parsedRequest.data.requestId,
           provider: providerName,
@@ -124,6 +127,8 @@ export class Gateway {
         return parsedResponse.data;
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
+
+        recordProviderFailure(providerName);
 
         if (error instanceof DomainError) {
           markProviderFromError(providerName, error);
@@ -204,6 +209,8 @@ export class Gateway {
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
+
+      recordProviderFailure(providerName);
 
       if (error instanceof DomainError) {
         markProviderFromError(providerName, error);

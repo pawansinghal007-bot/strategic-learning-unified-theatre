@@ -1,57 +1,44 @@
-import { ProviderName } from "../shared/contracts/provider";
 import {
   getProviderHealthSnapshot,
   isProviderAvailable,
   resetProviderHealth,
-} from "./provider-health";
+} from './provider-health';
+import { getProviderUsage } from './provider-usage';
 
-const KNOWN_PROVIDERS: ProviderName[] = [
-  "groq",
-  "gemini",
-  "openai",
-  "perplexity",
-  "local",
-];
+const KNOWN_PROVIDERS = ['groq', 'gemini', 'openai', 'perplexity', 'local'];
 
-function envKeyForProvider(provider: ProviderName) {
+function envKeyForProvider(provider) {
   switch (provider) {
-    case "groq":
-      return "GROQ_API_KEY";
-    case "gemini":
-      return "GEMINI_API_KEY";
-    case "openai":
-      return "OPENAI_API_KEY";
-    case "perplexity":
-      return "PERPLEXITY_API_KEY";
-    case "local":
-      return null;
-    default:
-      return null;
+    case 'groq': return 'GROQ_API_KEY';
+    case 'gemini': return 'GEMINI_API_KEY';
+    case 'openai': return 'OPENAI_API_KEY';
+    case 'perplexity': return 'PERPLEXITY_API_KEY';
+    case 'local': return null;
+    default: return null;
   }
 }
 
-function hasApiKey(provider: ProviderName) {
+function hasApiKey(provider) {
   const keyName = envKeyForProvider(provider);
   if (!keyName) return true;
   return Boolean(process.env[keyName]);
 }
 
-function recordFor(
-  provider: ProviderName,
-  records: Array<{ provider: ProviderName }>,
-) {
+function recordFor(provider, records) {
   return records.find((r) => r.provider === provider);
 }
 
 export function getProviderStatus() {
-  const records = getProviderHealthSnapshot();
+  const healthRecords = getProviderHealthSnapshot();
+  const usageRows = getProviderUsage();
 
   return KNOWN_PROVIDERS.map((name) => {
-    const rec = recordFor(name, records);
+    const rec = recordFor(name, healthRecords);
+    const usage = usageRows.find((u) => u.provider === name);
     const hasKey = hasApiKey(name);
     const available = hasKey && isProviderAvailable(name);
 
-    let recoversInMinutes: number | null = null;
+    let recoversInMinutes = null;
     if (rec?.recoversAt) {
       const diffMs = rec.recoversAt - Date.now();
       recoversInMinutes = diffMs > 0 ? Math.round(diffMs / 60000) : 0;
@@ -60,14 +47,19 @@ export function getProviderStatus() {
     return {
       name,
       hasKey,
-      state: rec ? rec.state : "unknown",
+      state: rec ? rec.state : 'unknown',
       available,
       recoversInMinutes,
       reason: rec?.reason,
+      requestCount: usage?.requestCount ?? 0,
+      successCount: usage?.successCount ?? 0,
+      failureCount: usage?.failureCount ?? 0,
+      totalTokens: usage?.totalTokens ?? 0,
+      estimatedCostUsd: usage?.estimatedCostUsd ?? 0,
     };
   });
 }
 
-export function resetProviderStatus(provider: ProviderName) {
+export function resetProviderStatus(provider) {
   resetProviderHealth(provider);
 }
