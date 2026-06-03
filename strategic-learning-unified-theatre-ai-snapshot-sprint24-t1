@@ -1,0 +1,21 @@
+SPRINT 24 — T1 COMPLETE
+
+FILES:
+src/llm/storage.ts
+
+STATUS:
+shared storage helper created
+reads/writes JSON under ~/.unified-ai-workspace
+failures logged, never thrown
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] getStoragePath() returns path under home directory
+[x] readJsonFile() returns fallback on missing or corrupt file
+[x] writeJsonFile() logs error on write failure without crashing
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+T2 — persistent provider health module

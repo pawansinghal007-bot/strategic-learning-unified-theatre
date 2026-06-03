@@ -1,28 +1,14 @@
-import { ProviderName } from "../shared/contracts/provider";
 import {
   DomainError,
   ProviderAuthError,
   ProviderQuotaError,
   ProviderTimeoutError,
   ProviderUnavailableError,
-} from "../shared/errors";
-import { logger } from "../shared/logging/logger";
+} from '../shared/errors';
+import { logger } from '../shared/logging/logger';
+import { readJsonFile, writeJsonFile } from './storage';
 
-export type ProviderHealthState =
-  | "healthy"
-  | "exhausted"
-  | "temporarily_down"
-  | "auth_error";
-
-export interface ProviderHealthRecord {
-  provider: ProviderName;
-  state: ProviderHealthState;
-  reason?: string;
-  since: number;
-  recoversAt?: number;
-}
-
-const healthState = new Map();
+const HEALTH_FILE = 'provider-health.json';
 
 const COOLDOWN_MS = {
   healthy: null,
@@ -31,19 +17,24 @@ const COOLDOWN_MS = {
   auth_error: null,
 };
 
-function stateFromError(err) {
-  if (err instanceof ProviderAuthError) return "auth_error";
-  if (err instanceof ProviderQuotaError) return "exhausted";
-  if (
-    err instanceof ProviderTimeoutError ||
-    err instanceof ProviderUnavailableError
-  ) {
-    return "temporarily_down";
+function loadHealth() {
+  return readJsonFile(HEALTH_FILE, {});
+}
+
+function saveHealth(state: Record<string, unknown>) {
+  writeJsonFile(HEALTH_FILE, state);
+}
+
+function stateFromError(err: unknown) {
+  if (err instanceof ProviderAuthError) return 'auth_error';
+  if (err instanceof ProviderQuotaError) return 'exhausted';
+  if (err instanceof ProviderTimeoutError || err instanceof ProviderUnavailableError) {
+    return 'temporarily_down';
   }
   return null;
 }
 
-export function markProviderFromError(provider, err) {
+export function markProviderFromError(provider: string, err: unknown) {
   if (!(err instanceof DomainError)) return;
 
   const state = stateFromError(err);
@@ -53,7 +44,8 @@ export function markProviderFromError(provider, err) {
   const cooldown = COOLDOWN_MS[state];
   const recoversAt = cooldown != null ? now + cooldown : undefined;
 
-  const record = {
+  const snapshot = loadHealth();
+  snapshot[provider] = {
     provider,
     state,
     reason: err.message,
@@ -61,9 +53,9 @@ export function markProviderFromError(provider, err) {
     recoversAt,
   };
 
-  healthState.set(provider, record);
+  saveHealth(snapshot);
 
-  logger.warn("provider.health.mark", {
+  logger.warn('provider.health.mark', {
     provider,
     state,
     recoversAt,
@@ -71,18 +63,28 @@ export function markProviderFromError(provider, err) {
   });
 }
 
-export function isProviderAvailable(provider) {
-  const record = healthState.get(provider);
+export function markProviderHealthy(provider: string) {
+  const snapshot = loadHealth();
+  delete snapshot[provider];
+  saveHealth(snapshot);
+  logger.info('provider.health.healthy', { provider });
+}
+
+export function isProviderAvailable(provider: string) {
+  const snapshot = loadHealth();
+  const record = snapshot[provider] as any;
+
   if (!record) return true;
 
   const cooldown = COOLDOWN_MS[record.state];
   if (cooldown == null) {
-    return record.state === "healthy";
+    return record.state === 'healthy';
   }
 
   if (record.recoversAt && Date.now() > record.recoversAt) {
-    healthState.delete(provider);
-    logger.info("provider.health.recovered", { provider });
+    delete snapshot[provider];
+    saveHealth(snapshot);
+    logger.info('provider.health.recovered', { provider });
     return true;
   }
 
@@ -90,15 +92,19 @@ export function isProviderAvailable(provider) {
 }
 
 export function getProviderHealthSnapshot() {
-  return Array.from(healthState.values());
+  const snapshot = loadHealth();
+  return Object.values(snapshot).filter(Boolean);
 }
 
-export function resetProviderHealth(provider) {
+export function resetProviderHealth(provider?: string) {
   if (!provider) {
-    healthState.clear();
-    logger.info("provider.health.reset_all");
+    saveHealth({});
+    logger.info('provider.health.reset_all');
     return;
   }
-  healthState.delete(provider);
-  logger.info("provider.health.reset", { provider });
+
+  const snapshot = loadHealth();
+  delete snapshot[provider];
+  saveHealth(snapshot);
+  logger.info('provider.health.reset', { provider });
 }
