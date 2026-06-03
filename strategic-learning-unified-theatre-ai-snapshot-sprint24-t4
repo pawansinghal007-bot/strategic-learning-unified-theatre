@@ -1,0 +1,21 @@
+SPRINT 24 — T4 COMPLETE
+
+FILES:
+src/cli/llm-health.ts
+src/cli/llm-usage.ts
+
+STATUS:
+llm:health:reset --all-telemetry flag added
+llm-usage.ts updated for persistent storage
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] llm:health:reset --all-telemetry resets both health and usage
+[x] llm:usage reads from persistent JSON storage
+[x] No changes needed to cli.js wiring
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+T5 — docs
