@@ -27,8 +27,8 @@ import {
   getProviderHealthSnapshot,
   isProviderAvailable,
   markProviderFromError,
-} from './provider-health';
-import { recordProviderFailure, recordProviderSuccess } from './provider-usage';
+} from "./provider-health";
+import { recordProviderFailure, recordProviderSuccess } from "./provider-usage";
 
 export interface GatewayOptions {
   providers?: Partial<Record<ProviderName, ProviderAdapter>>;

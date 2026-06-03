@@ -1,0 +1,25 @@
+SPRINT 23 — T3 COMPLETE
+
+FILES:
+src/cli/llm-usage.ts
+src/cli/llm-health.ts
+cli.js
+
+STATUS:
+llm:usage command created
+llm:usage:reset command created
+llm:health enriched with usage totals
+cli.js wired
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] llm:usage prints req/ok/fail/tokens/cost per provider
+[x] llm:usage:reset clears all or single provider usage
+[x] llm:health shows usage totals alongside health state
+[x] registerLlmUsage wired into cli.js
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+T4 — docs

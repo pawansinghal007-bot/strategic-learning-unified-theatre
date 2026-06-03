@@ -1,24 +1,22 @@
-import { logger } from '../shared/logging/logger';
+import { logger } from "../shared/logging/logger";
 
-const KNOWN_PROVIDERS = ['groq', 'gemini', 'openai', 'perplexity', 'local'];
+const KNOWN_PROVIDERS = ["groq", "gemini", "openai", "perplexity", "local"];
 
 const usageState = new Map();
 
 function defaultResetAt(provider) {
   const now = new Date();
 
-  if (provider === 'groq' || provider === 'gemini') {
+  if (provider === "groq" || provider === "gemini") {
     const next = new Date(now);
     next.setUTCHours(24, 0, 0, 0);
     return next.getTime();
   }
 
-  if (provider === 'perplexity') {
-    const next = new Date(Date.UTC(
-      now.getUTCFullYear(),
-      now.getUTCMonth() + 1,
-      1, 0, 0, 0, 0
-    ));
+  if (provider === "perplexity") {
+    const next = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1, 0, 0, 0, 0),
+    );
     return next.getTime();
   }
 
@@ -60,7 +58,7 @@ function autoResetIfNeeded(provider) {
       lastUsedAt: undefined,
       resetAt: defaultResetAt(provider),
     });
-    logger.info('provider.usage.auto_reset', { provider });
+    logger.info("provider.usage.auto_reset", { provider });
   }
 }
 
@@ -76,7 +74,7 @@ export function recordProviderSuccess(provider, response) {
   rec.estimatedCostUsd += response.usage?.estimatedCostUsd ?? 0;
   rec.lastUsedAt = Date.now();
 
-  logger.info('provider.usage.success', {
+  logger.info("provider.usage.success", {
     provider,
     requestCount: rec.requestCount,
     totalTokens: rec.totalTokens,
@@ -92,7 +90,7 @@ export function recordProviderFailure(provider) {
   rec.failureCount += 1;
   rec.lastUsedAt = Date.now();
 
-  logger.warn('provider.usage.failure', {
+  logger.warn("provider.usage.failure", {
     provider,
     requestCount: rec.requestCount,
     failureCount: rec.failureCount,
@@ -110,9 +108,9 @@ export function getProviderUsage() {
 export function resetProviderUsage(provider) {
   if (!provider) {
     usageState.clear();
-    logger.info('provider.usage.reset_all');
+    logger.info("provider.usage.reset_all");
     return;
   }
   usageState.delete(provider);
-  logger.info('provider.usage.reset', { provider });
+  logger.info("provider.usage.reset", { provider });
 }
