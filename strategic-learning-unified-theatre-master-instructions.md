@@ -184,3 +184,6 @@ Provider expansion delivered. Base adapter, 5 providers, streaming, error normal
 
 ## Sprint 21 Complete
 Fallback and health core delivered. Health tracker, health-aware gateway, 11 smoke tests. Sonar clean.
+
+## Sprint 22 Complete
+Provider status CLI delivered. Status helper, llm:health commands, 10 smoke tests. Sonar clean.

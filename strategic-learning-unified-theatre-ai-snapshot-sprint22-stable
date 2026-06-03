@@ -1,0 +1,26 @@
+SPRINT 22 COMPLETE: PROVIDER STATUS & HEALTH CLI DELIVERED
+
+SPRINT SUMMARY:
+T1  provider status helper         src/llm/status.ts
+T2  CLI health commands            src/cli/llm-health.ts, cli.js updated
+T3  docs                           sprint-22-scope, checklist, INTEGRATION
+T4  smoke tests                    tests/sprint22-smoke.test.js (10 tests)
+T5  sprint closure                 stable snapshot + tag
+
+STATUS:
+vitest pass — 79 files / 566 tests
+typecheck clean
+sonar clean
+tagged sprint-22-complete
+
+DELIVERABLES:
+[x] getProviderStatus() returns rows for all 5 known providers
+[x] llm:health CLI command prints state and availability
+[x] llm:health:reset CLI command clears all or single provider
+[x] No changes to gateway or adapters
+[x] 10 smoke tests passing in plain JS
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+Sprint 23 — usage tracking (tokens per provider, llm:usage CLI)
