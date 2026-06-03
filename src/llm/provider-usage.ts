@@ -1,19 +1,27 @@
-import { logger } from "../shared/logging/logger";
+import { logger } from '../shared/logging/logger';
+import { readJsonFile, writeJsonFile } from './storage';
 
-const KNOWN_PROVIDERS = ["groq", "gemini", "openai", "perplexity", "local"];
+const USAGE_FILE = 'provider-usage.json';
+const KNOWN_PROVIDERS = ['groq', 'gemini', 'openai', 'perplexity', 'local'];
 
-const usageState = new Map();
+function loadUsage() {
+  return readJsonFile(USAGE_FILE, {});
+}
 
-function defaultResetAt(provider) {
+function saveUsage(state: Record<string, any>) {
+  writeJsonFile(USAGE_FILE, state);
+}
+
+function defaultResetAt(provider: string) {
   const now = new Date();
 
-  if (provider === "groq" || provider === "gemini") {
+  if (provider === 'groq' || provider === 'gemini') {
     const next = new Date(now);
     next.setUTCHours(24, 0, 0, 0);
     return next.getTime();
   }
 
-  if (provider === "perplexity") {
+  if (provider === 'perplexity') {
     const next = new Date(
       Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1, 0, 0, 0, 0),
     );
@@ -23,8 +31,8 @@ function defaultResetAt(provider) {
   return null;
 }
 
-function ensureRecord(provider) {
-  const existing = usageState.get(provider);
+function ensureRecord(provider: string, state: Record<string, any>) {
+  const existing = state[provider];
   if (existing) return existing;
 
   const created = {
@@ -39,14 +47,14 @@ function ensureRecord(provider) {
     resetAt: defaultResetAt(provider),
   };
 
-  usageState.set(provider, created);
+  state[provider] = created;
   return created;
 }
 
-function autoResetIfNeeded(provider) {
-  const rec = ensureRecord(provider);
+function autoResetIfNeeded(provider: string, state: Record<string, any>) {
+  const rec = ensureRecord(provider, state);
   if (rec.resetAt && Date.now() >= rec.resetAt) {
-    usageState.set(provider, {
+    state[provider] = {
       provider,
       requestCount: 0,
       successCount: 0,
@@ -57,14 +65,15 @@ function autoResetIfNeeded(provider) {
       estimatedCostUsd: 0,
       lastUsedAt: undefined,
       resetAt: defaultResetAt(provider),
-    });
-    logger.info("provider.usage.auto_reset", { provider });
+    };
+    logger.info('provider.usage.auto_reset', { provider });
   }
 }
 
-export function recordProviderSuccess(provider, response) {
-  autoResetIfNeeded(provider);
-  const rec = ensureRecord(provider);
+export function recordProviderSuccess(provider: string, response: any) {
+  const snapshot = loadUsage();
+  autoResetIfNeeded(provider, snapshot);
+  const rec = ensureRecord(provider, snapshot);
 
   rec.requestCount += 1;
   rec.successCount += 1;
@@ -74,7 +83,9 @@ export function recordProviderSuccess(provider, response) {
   rec.estimatedCostUsd += response.usage?.estimatedCostUsd ?? 0;
   rec.lastUsedAt = Date.now();
 
-  logger.info("provider.usage.success", {
+  saveUsage(snapshot);
+
+  logger.info('provider.usage.success', {
     provider,
     requestCount: rec.requestCount,
     totalTokens: rec.totalTokens,
@@ -82,15 +93,18 @@ export function recordProviderSuccess(provider, response) {
   });
 }
 
-export function recordProviderFailure(provider) {
-  autoResetIfNeeded(provider);
-  const rec = ensureRecord(provider);
+export function recordProviderFailure(provider: string) {
+  const snapshot = loadUsage();
+  autoResetIfNeeded(provider, snapshot);
+  const rec = ensureRecord(provider, snapshot);
 
   rec.requestCount += 1;
   rec.failureCount += 1;
   rec.lastUsedAt = Date.now();
 
-  logger.warn("provider.usage.failure", {
+  saveUsage(snapshot);
+
+  logger.warn('provider.usage.failure', {
     provider,
     requestCount: rec.requestCount,
     failureCount: rec.failureCount,
@@ -98,19 +112,27 @@ export function recordProviderFailure(provider) {
 }
 
 export function getProviderUsage() {
+  const snapshot = loadUsage();
+
   for (const provider of KNOWN_PROVIDERS) {
-    autoResetIfNeeded(provider);
-    ensureRecord(provider);
+    autoResetIfNeeded(provider, snapshot);
+    ensureRecord(provider, snapshot);
   }
-  return KNOWN_PROVIDERS.map((provider) => ensureRecord(provider));
+
+  saveUsage(snapshot);
+
+  return KNOWN_PROVIDERS.map((provider) => ensureRecord(provider, snapshot));
 }
 
-export function resetProviderUsage(provider) {
+export function resetProviderUsage(provider?: string) {
   if (!provider) {
-    usageState.clear();
-    logger.info("provider.usage.reset_all");
+    saveUsage({});
+    logger.info('provider.usage.reset_all');
     return;
   }
-  usageState.delete(provider);
-  logger.info("provider.usage.reset", { provider });
+
+  const snapshot = loadUsage();
+  delete snapshot[provider];
+  saveUsage(snapshot);
+  logger.info('provider.usage.reset', { provider });
 }

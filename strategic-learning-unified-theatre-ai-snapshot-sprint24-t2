@@ -1,0 +1,22 @@
+SPRINT 24 — T2 COMPLETE
+
+FILES:
+src/llm/provider-health.ts
+
+STATUS:
+health module replaced with persistent JSON version
+markProviderHealthy() added
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] Health state reads from ~/.unified-ai-workspace/provider-health.json
+[x] markProviderFromError() persists health state
+[x] markProviderHealthy() removes provider from persisted state
+[x] isProviderAvailable() reads from file, auto-recovers expired cooldowns
+[x] resetProviderHealth() clears file or single entry
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+T3 — persistent provider usage module

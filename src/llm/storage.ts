@@ -1,9 +1,9 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
-import { dirname, join } from 'path';
-import { homedir } from 'os';
-import { logger } from '../shared/logging/logger';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
+import { dirname, join } from "path";
+import { homedir } from "os";
+import { logger } from "../shared/logging/logger";
 
-const APP_DIR = join(homedir(), '.unified-ai-workspace');
+const APP_DIR = join(homedir(), ".unified-ai-workspace");
 
 function ensureDir(path: string) {
   mkdirSync(dirname(path), { recursive: true });
@@ -21,10 +21,10 @@ export function readJsonFile<T>(fileName: string, fallback: T): T {
       return fallback;
     }
 
-    const raw = readFileSync(filePath, 'utf-8');
+    const raw = readFileSync(filePath, "utf-8");
     return JSON.parse(raw) as T;
   } catch (error) {
-    logger.warn('storage.read.failed', {
+    logger.warn("storage.read.failed", {
       fileName,
       error: error instanceof Error ? error.message : String(error),
     });
@@ -37,9 +37,9 @@ export function writeJsonFile(fileName: string, value: unknown) {
 
   try {
     ensureDir(filePath);
-    writeFileSync(filePath, JSON.stringify(value, null, 2), 'utf-8');
+    writeFileSync(filePath, JSON.stringify(value, null, 2), "utf-8");
   } catch (error) {
-    logger.error('storage.write.failed', {
+    logger.error("storage.write.failed", {
       fileName,
       error: error instanceof Error ? error.message : String(error),
     });
