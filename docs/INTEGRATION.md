@@ -1,18 +1,22 @@
-# Sprint 19 Patch Integration
+# Sprint 20 Patch Integration
 
-## Prerequisite
+## Prerequisites
+Sprint 18 and Sprint 19 files must already exist in the repo.
 
-Sprint 18 contracts, schemas, and error files must exist.
-
-## Files committed
-
-- src/shared/logging/logger.ts
+## Files added or replaced
+- src/shared/errors/provider-map.ts
+- src/shared/errors/index.ts
+- src/llm/providers/base.ts
 - src/llm/providers/local.ts
+- src/llm/providers/openai.ts
+- src/llm/providers/gemini.ts
+- src/llm/providers/groq.ts
+- src/llm/providers/perplexity.ts
+- src/llm/providers/index.ts
 - src/llm/gateway.ts
 - src/llm/index.ts
 
 ## Suggested next sprint hooks
-
-- Add a second provider adapter beside local
-- Replace logger with pino later if needed
-- Add provider health and fallback logic in Sprint 21
+- Add health classification and cooldown logic
+- Add fallback routing
+- Add provider status inspection

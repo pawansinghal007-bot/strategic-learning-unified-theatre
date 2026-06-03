@@ -1,0 +1,23 @@
+SPRINT 20 — T4 COMPLETE
+
+FILES:
+src/llm/gateway.ts
+src/llm/index.ts
+
+STATUS:
+gateway expanded with 5 providers
+stream() method added
+llm barrel updated
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] Gateway wires groq, gemini, openai, perplexity, local
+[x] stream() method implemented and validated
+[x] Default provider order set: groq > gemini > openai > perplexity > local
+[x] llm barrel exports from providers index
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+T5 — docs
