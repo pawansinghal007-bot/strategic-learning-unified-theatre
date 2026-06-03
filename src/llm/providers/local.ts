@@ -1,41 +1,35 @@
 import {
-  ProviderAdapter,
   ProviderCapability,
   ProviderHealth,
   ProviderRequest,
   ProviderResponse,
-} from "../../shared/contracts/provider";
+} from '../../shared/contracts/provider';
+import { BaseProviderAdapter } from './base';
 
-export class LocalProviderAdapter implements ProviderAdapter {
-  readonly name = "local" as const;
+export class LocalProviderAdapter extends BaseProviderAdapter {
+  readonly name = 'local' as const;
 
   capabilities(): ProviderCapability[] {
-    return [
-      "chat",
-      "offline",
-      "private_mode",
-      "summarization",
-      "code_generation",
-    ];
+    return ['chat', 'offline', 'private_mode', 'summarization', 'code_generation'];
   }
 
   async health(): Promise<ProviderHealth> {
     return {
       provider: this.name,
       available: true,
-      status: "healthy",
-      message: "Local provider available",
+      status: 'healthy',
+      message: 'Local provider available',
       lastCheckedAt: new Date().toISOString(),
     };
   }
 
-  async ask(req: ProviderRequest): Promise<ProviderResponse> {
+  protected async execute(req: ProviderRequest): Promise<ProviderResponse> {
     return {
       requestId: req.requestId,
       provider: this.name,
-      model: "local-dev-stub",
+      model: 'local-dev-stub',
       outputText: `[local stub] ${req.prompt}`,
-      finishReason: "stop",
+      finishReason: 'stop',
       usage: {
         inputTokens: req.prompt.length,
         outputTokens: req.prompt.length,
@@ -45,8 +39,8 @@ export class LocalProviderAdapter implements ProviderAdapter {
       },
       routingReasons: [
         {
-          code: "default_selection",
-          message: "Selected local adapter as the configured provider.",
+          code: 'default_selection',
+          message: 'Selected local adapter as the configured provider.',
         },
       ],
       raw: { stub: true },

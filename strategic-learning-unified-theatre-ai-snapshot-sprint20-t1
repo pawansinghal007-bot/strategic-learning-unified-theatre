@@ -1,0 +1,14 @@
+SPRINT 20 — T1 COMPLETE
+
+FILES:
+  src/shared/errors/provider-map.ts
+  src/shared/errors/index.ts
+
+STATUS:
+  error normalizer created
+  index updated
+  compile clean
+  sonar clean
+
+NEXT:
+  T2 — base provider adapter
