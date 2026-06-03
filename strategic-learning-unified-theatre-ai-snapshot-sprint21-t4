@@ -1,0 +1,21 @@
+SPRINT 21 — T4 COMPLETE
+
+FILES:
+tests/sprint21-smoke.test.js
+
+STATUS:
+11 smoke tests written in plain JS
+health tracking tests passing
+gateway fallback tests passing
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] Health state tests — mark, check, reset
+[x] Gateway fallback test — cloud providers unhealthy, local wins
+[x] No TypeScript syntax in test file
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+T5 — sprint closure + stable snapshot
