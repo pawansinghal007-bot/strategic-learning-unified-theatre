@@ -1,20 +1,20 @@
-import { Command } from "commander";
-import { getProviderUsage, resetProviderUsage } from "../llm/provider-usage";
+import { Command } from 'commander';
+import { getProviderUsage, resetProviderUsage } from '../llm/provider-usage';
 
 export function registerLlmUsage(program) {
   program
-    .command("llm:usage")
-    .description("Show request, token, and cost usage for all AI providers")
+    .command('llm:usage')
+    .description('Show request, token, and cost usage for all AI providers')
     .action(() => {
       const rows = getProviderUsage();
 
-      console.log("\nAI Provider Usage\n");
+      console.log('\nAI Provider Usage\n');
 
       for (const p of rows) {
         const resetLabel =
           p.resetAt != null
             ? ` | resets ${new Date(p.resetAt).toISOString()}`
-            : "";
+            : '';
 
         console.log(
           [
@@ -25,18 +25,18 @@ export function registerLlmUsage(program) {
             `tokens=${String(p.totalTokens).padEnd(8)}`,
             `cost=$${p.estimatedCostUsd.toFixed(4)}`,
             resetLabel,
-          ].join(" "),
+          ].join(' '),
         );
       }
 
-      console.log("");
+      console.log('');
     });
 
   program
-    .command("llm:usage:reset [provider]")
-    .description("Reset usage counters (all or specific provider)")
+    .command('llm:usage:reset [provider]')
+    .description('Reset usage counters (all or specific provider)')
     .action((provider) => {
-      const valid = ["groq", "gemini", "openai", "perplexity", "local"];
+      const valid = ['groq', 'gemini', 'openai', 'perplexity', 'local'];
       if (provider && !valid.includes(provider)) {
         console.error(`Unknown provider: ${provider}`);
         process.exitCode = 1;
@@ -44,6 +44,6 @@ export function registerLlmUsage(program) {
       }
 
       resetProviderUsage(provider);
-      console.log(`✅ Reset usage for ${provider || "all providers"}`);
+      console.log(`✅ Reset usage for ${provider || 'all providers'}`);
     });
 }

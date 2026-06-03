@@ -1,8 +1,8 @@
-import { logger } from '../shared/logging/logger';
-import { readJsonFile, writeJsonFile } from './storage';
+import { logger } from "../shared/logging/logger";
+import { readJsonFile, writeJsonFile } from "./storage";
 
-const USAGE_FILE = 'provider-usage.json';
-const KNOWN_PROVIDERS = ['groq', 'gemini', 'openai', 'perplexity', 'local'];
+const USAGE_FILE = "provider-usage.json";
+const KNOWN_PROVIDERS = ["groq", "gemini", "openai", "perplexity", "local"];
 
 function loadUsage() {
   return readJsonFile(USAGE_FILE, {});
@@ -15,13 +15,13 @@ function saveUsage(state: Record<string, any>) {
 function defaultResetAt(provider: string) {
   const now = new Date();
 
-  if (provider === 'groq' || provider === 'gemini') {
+  if (provider === "groq" || provider === "gemini") {
     const next = new Date(now);
     next.setUTCHours(24, 0, 0, 0);
     return next.getTime();
   }
 
-  if (provider === 'perplexity') {
+  if (provider === "perplexity") {
     const next = new Date(
       Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1, 0, 0, 0, 0),
     );
@@ -66,7 +66,7 @@ function autoResetIfNeeded(provider: string, state: Record<string, any>) {
       lastUsedAt: undefined,
       resetAt: defaultResetAt(provider),
     };
-    logger.info('provider.usage.auto_reset', { provider });
+    logger.info("provider.usage.auto_reset", { provider });
   }
 }
 
@@ -85,7 +85,7 @@ export function recordProviderSuccess(provider: string, response: any) {
 
   saveUsage(snapshot);
 
-  logger.info('provider.usage.success', {
+  logger.info("provider.usage.success", {
     provider,
     requestCount: rec.requestCount,
     totalTokens: rec.totalTokens,
@@ -104,7 +104,7 @@ export function recordProviderFailure(provider: string) {
 
   saveUsage(snapshot);
 
-  logger.warn('provider.usage.failure', {
+  logger.warn("provider.usage.failure", {
     provider,
     requestCount: rec.requestCount,
     failureCount: rec.failureCount,
@@ -127,12 +127,12 @@ export function getProviderUsage() {
 export function resetProviderUsage(provider?: string) {
   if (!provider) {
     saveUsage({});
-    logger.info('provider.usage.reset_all');
+    logger.info("provider.usage.reset_all");
     return;
   }
 
   const snapshot = loadUsage();
   delete snapshot[provider];
   saveUsage(snapshot);
-  logger.info('provider.usage.reset', { provider });
+  logger.info("provider.usage.reset", { provider });
 }

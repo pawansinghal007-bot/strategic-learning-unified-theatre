@@ -2,22 +2,22 @@ import {
   getProviderHealthSnapshot,
   isProviderAvailable,
   resetProviderHealth,
-} from './provider-health';
-import { getProviderUsage, resetProviderUsage } from './provider-usage';
+} from "./provider-health";
+import { getProviderUsage, resetProviderUsage } from "./provider-usage";
 
-const KNOWN_PROVIDERS = ['groq', 'gemini', 'openai', 'perplexity', 'local'];
+const KNOWN_PROVIDERS = ["groq", "gemini", "openai", "perplexity", "local"];
 
 function envKeyForProvider(provider) {
   switch (provider) {
-    case 'groq':
-      return 'GROQ_API_KEY';
-    case 'gemini':
-      return 'GEMINI_API_KEY';
-    case 'openai':
-      return 'OPENAI_API_KEY';
-    case 'perplexity':
-      return 'PERPLEXITY_API_KEY';
-    case 'local':
+    case "groq":
+      return "GROQ_API_KEY";
+    case "gemini":
+      return "GEMINI_API_KEY";
+    case "openai":
+      return "OPENAI_API_KEY";
+    case "perplexity":
+      return "PERPLEXITY_API_KEY";
+    case "local":
       return null;
     default:
       return null;
@@ -53,7 +53,7 @@ export function getProviderStatus() {
     return {
       name,
       hasKey,
-      state: rec ? rec.state : 'unknown',
+      state: rec ? rec.state : "unknown",
       available,
       recoversInMinutes,
       reason: rec?.reason,

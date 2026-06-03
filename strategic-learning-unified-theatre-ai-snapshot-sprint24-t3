@@ -1,0 +1,23 @@
+SPRINT 24 — T3 COMPLETE
+
+FILES:
+src/llm/provider-usage.ts
+src/llm/status.ts
+
+STATUS:
+usage module replaced with persistent JSON version
+status.ts adds resetAllProviderTelemetry()
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] Usage state reads from ~/.unified-ai-workspace/provider-usage.json
+[x] recordProviderSuccess() persists usage state
+[x] recordProviderFailure() persists failure counts
+[x] resetProviderUsage() clears file or single entry
+[x] resetAllProviderTelemetry() resets both health and usage
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+T4 — updated CLI files
