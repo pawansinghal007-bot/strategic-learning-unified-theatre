@@ -1,9 +1,11 @@
 # Sprint 20 Patch Integration
 
 ## Prerequisites
+
 Sprint 18 and Sprint 19 files must already exist in the repo.
 
 ## Files added or replaced
+
 - src/shared/errors/provider-map.ts
 - src/shared/errors/index.ts
 - src/llm/providers/base.ts
@@ -17,6 +19,7 @@ Sprint 18 and Sprint 19 files must already exist in the repo.
 - src/llm/index.ts
 
 ## Suggested next sprint hooks
+
 - Add health classification and cooldown logic
 - Add fallback routing
 - Add provider status inspection

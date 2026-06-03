@@ -1,6 +1,7 @@
 # Sprint 20 — Concrete Closure Checklist
 
 ## Drop-in checklist
+
 - [x] src/shared/errors/provider-map.ts committed
 - [x] src/shared/errors/index.ts updated
 - [x] src/llm/providers/base.ts committed
@@ -17,6 +18,7 @@
 - [x] Git tagged and pushed
 
 ## Acceptance bullet closure
+
 - [x] Multiple provider adapters wired
 - [x] Shared base adapter committed
 - [x] Streaming shape standardized
@@ -24,5 +26,7 @@
 - [x] Gateway works without router rewrites
 
 ## Suggested next sprint
+
 Sprint 21: health engine and fallback routing
+
 - Dependencies: Sprint 20 provider layer
