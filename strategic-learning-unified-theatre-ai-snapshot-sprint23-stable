@@ -1,0 +1,29 @@
+SPRINT 23 COMPLETE: USAGE TRACKING & CLI DELIVERED
+
+SPRINT SUMMARY:
+T1  provider usage tracker         src/llm/provider-usage.ts
+T2  status + gateway hooks         src/llm/status.ts, gateway.ts
+T3  llm:usage CLI + health update  src/cli/llm-usage.ts, llm-health.ts, cli.js
+T4  docs                           sprint-23-scope, checklist, INTEGRATION
+T5  smoke tests                    tests/sprint23-smoke.test.js (11 tests)
+T6  sprint closure                 stable snapshot + tag
+
+STATUS:
+vitest pass — 80 files / 577 tests
+typecheck clean
+sonar clean
+tagged sprint-23-complete
+
+DELIVERABLES:
+[x] recordProviderSuccess() increments counters and token totals
+[x] recordProviderFailure() increments failure counters
+[x] gateway hooks record usage on ask and stream
+[x] llm:usage CLI prints req/ok/fail/tokens/cost per provider
+[x] llm:usage:reset clears all or single provider
+[x] llm:health enriched with usage totals
+[x] 11 smoke tests passing in plain JS
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+Sprint 24 — persistent usage + health storage

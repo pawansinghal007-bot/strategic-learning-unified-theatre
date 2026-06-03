@@ -187,3 +187,6 @@ Fallback and health core delivered. Health tracker, health-aware gateway, 11 smo
 
 ## Sprint 22 Complete
 Provider status CLI delivered. Status helper, llm:health commands, 10 smoke tests. Sonar clean.
+
+## Sprint 23 Complete
+Usage tracking delivered. Provider usage tracker, gateway hooks, llm:usage CLI, 11 smoke tests. Sonar clean.
