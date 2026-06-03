@@ -1,0 +1,23 @@
+SPRINT 22 — T4 COMPLETE
+
+FILES:
+tests/sprint22-smoke.test.js
+
+STATUS:
+10 smoke tests written in plain JS
+status row tests passing
+reset behaviour tests passing
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] Status row tests for all 5 providers
+[x] State reflection tests for quota, auth, timeout errors
+[x] Reset tests for all and single provider
+[x] recoversInMinutes tests for auth_error and temporarily_down
+[x] No TypeScript syntax in test file
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+T5 — sprint closure + stable snapshot
