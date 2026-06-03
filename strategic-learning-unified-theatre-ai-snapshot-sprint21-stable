@@ -1,0 +1,27 @@
+SPRINT 21 COMPLETE: FALLBACK & HEALTH CORE DELIVERED
+
+SPRINT SUMMARY:
+T1  provider health tracker        src/llm/provider-health.ts
+T2  health-aware gateway           src/llm/gateway.ts
+T3  docs                           sprint-21-scope, checklist, INTEGRATION
+T4  smoke tests                    tests/sprint21-smoke.test.js (11 tests)
+T5  sprint closure                 stable snapshot + tag
+
+STATUS:
+vitest pass — 78 files / 556 tests
+typecheck clean
+sonar clean
+tagged sprint-21-complete
+
+DELIVERABLES:
+[x] Provider health state tracked in memory
+[x] Domain errors classified into health states
+[x] Gateway skips unhealthy providers
+[x] Local fallback preserved as last resort
+[x] Health transitions logged
+[x] 11 smoke tests passing in plain JS
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+Sprint 22 — health CLI + advanced routing

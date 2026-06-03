@@ -181,3 +181,6 @@ Base gateway delivered. Logger, local adapter, gateway, smoke tests. Sonar clean
 
 ## Sprint 20 Complete
 Provider expansion delivered. Base adapter, 5 providers, streaming, error normalizer. Sonar clean.
+
+## Sprint 21 Complete
+Fallback and health core delivered. Health tracker, health-aware gateway, 11 smoke tests. Sonar clean.
