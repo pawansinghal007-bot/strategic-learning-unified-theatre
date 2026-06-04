@@ -1,0 +1,40 @@
+SPRINT 26 COMPLETE: EXPLAINABLE ROUTING + RECENT DECISIONS LOG DELIVERED
+
+SPRINT SUMMARY:
+T1  routing history + explainer    src/llm/routing-history.ts, routing-explainer.ts
+T2  gateway routing hooks          src/llm/gateway.ts
+T3  IPC + preload + dashboard      provider-telemetry-handlers.cjs, preload.cjs, dashboard.html
+T4  llm:routing CLI                src/cli/llm-routing.ts, cli.js
+T5  docs                           sprint-26-scope, checklist, INTEGRATION
+T6  smoke tests + closure          tests/sprint26-smoke.test.js
+
+STATUS:
+vitest pass — 83 files / ~654 tests
+typecheck clean
+sonar clean
+tagged sprint-26-complete
+
+DELIVERABLES:
+[x] Routing decisions persisted with human-readable reasons
+[x] Fallback chain tracked and visible
+[x] Dashboard routing decisions panel
+[x] Dashboard latest explanation panel
+[x] llm:routing CLI command
+[x] Routing history survives restart
+[x] Smoke tests passing
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+Sprint 27 — policy modes + manual provider controls
+
+ARCHITECTURE MAINTENANCE:
+Changed this sprint:
+- src/llm/gateway.ts (updated)
+- electron-ui/ipc/provider-telemetry-handlers.cjs (updated)
+- electron-ui/preload.cjs (updated)
+- src/ui/provider-dashboard.html (updated)
+- src/ui/types.d.ts (updated)
+Update PROJECT_ARCHITECTURE_AI_CONTEXT.md if any of the above
+changed the documented patterns, entry points, or wiring.
+If unchanged: report ARCHITECTURE UNCHANGED.

@@ -196,3 +196,6 @@ Persistent health and usage storage delivered. JSON-backed storage, resetAllProv
 
 ## Sprint 25 Complete
 Dashboard IPC and provider telemetry panel delivered. IPC bridge, preload, HTML dashboard, 11 smoke tests. Sonar clean.
+
+## Sprint 26 Complete
+Explainable routing and decisions log delivered. Routing history, explainer, gateway hooks, dashboard panel, llm:routing CLI. Sonar clean.
