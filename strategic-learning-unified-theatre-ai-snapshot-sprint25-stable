@@ -1,0 +1,58 @@
+SPRINT 25 COMPLETE: DASHBOARD IPC + PROVIDER TELEMETRY PANEL
+
+IMPLEMENTED ARCHITECTURE
+
+Main Registration:
+  electron-ui/main.cjs
+
+IPC Handlers:
+  electron-ui/ipc/provider-telemetry-handlers.cjs
+
+Preload Bridge:
+  electron-ui/preload.cjs
+
+Dashboard:
+  src/ui/provider-dashboard.html
+
+Telemetry Services:
+  src/llm/provider-health.ts
+  src/llm/provider-usage.ts
+
+Type Definitions:
+  src/ui/types.d.ts
+
+STATUS
+
+  Vitest:
+    82 files passed
+    637 tests passed
+
+  Typecheck:
+    clean
+
+  Sonar:
+    clean
+
+  Git:
+    commit 523296f
+    tag sprint-25-complete
+
+DELIVERABLES
+
+  [x] Provider telemetry IPC handlers
+  [x] Provider telemetry preload bridge
+  [x] Dashboard UI
+  [x] Health reset actions
+  [x] Usage reset actions
+  [x] Global reset action
+  [x] Renderer -> Preload -> IPC -> Service wiring
+  [x] Smoke tests
+  [x] Sonar clean
+  [x] Production tag created
+
+NEXT
+
+  Sprint 26
+    Routing explanation panel
+    Recent routing decisions log
+    Provider selection reasoning visibility

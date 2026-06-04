@@ -193,3 +193,6 @@ Usage tracking delivered. Provider usage tracker, gateway hooks, llm:usage CLI, 
 
 ## Sprint 24 Complete
 Persistent health and usage storage delivered. JSON-backed storage, resetAllProviderTelemetry, 12 smoke tests. Sonar clean.
+
+## Sprint 25 Complete
+Dashboard IPC and provider telemetry panel delivered. IPC bridge, preload, HTML dashboard, 11 smoke tests. Sonar clean.
