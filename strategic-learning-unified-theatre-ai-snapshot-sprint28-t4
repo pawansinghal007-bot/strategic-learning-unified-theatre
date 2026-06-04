@@ -1,0 +1,21 @@
+SPRINT 28 — T4 COMPLETE
+
+FILES:
+src/cli/llm-policy.ts (replaced)
+
+STATUS:
+llm:policy:presets lists all presets
+llm:policy:preset applies a named preset
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] llm:policy shows activePreset in output
+[x] llm:policy:presets lists all 5 presets with descriptions
+[x] llm:policy:preset applies preset and confirms
+[x] All Sprint 27 commands preserved
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+T5 — docs

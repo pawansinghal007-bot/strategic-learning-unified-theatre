@@ -129,14 +129,14 @@ contextBridge.exposeInMainWorld("providerTelemetry", {
     ipcRenderer.invoke("providerTelemetry:resetRoutingHistory"),
 });
 
-contextBridge.exposeInMainWorld('providerPolicy', {
-  get: () => ipcRenderer.invoke('providerPolicy:get'),
-  listPresets: () => ipcRenderer.invoke('providerPolicy:listPresets'),
-  applyPreset: (name) => ipcRenderer.invoke('providerPolicy:applyPreset', name),
-  setMode: (mode) => ipcRenderer.invoke('providerPolicy:setMode', mode),
-  allow: (provider) => ipcRenderer.invoke('providerPolicy:allow', provider),
-  block: (provider) => ipcRenderer.invoke('providerPolicy:block', provider),
+contextBridge.exposeInMainWorld("providerPolicy", {
+  get: () => ipcRenderer.invoke("providerPolicy:get"),
+  listPresets: () => ipcRenderer.invoke("providerPolicy:listPresets"),
+  applyPreset: (name) => ipcRenderer.invoke("providerPolicy:applyPreset", name),
+  setMode: (mode) => ipcRenderer.invoke("providerPolicy:setMode", mode),
+  allow: (provider) => ipcRenderer.invoke("providerPolicy:allow", provider),
+  block: (provider) => ipcRenderer.invoke("providerPolicy:block", provider),
   setManualProvider: (provider) =>
-    ipcRenderer.invoke('providerPolicy:setManualProvider', provider),
-  reset: () => ipcRenderer.invoke('providerPolicy:reset'),
+    ipcRenderer.invoke("providerPolicy:setManualProvider", provider),
+  reset: () => ipcRenderer.invoke("providerPolicy:reset"),
 });

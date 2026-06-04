@@ -2,6 +2,16 @@
 
 Cross-platform account rotation for VS Code with secure OS secret storage, a tray UI, a background watcher daemon, and profile-driven workspace binding.
 
+## Sprint 28 — Policy presets & sensitive task rules
+
+Sprint 28 added reusable provider policy presets and prompt-sensitive routing rules to make provider routing safer and easier to manage.
+
+- Presets and sensitive-task rules: `docs/sprint-28-scope.md`
+- Closure checklist: `docs/sprint-28-checklist.md`
+- Integration notes: `docs/INTEGRATION.md`
+
+See the `docs/` folder for full details and smoke test instructions.
+
 ## Requirements
 
 - Node.js 18+

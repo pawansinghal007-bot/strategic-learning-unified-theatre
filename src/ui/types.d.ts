@@ -15,7 +15,7 @@ declare global {
       get: () => Promise<any>;
       listPresets: () => Promise<any[]>;
       applyPreset: (name: string) => Promise<any>;
-      setMode: (mode: 'cloud' | 'hybrid' | 'local-only') => Promise<any>;
+      setMode: (mode: "cloud" | "hybrid" | "local-only") => Promise<any>;
       allow: (provider: string) => Promise<any>;
       block: (provider: string) => Promise<any>;
       setManualProvider: (provider: string | null) => Promise<any>;
