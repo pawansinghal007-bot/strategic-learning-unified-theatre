@@ -1,0 +1,25 @@
+SPRINT 25 — T2 COMPLETE
+
+FILES:
+electron-ui/preload.cjs (updated)
+src/ui/types.d.ts
+
+STATUS:
+providerTelemetry namespace appended to existing preload
+Window type augmentation added
+existing rotator namespace untouched
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] providerTelemetry.getStatus exposed to renderer
+[x] providerTelemetry.getUsage exposed to renderer
+[x] providerTelemetry.resetHealth exposed to renderer
+[x] providerTelemetry.resetUsage exposed to renderer
+[x] providerTelemetry.resetAll exposed to renderer
+[x] Existing rotator namespace untouched
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+T3 — provider dashboard HTML panel
