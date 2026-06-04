@@ -1,3 +1,4 @@
+import { detectSensitiveTask } from "../policies/sensitive-task-rules";
 import { getProviderPolicy } from "../policies/provider-policy";
 
 export function explainRoutingSelection(
@@ -14,11 +15,15 @@ export function explainRoutingSelection(
     fallbackFrom?: string;
     unavailableProviders?: string[];
     policyApplied?: boolean;
+    policyReason?: string;
   } = {},
 ) {
   const policy = getProviderPolicy();
+  const sensitive = detectSensitiveTask(request);
 
-  // Highest-priority explanations
+  if (sensitive.forceLocal && provider === "local") {
+    return `Selected local because sensitive task rules detected restricted content: ${sensitive.reasons.join(" ")}`;
+  }
 
   if (context.fallbackFrom) {
     return `Selected ${provider} as fallback after ${context.fallbackFrom} became unavailable or failed.`;
@@ -36,21 +41,21 @@ export function explainRoutingSelection(
     return `Selected ${provider} because it was explicitly preferred in request constraints.`;
   }
 
-  // Policy-based explanations
-
   if (policy.routingMode === "local-only") {
     return "Selected local because policy mode is local-only.";
   }
 
   if (policy.manualProvider === provider) {
-    return `Selected ${provider} because it is the manually pinned provider in policy settings.`;
+    return `Selected ${provider} because it is manually pinned in policy settings.`;
   }
 
-  if (context.policyApplied && policy.blockedProviders.length) {
-    return `Selected ${provider} after applying provider policy filters. Blocked: ${policy.blockedProviders.join(", ") || "none"}.`;
+  if (context.policyApplied && policy.blockedProviders.length > 0) {
+    return `Selected ${provider} after provider policy filtering removed blocked providers: ${policy.blockedProviders.join(", ")}.`;
   }
 
-  // Intent-based explanations
+  if (context.policyReason) {
+    return `Selected ${provider}. ${context.policyReason}`;
+  }
 
   if (request.intent === "research" && provider === "perplexity") {
     return "Selected Perplexity because the request intent is research-oriented.";
@@ -67,8 +72,6 @@ export function explainRoutingSelection(
   if (request.intent === "architecture" && provider === "openai") {
     return "Selected OpenAI because the request appears architecture-oriented.";
   }
-
-  // Availability explanations
 
   if (context.unavailableProviders?.length) {
     return `Selected ${provider} because higher-priority providers were unavailable: ${context.unavailableProviders.join(", ")}.`;

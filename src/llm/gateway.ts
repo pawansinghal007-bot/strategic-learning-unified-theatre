@@ -31,7 +31,11 @@ import {
 import { recordProviderFailure, recordProviderSuccess } from "./provider-usage";
 import { explainRoutingSelection } from "./routing-explainer";
 import { recordRoutingDecision } from "./routing-history";
-import { applyPolicyToCandidates } from "../policies/provider-policy";
+import {
+  applyPolicyToCandidates,
+  getState,
+  selectPolicyExplanation,
+} from "../policies/provider-policy";
 
 export interface GatewayOptions {
   providers?: Partial<Record<ProviderName, ProviderAdapter>>;
@@ -69,7 +73,14 @@ export class Gateway {
     }
 
     const baseCandidates = this.resolveCandidates(parsedRequest.data);
-    const candidates = applyPolicyToCandidates(baseCandidates);
+    const candidates = applyPolicyToCandidates(
+      baseCandidates,
+      parsedRequest.data,
+    );
+    const policyReason = selectPolicyExplanation(
+      getState(),
+      parsedRequest.data.prompt,
+    );
 
     if (!candidates.length) {
       throw new RoutingNoProviderError(
@@ -82,6 +93,7 @@ export class Gateway {
       workspaceId: parsedRequest.data.workspaceId,
       intent: parsedRequest.data.intent,
       candidates,
+      policyReason,
       health: getProviderHealthSnapshot(),
     });
 
@@ -137,6 +149,7 @@ export class Gateway {
             fallbackFrom,
             unavailableProviders,
             policyApplied: true,
+            policyReason,
           },
         );
 
@@ -217,7 +230,15 @@ export class Gateway {
     }
 
     const baseCandidates = this.resolveCandidates(parsedRequest.data);
-    const candidates = applyPolicyToCandidates(baseCandidates);
+    const candidates = applyPolicyToCandidates(
+      baseCandidates,
+      parsedRequest.data,
+    );
+    const policyReason = selectPolicyExplanation(
+      getState(),
+      parsedRequest.data.prompt,
+    );
+
     if (!candidates.length) {
       throw new RoutingNoProviderError(
         "No provider candidates available for stream",
@@ -241,6 +262,7 @@ export class Gateway {
     logger.info("gateway.stream.start", {
       requestId: parsedRequest.data.requestId,
       provider: providerName,
+      policyReason,
     });
 
     try {
@@ -260,6 +282,7 @@ export class Gateway {
 
       const reason = explainRoutingSelection(parsedRequest.data, providerName, {
         policyApplied: true,
+        policyReason,
       });
 
       recordRoutingDecision({

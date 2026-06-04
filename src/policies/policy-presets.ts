@@ -1,59 +1,60 @@
-const CLOUD_PROVIDERS = ['groq', 'gemini', 'openai', 'perplexity'];
-const ALL_PROVIDERS = ['groq', 'gemini', 'openai', 'perplexity', 'local'];
+const CLOUD_PROVIDERS = ["groq", "gemini", "openai", "perplexity"];
+const ALL_PROVIDERS = ["groq", "gemini", "openai", "perplexity", "local"];
 
 export const POLICY_PRESETS = {
   default: {
-    name: 'default',
-    label: 'Default',
-    description: 'Balanced cloud routing with no special restrictions.',
+    name: "default",
+    label: "Default",
+    description: "Balanced cloud routing with no special restrictions.",
     policy: {
-      routingMode: 'cloud',
+      routingMode: "cloud",
       allowedProviders: [...CLOUD_PROVIDERS],
       blockedProviders: [],
       manualProvider: null,
     },
   },
   coding: {
-    name: 'coding',
-    label: 'Coding mode',
-    description: 'Prefer fast coding providers while keeping cloud fallback available.',
+    name: "coding",
+    label: "Coding mode",
+    description:
+      "Prefer fast coding providers while keeping cloud fallback available.",
     policy: {
-      routingMode: 'hybrid',
-      allowedProviders: ['groq', 'openai', 'gemini', 'local'],
-      blockedProviders: ['perplexity'],
-      manualProvider: 'groq',
+      routingMode: "hybrid",
+      allowedProviders: ["groq", "openai", "gemini", "local"],
+      blockedProviders: ["perplexity"],
+      manualProvider: "groq",
     },
   },
   research: {
-    name: 'research',
-    label: 'Research mode',
-    description: 'Prefer research and summarization providers.',
+    name: "research",
+    label: "Research mode",
+    description: "Prefer research and summarization providers.",
     policy: {
-      routingMode: 'cloud',
-      allowedProviders: ['perplexity', 'gemini', 'openai'],
-      blockedProviders: ['groq', 'local'],
-      manualProvider: 'perplexity',
+      routingMode: "cloud",
+      allowedProviders: ["perplexity", "gemini", "openai"],
+      blockedProviders: ["groq", "local"],
+      manualProvider: "perplexity",
     },
   },
   private: {
-    name: 'private',
-    label: 'Private mode',
-    description: 'Route only to local for privacy-sensitive tasks.',
+    name: "private",
+    label: "Private mode",
+    description: "Route only to local for privacy-sensitive tasks.",
     policy: {
-      routingMode: 'local-only',
-      allowedProviders: ['local'],
+      routingMode: "local-only",
+      allowedProviders: ["local"],
       blockedProviders: [],
-      manualProvider: 'local',
+      manualProvider: "local",
     },
   },
   enterprise: {
-    name: 'enterprise',
-    label: 'Enterprise mode',
-    description: 'Conservative approved-provider set with local fallback.',
+    name: "enterprise",
+    label: "Enterprise mode",
+    description: "Conservative approved-provider set with local fallback.",
     policy: {
-      routingMode: 'hybrid',
-      allowedProviders: ['openai', 'gemini', 'local'],
-      blockedProviders: ['groq', 'perplexity'],
+      routingMode: "hybrid",
+      allowedProviders: ["openai", "gemini", "local"],
+      blockedProviders: ["groq", "perplexity"],
       manualProvider: null,
     },
   },

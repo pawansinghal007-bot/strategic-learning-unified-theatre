@@ -1,0 +1,24 @@
+SPRINT 28 — T1 COMPLETE
+
+FILES:
+src/policies/policy-presets.ts
+src/policies/sensitive-task-rules.ts
+
+STATUS:
+5 policy presets defined (default/coding/research/private/enterprise)
+sensitive task detection rules for PII, credentials, finance, legal, security
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] listPolicyPresets() returns all 5 presets
+[x] getPolicyPreset() returns preset by name
+[x] isPolicyPresetName() validates preset names
+[x] detectSensitiveTask() returns match, reasons, forceLocal, approvedProvidersOnly
+[x] PII and credentials force local routing
+[x] Finance/legal/security restrict to approved providers
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+T2 — updated provider-policy + routing-explainer + gateway
