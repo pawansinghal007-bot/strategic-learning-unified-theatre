@@ -128,3 +128,13 @@ contextBridge.exposeInMainWorld("providerTelemetry", {
   resetRoutingHistory: () =>
     ipcRenderer.invoke("providerTelemetry:resetRoutingHistory"),
 });
+
+contextBridge.exposeInMainWorld("providerPolicy", {
+  get: () => ipcRenderer.invoke("providerPolicy:get"),
+  setMode: (mode) => ipcRenderer.invoke("providerPolicy:setMode", mode),
+  allow: (provider) => ipcRenderer.invoke("providerPolicy:allow", provider),
+  block: (provider) => ipcRenderer.invoke("providerPolicy:block", provider),
+  setManualProvider: (provider) =>
+    ipcRenderer.invoke("providerPolicy:setManualProvider", provider),
+  reset: () => ipcRenderer.invoke("providerPolicy:reset"),
+});

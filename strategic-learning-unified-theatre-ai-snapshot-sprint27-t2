@@ -1,0 +1,21 @@
+SPRINT 27 — T2 COMPLETE
+
+FILES:
+src/llm/routing-explainer.ts
+src/llm/gateway.ts
+
+STATUS:
+routing explainer reads policy for context-aware reasons
+gateway applies applyPolicyToCandidates() before provider loop
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] Policy mode reflected in routing reason strings
+[x] Manual provider pinning reflected in routing reasons
+[x] Gateway filters candidates through policy before any attempt
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+T3 — policy IPC handler + preload + dashboard

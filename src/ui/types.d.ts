@@ -11,5 +11,13 @@ declare global {
       getRoutingHistory: (limit?: number) => Promise<any[]>;
       resetRoutingHistory: () => Promise<{ ok: true }>;
     };
+    providerPolicy: {
+      get: () => Promise<any>;
+      setMode: (mode: "cloud" | "hybrid" | "local-only") => Promise<any>;
+      allow: (provider: string) => Promise<any>;
+      block: (provider: string) => Promise<any>;
+      setManualProvider: (provider: string | null) => Promise<any>;
+      reset: () => Promise<any>;
+    };
   }
 }

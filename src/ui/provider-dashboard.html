@@ -2,21 +2,31 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Provider Telemetry</title>
+  <title>Provider Telemetry & Policy Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
-      --bg: #0f1115; --panel: #171a21; --muted: #8b95a7; --text: #e6eaf2;
-      --border: #2a3140; --good: #2fbf71; --warn: #f5a524; --bad: #f05d5e; --accent: #5b8cff;
+      --bg: #0f1115;
+      --panel: #171a21;
+      --muted: #8b95a7;
+      --text: #e6eaf2;
+      --border: #2a3140;
+      --good: #2fbf71;
+      --warn: #f5a524;
+      --bad: #f05d5e;
+      --accent: #5b8cff;
     }
     * { box-sizing: border-box; }
     body { margin: 0; font-family: Inter, Arial, sans-serif; background: var(--bg); color: var(--text); }
     header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
-    h1 { margin: 0; font-size: 20px; }
+    h1 { margin: 0; font-size: 22px; }
     .toolbar { display: flex; gap: 8px; flex-wrap: wrap; }
-    button { background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; cursor: pointer; }
-    button:hover { border-color: var(--accent); }
+    button, select { background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; cursor: pointer; }
+    button:hover, select:hover { border-color: var(--accent); }
+    select { min-width: 180px; }
     main { padding: 24px; display: grid; gap: 24px; }
+    .policy-grid { display: grid; gap: 16px; grid-template-columns: repeat(3, minmax(220px, 1fr)); }
+    @media (max-width: 1080px) { .policy-grid { grid-template-columns: 1fr; } }
     .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
     .two-col { display: grid; gap: 24px; grid-template-columns: 1.2fr 0.8fr; }
     @media (max-width: 960px) { .two-col { grid-template-columns: 1fr; } }
@@ -37,26 +47,69 @@
     .decision-title { font-size: 14px; font-weight: 600; }
     .decision-meta, .decision-reason { font-size: 13px; color: var(--muted); }
     .decision-error { font-size: 13px; color: var(--bad); margin-top: 6px; }
-    pre { margin: 0; white-space: pre-wrap; word-break: break-word; color: var(--muted); font-size: 12px; }
     .pill { display: inline-block; font-size: 12px; padding: 4px 8px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); margin-right: 8px; }
     .pill.success { color: var(--good); border-color: var(--good); }
     .pill.failed { color: var(--bad); border-color: var(--bad); }
+    .policy-row { display: grid; gap: 12px; }
+    .policy-group { display: grid; gap: 10px; }
+    .policy-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .provider-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
   </style>
 </head>
 <body>
   <header>
-    <h1>Provider Telemetry &amp; Routing</h1>
+    <h1>Provider Telemetry & Policy Dashboard</h1>
     <div class="toolbar">
       <button id="refreshBtn">Refresh</button>
       <button id="resetAllBtn">Reset all telemetry</button>
       <button id="resetHistoryBtn">Reset routing history</button>
+      <button id="resetPolicyBtn">Reset policy</button>
     </div>
   </header>
   <main>
+    <section class="policy-grid">
+      <div class="card policy-row">
+        <div class="section-title">Routing mode</div>
+        <div class="policy-group">
+          <label for="routingMode">Mode</label>
+          <select id="routingMode">
+            <option value="cloud">cloud</option>
+            <option value="hybrid">hybrid</option>
+            <option value="local-only">local-only</option>
+          </select>
+        </div>
+        <div class="policy-actions">
+          <button id="applyRoutingMode">Apply mode</button>
+        </div>
+      </div>
+      <div class="card policy-row">
+        <div class="section-title">Manual provider override</div>
+        <div class="policy-group">
+          <label for="manualProvider">Provider</label>
+          <select id="manualProvider">
+            <option value="">(none)</option>
+            <option value="groq">groq</option>
+            <option value="gemini">gemini</option>
+            <option value="openai">openai</option>
+            <option value="perplexity">perplexity</option>
+            <option value="local">local</option>
+          </select>
+        </div>
+        <div class="policy-actions">
+          <button id="applyManualProvider">Set manual provider</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-title">Current policy snapshot</div>
+        <pre id="policySnapshot">Loading policy...</pre>
+      </div>
+    </section>
+
     <section>
       <div class="section-title">Providers</div>
       <div id="providerGrid" class="grid"></div>
     </section>
+
     <section class="two-col">
       <div class="card">
         <div class="section-title">Recent routing decisions</div>
@@ -67,6 +120,7 @@
         <div id="latestExplanation" class="empty">No routing decisions yet.</div>
       </div>
     </section>
+
     <section class="card">
       <div class="section-title">Raw status snapshot</div>
       <pre id="rawStatus">Loading...</pre>
@@ -84,7 +138,11 @@
     function usagePct(r) { return Math.min(100, Math.round((r.totalTokens / 100000) * 100)); }
     function fmt(ts) { try { return new Date(ts).toLocaleString(); } catch(e) { return String(ts); } }
 
-    function rowCard(r) {
+    function policyButtonLabel(provider, manualProvider) {
+      return manualProvider === provider ? 'Unpin' : 'Pin';
+    }
+
+    function rowCard(r, policyState) {
       return '<div class="card"><div class="provider-name"><span>' + r.name + '</span>' +
         '<span class="badge ' + badgeClass(r) + '">' + badgeText(r) + '</span></div>' +
         '<div class="meta"><div>Available: ' + (r.available ? 'Yes' : 'No') + '</div>' +
@@ -92,11 +150,13 @@
         '<div>tokens=' + r.totalTokens + ' cost=$' + Number(r.estimatedCostUsd||0).toFixed(4) + '</div>' +
         '<div>state=' + r.state + (r.recoversInMinutes != null ? ' (recovers ' + r.recoversInMinutes + 'm)' : '') + '</div>' +
         (r.reason ? '<div>' + r.reason + '</div>' : '') + '</div>' +
+        '<div class="provider-actions">' +
+        '<button onclick="allowProvider('' + r.name + '')">Allow</button>' +
+        '<button onclick="blockProvider('' + r.name + '')">Block</button>' +
+        '<button onclick="pinProvider('' + r.name + '')">' + policyButtonLabel(r.name, policyState?.manualProvider) + '</button>' +
+        '</div>' +
         '<div class="bar-wrap"><div class="bar" style="width:' + usagePct(r) + '%"></div></div>' +
-        '<div class="toolbar" style="margin-top:12px;">' +
-        '<button onclick="resetHealth(\'' + r.name + '\')">Reset health</button>' +
-        '<button onclick="resetUsage(\'' + r.name + '\')">Reset usage</button>' +
-        '</div></div>';
+        '</div>';
     }
 
     function decisionCard(d) {
@@ -111,13 +171,27 @@
         '</div>';
     }
 
+    async function loadPolicy() {
+      try {
+        const policy = await window.providerPolicy.get();
+        document.getElementById('policySnapshot').textContent = JSON.stringify(policy, null, 2);
+        document.getElementById('routingMode').value = policy?.mode || 'cloud';
+        document.getElementById('manualProvider').value = policy?.manualProvider || '';
+        return policy;
+      } catch (e) {
+        document.getElementById('policySnapshot').textContent = 'Error loading policy: ' + e.message;
+        return null;
+      }
+    }
+
     async function loadTelemetry() {
       try {
+        const policy = await loadPolicy();
         const [rows, history] = await Promise.all([
           window.providerTelemetry.getStatus(),
           window.providerTelemetry.getRoutingHistory(20),
         ]);
-        document.getElementById('providerGrid').innerHTML = rows.length ? rows.map(rowCard).join('') : '<div class="empty">No provider data yet.</div>';
+        document.getElementById('providerGrid').innerHTML = rows.length ? rows.map((r) => rowCard(r, policy)).join('') : '<div class="empty">No provider data yet.</div>';
         document.getElementById('rawStatus').textContent = JSON.stringify(rows, null, 2);
         if (history.length) {
           document.getElementById('decisionList').innerHTML = history.map(decisionCard).join('');
@@ -132,38 +206,54 @@
           document.getElementById('decisionList').innerHTML = '<div class="empty">No routing decisions recorded yet.</div>';
           document.getElementById('latestExplanation').textContent = 'No routing decisions yet.';
         }
-      } catch(e) {
+      } catch (e) {
         document.getElementById('providerGrid').innerHTML = '<div class="empty">Error: ' + e.message + '</div>';
       }
     }
 
-    async function resetHealth(p) { await window.providerTelemetry.resetHealth(p); await loadTelemetry(); }
-    async function resetUsage(p) { await window.providerTelemetry.resetUsage(p); await loadTelemetry(); }
+    async function allowProvider(provider) {
+      await window.providerPolicy.allow(provider);
+      await loadPolicy();
+      await loadTelemetry();
+    }
+
+    async function blockProvider(provider) {
+      await window.providerPolicy.block(provider);
+      await loadPolicy();
+      await loadTelemetry();
+    }
+
+    async function pinProvider(provider) {
+      const current = document.getElementById('manualProvider').value;
+      const target = current === provider ? '' : provider;
+      document.getElementById('manualProvider').value = target;
+      await window.providerPolicy.setManualProvider(target || null);
+      await loadPolicy();
+      await loadTelemetry();
+    }
+
+    document.getElementById('applyRoutingMode').addEventListener('click', async () => {
+      const mode = document.getElementById('routingMode').value;
+      await window.providerPolicy.setMode(mode);
+      await loadPolicy();
+    });
+
+    document.getElementById('applyManualProvider').addEventListener('click', async () => {
+      const provider = document.getElementById('manualProvider').value || null;
+      await window.providerPolicy.setManualProvider(provider);
+      await loadPolicy();
+      await loadTelemetry();
+    });
 
     document.getElementById('refreshBtn').addEventListener('click', loadTelemetry);
     document.getElementById('resetAllBtn').addEventListener('click', async () => { await window.providerTelemetry.resetAll(); await loadTelemetry(); });
     document.getElementById('resetHistoryBtn').addEventListener('click', async () => { await window.providerTelemetry.resetRoutingHistory(); await loadTelemetry(); });
+    document.getElementById('resetPolicyBtn').addEventListener('click', async () => { await window.providerPolicy.reset(); await loadPolicy(); await loadTelemetry(); });
 
-    window.resetHealth = resetHealth;
-    window.resetUsage = resetUsage;
+    window.resetHealth = async function(p) { await window.providerTelemetry.resetHealth(p); await loadTelemetry(); };
+    window.resetUsage = async function(p) { await window.providerTelemetry.resetUsage(p); await loadTelemetry(); };
+
     loadTelemetry();
   </script>
 </body>
-</html>
-
-        .getElementById("refreshBtn")
-        .addEventListener("click", loadTelemetry);
-      document
-        .getElementById("resetAllBtn")
-        .addEventListener("click", async function () {
-          await window.providerTelemetry.resetAll();
-          await loadTelemetry();
-        });
-
-      window.resetHealth = resetHealth;
-      window.resetUsage = resetUsage;
-
-      loadTelemetry();
-    </script>
-  </body>
 </html>
