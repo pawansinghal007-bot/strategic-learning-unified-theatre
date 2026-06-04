@@ -29,6 +29,8 @@ import {
   markProviderFromError,
 } from "./provider-health";
 import { recordProviderFailure, recordProviderSuccess } from "./provider-usage";
+import { explainRoutingSelection } from "./routing-explainer";
+import { recordRoutingDecision } from "./routing-history";
 
 export interface GatewayOptions {
   providers?: Partial<Record<ProviderName, ProviderAdapter>>;
@@ -79,6 +81,8 @@ export class Gateway {
     });
 
     const errors: Array<{ provider: string; message: string }> = [];
+    const unavailableProviders: ProviderName[] = [];
+    let fallbackFrom: ProviderName | undefined;
 
     for (const providerName of candidates) {
       const provider = this.providers[providerName];
@@ -88,11 +92,14 @@ export class Gateway {
       }
 
       if (!isProviderAvailable(providerName)) {
+        unavailableProviders.push(providerName);
         logger.info("gateway.provider.skipped_unhealthy", {
           provider: providerName,
         });
         continue;
       }
+
+      const startedAt = Date.now();
 
       try {
         logger.info("gateway.provider.try", {
@@ -118,13 +125,39 @@ export class Gateway {
 
         recordProviderSuccess(providerName, parsedResponse.data);
 
+        const reason = explainRoutingSelection(
+          parsedRequest.data,
+          providerName,
+          {
+            fallbackFrom,
+            unavailableProviders,
+          },
+        );
+
+        recordRoutingDecision({
+          request: parsedRequest.data,
+          provider: providerName,
+          model: parsedResponse.data.model,
+          success: true,
+          reason,
+          fallbackFrom,
+          latencyMs: Date.now() - startedAt,
+        });
+
         logger.info("gateway.ask.success", {
           requestId: parsedRequest.data.requestId,
           provider: providerName,
           model: parsedResponse.data.model,
+          reason,
         });
 
-        return parsedResponse.data;
+        return {
+          ...parsedResponse.data,
+          routingReasons: [
+            ...(parsedResponse.data.routingReasons ?? []),
+            { code: "default_selection", message: reason },
+          ],
+        };
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
 
@@ -134,7 +167,21 @@ export class Gateway {
           markProviderFromError(providerName, error);
         }
 
+        const reason = `Provider ${providerName} failed and the gateway moved to fallback.`;
+
+        recordRoutingDecision({
+          request: parsedRequest.data,
+          provider: providerName,
+          model: "unknown-model",
+          success: false,
+          reason,
+          fallbackFrom,
+          latencyMs: Date.now() - startedAt,
+          errorMessage: message,
+        });
+
         errors.push({ provider: providerName, message });
+        fallbackFrom = providerName;
 
         logger.warn("gateway.provider.failed", {
           requestId: parsedRequest.data.requestId,
@@ -182,6 +229,7 @@ export class Gateway {
     }
 
     const provider = this.providers[providerName]!;
+    const startedAt = Date.now();
 
     logger.info("gateway.stream.start", {
       requestId: parsedRequest.data.requestId,
@@ -203,9 +251,21 @@ export class Gateway {
         yield parsedChunk.data;
       }
 
+      const reason = explainRoutingSelection(parsedRequest.data, providerName);
+
+      recordRoutingDecision({
+        request: parsedRequest.data,
+        provider: providerName,
+        model: "streaming-model",
+        success: true,
+        reason,
+        latencyMs: Date.now() - startedAt,
+      });
+
       logger.info("gateway.stream.success", {
         requestId: parsedRequest.data.requestId,
         provider: providerName,
+        reason,
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -215,6 +275,16 @@ export class Gateway {
       if (error instanceof DomainError) {
         markProviderFromError(providerName, error);
       }
+
+      recordRoutingDecision({
+        request: parsedRequest.data,
+        provider: providerName,
+        model: "streaming-model",
+        success: false,
+        reason: `Streaming failed on ${providerName}.`,
+        latencyMs: Date.now() - startedAt,
+        errorMessage: message,
+      });
 
       logger.warn("gateway.stream.failed", {
         requestId: parsedRequest.data.requestId,
@@ -231,7 +301,7 @@ export class Gateway {
       return [
         request.constraints.preferredProvider,
         ...this.defaultOrder.filter(
-          (p) => p !== request.constraints?.preferredProvider,
+          (p) => p !== request.constraints.preferredProvider,
         ),
       ];
     }

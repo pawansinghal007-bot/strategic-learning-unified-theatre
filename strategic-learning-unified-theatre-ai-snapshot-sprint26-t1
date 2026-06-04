@@ -1,0 +1,22 @@
+SPRINT 26 — T1 COMPLETE
+
+FILES:
+src/llm/routing-history.ts
+src/llm/routing-explainer.ts
+
+STATUS:
+routing history store created with JSON persistence
+routing explainer generates human-readable reasons
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] recordRoutingDecision() persists routing decisions
+[x] getRoutingHistory() returns recent decisions with limit
+[x] resetRoutingHistory() clears persisted history
+[x] explainRoutingSelection() generates contextual reason strings
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+T2 — gateway with routing hooks
