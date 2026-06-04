@@ -105,6 +105,41 @@
       </div>
     </section>
 
+    <section class="policy-grid">
+      <div class="card">
+        <div class="section-title">Policy preset</div>
+        <div class="policy-group">
+          <label for="presetSelector">Preset</label>
+          <select id="presetSelector"></select>
+        </div>
+        <div class="policy-actions">
+          <button id="applyPresetBtn">Apply preset</button>
+        </div>
+        <div class="policy-group">
+          <div class="section-title">Active preset</div>
+          <div id="activePreset">Loading...</div>
+        </div>
+        <div class="policy-group">
+          <div class="section-title">Preset description</div>
+          <div id="presetDescription" class="meta">Loading preset details...</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-title">Sensitive task rules</div>
+        <div class="meta">
+          <div><strong>PII</strong>: pan, aadhaar, passport, ssn, social security, date of birth, phone number, home address</div>
+          <div><strong>Credentials</strong>: api key, secret key, password, token, private key, credential</div>
+          <div><strong>Finance</strong>: bank statement, account number, ifsc, credit card, financial report, invoice, balance sheet</div>
+          <div><strong>Legal</strong>: contract, nda, legal notice, compliance, regulatory</div>
+          <div><strong>Security</strong>: vulnerability, exploit, penetration test, security audit, incident</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-title">Preset summary</div>
+        <pre id="presetSummary" class="empty">No preset summary loaded.</pre>
+      </div>
+    </section>
+
     <section>
       <div class="section-title">Providers</div>
       <div id="providerGrid" class="grid"></div>
@@ -136,7 +171,7 @@
       return r.available ? (r.state === 'unknown' ? 'healthy' : r.state) : (r.state || 'unavailable');
     }
     function usagePct(r) { return Math.min(100, Math.round((r.totalTokens / 100000) * 100)); }
-    function fmt(ts) { try { return new Date(ts).toLocaleString(); } catch(e) { return String(ts); } }
+    function fmt(ts) { try { return new Date(ts).toLocaleString(); } catch (e) { return String(ts); } }
 
     function policyButtonLabel(provider, manualProvider) {
       return manualProvider === provider ? 'Unpin' : 'Pin';
@@ -147,13 +182,13 @@
         '<span class="badge ' + badgeClass(r) + '">' + badgeText(r) + '</span></div>' +
         '<div class="meta"><div>Available: ' + (r.available ? 'Yes' : 'No') + '</div>' +
         '<div>req=' + r.requestCount + ' ok=' + r.successCount + ' fail=' + r.failureCount + '</div>' +
-        '<div>tokens=' + r.totalTokens + ' cost=$' + Number(r.estimatedCostUsd||0).toFixed(4) + '</div>' +
+        '<div>tokens=' + r.totalTokens + ' cost=$' + Number(r.estimatedCostUsd || 0).toFixed(4) + '</div>' +
         '<div>state=' + r.state + (r.recoversInMinutes != null ? ' (recovers ' + r.recoversInMinutes + 'm)' : '') + '</div>' +
         (r.reason ? '<div>' + r.reason + '</div>' : '') + '</div>' +
         '<div class="provider-actions">' +
-        '<button onclick="allowProvider('' + r.name + '')">Allow</button>' +
-        '<button onclick="blockProvider('' + r.name + '')">Block</button>' +
-        '<button onclick="pinProvider('' + r.name + '')">' + policyButtonLabel(r.name, policyState?.manualProvider) + '</button>' +
+        '<button onclick="allowProvider(\'' + r.name + '\')">Allow</button>' +
+        '<button onclick="blockProvider(\'' + r.name + '\')">Block</button>' +
+        '<button onclick="pinProvider(\'' + r.name + '\')">' + policyButtonLabel(r.name, policyState?.manualProvider) + '</button>' +
         '</div>' +
         '<div class="bar-wrap"><div class="bar" style="width:' + usagePct(r) + '%"></div></div>' +
         '</div>';
@@ -174,9 +209,19 @@
     async function loadPolicy() {
       try {
         const policy = await window.providerPolicy.get();
+        const presets = await window.providerPolicy.listPresets();
+        const presetSelect = document.getElementById('presetSelector');
+        presetSelect.innerHTML = presets
+          .map((p) => '<option value="' + p.name + '">' + p.label + '</option>')
+          .join('');
         document.getElementById('policySnapshot').textContent = JSON.stringify(policy, null, 2);
-        document.getElementById('routingMode').value = policy?.mode || 'cloud';
+        document.getElementById('routingMode').value = policy?.routingMode || 'cloud';
         document.getElementById('manualProvider').value = policy?.manualProvider || '';
+        document.getElementById('activePreset').textContent = policy?.activePreset || 'default';
+        const activePreset = presets.find((p) => p.name === policy?.activePreset);
+        document.getElementById('presetDescription').textContent = activePreset?.description || 'No preset selected.';
+        document.getElementById('presetSummary').textContent = activePreset ? JSON.stringify(activePreset, null, 2) : 'No preset selected.';
+        presetSelect.value = policy?.activePreset || 'default';
         return policy;
       } catch (e) {
         document.getElementById('policySnapshot').textContent = 'Error loading policy: ' + e.message;
@@ -249,6 +294,12 @@
     document.getElementById('resetAllBtn').addEventListener('click', async () => { await window.providerTelemetry.resetAll(); await loadTelemetry(); });
     document.getElementById('resetHistoryBtn').addEventListener('click', async () => { await window.providerTelemetry.resetRoutingHistory(); await loadTelemetry(); });
     document.getElementById('resetPolicyBtn').addEventListener('click', async () => { await window.providerPolicy.reset(); await loadPolicy(); await loadTelemetry(); });
+    document.getElementById('applyPresetBtn').addEventListener('click', async () => {
+      const preset = document.getElementById('presetSelector').value;
+      await window.providerPolicy.applyPreset(preset);
+      await loadPolicy();
+      await loadTelemetry();
+    });
 
     window.resetHealth = async function(p) { await window.providerTelemetry.resetHealth(p); await loadTelemetry(); };
     window.resetUsage = async function(p) { await window.providerTelemetry.resetUsage(p); await loadTelemetry(); };

@@ -1,0 +1,26 @@
+SPRINT 28 — T2 COMPLETE
+
+FILES:
+src/policies/provider-policy.ts
+src/llm/routing-explainer.ts
+src/llm/gateway.ts
+
+STATUS:
+provider-policy supports presets and sensitive task filtering
+applyPolicyToCandidates() returns { candidates, policyReason }
+routing explainer shows sensitive rule influence
+gateway destructures policyResult correctly
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] applyPolicyPreset() persists preset and updates policy
+[x] detectSensitiveTask() called in applyPolicyToCandidates()
+[x] PII/credentials force local in gateway
+[x] Finance/legal/security restrict candidate list in gateway
+[x] policyReason surfaced through to routing explanations
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+T3 — IPC handler + preload + types + dashboard
