@@ -1,0 +1,22 @@
+SPRINT 25 — T5 COMPLETE
+
+FILES:
+tests/sprint25-smoke.test.js
+
+STATUS:
+11 smoke tests written in plain JS
+IPC delegate function tests passing
+file existence tests passing
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] Status delegate tests — health, usage, reset
+[x] File existence tests for IPC, preload, dashboard
+[x] Dashboard HTML content check
+[x] No TypeScript syntax in test file
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+T6 — sprint closure + stable snapshot
