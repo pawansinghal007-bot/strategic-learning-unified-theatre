@@ -194,11 +194,13 @@ export function selectCandidates(
   }
 
   if (request) {
-    const sensitive = detectSensitiveTask(request);
+    const sensitive = detectSensitiveTask(
+      typeof request === "string" ? { prompt: request } : request,
+    );
     if (sensitive.forceLocal) return ["local"];
     if (sensitive.approvedProvidersOnly?.length) {
       filtered = filtered.filter((p) =>
-        sensitive.approvedProvidersOnly.includes(p),
+        sensitive.approvedProvidersOnly!.includes(p),
       );
     }
   }
@@ -221,7 +223,9 @@ export function selectPolicyExplanation(
   if (state.activePreset) parts.push(`Preset: ${state.activePreset}`);
 
   if (request) {
-    const sensitive = detectSensitiveTask(request);
+    const sensitive = detectSensitiveTask(
+      typeof request === "string" ? { prompt: request } : request,
+    );
     if (sensitive.forceLocal) {
       parts.push(`Forced local: ${sensitive.reasons.join(" ")}`);
     }
@@ -258,7 +262,7 @@ export function getState() {
 
 export function applyPolicyPreset(name: string) {
   const preset = getPolicyPreset(name);
-  return saveProviderPolicy({
+  state = saveProviderPolicy({
     routingMode: preset.policy.routingMode ?? "cloud",
     allowedProviders: preset.policy.allowedProviders ?? [],
     blockedProviders: preset.policy.blockedProviders ?? [],
@@ -266,6 +270,7 @@ export function applyPolicyPreset(name: string) {
     activePreset: name,
     updatedAt: Date.now(),
   });
+  return state;
 }
 
 export function resetProviderPolicy() {
@@ -297,19 +302,25 @@ export function setManualProvider(provider: string | null) {
   return dispatch({ type: "SET_MANUAL_PROVIDER", provider });
 }
 
-export function resetProviderPolicyCompat() {
-  return dispatch({ type: "RESET", defaultState: DEFAULT_POLICY });
-}
-
 export function applyPolicyToCandidates(
   candidates: string[],
   request?: any,
 ): string[] {
-  return selectCandidates(
-    getState(),
-    candidates,
-    typeof request === "string" ? request : request?.prompt,
-  );
+  const currentState = getState();
+  const prompt = typeof request === "string" ? request : request?.prompt;
+  return selectCandidates(currentState, candidates, prompt);
+}
+
+export function applyPolicyToCandidatesWithReason(
+  candidates: string[],
+  request?: any,
+): { candidates: string[]; policyReason: string } {
+  const currentState = getState();
+  const prompt = typeof request === "string" ? request : request?.prompt;
+  return {
+    candidates: selectCandidates(currentState, candidates, prompt),
+    policyReason: selectPolicyExplanation(currentState, prompt),
+  };
 }
 
 export const explainRoutingSelection = selectPolicyExplanation;

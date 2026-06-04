@@ -19,12 +19,12 @@ Sprints 18–27 must already be integrated.
 
 ## Architecture — unchanged from Sprint 27
 
-Main:      electron-ui/main.cjs
-Preload:   electron-ui/preload.cjs
-IPC:       electron-ui/ipc/provider-telemetry-handlers.cjs
-		   electron-ui/ipc/provider-policy-handlers.cjs
+Main: electron-ui/main.cjs
+Preload: electron-ui/preload.cjs
+IPC: electron-ui/ipc/provider-telemetry-handlers.cjs
+electron-ui/ipc/provider-policy-handlers.cjs
 Dashboard: src/ui/provider-dashboard.html
-Services:  src/llm/*.ts, src/policies/*.ts
+Services: src/llm/_.ts, src/policies/_.ts
 
 ## Smoke test
 

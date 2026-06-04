@@ -33,6 +33,7 @@ import { explainRoutingSelection } from "./routing-explainer";
 import { recordRoutingDecision } from "./routing-history";
 import {
   applyPolicyToCandidates,
+  applyPolicyToCandidatesWithReason,
   getState,
   selectPolicyExplanation,
 } from "../policies/provider-policy";
@@ -73,13 +74,9 @@ export class Gateway {
     }
 
     const baseCandidates = this.resolveCandidates(parsedRequest.data);
-    const candidates = applyPolicyToCandidates(
+    const { candidates, policyReason } = applyPolicyToCandidatesWithReason(
       baseCandidates,
       parsedRequest.data,
-    );
-    const policyReason = selectPolicyExplanation(
-      getState(),
-      parsedRequest.data.prompt,
     );
 
     if (!candidates.length) {
@@ -230,13 +227,9 @@ export class Gateway {
     }
 
     const baseCandidates = this.resolveCandidates(parsedRequest.data);
-    const candidates = applyPolicyToCandidates(
+    const { candidates, policyReason } = applyPolicyToCandidatesWithReason(
       baseCandidates,
       parsedRequest.data,
-    );
-    const policyReason = selectPolicyExplanation(
-      getState(),
-      parsedRequest.data.prompt,
     );
 
     if (!candidates.length) {

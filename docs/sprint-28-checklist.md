@@ -1,6 +1,7 @@
 # Sprint 28 — Concrete Closure Checklist
 
 ## Drop-in checklist
+
 - [x] src/policies/policy-presets.ts committed
 - [x] src/policies/sensitive-task-rules.ts committed
 - [x] src/policies/provider-policy.ts replaced
@@ -16,6 +17,7 @@
 - [x] Git tagged and pushed
 
 ## Acceptance bullet closure
+
 - [x] Presets persisted and usable
 - [x] Sensitive task rules affect routing
 - [x] Routing explanations mention policy effects
@@ -23,6 +25,8 @@
 - [x] CLI exposes preset controls
 
 ## Suggested next sprint
+
 Sprint 29: workspace memory + context injection
+
 - Per-workspace memory store
 - Context injection into gateway requests
