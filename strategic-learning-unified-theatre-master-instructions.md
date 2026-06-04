@@ -190,3 +190,6 @@ Provider status CLI delivered. Status helper, llm:health commands, 10 smoke test
 
 ## Sprint 23 Complete
 Usage tracking delivered. Provider usage tracker, gateway hooks, llm:usage CLI, 11 smoke tests. Sonar clean.
+
+## Sprint 24 Complete
+Persistent health and usage storage delivered. JSON-backed storage, resetAllProviderTelemetry, 12 smoke tests. Sonar clean.

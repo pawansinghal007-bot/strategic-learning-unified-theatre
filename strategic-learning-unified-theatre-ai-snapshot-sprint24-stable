@@ -1,0 +1,28 @@
+SPRINT 24 COMPLETE: PERSISTENT HEALTH & USAGE STORAGE DELIVERED
+
+SPRINT SUMMARY:
+T1  storage helper                 src/llm/storage.ts
+T2  persistent health module       src/llm/provider-health.ts
+T3  persistent usage + status      src/llm/provider-usage.ts, status.ts
+T4  updated CLI files              src/cli/llm-health.ts, llm-usage.ts
+T5  docs                           sprint-24-scope, checklist, INTEGRATION
+T6  smoke tests + closure          tests/sprint24-smoke.test.js (12 tests)
+
+STATUS:
+vitest pass — 81 files / 587 tests
+typecheck clean
+sonar clean
+tagged sprint-24-complete
+
+DELIVERABLES:
+[x] Health state persists across restarts (JSON file)
+[x] Usage counters persist across restarts (JSON file)
+[x] Storage failures logged, never crash gateway
+[x] resetAllProviderTelemetry() resets both health and usage
+[x] --all-telemetry flag on llm:health:reset
+[x] 12 smoke tests passing in plain JS
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+Sprint 25 — dashboard IPC + provider telemetry panel
