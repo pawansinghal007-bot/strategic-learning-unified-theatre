@@ -1,0 +1,23 @@
+SPRINT 26 — T4 COMPLETE
+
+FILES:
+src/cli/llm-routing.ts
+cli.js (updated)
+
+STATUS:
+llm:routing command created
+llm:routing:reset command created
+registerLlmRouting wired into cli.js
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] llm:routing prints recent decisions with reason and latency
+[x] llm:routing:reset clears persisted history
+[x] registerLlmRouting wired into cli.js
+[x] Follows existing CLI registration pattern
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+T5 — docs
