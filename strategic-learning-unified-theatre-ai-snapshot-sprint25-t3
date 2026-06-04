@@ -1,0 +1,23 @@
+SPRINT 25 — T3 COMPLETE
+
+FILES:
+src/ui/provider-dashboard.html
+
+STATUS:
+dashboard panel created
+self-contained HTML/CSS/JS
+calls window.providerTelemetry via preload bridge
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] Provider cards with state, availability, tokens, cost
+[x] Per-provider reset health and reset usage buttons
+[x] Global refresh and reset all telemetry buttons
+[x] Raw status snapshot section
+[x] No external dependencies
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+T4 — docs

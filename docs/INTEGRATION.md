@@ -1,32 +1,70 @@
-# Sprint 24 Patch Integration
+# Sprint 25 Patch Integration
 
-## Prerequisites
+## Verified architecture
+Main:
 
-Sprints 18–23 must already be integrated.
+- electron-ui/main.cjs
 
-## Files added or replaced
+Preload:
 
-- src/llm/storage.ts
+- electron-ui/preload.cjs
+
+IPC:
+
+- electron-ui/ipc/provider-telemetry-handlers.cjs
+
+UI:
+
+- src/ui/provider-dashboard.html
+
+Types:
+
+- src/ui/types.d.ts
+
+Services:
+
 - src/llm/provider-health.ts
 - src/llm/provider-usage.ts
-- src/llm/status.ts
-- src/cli/llm-health.ts
-- src/cli/llm-usage.ts
 
-## Storage location
+## Integration flow
+Renderer
+↓
+window.providerTelemetry
+↓
+electron-ui/preload.cjs
+↓
+providerTelemetry:* IPC channels
+↓
+electron-ui/ipc/provider-telemetry-handlers.cjs
+↓
+provider-health.ts / provider-usage.ts
 
-~/.unified-ai-workspace/provider-health.json
-~/.unified-ai-workspace/provider-usage.json
+## Wiring evidence
+IPC HANDLER:
+electron-ui/ipc/provider-telemetry-handlers.cjs
 
-## Usage
+PRELOAD:
+electron-ui/preload.cjs
 
-node cli.js llm:health
-node cli.js llm:usage
-node cli.js llm:health:reset --all-telemetry
-node cli.js llm:usage:reset groq
+UI:
+src/ui/provider-dashboard.html
 
-## Suggested next sprint hooks
+MAIN REGISTRATION:
+electron-ui/main.cjs
 
-- Expose getProviderStatus() and getProviderUsage() via Electron IPC
-- Build provider telemetry panel in renderer
-- Consider SQLite migration when dataset grows
+## Smoke walkthrough
+
+1. Generate provider activity.
+2. Open dashboard.
+3. Verify health and usage appear.
+4. Execute reset action.
+5. Verify refresh.
+6. Restart application.
+7. Verify telemetry persists.
+
+## Next sprint hooks
+
+- Routing decisions log
+- Provider selection reasoning
+- Latency trends
+- Historical telemetry views
