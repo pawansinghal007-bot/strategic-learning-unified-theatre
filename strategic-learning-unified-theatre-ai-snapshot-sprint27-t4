@@ -1,0 +1,27 @@
+SPRINT 27 — T4 COMPLETE
+
+FILES:
+src/cli/llm-policy.ts
+cli.js (updated)
+
+STATUS:
+llm:policy show command created
+llm:policy:mode set command created
+llm:policy:allow/block/pin commands created
+llm:policy:reset command created
+registerLlmPolicy wired into cli.js
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] llm:policy prints current policy state
+[x] llm:policy:mode sets routing mode
+[x] llm:policy:allow/block modifies provider lists
+[x] llm:policy:pin sets or clears manual provider
+[x] llm:policy:reset resets to defaults
+[x] Follows existing CLI registration pattern
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+T5 — docs
