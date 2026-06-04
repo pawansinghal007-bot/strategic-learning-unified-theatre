@@ -1,0 +1,27 @@
+SPRINT 26 — T3 COMPLETE
+
+FILES:
+electron-ui/ipc/provider-telemetry-handlers.cjs (updated)
+electron-ui/preload.cjs (updated)
+src/ui/provider-dashboard.html (replaced)
+src/ui/types.d.ts (updated)
+
+STATUS:
+getRoutingHistory IPC handler added
+resetRoutingHistory IPC handler added
+preload exposes both to renderer
+dashboard shows routing decisions and latest explanation
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] providerTelemetry:getRoutingHistory handler registered
+[x] providerTelemetry:resetRoutingHistory handler registered
+[x] preload exposes getRoutingHistory and resetRoutingHistory
+[x] dashboard routing decisions panel working
+[x] dashboard latest explanation panel working
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+T4 — llm:routing CLI command

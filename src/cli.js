@@ -31,6 +31,7 @@ import { bindBc2SyncCommand } from "./commands/bc2-sync.js";
 import { bindAiCommands } from "./commands/ai.js";
 import { registerLlmHealth } from "./cli/llm-health.js";
 import { registerLlmUsage } from "./cli/llm-usage.js";
+import { registerLlmRouting } from "./cli/llm-routing.js";
 import { createLogger } from "./logger.js";
 import { loadConfig } from "./internal/config.js";
 import { getSystemHealth as getSystemHealthSystem } from "./system/systemHealth.js";
@@ -617,6 +618,7 @@ bindBc2SyncCommand(program);
 bindAiCommands(program);
 registerLlmHealth(program);
 registerLlmUsage(program);
+registerLlmRouting(program);
 
 profileCmd
   .command("import")
