@@ -1,0 +1,25 @@
+SPRINT 27 — T1 COMPLETE
+
+FILES:
+src/policies/provider-policy.ts
+
+STATUS:
+policy engine created with JSON persistence
+routing modes: cloud, hybrid, local-only
+allow/block/pin controls implemented
+applyPolicyToCandidates() filters gateway candidates
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] getProviderPolicy() reads persisted policy
+[x] setRoutingMode() persists routing mode
+[x] allowProvider() / blockProvider() persists allow/block lists
+[x] setManualProvider() validates and persists pinned provider
+[x] resetProviderPolicy() resets to defaults
+[x] applyPolicyToCandidates() filters by mode and allow/block rules
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+T2 — updated routing explainer + policy-aware gateway

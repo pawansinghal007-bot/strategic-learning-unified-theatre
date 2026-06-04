@@ -31,6 +31,7 @@ import {
 import { recordProviderFailure, recordProviderSuccess } from "./provider-usage";
 import { explainRoutingSelection } from "./routing-explainer";
 import { recordRoutingDecision } from "./routing-history";
+import { applyPolicyToCandidates } from "../policies/provider-policy";
 
 export interface GatewayOptions {
   providers?: Partial<Record<ProviderName, ProviderAdapter>>;
@@ -67,9 +68,13 @@ export class Gateway {
       });
     }
 
-    const candidates = this.resolveCandidates(parsedRequest.data);
+    const baseCandidates = this.resolveCandidates(parsedRequest.data);
+    const candidates = applyPolicyToCandidates(baseCandidates);
+
     if (!candidates.length) {
-      throw new RoutingNoProviderError("No provider candidates available");
+      throw new RoutingNoProviderError(
+        "No provider candidates available after policy filtering",
+      );
     }
 
     logger.info("gateway.ask.start", {
@@ -131,6 +136,7 @@ export class Gateway {
           {
             fallbackFrom,
             unavailableProviders,
+            policyApplied: true,
           },
         );
 
@@ -210,7 +216,8 @@ export class Gateway {
       });
     }
 
-    const candidates = this.resolveCandidates(parsedRequest.data);
+    const baseCandidates = this.resolveCandidates(parsedRequest.data);
+    const candidates = applyPolicyToCandidates(baseCandidates);
     if (!candidates.length) {
       throw new RoutingNoProviderError(
         "No provider candidates available for stream",
@@ -251,7 +258,9 @@ export class Gateway {
         yield parsedChunk.data;
       }
 
-      const reason = explainRoutingSelection(parsedRequest.data, providerName);
+      const reason = explainRoutingSelection(parsedRequest.data, providerName, {
+        policyApplied: true,
+      });
 
       recordRoutingDecision({
         request: parsedRequest.data,
@@ -297,29 +306,33 @@ export class Gateway {
   }
 
   private resolveCandidates(request: ProviderRequest): ProviderName[] {
+    const applyRequestExclusions = (providers: ProviderName[]) =>
+      providers.filter(
+        (provider) =>
+          !request.constraints?.excludedProviders?.includes(provider),
+      );
+
     if (request.constraints?.preferredProvider) {
-      return [
+      return applyRequestExclusions([
         request.constraints.preferredProvider,
         ...this.defaultOrder.filter(
           (p) => p !== request.constraints.preferredProvider,
         ),
-      ];
+      ]);
     }
 
     if (request.constraints?.requiresWeb && this.providers.perplexity) {
-      return [
+      return applyRequestExclusions([
         "perplexity",
         ...this.defaultOrder.filter((p) => p !== "perplexity"),
-      ];
+      ]);
     }
 
     if (request.constraints?.privacyMode === "local-only") {
-      return ["local"];
+      return applyRequestExclusions(["local"]);
     }
 
-    return this.defaultOrder.filter(
-      (provider) => !request.constraints?.excludedProviders?.includes(provider),
-    );
+    return applyRequestExclusions(this.defaultOrder);
   }
 
   private normalizeResponse(

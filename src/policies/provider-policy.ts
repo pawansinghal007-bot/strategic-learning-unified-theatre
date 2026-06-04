@@ -62,10 +62,7 @@ export function setRoutingMode(routingMode) {
       current.manualProvider === "local" && routingMode === "cloud"
         ? null
         : current.manualProvider,
-    allowedProviders:
-      routingMode === "cloud"
-        ? ALL_PROVIDERS.filter((p) => p !== "local")
-        : [...ALL_PROVIDERS],
+    allowedProviders: [...ALL_PROVIDERS],
   });
 }
 
@@ -115,10 +112,6 @@ export function applyPolicyToCandidates(input) {
   if (policy.routingMode === "local-only") return ["local"];
 
   let candidates = [...input];
-
-  if (policy.routingMode === "cloud") {
-    candidates = candidates.filter((p) => p !== "local");
-  }
 
   candidates = candidates.filter((p) => policy.allowedProviders.includes(p));
   candidates = candidates.filter((p) => !policy.blockedProviders.includes(p));
