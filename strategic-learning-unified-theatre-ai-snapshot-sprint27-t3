@@ -1,0 +1,26 @@
+SPRINT 27 — T3 COMPLETE
+
+FILES:
+electron-ui/ipc/provider-policy-handlers.cjs (created)
+electron-ui/main.cjs (updated)
+electron-ui/preload.cjs (updated)
+src/ui/types.d.ts (replaced)
+src/ui/provider-dashboard.html (replaced)
+
+STATUS:
+policy IPC handlers registered
+providerPolicy namespace added to preload
+dashboard policy controls panel added
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] providerPolicy:get/setMode/allow/block/setManualProvider/reset handlers registered
+[x] providerPolicy namespace exposed to renderer
+[x] Dashboard routing mode and manual provider selectors working
+[x] Dashboard per-provider Allow/Block/Pin buttons working
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+T4 — llm:policy CLI command

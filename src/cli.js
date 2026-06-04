@@ -32,6 +32,7 @@ import { bindAiCommands } from "./commands/ai.js";
 import { registerLlmHealth } from "./cli/llm-health.js";
 import { registerLlmUsage } from "./cli/llm-usage.js";
 import { registerLlmRouting } from "./cli/llm-routing.js";
+import { registerLlmPolicy } from "./cli/llm-policy.js";
 import { createLogger } from "./logger.js";
 import { loadConfig } from "./internal/config.js";
 import { getSystemHealth as getSystemHealthSystem } from "./system/systemHealth.js";
@@ -619,6 +620,7 @@ bindAiCommands(program);
 registerLlmHealth(program);
 registerLlmUsage(program);
 registerLlmRouting(program);
+registerLlmPolicy(program);
 
 profileCmd
   .command("import")
