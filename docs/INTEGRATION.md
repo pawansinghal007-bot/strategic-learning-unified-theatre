@@ -1,6 +1,7 @@
 # Sprint 25 Patch Integration
 
 ## Verified architecture
+
 Main:
 
 - electron-ui/main.cjs
@@ -27,19 +28,21 @@ Services:
 - src/llm/provider-usage.ts
 
 ## Integration flow
+
 Renderer
 ↓
 window.providerTelemetry
 ↓
 electron-ui/preload.cjs
 ↓
-providerTelemetry:* IPC channels
+providerTelemetry:\* IPC channels
 ↓
 electron-ui/ipc/provider-telemetry-handlers.cjs
 ↓
 provider-health.ts / provider-usage.ts
 
 ## Wiring evidence
+
 IPC HANDLER:
 electron-ui/ipc/provider-telemetry-handlers.cjs
 

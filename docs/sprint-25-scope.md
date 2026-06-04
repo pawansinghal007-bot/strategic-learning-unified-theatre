@@ -1,6 +1,7 @@
 # Sprint 25 — Dashboard IPC + Provider Telemetry Panel
 
 ## Goal
+
 Expose persistent provider telemetry in Electron through IPC handlers, preload bridges, and a lightweight dashboard panel.
 
 ## In scope
@@ -39,4 +40,5 @@ Expose persistent provider telemetry in Electron through IPC handlers, preload b
 - src/llm/provider-usage.ts
 
 ## Estimated effort
+
 20–28 hours.

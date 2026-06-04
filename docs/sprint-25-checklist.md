@@ -25,6 +25,7 @@
 - Telemetry survives restart
 
 ## Suggested next sprint
+
 Sprint 26:
 
 - Routing explanation panel
