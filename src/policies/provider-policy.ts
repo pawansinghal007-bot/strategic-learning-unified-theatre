@@ -109,11 +109,19 @@ export function resetProviderPolicy() {
 export function applyPolicyToCandidates(input) {
   const policy = getProviderPolicy();
 
-  if (policy.routingMode === "local-only") return ["local"];
+  if (policy.routingMode === "local-only") {
+    return ["local"];
+  }
 
   let candidates = [...input];
 
+  // Cloud mode excludes local provider
+  if (policy.routingMode === "cloud") {
+    candidates = candidates.filter((p) => p !== "local");
+  }
+
   candidates = candidates.filter((p) => policy.allowedProviders.includes(p));
+
   candidates = candidates.filter((p) => !policy.blockedProviders.includes(p));
 
   if (policy.manualProvider && candidates.includes(policy.manualProvider)) {

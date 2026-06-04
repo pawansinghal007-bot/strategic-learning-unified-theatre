@@ -1,9 +1,11 @@
 # Sprint 27 Patch Integration
 
 ## Prerequisites
+
 Sprints 18–26 must already be integrated.
 
 ## Files added or replaced
+
 - src/policies/provider-policy.ts
 - src/llm/routing-explainer.ts
 - src/llm/gateway.ts
@@ -15,14 +17,16 @@ Sprints 18–26 must already be integrated.
 - src/cli/llm-policy.ts
 
 ## Architecture — unchanged from Sprint 26
-Main:      electron-ui/main.cjs
-Preload:   electron-ui/preload.cjs
-IPC:       electron-ui/ipc/provider-telemetry-handlers.cjs
-           electron-ui/ipc/provider-policy-handlers.cjs
+
+Main: electron-ui/main.cjs
+Preload: electron-ui/preload.cjs
+IPC: electron-ui/ipc/provider-telemetry-handlers.cjs
+electron-ui/ipc/provider-policy-handlers.cjs
 Dashboard: src/ui/provider-dashboard.html
-Services:  src/llm/*.ts, src/policies/*.ts
+Services: src/llm/_.ts, src/policies/_.ts
 
 ## Smoke test
+
 1. Run: node cli.js llm:policy
 2. Run: node cli.js llm:policy:mode local-only
 3. Send a request — verify local is selected
@@ -31,6 +35,7 @@ Services:  src/llm/*.ts, src/policies/*.ts
 6. Restart — verify policy persists
 
 ## Suggested next sprint hooks
+
 - Add policy presets (research/coding/private/enterprise)
 - Add PII local-only detection rules
 - Add mode-driven provider behaviour

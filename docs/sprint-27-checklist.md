@@ -1,6 +1,7 @@
 # Sprint 27 — Concrete Closure Checklist
 
 ## Drop-in checklist
+
 - [x] src/policies/provider-policy.ts committed
 - [x] src/llm/routing-explainer.ts updated
 - [x] src/llm/gateway.ts updated with policy filtering
@@ -16,6 +17,7 @@
 - [x] Git tagged and pushed
 
 ## Acceptance bullet closure
+
 - [x] Policy state persisted
 - [x] Gateway respects routing mode
 - [x] Gateway respects allow/block rules
@@ -23,7 +25,9 @@
 - [x] Dashboard and CLI both control the same policy state
 
 ## Suggested next sprint
+
 Sprint 28: sensitive-task rules + policy presets
+
 - Research mode, coding mode, private mode, enterprise mode
 - PII local-only rules
 - Mode-driven provider behaviour presets
