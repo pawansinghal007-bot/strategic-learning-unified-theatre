@@ -199,3 +199,6 @@ Dashboard IPC and provider telemetry panel delivered. IPC bridge, preload, HTML 
 
 ## Sprint 26 Complete
 Explainable routing and decisions log delivered. Routing history, explainer, gateway hooks, dashboard panel, llm:routing CLI. Sonar clean.
+
+## Sprint 27 Complete
+Policy modes and manual provider controls delivered. Policy engine, gateway filtering, dashboard controls, llm:policy CLI. Sonar clean.

@@ -1,0 +1,42 @@
+SPRINT 27 COMPLETE: POLICY MODES + MANUAL PROVIDER CONTROLS DELIVERED
+
+SPRINT SUMMARY:
+T1  provider policy engine         src/policies/provider-policy.ts
+T2  explainer + gateway update     src/llm/routing-explainer.ts, gateway.ts
+T3  IPC + preload + dashboard      provider-policy-handlers.cjs, preload.cjs, dashboard.html
+T4  llm:policy CLI                 src/cli/llm-policy.ts, cli.js
+T5  docs                           sprint-27-scope, checklist, INTEGRATION
+T6  smoke tests + closure          tests/sprint27-smoke.test.js
+
+STATUS:
+vitest pass — 84 files / ~670 tests
+typecheck clean
+sonar clean
+tagged sprint-27-complete
+
+DELIVERABLES:
+[x] Persistent routing mode (cloud/hybrid/local-only)
+[x] Provider allow/block lists persisted
+[x] Manual provider pinning persisted
+[x] Gateway filters through policy before execution
+[x] Dashboard policy control panel
+[x] llm:policy CLI with mode/allow/block/pin/reset
+[x] Smoke tests passing
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+Sprint 28 — sensitive-task rules + policy presets
+
+ARCHITECTURE MAINTENANCE:
+Changed this sprint:
+- src/policies/ (new folder and file)
+- electron-ui/ipc/provider-policy-handlers.cjs (created)
+- electron-ui/main.cjs (updated)
+- electron-ui/preload.cjs (updated)
+- src/ui/provider-dashboard.html (updated)
+- src/ui/types.d.ts (updated)
+Update PROJECT_ARCHITECTURE_AI_CONTEXT.md to document:
+- src/policies/ as new service layer folder
+- provider-policy-handlers.cjs as second IPC handler file
+If unchanged: report ARCHITECTURE UNCHANGED.
