@@ -1,0 +1,25 @@
+SPRINT 28 — T3 COMPLETE
+
+FILES:
+electron-ui/ipc/provider-policy-handlers.cjs (replaced)
+electron-ui/preload.cjs (updated)
+src/ui/types.d.ts (replaced)
+src/ui/provider-dashboard.html (replaced)
+
+STATUS:
+listPresets and applyPreset IPC handlers added
+providerPolicy preload namespace updated
+dashboard preset selector and sensitive rules panel added
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] providerPolicy:listPresets and applyPreset handlers registered
+[x] listPresets and applyPreset exposed to renderer
+[x] Dashboard preset dropdown populated from API
+[x] Sensitive task rules reference panel in dashboard
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+T4 — updated llm:policy CLI
