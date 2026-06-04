@@ -123,4 +123,8 @@ contextBridge.exposeInMainWorld("providerTelemetry", {
     ipcRenderer.invoke("providerTelemetry:resetUsage", provider),
   resetAll: (provider) =>
     ipcRenderer.invoke("providerTelemetry:resetAll", provider),
+  getRoutingHistory: (limit) =>
+    ipcRenderer.invoke("providerTelemetry:getRoutingHistory", limit),
+  resetRoutingHistory: () =>
+    ipcRenderer.invoke("providerTelemetry:resetRoutingHistory"),
 });

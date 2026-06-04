@@ -1,263 +1,156 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>Provider Telemetry</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <style>
-      :root {
-        --bg: #0f1115;
-        --panel: #171a21;
-        --muted: #8b95a7;
-        --text: #e6eaf2;
-        --border: #2a3140;
-        --good: #2fbf71;
-        --warn: #f5a524;
-        --bad: #f05d5e;
-        --accent: #5b8cff;
-      }
-      * {
-        box-sizing: border-box;
-      }
-      body {
-        margin: 0;
-        font-family: Inter, Arial, sans-serif;
-        background: var(--bg);
-        color: var(--text);
-      }
-      header {
-        padding: 20px 24px;
-        border-bottom: 1px solid var(--border);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      h1 {
-        margin: 0;
-        font-size: 20px;
-      }
-      .toolbar {
-        display: flex;
-        gap: 8px;
-      }
-      button {
-        background: var(--panel);
-        color: var(--text);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 10px 12px;
-        cursor: pointer;
-      }
-      button:hover {
-        border-color: var(--accent);
-      }
-      main {
-        padding: 24px;
-        display: grid;
-        gap: 24px;
-      }
-      .grid {
-        display: grid;
-        gap: 16px;
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      }
-      .card {
-        background: var(--panel);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 16px;
-      }
-      .provider-name {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 12px;
-        font-weight: 600;
-      }
-      .badge {
-        font-size: 12px;
-        padding: 4px 8px;
-        border-radius: 999px;
-        border: 1px solid var(--border);
-        color: var(--muted);
-      }
-      .badge.good {
-        color: var(--good);
-        border-color: var(--good);
-      }
-      .badge.warn {
-        color: var(--warn);
-        border-color: var(--warn);
-      }
-      .badge.bad {
-        color: var(--bad);
-        border-color: var(--bad);
-      }
-      .meta {
-        display: grid;
-        gap: 8px;
-        font-size: 13px;
-        color: var(--muted);
-      }
-      .bar-wrap {
-        margin-top: 12px;
-        background: #0d0f14;
-        border-radius: 999px;
-        overflow: hidden;
-        border: 1px solid var(--border);
-        height: 10px;
-      }
-      .bar {
-        height: 100%;
-        background: var(--accent);
-        width: 0%;
-      }
-      .section-title {
-        font-size: 16px;
-        margin-bottom: 12px;
-      }
-      .empty {
-        color: var(--muted);
-        font-size: 14px;
-      }
-      pre {
-        margin: 0;
-        white-space: pre-wrap;
-        word-break: break-word;
-        color: var(--muted);
-        font-size: 12px;
-      }
-    </style>
-  </head>
-  <body>
-    <header>
-      <h1>Provider Telemetry</h1>
-      <div class="toolbar">
-        <button id="refreshBtn">Refresh</button>
-        <button id="resetAllBtn">Reset all telemetry</button>
+<head>
+  <meta charset="utf-8" />
+  <title>Provider Telemetry</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #0f1115; --panel: #171a21; --muted: #8b95a7; --text: #e6eaf2;
+      --border: #2a3140; --good: #2fbf71; --warn: #f5a524; --bad: #f05d5e; --accent: #5b8cff;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Inter, Arial, sans-serif; background: var(--bg); color: var(--text); }
+    header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+    h1 { margin: 0; font-size: 20px; }
+    .toolbar { display: flex; gap: 8px; flex-wrap: wrap; }
+    button { background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; cursor: pointer; }
+    button:hover { border-color: var(--accent); }
+    main { padding: 24px; display: grid; gap: 24px; }
+    .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+    .two-col { display: grid; gap: 24px; grid-template-columns: 1.2fr 0.8fr; }
+    @media (max-width: 960px) { .two-col { grid-template-columns: 1fr; } }
+    .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+    .provider-name { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-weight: 600; gap: 8px; }
+    .badge { font-size: 12px; padding: 4px 8px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); white-space: nowrap; }
+    .badge.good { color: var(--good); border-color: var(--good); }
+    .badge.warn { color: var(--warn); border-color: var(--warn); }
+    .badge.bad { color: var(--bad); border-color: var(--bad); }
+    .meta { display: grid; gap: 8px; font-size: 13px; color: var(--muted); }
+    .bar-wrap { margin-top: 12px; background: #0d0f14; border-radius: 999px; overflow: hidden; border: 1px solid var(--border); height: 10px; }
+    .bar { height: 100%; background: var(--accent); width: 0%; }
+    .section-title { font-size: 16px; margin-bottom: 12px; }
+    .empty { color: var(--muted); font-size: 14px; }
+    .decision-list { display: grid; gap: 12px; }
+    .decision-item { border: 1px solid var(--border); border-radius: 10px; padding: 12px; background: #131720; }
+    .decision-top { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 8px; flex-wrap: wrap; }
+    .decision-title { font-size: 14px; font-weight: 600; }
+    .decision-meta, .decision-reason { font-size: 13px; color: var(--muted); }
+    .decision-error { font-size: 13px; color: var(--bad); margin-top: 6px; }
+    pre { margin: 0; white-space: pre-wrap; word-break: break-word; color: var(--muted); font-size: 12px; }
+    .pill { display: inline-block; font-size: 12px; padding: 4px 8px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); margin-right: 8px; }
+    .pill.success { color: var(--good); border-color: var(--good); }
+    .pill.failed { color: var(--bad); border-color: var(--bad); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Provider Telemetry &amp; Routing</h1>
+    <div class="toolbar">
+      <button id="refreshBtn">Refresh</button>
+      <button id="resetAllBtn">Reset all telemetry</button>
+      <button id="resetHistoryBtn">Reset routing history</button>
+    </div>
+  </header>
+  <main>
+    <section>
+      <div class="section-title">Providers</div>
+      <div id="providerGrid" class="grid"></div>
+    </section>
+    <section class="two-col">
+      <div class="card">
+        <div class="section-title">Recent routing decisions</div>
+        <div id="decisionList" class="decision-list"></div>
       </div>
-    </header>
+      <div class="card">
+        <div class="section-title">Latest routing explanation</div>
+        <div id="latestExplanation" class="empty">No routing decisions yet.</div>
+      </div>
+    </section>
+    <section class="card">
+      <div class="section-title">Raw status snapshot</div>
+      <pre id="rawStatus">Loading...</pre>
+    </section>
+  </main>
+  <script>
+    function badgeClass(r) {
+      if (!r.hasKey && r.name !== 'local') return 'warn';
+      return r.available ? 'good' : 'bad';
+    }
+    function badgeText(r) {
+      if (!r.hasKey && r.name !== 'local') return 'no key';
+      return r.available ? (r.state === 'unknown' ? 'healthy' : r.state) : (r.state || 'unavailable');
+    }
+    function usagePct(r) { return Math.min(100, Math.round((r.totalTokens / 100000) * 100)); }
+    function fmt(ts) { try { return new Date(ts).toLocaleString(); } catch(e) { return String(ts); } }
 
-    <main>
-      <section>
-        <div class="section-title">Providers</div>
-        <div id="providerGrid" class="grid"></div>
-      </section>
+    function rowCard(r) {
+      return '<div class="card"><div class="provider-name"><span>' + r.name + '</span>' +
+        '<span class="badge ' + badgeClass(r) + '">' + badgeText(r) + '</span></div>' +
+        '<div class="meta"><div>Available: ' + (r.available ? 'Yes' : 'No') + '</div>' +
+        '<div>req=' + r.requestCount + ' ok=' + r.successCount + ' fail=' + r.failureCount + '</div>' +
+        '<div>tokens=' + r.totalTokens + ' cost=$' + Number(r.estimatedCostUsd||0).toFixed(4) + '</div>' +
+        '<div>state=' + r.state + (r.recoversInMinutes != null ? ' (recovers ' + r.recoversInMinutes + 'm)' : '') + '</div>' +
+        (r.reason ? '<div>' + r.reason + '</div>' : '') + '</div>' +
+        '<div class="bar-wrap"><div class="bar" style="width:' + usagePct(r) + '%"></div></div>' +
+        '<div class="toolbar" style="margin-top:12px;">' +
+        '<button onclick="resetHealth(\'' + r.name + '\')">Reset health</button>' +
+        '<button onclick="resetUsage(\'' + r.name + '\')">Reset usage</button>' +
+        '</div></div>';
+    }
 
-      <section class="card">
-        <div class="section-title">Raw status snapshot</div>
-        <pre id="rawStatus">Loading...</pre>
-      </section>
-    </main>
+    function decisionCard(d) {
+      return '<div class="decision-item"><div class="decision-top">' +
+        '<div class="decision-title">' + d.provider + ' · ' + d.model + '</div>' +
+        '<div><span class="pill ' + (d.success ? 'success' : 'failed') + '">' + (d.success ? 'success' : 'failed') + '</span>' +
+        (d.intent ? '<span class="pill">' + d.intent + '</span>' : '') + '</div></div>' +
+        '<div class="decision-meta">' + fmt(d.createdAt) + (d.fallbackFrom ? ' · fallback from ' + d.fallbackFrom : '') +
+        (d.latencyMs != null ? ' · ' + d.latencyMs + 'ms' : '') + '</div>' +
+        '<div class="decision-reason" style="margin-top:8px;">' + d.reason + '</div>' +
+        (d.errorMessage ? '<div class="decision-error">Error: ' + d.errorMessage + '</div>' : '') +
+        '</div>';
+    }
 
-    <script>
-      function badgeClass(row) {
-        if (!row.hasKey && row.name !== "local") return "warn";
-        if (row.available) return "good";
-        return "bad";
-      }
-
-      function badgeText(row) {
-        if (!row.hasKey && row.name !== "local") return "no key";
-        if (row.available)
-          return row.state === "unknown" ? "healthy" : row.state;
-        return row.state || "unavailable";
-      }
-
-      function usagePercent(row) {
-        const cap = 100000;
-        return Math.min(100, Math.round((row.totalTokens / cap) * 100));
-      }
-
-      function rowCard(row) {
-        const eta =
-          row.recoversInMinutes != null ? row.recoversInMinutes + " min" : "—";
-        const reason = row.reason || "—";
-        return (
-          '<div class="card">' +
-          '<div class="provider-name"><span>' +
-          row.name +
-          "</span>" +
-          '<span class="badge ' +
-          badgeClass(row) +
-          '">' +
-          badgeText(row) +
-          "</span></div>" +
-          '<div class="meta">' +
-          "<div>Available: " +
-          (row.available ? "Yes" : "No") +
-          "</div>" +
-          "<div>Requests: " +
-          row.requestCount +
-          "</div>" +
-          "<div>Success: " +
-          row.successCount +
-          "</div>" +
-          "<div>Failure: " +
-          row.failureCount +
-          "</div>" +
-          "<div>Total tokens: " +
-          row.totalTokens +
-          "</div>" +
-          "<div>Estimated cost: $" +
-          Number(row.estimatedCostUsd || 0).toFixed(4) +
-          "</div>" +
-          "<div>Recovery ETA: " +
-          eta +
-          "</div>" +
-          "<div>Reason: " +
-          reason +
-          "</div>" +
-          "</div>" +
-          '<div class="bar-wrap"><div class="bar" style="width:' +
-          usagePercent(row) +
-          '%"></div></div>' +
-          '<div class="toolbar" style="margin-top:12px;">' +
-          "<button onclick=\"resetHealth('" +
-          row.name +
-          "')\">Reset health</button>" +
-          "<button onclick=\"resetUsage('" +
-          row.name +
-          "')\">Reset usage</button>" +
-          "</div></div>"
-        );
-      }
-
-      async function loadTelemetry() {
-        var grid = document.getElementById("providerGrid");
-        var raw = document.getElementById("rawStatus");
-
-        try {
-          var rows = await window.providerTelemetry.getStatus();
-
-          if (!rows.length) {
-            grid.innerHTML = '<div class="empty">No provider data yet.</div>';
-            raw.textContent = "[]";
-            return;
-          }
-
-          grid.innerHTML = rows.map(rowCard).join("");
-          raw.textContent = JSON.stringify(rows, null, 2);
-        } catch (error) {
-          grid.innerHTML =
-            '<div class="empty">Failed to load telemetry: ' +
-            error.message +
-            "</div>";
-          raw.textContent = String(error);
+    async function loadTelemetry() {
+      try {
+        const [rows, history] = await Promise.all([
+          window.providerTelemetry.getStatus(),
+          window.providerTelemetry.getRoutingHistory(20),
+        ]);
+        document.getElementById('providerGrid').innerHTML = rows.length ? rows.map(rowCard).join('') : '<div class="empty">No provider data yet.</div>';
+        document.getElementById('rawStatus').textContent = JSON.stringify(rows, null, 2);
+        if (history.length) {
+          document.getElementById('decisionList').innerHTML = history.map(decisionCard).join('');
+          const h = history[0];
+          document.getElementById('latestExplanation').innerHTML =
+            '<div class="decision-title">' + h.provider + ' selected</div>' +
+            '<div class="decision-meta" style="margin-top:6px;">' + fmt(h.createdAt) + '</div>' +
+            '<div class="decision-reason" style="margin-top:10px;">' + h.reason + '</div>' +
+            (h.fallbackFrom ? '<div class="decision-meta" style="margin-top:10px;">Fallback from ' + h.fallbackFrom + '</div>' : '') +
+            (h.errorMessage ? '<div class="decision-error">Error: ' + h.errorMessage + '</div>' : '');
+        } else {
+          document.getElementById('decisionList').innerHTML = '<div class="empty">No routing decisions recorded yet.</div>';
+          document.getElementById('latestExplanation').textContent = 'No routing decisions yet.';
         }
+      } catch(e) {
+        document.getElementById('providerGrid').innerHTML = '<div class="empty">Error: ' + e.message + '</div>';
       }
+    }
 
-      async function resetHealth(provider) {
-        await window.providerTelemetry.resetHealth(provider);
-        await loadTelemetry();
-      }
+    async function resetHealth(p) { await window.providerTelemetry.resetHealth(p); await loadTelemetry(); }
+    async function resetUsage(p) { await window.providerTelemetry.resetUsage(p); await loadTelemetry(); }
 
-      async function resetUsage(provider) {
-        await window.providerTelemetry.resetUsage(provider);
-        await loadTelemetry();
-      }
+    document.getElementById('refreshBtn').addEventListener('click', loadTelemetry);
+    document.getElementById('resetAllBtn').addEventListener('click', async () => { await window.providerTelemetry.resetAll(); await loadTelemetry(); });
+    document.getElementById('resetHistoryBtn').addEventListener('click', async () => { await window.providerTelemetry.resetRoutingHistory(); await loadTelemetry(); });
 
-      document
+    window.resetHealth = resetHealth;
+    window.resetUsage = resetUsage;
+    loadTelemetry();
+  </script>
+</body>
+</html>
+
         .getElementById("refreshBtn")
         .addEventListener("click", loadTelemetry);
       document

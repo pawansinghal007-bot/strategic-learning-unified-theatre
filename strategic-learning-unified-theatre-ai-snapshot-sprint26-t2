@@ -1,0 +1,23 @@
+SPRINT 26 — T2 COMPLETE
+
+FILES:
+src/llm/gateway.ts
+
+STATUS:
+gateway replaced with routing-aware version
+explainRoutingSelection() called on every success
+recordRoutingDecision() called on success and failure
+fallbackFrom chain tracked across attempts
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] routing reason recorded on every successful ask()
+[x] routing failure recorded on every failed attempt
+[x] fallbackFrom chain tracked correctly
+[x] stream() records routing decision on success and failure
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+T3 — extend IPC handler + preload + dashboard

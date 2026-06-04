@@ -63,6 +63,20 @@ function registerProviderTelemetryHandlers() {
     resetAll(provider);
     return { ok: true };
   });
+
+  ipcMain.handle(
+    "providerTelemetry:getRoutingHistory",
+    async (_event, limit) => {
+      const { getRoutingHistory } = require("../../src/llm/routing-history.js");
+      return getRoutingHistory(limit || 50);
+    },
+  );
+
+  ipcMain.handle("providerTelemetry:resetRoutingHistory", async () => {
+    const { resetRoutingHistory } = require("../../src/llm/routing-history.js");
+    resetRoutingHistory();
+    return { ok: true };
+  });
 }
 
 module.exports = { registerProviderTelemetryHandlers };
