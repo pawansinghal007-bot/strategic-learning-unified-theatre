@@ -97,3 +97,11 @@ contextBridge.exposeInMainWorld('rotator', {
   logView: (payload) => invoke(IPC_CHANNELS.logView, 'logView', payload),
   robotRunnerAction: (payload) => invoke(IPC_CHANNELS.robotRunnerAction, 'robotRunnerAction', payload)
 });
+
+contextBridge.exposeInMainWorld('providerTelemetry', {
+  getStatus: () => ipcRenderer.invoke('providerTelemetry:getStatus'),
+  getUsage: () => ipcRenderer.invoke('providerTelemetry:getUsage'),
+  resetHealth: (provider) => ipcRenderer.invoke('providerTelemetry:resetHealth', provider),
+  resetUsage: (provider) => ipcRenderer.invoke('providerTelemetry:resetUsage', provider),
+  resetAll: (provider) => ipcRenderer.invoke('providerTelemetry:resetAll', provider),
+});

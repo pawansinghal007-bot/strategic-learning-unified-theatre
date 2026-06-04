@@ -10,7 +10,9 @@ const ElectronStore = require("electron-store");
 const Store = ElectronStore.default || ElectronStore;
 const { BrowserPane } = require("./browser-pane.cjs");
 const { registerCaptureHandlers } = require("./ipc/capture-handlers.cjs");
-const { registerProviderTelemetryHandlers } = require("./ipc/provider-telemetry-handlers.cjs");
+const {
+  registerProviderTelemetryHandlers,
+} = require("./ipc/provider-telemetry-handlers.cjs");
 const { createLogger } = require("../src/logger.js");
 const { registerIpcHandlers } = require("../src/main/ipc/ipcAdapter");
 const { IPC_CHANNELS } = require("../src/shared/ipc/contract");

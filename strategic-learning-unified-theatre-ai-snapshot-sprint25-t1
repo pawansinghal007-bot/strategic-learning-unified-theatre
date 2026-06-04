@@ -1,0 +1,24 @@
+SPRINT 25 — T1 COMPLETE
+
+FILES:
+electron-ui/ipc/provider-telemetry-handlers.cjs
+electron-ui/main.cjs (updated)
+
+STATUS:
+CJS IPC handlers registered for getStatus, getUsage, resetHealth, resetUsage, resetAll
+registerProviderTelemetryHandlers() wired into main.cjs
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] providerTelemetry:getStatus handler registered
+[x] providerTelemetry:getUsage handler registered
+[x] providerTelemetry:resetHealth handler registered
+[x] providerTelemetry:resetUsage handler registered
+[x] providerTelemetry:resetAll handler registered
+[x] Follows existing capture-handlers.cjs pattern
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+T2 — preload bridge
