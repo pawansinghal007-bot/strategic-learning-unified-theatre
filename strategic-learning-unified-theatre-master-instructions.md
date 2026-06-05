@@ -220,3 +220,6 @@ Workspace analytics and explainability delivered. getWorkspaceProviderTrends, ge
 
 ## Sprint 33 Complete
 Time-bucketed analytics, global workspace analytics, and JSON/CSV export delivered. getWorkspaceTimeBuckets, getGlobalWorkspaceAnalytics, exportWorkspaceAnalyticsJson, exportWorkspaceAnalyticsCsv. IPC/preload/types/dashboard extended. Sonar clean.
+
+## Sprint 34 Complete
+SVG charts, provider comparison, and HTML report artifacts delivered. getProviderComparisonAcrossWorkspaces, getWorkspaceBucketChartSvg, getProviderComparisonChartSvg, exportWorkspaceAnalyticsHtmlReport. 4 new IPC channels. Dashboard Bucket Chart and Provider Comparison panels render inline SVG. No external chart dependencies. HTML escaping in all SVG and report output. Sonar clean.

@@ -1,0 +1,51 @@
+  SPRINT 34 COMPLETE: SVG CHARTS, PROVIDER COMPARISON, HTML REPORT ARTIFACTS
+
+  SPRINT SUMMARY:
+    T1  routing-history + IPC handler    4 new functions + 3 private helpers,
+                                         4 new IPC channels
+    T2  preload + types + dashboard      workspaceRouting block updated,
+                                         types.d.ts replaced,
+                                         dashboard with chart/comparison/report panels
+    T3  smoke tests + closure            tests/sprint34-smoke.test.js
+
+  STATUS:
+    vitest pass — ~91 files / ~790 tests
+    typecheck clean
+    sonar clean
+    tagged sprint-34-complete
+
+  DELIVERABLES:
+    [x] getProviderComparisonAcrossWorkspaces() groups by workspace+provider
+    [x] getWorkspaceBucketChartSvg() generates SVG line chart (no external deps)
+    [x] getProviderComparisonChartSvg() generates SVG bar chart (no external deps)
+    [x] exportWorkspaceAnalyticsHtmlReport() generates full HTML with embedded SVG
+    [x] HTML escaping in SVG and report to prevent XSS
+    [x] 4 new IPC channels registered
+    [x] All Sprint 33 IPC channels preserved
+    [x] workspaceRouting preload block extended — other namespaces intact
+    [x] types.d.ts full Sprint 34 types
+    [x] Dashboard Bucket Chart panel renders inline SVG
+    [x] Dashboard Provider Comparison panel renders inline bar chart
+    [x] Dashboard HTML Report panel shows export output
+    [x] Sprint compatibility strings preserved in dashboard
+    [x] Sprint 33 behaviour unchanged — no regression
+    [x] Architecture context updated — no new baseline needed
+    [x] Smoke tests passing
+    [x] Compilation successful
+    [x] Sonar validation clean
+
+  ARCHITECTURE CHANGES THIS SPRINT:
+    Extended:  src/llm/routing-history.ts
+    Replaced:  electron-ui/ipc/workspace-routing-handlers.cjs
+    Updated:   electron-ui/preload.cjs (workspaceRouting block only)
+    Replaced:  src/ui/types.d.ts, src/ui/provider-dashboard.html
+    No new files. No new folders. Context update only — no baseline regenerated.
+    PROJECT_ARCHITECTURE_AI_CONTEXT.md updated.
+
+  NEXT:
+    Sprint 35 candidates:
+      - Electron dialog-based file download for HTML/CSV/JSON exports
+      - Downloadable report save-to-disk via showSaveDialog
+      - Report scheduling or auto-export on workspace activity thresholds
+      - Dashboard filter controls (date range, provider filter on comparison view)
+
