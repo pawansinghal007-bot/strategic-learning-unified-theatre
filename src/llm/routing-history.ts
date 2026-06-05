@@ -279,6 +279,14 @@ export interface GlobalWorkspaceAnalyticsPoint {
   latestTimestamp: number | null;
 }
 
+export interface ProviderWorkspaceComparisonPoint {
+  workspaceId: string;
+  provider: string;
+  count: number;
+  successRate: number;
+  avgLatencyMs: number;
+}
+
 function formatBucket(timestamp: number, bucket: "hour" | "day"): string {
   const date = new Date(timestamp);
   const y = date.getUTCFullYear();
@@ -418,4 +426,199 @@ export function exportWorkspaceAnalyticsCsv(workspaceId: string): string {
     ].join(","),
   );
   return [header.join(","), ...body].join("\n");
+}
+
+// --- Sprint 34: SVG charts and HTML report helpers ---
+
+function escapeHtml(value: string): string {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function createLineChartSvg(
+  points: Array<{ label: string; value: number }>,
+  title: string,
+  stroke = "#0a7",
+): string {
+  const width = 720;
+  const height = 240;
+  const pad = 40;
+  const chartWidth = width - pad * 2;
+  const chartHeight = height - pad * 2;
+  const maxValue = Math.max(1, ...points.map((p) => p.value));
+
+  const coords = points.map((point, index) => {
+    const x =
+      points.length === 1
+        ? pad + chartWidth / 2
+        : pad + (index * chartWidth) / (points.length - 1);
+    const y =
+      pad + chartHeight - ((point.value - 0) / (maxValue - 0)) * chartHeight;
+    return { ...point, x, y: Number.isFinite(y) ? y : pad + chartHeight };
+  });
+
+  const polyline = coords.map((c) => `${c.x},${c.y}`).join(" ");
+  const circles = coords
+    .map(
+      (c) =>
+        `<circle cx="${c.x}" cy="${c.y}" r="4" fill="${stroke}"><title>${escapeHtml(
+          `${c.label}: ${c.value}`,
+        )}</title></circle>`,
+    )
+    .join("");
+  const labels = coords
+    .map(
+      (c) =>
+        `<text x="${c.x}" y="${height - 10}" font-size="10" text-anchor="middle" fill="#555">${escapeHtml(c.label)}</text>`,
+    )
+    .join("");
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeHtml(title)}">
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <text x="${pad}" y="24" font-size="16" font-weight="bold" fill="#222">${escapeHtml(title)}</text>
+  <line x1="${pad}" y1="${height - pad}" x2="${width - pad}" y2="${height - pad}" stroke="#999"/>
+  <line x1="${pad}" y1="${pad}" x2="${pad}" y2="${height - pad}" stroke="#999"/>
+  <polyline fill="none" stroke="${stroke}" stroke-width="3" points="${polyline}"/>
+  ${circles}
+  ${labels}
+</svg>`.trim();
+}
+
+function createBarChartSvg(
+  points: Array<{ label: string; value: number }>,
+  title: string,
+  fill = "#36c",
+): string {
+  const width = 720;
+  const height = 260;
+  const pad = 40;
+  const chartWidth = width - pad * 2;
+  const chartHeight = height - pad * 2;
+  const maxValue = Math.max(1, ...points.map((p) => p.value));
+  const barWidth = Math.max(20, chartWidth / Math.max(points.length, 1) - 16);
+
+  const bars = points
+    .map((point, index) => {
+      const x = pad + index * (chartWidth / Math.max(points.length, 1)) + 8;
+      const h = (point.value / maxValue) * chartHeight;
+      const y = height - pad - h;
+      return `<rect x="${x}" y="${y}" width="${barWidth}" height="${h}" fill="${fill}"><title>${escapeHtml(`${point.label}: ${point.value}`)}</title></rect>
+<text x="${x + barWidth / 2}" y="${height - 10}" font-size="10" text-anchor="middle" fill="#555">${escapeHtml(point.label)}</text>`;
+    })
+    .join("");
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeHtml(title)}">
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <text x="${pad}" y="24" font-size="16" font-weight="bold" fill="#222">${escapeHtml(title)}</text>
+  <line x1="${pad}" y1="${height - pad}" x2="${width - pad}" y2="${height - pad}" stroke="#999"/>
+  <line x1="${pad}" y1="${pad}" x2="${pad}" y2="${height - pad}" stroke="#999"/>
+  ${bars}
+</svg>`.trim();
+}
+
+export function getProviderComparisonAcrossWorkspaces(): ProviderWorkspaceComparisonPoint[] {
+  const store = loadHistory();
+  const grouped = new Map<string, RoutingHistoryEntry[]>();
+
+  for (const item of store) {
+    const workspaceId = item.workspaceId ?? "unscoped";
+    const key = `${workspaceId}::${String(item.provider)}`;
+    const list = grouped.get(key) ?? [];
+    list.push(item);
+    grouped.set(key, list);
+  }
+
+  return Array.from(grouped.entries())
+    .map(([key, entries]) => {
+      const [workspaceId, provider] = key.split("::");
+      const successCount = entries.filter((entry) => entry.success).length;
+      const latencyItems = entries.filter(
+        (entry) => typeof entry.latencyMs === "number",
+      ) as Array<RoutingHistoryEntry & { latencyMs: number }>;
+      const avgLatencyMs =
+        latencyItems.length > 0
+          ? round(
+              latencyItems.reduce((sum, entry) => sum + entry.latencyMs, 0) /
+                latencyItems.length,
+            )
+          : 0;
+      return {
+        workspaceId,
+        provider,
+        count: entries.length,
+        successRate:
+          entries.length > 0
+            ? round((successCount / entries.length) * 100)
+            : 0,
+        avgLatencyMs,
+      };
+    })
+    .sort((a, b) => b.count - a.count);
+}
+
+export function getWorkspaceBucketChartSvg(
+  workspaceId: string,
+  bucket: "hour" | "day" = "day",
+): string {
+  const rows = getWorkspaceTimeBuckets(workspaceId, bucket);
+  return createLineChartSvg(
+    rows.map((row) => ({ label: row.bucket, value: row.total })),
+    `Workspace ${workspaceId} ${bucket}ly routing volume`,
+  );
+}
+
+export function getProviderComparisonChartSvg(): string {
+  const rows = getProviderComparisonAcrossWorkspaces().slice(0, 12);
+  return createBarChartSvg(
+    rows.map((row) => ({
+      label: `${row.workspaceId}:${row.provider}`,
+      value: row.count,
+    })),
+    "Provider comparison across workspaces",
+  );
+}
+
+export function exportWorkspaceAnalyticsHtmlReport(
+  workspaceId: string,
+): string {
+  const analytics = getWorkspaceAnalytics(workspaceId);
+  const bucketSvg = getWorkspaceBucketChartSvg(workspaceId, "day");
+
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Workspace Analytics Report - ${escapeHtml(workspaceId)}</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 24px; color: #222; }
+    h1, h2 { margin-bottom: 8px; }
+    .card { border: 1px solid #ddd; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+    pre { background: #f5f5f5; padding: 12px; border-radius: 6px; overflow: auto; }
+  </style>
+</head>
+<body>
+  <h1>Workspace Analytics Report</h1>
+  <p>Workspace: ${escapeHtml(workspaceId)}</p>
+  <div class="card">
+    <h2>Summary</h2>
+    <pre>${escapeHtml(JSON.stringify(analytics.summary, null, 2))}</pre>
+  </div>
+  <div class="card">
+    <h2>Daily Trend Chart</h2>
+    ${bucketSvg}
+  </div>
+  <div class="card">
+    <h2>Provider Trends</h2>
+    <pre>${escapeHtml(JSON.stringify(analytics.trends, null, 2))}</pre>
+  </div>
+  <div class="card">
+    <h2>Timeline</h2>
+    <pre>${escapeHtml(JSON.stringify(analytics.timeline, null, 2))}</pre>
+  </div>
+</body>
+</html>`;
 }

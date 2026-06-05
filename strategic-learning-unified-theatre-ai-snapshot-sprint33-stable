@@ -1,0 +1,42 @@
+SPRINT 33 COMPLETE: TIME-BUCKETED ANALYTICS, GLOBAL ANALYTICS, AND EXPORT
+
+SPRINT SUMMARY:
+    T1  routing-history + IPC    4 new functions, 4 new IPC channels
+    T2  preload + types + dash   workspaceRouting block extended, types updated,
+                                 dashboard Time Buckets + Global Analytics panels
+    T3  smoke tests + closure    tests/sprint33-smoke.test.js
+
+STATUS:
+    vitest pass — 89+ files / 760+ tests
+    typecheck clean
+    sonar clean
+    tagged sprint-33-complete
+
+DELIVERABLES:
+    [x] getWorkspaceTimeBuckets() — daily/hourly bucket summaries
+    [x] getGlobalWorkspaceAnalytics() — cross-workspace rollup
+    [x] exportWorkspaceAnalyticsJson() — full analytics as JSON string
+    [x] exportWorkspaceAnalyticsCsv() — daily buckets as CSV
+    [x] workspaceRouting:buckets/globalAnalytics/exportJson/exportCsv IPC
+    [x] preload methods for all 4 operations
+    [x] Dashboard Time Buckets and Global Analytics panels
+    [x] Sprint 32 compatibility strings preserved
+    [x] Smoke tests passing
+    [x] Architecture sync completed
+
+ARCHITECTURE CHANGES THIS SPRINT:
+  Extended:
+    - src/llm/routing-history.ts
+    - electron-ui/ipc/workspace-routing-handlers.cjs
+    - electron-ui/preload.cjs
+    - src/ui/types.d.ts
+    - src/ui/provider-dashboard.html
+  No new files. No new folders.
+
+NEXT:
+    Sprint 34 candidates:
+    - Visual ASCII/SVG trend charts in dashboard (no external deps)
+    - Downloadable report artifacts via Electron dialog
+    - Provider comparison charts across workspaces
+
+ARCHITECTURE SYNC STATUS: [UPDATED | UNCHANGED]

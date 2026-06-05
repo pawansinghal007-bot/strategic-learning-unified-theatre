@@ -217,3 +217,6 @@ Unified workspace view delivered. Workspace routing history filtering, getWorksp
 
 ## Sprint 32 Complete
 Workspace analytics and explainability delivered. getWorkspaceProviderTrends, getWorkspaceRoutingTimeline, getWorkspaceAnalytics added to routing-history.ts. WorkspaceRoutingSummary extended with successRate/avgLatencyMs/errorRate. IPC channels for trends/timeline/analytics. Dashboard analytics view with metrics tiles, provider trends table, decision timeline. Import path corrected from dist/ to src/. Sonar clean.
+
+## Sprint 33 Complete
+Time-bucketed analytics, global workspace analytics, and JSON/CSV export delivered. getWorkspaceTimeBuckets, getGlobalWorkspaceAnalytics, exportWorkspaceAnalyticsJson, exportWorkspaceAnalyticsCsv. IPC/preload/types/dashboard extended. Sonar clean.
