@@ -167,6 +167,12 @@ contextBridge.exposeInMainWorld("workspaceRouting", {
     ipcRenderer.invoke("workspaceRouting:list", workspaceId, limit),
   summary: (workspaceId) =>
     ipcRenderer.invoke("workspaceRouting:summary", workspaceId),
+  trends: (workspaceId) =>
+    ipcRenderer.invoke("workspaceRouting:trends", workspaceId),
+  timeline: (workspaceId, limit) =>
+    ipcRenderer.invoke("workspaceRouting:timeline", workspaceId, limit),
+  analytics: (workspaceId) =>
+    ipcRenderer.invoke("workspaceRouting:analytics", workspaceId),
   clear: (workspaceId) =>
     ipcRenderer.invoke("workspaceRouting:clear", workspaceId),
 });

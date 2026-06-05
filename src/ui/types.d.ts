@@ -52,8 +52,65 @@ declare global {
         total: number;
         successCount: number;
         failureCount: number;
+        successRate: number;
+        avgLatencyMs: number;
+        errorRate: number;
         providerCounts: Record<string, number>;
         latest: any | null;
+      }>;
+      trends: (workspaceId: string) => Promise<
+        Array<{
+          provider: string;
+          count: number;
+          successCount: number;
+          failureCount: number;
+          avgLatencyMs: number;
+        }>
+      >;
+      timeline: (
+        workspaceId: string,
+        limit?: number,
+      ) => Promise<
+        Array<{
+          id: string;
+          timestamp: number;
+          title: string;
+          detail: string;
+          severity: "info" | "warning" | "error";
+          provider: string;
+          success: boolean;
+          workspaceId: string | null;
+        }>
+      >;
+      analytics: (workspaceId: string) => Promise<{
+        summary: {
+          workspaceId: string;
+          total: number;
+          successCount: number;
+          failureCount: number;
+          successRate: number;
+          avgLatencyMs: number;
+          errorRate: number;
+          providerCounts: Record<string, number>;
+          latest: any | null;
+        };
+        trends: Array<{
+          provider: string;
+          count: number;
+          successCount: number;
+          failureCount: number;
+          avgLatencyMs: number;
+        }>;
+        timeline: Array<{
+          id: string;
+          timestamp: number;
+          title: string;
+          detail: string;
+          severity: "info" | "warning" | "error";
+          provider: string;
+          success: boolean;
+          workspaceId: string | null;
+        }>;
       }>;
       clear: (workspaceId: string) => Promise<boolean>;
     };

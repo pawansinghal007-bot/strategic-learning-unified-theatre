@@ -47,7 +47,7 @@ export interface WorkspaceTimelineEntry {
   timestamp: number;
   title: string;
   detail: string;
-  severity: 'info' | 'warning' | 'error';
+  severity: "info" | "warning" | "error";
   provider: string;
   success: boolean;
   workspaceId: string | null;
@@ -78,7 +78,7 @@ function toTimelineEntry(item: RoutingHistoryEntry): WorkspaceTimelineEntry {
     `reason=${item.reason}`,
     item.intent ? `intent=${item.intent}` : null,
     item.fallbackFrom ? `fallbackFrom=${item.fallbackFrom}` : null,
-    typeof item.latencyMs === 'number' ? `latency=${item.latencyMs}ms` : null,
+    typeof item.latencyMs === "number" ? `latency=${item.latencyMs}ms` : null,
     item.errorMessage ? `error=${item.errorMessage}` : null,
   ].filter(Boolean);
 
@@ -86,8 +86,8 @@ function toTimelineEntry(item: RoutingHistoryEntry): WorkspaceTimelineEntry {
     id: item.id,
     timestamp: item.createdAt,
     title,
-    detail: detailParts.join(' | '),
-    severity: item.success ? 'info' : item.errorMessage ? 'error' : 'warning',
+    detail: detailParts.join(" | "),
+    severity: item.success ? "info" : item.errorMessage ? "error" : "warning",
     provider: String(item.provider),
     success: item.success,
     workspaceId: item.workspaceId ?? null,
@@ -165,12 +165,15 @@ export function getWorkspaceRoutingSummary(workspaceId: string): {
   }, {});
 
   const latencyItems = items.filter(
-    (item) => typeof item.latencyMs === 'number',
+    (item) => typeof item.latencyMs === "number",
   ) as Array<RoutingHistoryEntry & { latencyMs: number }>;
 
   const avgLatencyMs =
     latencyItems.length > 0
-      ? round(latencyItems.reduce((sum, item) => sum + item.latencyMs, 0) / latencyItems.length)
+      ? round(
+          latencyItems.reduce((sum, item) => sum + item.latencyMs, 0) /
+            latencyItems.length,
+        )
       : 0;
 
   const successRate = total > 0 ? round((successCount / total) * 100) : 0;
@@ -215,13 +218,22 @@ export function getWorkspaceProviderTrends(
       const successCount = entries.filter((item) => item.success).length;
       const failureCount = entries.length - successCount;
       const latencyItems = entries.filter(
-        (item) => typeof item.latencyMs === 'number',
+        (item) => typeof item.latencyMs === "number",
       ) as Array<RoutingHistoryEntry & { latencyMs: number }>;
       const avgLatencyMs =
         latencyItems.length > 0
-          ? round(latencyItems.reduce((sum, item) => sum + item.latencyMs, 0) / latencyItems.length)
+          ? round(
+              latencyItems.reduce((sum, item) => sum + item.latencyMs, 0) /
+                latencyItems.length,
+            )
           : 0;
-      return { provider, count: entries.length, successCount, failureCount, avgLatencyMs };
+      return {
+        provider,
+        count: entries.length,
+        successCount,
+        failureCount,
+        avgLatencyMs,
+      };
     })
     .sort((a, b) => b.count - a.count);
 }
@@ -230,7 +242,9 @@ export function getWorkspaceRoutingTimeline(
   workspaceId: string,
   limit = 50,
 ): WorkspaceTimelineEntry[] {
-  return listRoutingHistoryForWorkspace(workspaceId, limit).map(toTimelineEntry);
+  return listRoutingHistoryForWorkspace(workspaceId, limit).map(
+    toTimelineEntry,
+  );
 }
 
 export function getWorkspaceAnalytics(workspaceId: string): {

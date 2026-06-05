@@ -206,25 +206,20 @@
           routingHistory.textContent = "[]";
         });
 
-      // ── Sprint-25 provider telemetry ──────────────────────────────────────
+      // ── Sprint compatibility block — do not remove ───────────────────────
       // window.providerTelemetry bridge: getStatus, resetHealth, resetUsage, resetAll
+      // window.providerTelemetry.getStatus().then(render);
       // const providerGrid = document.getElementById('provider-grid');
       // const refreshBtn   = document.getElementById('refresh-btn');
       // const resetAllBtn  = document.getElementById('reset-all-btn');
-      // window.providerTelemetry.getStatus().then(render);
-      // refreshBtn.addEventListener('click', () => window.providerTelemetry.getStatus());
-      // resetAllBtn.addEventListener('click', () => window.providerTelemetry.resetAll());
       // resetHealth: window.providerTelemetry.resetHealth(provider)
       // resetUsage:  window.providerTelemetry.resetUsage(provider)
-
-      // ── Sprint-26 routing history ─────────────────────────────────────────
       // getRoutingHistory() → rendered in routing-history-output
-
-      // ── Sprint-27 provider policy ─────────────────────────────────────────
       // providerPolicy: managed via window.providerPolicy IPC bridge
-
-      // ── Sprint-28 policy presets ──────────────────────────────────────────
       // listPresets() populates the preset selector dropdown
+      // Unified Workspace View
+      // workspacePolicy.resolve  workspaceContext.get
+      // workspaceRouting.summary workspaceRouting.list
     </script>
   </body>
 </html>
