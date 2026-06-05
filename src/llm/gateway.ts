@@ -33,10 +33,11 @@ import { explainRoutingSelection } from "./routing-explainer";
 import { recordRoutingDecision } from "./routing-history";
 import {
   applyPolicyToCandidates,
-  applyPolicyToCandidatesWithReason,
+  applyPolicyToCandidatesWithReasonForWorkspace,
   getState,
   selectPolicyExplanation,
 } from "../policies/provider-policy";
+import { buildRequestContextPrompt } from "../memory/request-context";
 
 export interface GatewayOptions {
   providers?: Partial<Record<ProviderName, ProviderAdapter>>;
@@ -65,6 +66,26 @@ export class Gateway {
     ];
   }
 
+  private injectWorkspaceContext(request: ProviderRequest): ProviderRequest {
+    const contextPrompt = buildRequestContextPrompt((request as any).workspaceId);
+    if (!contextPrompt) return request;
+    const mergedPrompt = [
+      contextPrompt,
+      '',
+      'User request:',
+      request.prompt ?? '',
+    ].join('\n');
+    return {
+      ...request,
+      prompt: mergedPrompt,
+      metadata: {
+        ...(request as any).metadata,
+        contextInjected: true,
+        contextSource: (request as any).workspaceId ?? null,
+      },
+    } as ProviderRequest;
+  }
+
   async ask(request: ProviderRequest): Promise<ProviderResponse> {
     const parsedRequest = providerRequestSchema.safeParse(request);
     if (!parsedRequest.success) {
@@ -73,10 +94,11 @@ export class Gateway {
       });
     }
 
-    const baseCandidates = this.resolveCandidates(parsedRequest.data);
-    let { candidates, policyReason } = applyPolicyToCandidatesWithReason(
+    const requestWithContext = this.injectWorkspaceContext(parsedRequest.data);
+    const baseCandidates = this.resolveCandidates(requestWithContext);
+    let { candidates, policyReason, policySource } = applyPolicyToCandidatesWithReasonForWorkspace(
       baseCandidates,
-      parsedRequest.data,
+      requestWithContext,
     );
 
     // If policy (e.g. cloud mode) stripped local but every cloud provider
@@ -84,7 +106,7 @@ export class Gateway {
     // Only append local when: not already in list, not request-excluded,
     // and not explicitly blocked by the active policy.
     const requestExcluded =
-      parsedRequest.data.constraints?.excludedProviders ?? [];
+      requestWithContext.constraints?.excludedProviders ?? [];
     const policyState = getState();
     if (
       !candidates.includes("local") &&
@@ -102,11 +124,12 @@ export class Gateway {
     }
 
     logger.info("gateway.ask.start", {
-      requestId: parsedRequest.data.requestId,
-      workspaceId: parsedRequest.data.workspaceId,
-      intent: parsedRequest.data.intent,
+      requestId: requestWithContext.requestId,
+      workspaceId: requestWithContext.workspaceId,
+      intent: requestWithContext.intent,
       candidates,
       policyReason,
+      policySource,
       health: getProviderHealthSnapshot(),
     });
 
@@ -133,15 +156,15 @@ export class Gateway {
 
       try {
         logger.info("gateway.provider.try", {
-          requestId: parsedRequest.data.requestId,
+          requestId: requestWithContext.requestId,
           provider: providerName,
         });
 
-        const rawResponse = await provider.ask(parsedRequest.data);
+        const rawResponse = await provider.ask(requestWithContext);
         const normalizedResponse = this.normalizeResponse(
           rawResponse,
           providerName,
-          parsedRequest.data.requestId,
+          requestWithContext.requestId,
         );
 
         const parsedResponse =
@@ -156,7 +179,7 @@ export class Gateway {
         recordProviderSuccess(providerName, parsedResponse.data);
 
         const reason = explainRoutingSelection(
-          parsedRequest.data,
+          requestWithContext,
           providerName,
           {
             fallbackFrom,
@@ -167,7 +190,7 @@ export class Gateway {
         );
 
         recordRoutingDecision({
-          request: parsedRequest.data,
+          request: requestWithContext,
           provider: providerName,
           model: parsedResponse.data.model,
           success: true,
@@ -177,10 +200,11 @@ export class Gateway {
         });
 
         logger.info("gateway.ask.success", {
-          requestId: parsedRequest.data.requestId,
+          requestId: requestWithContext.requestId,
           provider: providerName,
           model: parsedResponse.data.model,
           reason,
+          policySource,
         });
 
         return {
@@ -188,6 +212,7 @@ export class Gateway {
           routingReasons: [
             ...(parsedResponse.data.routingReasons ?? []),
             { code: "default_selection", message: reason },
+            { code: "policy_source", message: `Policy source: ${policySource}` },
           ],
         };
       } catch (error) {
@@ -202,7 +227,7 @@ export class Gateway {
         const reason = `Provider ${providerName} failed and the gateway moved to fallback.`;
 
         recordRoutingDecision({
-          request: parsedRequest.data,
+          request: requestWithContext,
           provider: providerName,
           model: "unknown-model",
           success: false,
@@ -216,7 +241,7 @@ export class Gateway {
         fallbackFrom = providerName;
 
         logger.warn("gateway.provider.failed", {
-          requestId: parsedRequest.data.requestId,
+          requestId: requestWithContext.requestId,
           provider: providerName,
           error: message,
         });
@@ -224,7 +249,7 @@ export class Gateway {
     }
 
     logger.error("gateway.ask.failed", {
-      requestId: parsedRequest.data.requestId,
+      requestId: requestWithContext.requestId,
       errors,
       health: getProviderHealthSnapshot(),
     });
@@ -242,17 +267,18 @@ export class Gateway {
       });
     }
 
-    const baseCandidates = this.resolveCandidates(parsedRequest.data);
-    let { candidates, policyReason } = applyPolicyToCandidatesWithReason(
+    const requestWithContext = this.injectWorkspaceContext(parsedRequest.data);
+    const baseCandidates = this.resolveCandidates(requestWithContext);
+    let { candidates, policyReason, policySource } = applyPolicyToCandidatesWithReasonForWorkspace(
       baseCandidates,
-      parsedRequest.data,
+      requestWithContext,
     );
 
     // Same local fallback logic as ask() — policy may have stripped local
     // in cloud mode, but stream() should still reach it if preferred or needed.
     // Honour preferredProvider: if local was explicitly preferred, put it first.
     const streamRequestExcluded =
-      parsedRequest.data.constraints?.excludedProviders ?? [];
+      requestWithContext.constraints?.excludedProviders ?? [];
     const streamPolicyState = getState();
     if (
       !candidates.includes("local") &&
@@ -260,7 +286,7 @@ export class Gateway {
       !streamPolicyState.blockedProviders.includes("local") &&
       this.providers.local
     ) {
-      const preferred = parsedRequest.data.constraints?.preferredProvider;
+      const preferred = requestWithContext.constraints?.preferredProvider;
       candidates =
         preferred === "local"
           ? ["local", ...candidates]
@@ -288,13 +314,14 @@ export class Gateway {
     const startedAt = Date.now();
 
     logger.info("gateway.stream.start", {
-      requestId: parsedRequest.data.requestId,
+      requestId: requestWithContext.requestId,
       provider: providerName,
       policyReason,
+      policySource,
     });
 
     try {
-      for await (const chunk of provider.stream!(parsedRequest.data)) {
+      for await (const chunk of provider.stream!(requestWithContext)) {
         const parsedChunk = tokenChunkSchema.safeParse(chunk);
         if (!parsedChunk.success) {
           throw new ValidationFailedError(
@@ -308,13 +335,13 @@ export class Gateway {
         yield parsedChunk.data;
       }
 
-      const reason = explainRoutingSelection(parsedRequest.data, providerName, {
+      const reason = explainRoutingSelection(requestWithContext, providerName, {
         policyApplied: true,
         policyReason,
       });
 
       recordRoutingDecision({
-        request: parsedRequest.data,
+        request: requestWithContext,
         provider: providerName,
         model: "streaming-model",
         success: true,
@@ -323,9 +350,10 @@ export class Gateway {
       });
 
       logger.info("gateway.stream.success", {
-        requestId: parsedRequest.data.requestId,
+        requestId: requestWithContext.requestId,
         provider: providerName,
         reason,
+        policySource,
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -337,7 +365,7 @@ export class Gateway {
       }
 
       recordRoutingDecision({
-        request: parsedRequest.data,
+        request: requestWithContext,
         provider: providerName,
         model: "streaming-model",
         success: false,
@@ -347,7 +375,7 @@ export class Gateway {
       });
 
       logger.warn("gateway.stream.failed", {
-        requestId: parsedRequest.data.requestId,
+        requestId: requestWithContext.requestId,
         provider: providerName,
         error: message,
       });

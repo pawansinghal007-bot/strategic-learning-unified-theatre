@@ -1,0 +1,26 @@
+SPRINT 29 — T1 COMPLETE
+
+FILES:
+src/policies/workspace-policy.ts
+src/memory/request-context.ts
+
+STATUS:
+workspace policy override storage and resolution in place
+workspace context storage and prompt builder in place
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] getWorkspacePolicyOverride() returns null when not set
+[x] setWorkspacePolicyOverride() persists override
+[x] clearWorkspacePolicyOverride() removes override
+[x] resolveWorkspacePolicyState() merges global + workspace policy
+[x] getWorkspaceContext() returns null when not set
+[x] saveWorkspaceContext() persists context record
+[x] clearWorkspaceContext() removes context
+[x] buildRequestContextPrompt() returns formatted prompt or null
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+T2 — updated provider-policy + gateway

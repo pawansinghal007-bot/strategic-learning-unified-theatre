@@ -6,6 +6,7 @@ import {
   isPolicyPresetName,
 } from "./policy-presets";
 import { detectSensitiveTask } from "./sensitive-task-rules";
+import { resolveWorkspacePolicyState } from "./workspace-policy";
 
 const POLICY_FILE = "provider-policy.json";
 const ALL_PROVIDERS = getAllProviders();
@@ -320,6 +321,39 @@ export function applyPolicyToCandidatesWithReason(
   return {
     candidates: selectCandidates(currentState, candidates, prompt),
     policyReason: selectPolicyExplanation(currentState, prompt),
+  };
+}
+
+export function applyPolicyToCandidatesForWorkspace(
+  candidates: string[],
+  request?: any,
+): string[] {
+  const workspaceId = request?.workspaceId;
+  const { policy } = resolveWorkspacePolicyState(workspaceId);
+  const prompt = typeof request === "string" ? request : request?.prompt;
+  return selectCandidates(policy, candidates, prompt);
+}
+
+export function applyPolicyToCandidatesWithReasonForWorkspace(
+  candidates: string[],
+  request?: any,
+): {
+  candidates: string[];
+  policyReason: string;
+  policySource: 'global' | 'workspace';
+} {
+  const workspaceId = request?.workspaceId;
+  const resolved = resolveWorkspacePolicyState(workspaceId);
+  const prompt = typeof request === "string" ? request : request?.prompt;
+  const selectedCandidates = selectCandidates(resolved.policy, candidates, prompt);
+  const baseReason = selectPolicyExplanation(resolved.policy, prompt);
+  return {
+    candidates: selectedCandidates,
+    policyReason:
+      resolved.source === 'workspace' && workspaceId
+        ? `${baseReason} | Workspace override: ${workspaceId}`
+        : baseReason,
+    policySource: resolved.source,
   };
 }
 
