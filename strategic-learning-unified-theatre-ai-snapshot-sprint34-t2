@@ -1,0 +1,28 @@
+  SPRINT 34 — T2 COMPLETE
+
+  FILES:
+    electron-ui/preload.cjs (updated)
+    src/ui/types.d.ts (replaced)
+    src/ui/provider-dashboard.html (replaced)
+
+  STATUS:
+    workspaceRouting block updated with 4 new methods
+    Sprint 33 preload methods intact
+    types.d.ts covers all new operations
+    dashboard: bucket chart, provider comparison, HTML report, compatibility block
+    compile clean
+    sonar clean
+
+  DELIVERABLES:
+    [x] providerComparison/bucketChartSvg/providerComparisonChartSvg/exportHtmlReport exposed
+    [x] Sprint 33 preload methods unchanged
+    [x] types.d.ts covers all new operations
+    [x] Dashboard Bucket Chart panel renders inline SVG
+    [x] Dashboard Provider Comparison panel renders inline SVG and table
+    [x] Dashboard Downloadable Report Artifact panel shows export output
+    [x] Sprint compatibility strings preserved
+    [x] Compilation successful
+    [x] Sonar validation clean
+
+  NEXT:
+    T3 — smoke tests + sprint closure
