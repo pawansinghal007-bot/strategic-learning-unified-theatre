@@ -1,9 +1,9 @@
-import { readJsonFile, writeJsonFile } from '../llm/storage';
-import { logger } from '../shared/logging/logger';
-import type { PolicyState } from './provider-policy';
-import { getProviderPolicy } from './provider-policy';
+import { readJsonFile, writeJsonFile } from "../llm/storage";
+import { logger } from "../shared/logging/logger";
+import type { PolicyState } from "./provider-policy";
+import { getProviderPolicy } from "./provider-policy";
 
-const WORKSPACE_POLICY_FILE = 'workspace-policies.json';
+const WORKSPACE_POLICY_FILE = "workspace-policies.json";
 
 export interface WorkspacePolicyOverride {
   workspaceId: string;
@@ -23,9 +23,11 @@ function readWorkspacePolicyStore(): WorkspacePolicyStore {
   return readJsonFile(WORKSPACE_POLICY_FILE, DEFAULT_WORKSPACE_POLICY_STORE);
 }
 
-function writeWorkspacePolicyStore(store: WorkspacePolicyStore): WorkspacePolicyStore {
+function writeWorkspacePolicyStore(
+  store: WorkspacePolicyStore,
+): WorkspacePolicyStore {
   writeJsonFile(WORKSPACE_POLICY_FILE, store);
-  logger.info('workspace.policy.saved', {
+  logger.info("workspace.policy.saved", {
     workspaceCount: Object.keys(store.workspaces).length,
   });
   return store;
@@ -64,23 +66,29 @@ export function clearWorkspacePolicyOverride(workspaceId: string): boolean {
 
 export function listWorkspacePolicyOverrides(): WorkspacePolicyOverride[] {
   const store = readWorkspacePolicyStore();
-  return Object.values(store.workspaces).sort((a, b) => b.updatedAt - a.updatedAt);
+  return Object.values(store.workspaces).sort(
+    (a, b) => b.updatedAt - a.updatedAt,
+  );
 }
 
 export function resolveWorkspacePolicyState(workspaceId?: string | null): {
   policy: PolicyState;
-  source: 'global' | 'workspace';
+  source: "global" | "workspace";
   workspaceId?: string;
 } {
   const globalPolicy = getProviderPolicy();
-  if (!workspaceId) return { policy: globalPolicy, source: 'global' };
+  if (!workspaceId) return { policy: globalPolicy, source: "global" };
 
   const override = getWorkspacePolicyOverride(workspaceId);
-  if (!override) return { policy: globalPolicy, source: 'global', workspaceId };
+  if (!override) return { policy: globalPolicy, source: "global", workspaceId };
 
   return {
-    policy: { ...globalPolicy, ...override.policy, updatedAt: override.updatedAt },
-    source: 'workspace',
+    policy: {
+      ...globalPolicy,
+      ...override.policy,
+      updatedAt: override.updatedAt,
+    },
+    source: "workspace",
     workspaceId,
   };
 }

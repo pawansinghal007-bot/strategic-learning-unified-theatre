@@ -75,7 +75,8 @@ export interface RoutingReason {
     | "latency_preference"
     | "privacy_constraint"
     | "manual_override"
-    | "default_selection";
+    | "default_selection"
+    | "policy_source";
   message: string;
 }
 

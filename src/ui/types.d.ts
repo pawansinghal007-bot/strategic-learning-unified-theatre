@@ -5,10 +5,10 @@ declare global {
     providerTelemetry: {
       getStatus: () => Promise<any[]>;
       getUsage: () => Promise<any[]>;
+      getRoutingHistory: (limit?: number) => Promise<any[]>;
       resetHealth: (provider?: string) => Promise<{ ok: true }>;
       resetUsage: (provider?: string) => Promise<{ ok: true }>;
       resetAll: (provider?: string) => Promise<{ ok: true }>;
-      getRoutingHistory: (limit?: number) => Promise<any[]>;
       resetRoutingHistory: () => Promise<{ ok: true }>;
     };
     providerPolicy: {
@@ -20,6 +20,24 @@ declare global {
       block: (provider: string) => Promise<any>;
       setManualProvider: (provider: string | null) => Promise<any>;
       reset: () => Promise<any>;
+    };
+    workspacePolicy: {
+      get: (workspaceId: string) => Promise<any | null>;
+      set: (workspaceId: string, policy: Record<string, any>) => Promise<any>;
+      clear: (workspaceId: string) => Promise<boolean>;
+      list: () => Promise<any[]>;
+    };
+    workspaceContext: {
+      get: (workspaceId: string) => Promise<any | null>;
+      set: (
+        workspaceId: string,
+        payload: {
+          summary: string;
+          tags?: string[];
+          lastIntent?: string;
+        },
+      ) => Promise<any>;
+      clear: (workspaceId: string) => Promise<boolean>;
     };
   }
 }

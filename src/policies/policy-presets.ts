@@ -1,5 +1,18 @@
-const CLOUD_PROVIDERS = ["groq", "gemini", "openai", "perplexity"];
-const ALL_PROVIDERS = ["groq", "gemini", "openai", "perplexity", "local"];
+import { ProviderName } from "../shared/contracts/provider";
+
+const CLOUD_PROVIDERS: ProviderName[] = [
+  "groq",
+  "gemini",
+  "openai",
+  "perplexity",
+];
+const ALL_PROVIDERS: ProviderName[] = [
+  "groq",
+  "gemini",
+  "openai",
+  "perplexity",
+  "local",
+];
 
 export const POLICY_PRESETS = {
   default: {
@@ -74,6 +87,6 @@ export function isPolicyPresetName(value) {
   return value in POLICY_PRESETS;
 }
 
-export function getAllProviders() {
+export function getAllProviders(): ProviderName[] {
   return [...ALL_PROVIDERS];
 }

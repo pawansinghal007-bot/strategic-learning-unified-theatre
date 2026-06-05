@@ -7,7 +7,7 @@ const MAX_HISTORY = 200;
 type RoutingDecisionInput = {
   request: {
     requestId: string;
-    workspaceId: string;
+    workspaceId?: string;
     intent?: string;
   };
   provider: string;

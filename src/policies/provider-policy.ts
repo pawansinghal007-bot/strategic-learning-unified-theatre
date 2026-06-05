@@ -1,5 +1,6 @@
 import { readJsonFile, writeJsonFile } from "../llm/storage";
 import { logger } from "../shared/logging/logger";
+import { ProviderName } from "../shared/contracts/provider";
 import {
   getPolicyPreset,
   getAllProviders,
@@ -15,18 +16,18 @@ export type RoutingMode = "cloud" | "hybrid" | "local-only";
 
 export interface PolicyState {
   routingMode: RoutingMode;
-  allowedProviders: string[];
-  blockedProviders: string[];
-  manualProvider: string | null;
+  allowedProviders: ProviderName[];
+  blockedProviders: ProviderName[];
+  manualProvider: ProviderName | null;
   activePreset: string;
   updatedAt: number;
 }
 
 export type PolicyAction =
   | { type: "SET_ROUTING_MODE"; mode: RoutingMode }
-  | { type: "ALLOW_PROVIDER"; provider: string }
-  | { type: "BLOCK_PROVIDER"; provider: string }
-  | { type: "SET_MANUAL_PROVIDER"; provider: string | null }
+  | { type: "ALLOW_PROVIDER"; provider: ProviderName }
+  | { type: "BLOCK_PROVIDER"; provider: ProviderName }
+  | { type: "SET_MANUAL_PROVIDER"; provider: ProviderName | null }
   | { type: "APPLY_PRESET"; preset: any }
   | { type: "RESET"; defaultState: PolicyState };
 
@@ -39,7 +40,7 @@ const DEFAULT_POLICY: PolicyState = {
   updatedAt: Date.now(),
 };
 
-function normalizeProviders(values: string[]) {
+function normalizeProviders(values: ProviderName[]) {
   return [...new Set(values)].filter((v) => ALL_PROVIDERS.includes(v));
 }
 
@@ -178,9 +179,9 @@ export function policyReducer(
 
 export function selectCandidates(
   state: PolicyState,
-  candidates: string[],
+  candidates: ProviderName[],
   request?: string,
-): string[] {
+): ProviderName[] {
   if (state.routingMode === "local-only") return ["local"];
 
   let filtered = candidates
@@ -286,36 +287,52 @@ export function setRoutingMode(mode: RoutingMode) {
 }
 
 export function blockProvider(provider: string) {
-  return dispatch({ type: "BLOCK_PROVIDER", provider });
+  const providerName = provider as ProviderName;
+  if (!ALL_PROVIDERS.includes(providerName)) {
+    throw new Error(`Unknown provider: ${provider}`);
+  }
+  return dispatch({ type: "BLOCK_PROVIDER", provider: providerName });
 }
 
 export function allowProvider(provider: string) {
-  return dispatch({ type: "ALLOW_PROVIDER", provider });
+  const providerName = provider as ProviderName;
+  if (!ALL_PROVIDERS.includes(providerName)) {
+    throw new Error(`Unknown provider: ${provider}`);
+  }
+  return dispatch({ type: "ALLOW_PROVIDER", provider: providerName });
 }
 
 export function setManualProvider(provider: string | null) {
-  const current = getState();
-  if (provider !== null && current.blockedProviders.includes(provider)) {
-    throw new Error(
-      `Cannot set manual provider '${provider}': provider is blocked`,
-    );
+  if (provider !== null) {
+    const providerName = provider as ProviderName;
+    if (!ALL_PROVIDERS.includes(providerName)) {
+      throw new Error(`Unknown provider: ${provider}`);
+    }
+    const current = getState();
+    if (current.blockedProviders.includes(providerName)) {
+      throw new Error(
+        `Cannot set manual provider '${provider}': provider is blocked`,
+      );
+    }
+    return dispatch({ type: "SET_MANUAL_PROVIDER", provider: providerName });
   }
-  return dispatch({ type: "SET_MANUAL_PROVIDER", provider });
+
+  return dispatch({ type: "SET_MANUAL_PROVIDER", provider: null });
 }
 
 export function applyPolicyToCandidates(
-  candidates: string[],
+  candidates: ProviderName[],
   request?: any,
-): string[] {
+): ProviderName[] {
   const currentState = getState();
   const prompt = typeof request === "string" ? request : request?.prompt;
   return selectCandidates(currentState, candidates, prompt);
 }
 
 export function applyPolicyToCandidatesWithReason(
-  candidates: string[],
+  candidates: ProviderName[],
   request?: any,
-): { candidates: string[]; policyReason: string } {
+): { candidates: ProviderName[]; policyReason: string } {
   const currentState = getState();
   const prompt = typeof request === "string" ? request : request?.prompt;
   return {
@@ -325,9 +342,9 @@ export function applyPolicyToCandidatesWithReason(
 }
 
 export function applyPolicyToCandidatesForWorkspace(
-  candidates: string[],
+  candidates: ProviderName[],
   request?: any,
-): string[] {
+): ProviderName[] {
   const workspaceId = request?.workspaceId;
   const { policy } = resolveWorkspacePolicyState(workspaceId);
   const prompt = typeof request === "string" ? request : request?.prompt;
@@ -335,22 +352,26 @@ export function applyPolicyToCandidatesForWorkspace(
 }
 
 export function applyPolicyToCandidatesWithReasonForWorkspace(
-  candidates: string[],
+  candidates: ProviderName[],
   request?: any,
 ): {
-  candidates: string[];
+  candidates: ProviderName[];
   policyReason: string;
-  policySource: 'global' | 'workspace';
+  policySource: "global" | "workspace";
 } {
   const workspaceId = request?.workspaceId;
   const resolved = resolveWorkspacePolicyState(workspaceId);
   const prompt = typeof request === "string" ? request : request?.prompt;
-  const selectedCandidates = selectCandidates(resolved.policy, candidates, prompt);
+  const selectedCandidates = selectCandidates(
+    resolved.policy,
+    candidates,
+    prompt,
+  );
   const baseReason = selectPolicyExplanation(resolved.policy, prompt);
   return {
     candidates: selectedCandidates,
     policyReason:
-      resolved.source === 'workspace' && workspaceId
+      resolved.source === "workspace" && workspaceId
         ? `${baseReason} | Workspace override: ${workspaceId}`
         : baseReason,
     policySource: resolved.source,

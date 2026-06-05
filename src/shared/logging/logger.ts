@@ -5,13 +5,13 @@ export interface LogContext {
 function write(
   level: "info" | "warn" | "error",
   message: string,
-  context: LogContext = {},
+  context: unknown = {},
 ) {
   const payload = {
     ts: new Date().toISOString(),
     level,
     message,
-    ...context,
+    ...(context as Record<string, unknown>),
   };
   const line = JSON.stringify(payload);
   if (level === "error") {
@@ -26,10 +26,10 @@ function write(
 }
 
 export const logger = {
-  info: (message: string, context?: LogContext) =>
+  info: (message: string, context?: unknown) =>
     write("info", message, context),
-  warn: (message: string, context?: LogContext) =>
+  warn: (message: string, context?: unknown) =>
     write("warn", message, context),
-  error: (message: string, context?: LogContext) =>
+  error: (message: string, context?: unknown) =>
     write("error", message, context),
 };

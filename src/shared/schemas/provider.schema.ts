@@ -81,6 +81,7 @@ export const routingReasonSchema = z.object({
     "privacy_constraint",
     "manual_override",
     "default_selection",
+    "policy_source",
   ]),
   message: z.string().min(1),
 });

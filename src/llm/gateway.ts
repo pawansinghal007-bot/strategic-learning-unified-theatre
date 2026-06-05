@@ -67,14 +67,16 @@ export class Gateway {
   }
 
   private injectWorkspaceContext(request: ProviderRequest): ProviderRequest {
-    const contextPrompt = buildRequestContextPrompt((request as any).workspaceId);
+    const contextPrompt = buildRequestContextPrompt(
+      (request as any).workspaceId,
+    );
     if (!contextPrompt) return request;
     const mergedPrompt = [
       contextPrompt,
-      '',
-      'User request:',
-      request.prompt ?? '',
-    ].join('\n');
+      "",
+      "User request:",
+      request.prompt ?? "",
+    ].join("\n");
     return {
       ...request,
       prompt: mergedPrompt,
@@ -96,10 +98,11 @@ export class Gateway {
 
     const requestWithContext = this.injectWorkspaceContext(parsedRequest.data);
     const baseCandidates = this.resolveCandidates(requestWithContext);
-    let { candidates, policyReason, policySource } = applyPolicyToCandidatesWithReasonForWorkspace(
-      baseCandidates,
-      requestWithContext,
-    );
+    let { candidates, policyReason, policySource } =
+      applyPolicyToCandidatesWithReasonForWorkspace(
+        baseCandidates,
+        requestWithContext,
+      );
 
     // If policy (e.g. cloud mode) stripped local but every cloud provider
     // subsequently fails, we still need a last-resort escape hatch.
@@ -212,7 +215,10 @@ export class Gateway {
           routingReasons: [
             ...(parsedResponse.data.routingReasons ?? []),
             { code: "default_selection", message: reason },
-            { code: "policy_source", message: `Policy source: ${policySource}` },
+            {
+              code: "policy_source",
+              message: `Policy source: ${policySource}`,
+            },
           ],
         };
       } catch (error) {
@@ -269,10 +275,11 @@ export class Gateway {
 
     const requestWithContext = this.injectWorkspaceContext(parsedRequest.data);
     const baseCandidates = this.resolveCandidates(requestWithContext);
-    let { candidates, policyReason, policySource } = applyPolicyToCandidatesWithReasonForWorkspace(
-      baseCandidates,
-      requestWithContext,
-    );
+    let { candidates, policyReason, policySource } =
+      applyPolicyToCandidatesWithReasonForWorkspace(
+        baseCandidates,
+        requestWithContext,
+      );
 
     // Same local fallback logic as ask() — policy may have stripped local
     // in cloud mode, but stream() should still reach it if preferred or needed.
@@ -391,12 +398,11 @@ export class Gateway {
           !request.constraints?.excludedProviders?.includes(provider),
       );
 
-    if (request.constraints?.preferredProvider) {
+    const preferredProvider = request.constraints?.preferredProvider;
+    if (preferredProvider) {
       return applyRequestExclusions([
-        request.constraints.preferredProvider,
-        ...this.defaultOrder.filter(
-          (p) => p !== request.constraints.preferredProvider,
-        ),
+        preferredProvider,
+        ...this.defaultOrder.filter((p) => p !== preferredProvider),
       ]);
     }
 

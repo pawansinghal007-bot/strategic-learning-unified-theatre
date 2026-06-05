@@ -1,7 +1,7 @@
-import { readJsonFile, writeJsonFile } from '../llm/storage';
-import { logger } from '../shared/logging/logger';
+import { readJsonFile, writeJsonFile } from "../llm/storage";
+import { logger } from "../shared/logging/logger";
 
-const WORKSPACE_CONTEXT_FILE = 'workspace-context.json';
+const WORKSPACE_CONTEXT_FILE = "workspace-context.json";
 
 export interface WorkspaceContextRecord {
   workspaceId: string;
@@ -23,9 +23,11 @@ function readWorkspaceContextStore(): WorkspaceContextStore {
   return readJsonFile(WORKSPACE_CONTEXT_FILE, DEFAULT_WORKSPACE_CONTEXT_STORE);
 }
 
-function writeWorkspaceContextStore(store: WorkspaceContextStore): WorkspaceContextStore {
+function writeWorkspaceContextStore(
+  store: WorkspaceContextStore,
+): WorkspaceContextStore {
   writeJsonFile(WORKSPACE_CONTEXT_FILE, store);
-  logger.info('workspace.context.saved', {
+  logger.info("workspace.context.saved", {
     workspaceCount: Object.keys(store.workspaces).length,
   });
   return store;
@@ -69,8 +71,8 @@ export function buildRequestContextPrompt(
 ): string | null {
   const context = getWorkspaceContext(workspaceId);
   if (!context?.summary?.trim()) return null;
-  const lines = ['Workspace context:', context.summary.trim()];
-  if (context.tags.length) lines.push(`Tags: ${context.tags.join(', ')}`);
+  const lines = ["Workspace context:", context.summary.trim()];
+  if (context.tags.length) lines.push(`Tags: ${context.tags.join(", ")}`);
   if (context.lastIntent) lines.push(`Last intent: ${context.lastIntent}`);
-  return lines.join('\n');
+  return lines.join("\n");
 }

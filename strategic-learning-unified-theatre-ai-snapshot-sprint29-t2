@@ -1,0 +1,28 @@
+SPRINT 29 — T2 COMPLETE
+
+FILES:
+src/policies/provider-policy.ts (extended)
+src/llm/gateway.ts (replaced)
+
+STATUS:
+applyPolicyToCandidatesWithReasonForWorkspace() added
+applyPolicyToCandidatesForWorkspace() added
+gateway injects workspace context before routing
+gateway uses workspace-aware policy resolution
+policySource surfaced in logs and response routingReasons
+Sprint 28 applyPolicyToCandidates() unchanged
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] applyPolicyToCandidatesWithReasonForWorkspace() resolves workspace or global policy
+[x] policySource returned as 'global' or 'workspace'
+[x] injectWorkspaceContext() prepends context prompt when workspace context exists
+[x] gateway.ask() uses workspace-aware policy and context injection
+[x] gateway.stream() uses workspace-aware policy and context injection
+[x] Sprint 28 applyPolicyToCandidates() callers unaffected
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+T3 — IPC handler + preload + types + dashboard

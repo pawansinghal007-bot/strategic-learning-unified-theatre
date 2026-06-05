@@ -16,6 +16,7 @@ const {
 const {
   registerProviderPolicyHandlers,
 } = require("./ipc/provider-policy-handlers.cjs");
+const { registerWorkspaceHandlers } = require("./ipc/workspace-handlers.cjs");
 const { createLogger } = require("../src/logger.js");
 const { registerIpcHandlers } = require("../src/main/ipc/ipcAdapter");
 const { IPC_CHANNELS } = require("../src/shared/ipc/contract");
@@ -563,6 +564,7 @@ app.whenReady().then(async () => {
     await registerCaptureHandlers(ipcMain, ingester, mainWindow);
     registerProviderTelemetryHandlers();
     registerProviderPolicyHandlers();
+    registerWorkspaceHandlers();
     mainLogger.info("ipc.capture.handlers.success", { correlationId: "ipc" });
   } catch (err) {
     mainLogger.error("ipc.capture.handlers.failure", {

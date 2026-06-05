@@ -21,9 +21,10 @@
     header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
     h1 { margin: 0; font-size: 22px; }
     .toolbar { display: flex; gap: 8px; flex-wrap: wrap; }
-    button, select { background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; cursor: pointer; }
-    button:hover, select:hover { border-color: var(--accent); }
-    select { min-width: 180px; }
+    button, select, input, textarea { background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; cursor: pointer; }
+    button:hover, select:hover, input:hover, textarea:hover { border-color: var(--accent); }
+    select, input, textarea { width: 100%; }
+    textarea { resize: vertical; }
     main { padding: 24px; display: grid; gap: 24px; }
     .policy-grid { display: grid; gap: 16px; grid-template-columns: repeat(3, minmax(220px, 1fr)); }
     @media (max-width: 1080px) { .policy-grid { grid-template-columns: 1fr; } }
@@ -43,7 +44,7 @@
     .empty { color: var(--muted); font-size: 14px; }
     .decision-list { display: grid; gap: 12px; }
     .decision-item { border: 1px solid var(--border); border-radius: 10px; padding: 12px; background: #131720; }
-    .decision-top { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 8px; flex-wrap: wrap; }
+    .decision-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 8px; flex-wrap: wrap; }
     .decision-title { font-size: 14px; font-weight: 600; }
     .decision-meta, .decision-reason { font-size: 13px; color: var(--muted); }
     .decision-error { font-size: 13px; color: var(--bad); margin-top: 6px; }
@@ -54,6 +55,9 @@
     .policy-group { display: grid; gap: 10px; }
     .policy-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
     .provider-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .table-wrapper { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 10px; border-bottom: 1px solid var(--border); font-size: 13px; }
   </style>
 </head>
 <body>
@@ -137,6 +141,82 @@
       <div class="card">
         <div class="section-title">Preset summary</div>
         <pre id="presetSummary" class="empty">No preset summary loaded.</pre>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-title">Workspace management</div>
+      <div class="policy-row">
+        <div class="policy-group">
+          <label for="workspaceId">Workspace ID</label>
+          <input id="workspaceId" type="text" placeholder="Enter workspace ID" />
+        </div>
+        <div class="policy-actions">
+          <button id="loadWorkspaceBtn">Load workspace</button>
+          <button id="listWorkspaceOverridesBtn">List all overrides</button>
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="card policy-row">
+          <div class="section-title">Workspace policy override</div>
+          <div class="policy-group">
+            <label for="workspaceRoutingMode">Routing mode</label>
+            <select id="workspaceRoutingMode">
+              <option value="cloud">cloud</option>
+              <option value="hybrid">hybrid</option>
+              <option value="local-only">local-only</option>
+            </select>
+          </div>
+          <div class="policy-group">
+            <label for="workspaceManualProvider">Manual provider</label>
+            <select id="workspaceManualProvider">
+              <option value="">(none)</option>
+              <option value="groq">groq</option>
+              <option value="gemini">gemini</option>
+              <option value="openai">openai</option>
+              <option value="perplexity">perplexity</option>
+              <option value="local">local</option>
+            </select>
+          </div>
+          <div class="policy-actions">
+            <button id="setWorkspaceOverrideBtn">Set override</button>
+            <button id="clearWorkspaceOverrideBtn">Clear override</button>
+          </div>
+        </div>
+
+        <div class="card policy-row">
+          <div class="section-title">Workspace context</div>
+          <div class="policy-group">
+            <label for="workspaceSummary">Summary</label>
+            <textarea id="workspaceSummary" rows="4" placeholder="Enter workspace summary"></textarea>
+          </div>
+          <div class="policy-group">
+            <label for="workspaceTags">Tags (comma-separated)</label>
+            <input id="workspaceTags" type="text" placeholder="tag1, tag2" />
+          </div>
+          <div class="policy-group">
+            <label for="workspaceLastIntent">Last intent</label>
+            <input id="workspaceLastIntent" type="text" placeholder="e.g. research" />
+          </div>
+          <div class="policy-actions">
+            <button id="saveWorkspaceContextBtn">Save context</button>
+            <button id="clearWorkspaceContextBtn">Clear context</button>
+          </div>
+        </div>
+      </div>
+      <div class="policy-grid">
+        <div class="card">
+          <div class="section-title">Workspace override result</div>
+          <pre id="workspacePolicyResult" class="empty">No workspace policy loaded.</pre>
+        </div>
+        <div class="card">
+          <div class="section-title">Workspace context result</div>
+          <pre id="workspaceContextResult" class="empty">No workspace context loaded.</pre>
+        </div>
+      </div>
+      <div class="card table-wrapper">
+        <div class="section-title">All workspace overrides</div>
+        <div id="workspaceOverridesTable" class="empty">No overrides loaded.</div>
       </div>
     </section>
 
@@ -277,6 +357,106 @@
       await loadTelemetry();
     }
 
+    async function loadWorkspaceData() {
+      const workspaceId = document.getElementById('workspaceId').value.trim();
+      if (!workspaceId) {
+        alert('Workspace ID is required to load workspace data.');
+        return;
+      }
+      const [policy, context] = await Promise.all([
+        window.workspacePolicy.get(workspaceId),
+        window.workspaceContext.get(workspaceId),
+      ]);
+      document.getElementById('workspacePolicyResult').textContent = policy ? JSON.stringify(policy, null, 2) : 'No workspace policy override found.';
+      document.getElementById('workspaceContextResult').textContent = context ? JSON.stringify(context, null, 2) : 'No workspace context found.';
+      if (policy) {
+        document.getElementById('workspaceRoutingMode').value = policy.routingMode || 'cloud';
+        document.getElementById('workspaceManualProvider').value = policy.manualProvider || '';
+      }
+      if (context) {
+        document.getElementById('workspaceSummary').value = context.summary || '';
+        document.getElementById('workspaceTags').value = (context.tags || []).join(', ');
+        document.getElementById('workspaceLastIntent').value = context.lastIntent || '';
+      }
+    }
+
+    async function setWorkspaceOverride() {
+      const workspaceId = document.getElementById('workspaceId').value.trim();
+      if (!workspaceId) {
+        alert('Workspace ID is required to set a workspace override.');
+        return;
+      }
+      const policy = {
+        routingMode: document.getElementById('workspaceRoutingMode').value,
+        manualProvider: document.getElementById('workspaceManualProvider').value || null,
+      };
+      await window.workspacePolicy.set(workspaceId, policy);
+      await loadWorkspaceData();
+    }
+
+    async function clearWorkspaceOverride() {
+      const workspaceId = document.getElementById('workspaceId').value.trim();
+      if (!workspaceId) {
+        alert('Workspace ID is required to clear a workspace override.');
+        return;
+      }
+      await window.workspacePolicy.clear(workspaceId);
+      document.getElementById('workspacePolicyResult').textContent = 'Workspace policy override cleared.';
+    }
+
+    async function saveWorkspaceContext() {
+      const workspaceId = document.getElementById('workspaceId').value.trim();
+      if (!workspaceId) {
+        alert('Workspace ID is required to save workspace context.');
+        return;
+      }
+      const payload = {
+        summary: document.getElementById('workspaceSummary').value.trim(),
+        tags: document.getElementById('workspaceTags').value
+          .split(',')
+          .map((tag) => tag.trim())
+          .filter(Boolean),
+        lastIntent: document.getElementById('workspaceLastIntent').value.trim() || undefined,
+      };
+      await window.workspaceContext.set(workspaceId, payload);
+      await loadWorkspaceData();
+    }
+
+    async function clearWorkspaceContext() {
+      const workspaceId = document.getElementById('workspaceId').value.trim();
+      if (!workspaceId) {
+        alert('Workspace ID is required to clear workspace context.');
+        return;
+      }
+      await window.workspaceContext.clear(workspaceId);
+      document.getElementById('workspaceContextResult').textContent = 'Workspace context cleared.';
+    }
+
+    async function listWorkspaceOverrides() {
+      const overrides = await window.workspacePolicy.list();
+      if (!overrides || !overrides.length) {
+        document.getElementById('workspaceOverridesTable').textContent = 'No workspace overrides found.';
+        return;
+      }
+      const rows = overrides.map((item) => {
+        const policy = item.policy || {};
+        return '<tr>' +
+          '<td>' + item.workspaceId + '</td>' +
+          '<td>' + (policy.routingMode || '') + '</td>' +
+          '<td>' + (policy.manualProvider || '') + '</td>' +
+          '<td>' + JSON.stringify(policy, null, 0) + '</td>' +
+          '</tr>';
+      });
+      document.getElementById('workspaceOverridesTable').innerHTML =
+        '<table>' +
+        '<thead><tr>' +
+        '<th>Workspace ID</th>' +
+        '<th>Routing mode</th>' +
+        '<th>Manual</th>' +
+        '<th>Policy</th>' +
+        '</tr></thead><tbody>' + rows.join('') + '</tbody></table>';
+    }
+
     document.getElementById('applyRoutingMode').addEventListener('click', async () => {
       const mode = document.getElementById('routingMode').value;
       await window.providerPolicy.setMode(mode);
@@ -289,6 +469,13 @@
       await loadPolicy();
       await loadTelemetry();
     });
+
+    document.getElementById('loadWorkspaceBtn').addEventListener('click', loadWorkspaceData);
+    document.getElementById('setWorkspaceOverrideBtn').addEventListener('click', setWorkspaceOverride);
+    document.getElementById('clearWorkspaceOverrideBtn').addEventListener('click', clearWorkspaceOverride);
+    document.getElementById('saveWorkspaceContextBtn').addEventListener('click', saveWorkspaceContext);
+    document.getElementById('clearWorkspaceContextBtn').addEventListener('click', clearWorkspaceContext);
+    document.getElementById('listWorkspaceOverridesBtn').addEventListener('click', listWorkspaceOverrides);
 
     document.getElementById('refreshBtn').addEventListener('click', loadTelemetry);
     document.getElementById('resetAllBtn').addEventListener('click', async () => { await window.providerTelemetry.resetAll(); await loadTelemetry(); });
