@@ -46,8 +46,23 @@ declare global {
       buildPrompt: (workspaceId: string) => Promise<string | null>;
     };
     workspaceRouting: {
-      list: (workspaceId: string, limit?: number) => Promise<any[]>;
-      summary: (workspaceId: string) => Promise<{
+      list: (
+        workspaceId: string,
+        limit?: number,
+        filter?: {
+          startTime?: number;
+          endTime?: number;
+          provider?: string;
+        },
+      ) => Promise<any[]>;
+      summary: (
+        workspaceId: string,
+        filter?: {
+          startTime?: number;
+          endTime?: number;
+          provider?: string;
+        },
+      ) => Promise<{
         workspaceId: string;
         total: number;
         successCount: number;
@@ -58,7 +73,14 @@ declare global {
         providerCounts: Record<string, number>;
         latest: any | null;
       }>;
-      trends: (workspaceId: string) => Promise<
+      trends: (
+        workspaceId: string,
+        filter?: {
+          startTime?: number;
+          endTime?: number;
+          provider?: string;
+        },
+      ) => Promise<
         Array<{
           provider: string;
           count: number;
@@ -70,6 +92,11 @@ declare global {
       timeline: (
         workspaceId: string,
         limit?: number,
+        filter?: {
+          startTime?: number;
+          endTime?: number;
+          provider?: string;
+        },
       ) => Promise<
         Array<{
           id: string;
@@ -82,10 +109,22 @@ declare global {
           workspaceId: string | null;
         }>
       >;
-      analytics: (workspaceId: string) => Promise<any>;
+      analytics: (
+        workspaceId: string,
+        filter?: {
+          startTime?: number;
+          endTime?: number;
+          provider?: string;
+        },
+      ) => Promise<any>;
       buckets: (
         workspaceId: string,
         bucket: "hour" | "day",
+        filter?: {
+          startTime?: number;
+          endTime?: number;
+          provider?: string;
+        },
       ) => Promise<
         Array<{
           bucket: string;
@@ -96,7 +135,11 @@ declare global {
           avgLatencyMs: number;
         }>
       >;
-      globalAnalytics: () => Promise<
+      globalAnalytics: (filter?: {
+        startTime?: number;
+        endTime?: number;
+        provider?: string;
+      }) => Promise<
         Array<{
           workspaceId: string;
           total: number;
@@ -106,9 +149,27 @@ declare global {
           latestTimestamp: number | null;
         }>
       >;
-      exportJson: (workspaceId: string) => Promise<string>;
-      exportCsv: (workspaceId: string) => Promise<string>;
-      providerComparison: () => Promise<
+      exportJson: (
+        workspaceId: string,
+        filter?: {
+          startTime?: number;
+          endTime?: number;
+          provider?: string;
+        },
+      ) => Promise<string>;
+      exportCsv: (
+        workspaceId: string,
+        filter?: {
+          startTime?: number;
+          endTime?: number;
+          provider?: string;
+        },
+      ) => Promise<string>;
+      providerComparison: (filter?: {
+        startTime?: number;
+        endTime?: number;
+        provider?: string;
+      }) => Promise<
         Array<{
           workspaceId: string;
           provider: string;
@@ -120,10 +181,42 @@ declare global {
       bucketChartSvg: (
         workspaceId: string,
         bucket: "hour" | "day",
+        filter?: {
+          startTime?: number;
+          endTime?: number;
+          provider?: string;
+        },
       ) => Promise<string>;
-      providerComparisonChartSvg: () => Promise<string>;
-      exportHtmlReport: (workspaceId: string) => Promise<string>;
+      providerComparisonChartSvg: (filter?: {
+        startTime?: number;
+        endTime?: number;
+        provider?: string;
+      }) => Promise<string>;
+      exportHtmlReport: (
+        workspaceId: string,
+        filter?: {
+          startTime?: number;
+          endTime?: number;
+          provider?: string;
+        },
+      ) => Promise<string>;
       clear: (workspaceId: string) => Promise<boolean>;
+    };
+    workspaceReport: {
+      save: (
+        workspaceId: string,
+        format: "html" | "json" | "csv",
+        filter?: {
+          startTime?: number;
+          endTime?: number;
+          provider?: string;
+        },
+      ) => Promise<{
+        canceled: boolean;
+        saved: boolean;
+        filePath: string | null;
+        format: string;
+      }>;
     };
   }
 }

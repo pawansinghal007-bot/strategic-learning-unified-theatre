@@ -1,0 +1,30 @@
+SPRINT 35 — T1 COMPLETE
+
+  FILES:
+    src/llm/routing-history.ts (extended)
+    electron-ui/ipc/workspace-report-handlers.cjs (created)
+    electron-ui/ipc/workspace-routing-handlers.cjs (updated)
+    electron-ui/main.cjs (updated)
+
+  STATUS:
+    RoutingHistoryFilter interface added
+    filter parameter added to all workspace analytics functions
+    exportWorkspaceAnalyticsJson includes filter in output
+    workspace-report-handlers.cjs created with Electron dialog save
+    workspace-routing-handlers.cjs passes filter through all handlers
+    registerWorkspaceReportHandlers() wired into main.cjs
+    compile clean
+    sonar clean
+
+  DELIVERABLES:
+    [x] RoutingHistoryFilter interface exported
+    [x] All workspace analytics functions accept optional filter
+    [x] Filter applied to provider, startTime, endTime
+    [x] workspaceReport:save handler with Electron dialog
+    [x] Filter passed through all IPC channels
+    [x] registerWorkspaceReportHandlers wired into main.cjs
+    [x] Compilation successful
+    [x] Sonar validation clean
+
+NEXT:
+T2 — preload + types + dashboard + docs

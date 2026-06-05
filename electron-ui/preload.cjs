@@ -163,31 +163,45 @@ contextBridge.exposeInMainWorld("workspaceContext", {
 });
 
 contextBridge.exposeInMainWorld("workspaceRouting", {
-  list: (workspaceId, limit) =>
-    ipcRenderer.invoke("workspaceRouting:list", workspaceId, limit),
-  summary: (workspaceId) =>
-    ipcRenderer.invoke("workspaceRouting:summary", workspaceId),
-  trends: (workspaceId) =>
-    ipcRenderer.invoke("workspaceRouting:trends", workspaceId),
-  timeline: (workspaceId, limit) =>
-    ipcRenderer.invoke("workspaceRouting:timeline", workspaceId, limit),
-  analytics: (workspaceId) =>
-    ipcRenderer.invoke("workspaceRouting:analytics", workspaceId),
-  buckets: (workspaceId, bucket) =>
-    ipcRenderer.invoke("workspaceRouting:buckets", workspaceId, bucket),
-  globalAnalytics: () => ipcRenderer.invoke("workspaceRouting:globalAnalytics"),
-  exportJson: (workspaceId) =>
-    ipcRenderer.invoke("workspaceRouting:exportJson", workspaceId),
-  exportCsv: (workspaceId) =>
-    ipcRenderer.invoke("workspaceRouting:exportCsv", workspaceId),
-  providerComparison: () =>
-    ipcRenderer.invoke("workspaceRouting:providerComparison"),
-  bucketChartSvg: (workspaceId, bucket) =>
-    ipcRenderer.invoke("workspaceRouting:bucketChartSvg", workspaceId, bucket),
-  providerComparisonChartSvg: () =>
-    ipcRenderer.invoke("workspaceRouting:providerComparisonChartSvg"),
-  exportHtmlReport: (workspaceId) =>
-    ipcRenderer.invoke("workspaceRouting:exportHtmlReport", workspaceId),
+  list: (workspaceId, limit, filter) =>
+    ipcRenderer.invoke("workspaceRouting:list", workspaceId, limit, filter),
+  summary: (workspaceId, filter) =>
+    ipcRenderer.invoke("workspaceRouting:summary", workspaceId, filter),
+  trends: (workspaceId, filter) =>
+    ipcRenderer.invoke("workspaceRouting:trends", workspaceId, filter),
+  timeline: (workspaceId, limit, filter) =>
+    ipcRenderer.invoke("workspaceRouting:timeline", workspaceId, limit, filter),
+  analytics: (workspaceId, filter) =>
+    ipcRenderer.invoke("workspaceRouting:analytics", workspaceId, filter),
+  buckets: (workspaceId, bucket, filter) =>
+    ipcRenderer.invoke("workspaceRouting:buckets", workspaceId, bucket, filter),
+  globalAnalytics: (filter) =>
+    ipcRenderer.invoke("workspaceRouting:globalAnalytics", filter),
+  exportJson: (workspaceId, filter) =>
+    ipcRenderer.invoke("workspaceRouting:exportJson", workspaceId, filter),
+  exportCsv: (workspaceId, filter) =>
+    ipcRenderer.invoke("workspaceRouting:exportCsv", workspaceId, filter),
+  providerComparison: (filter) =>
+    ipcRenderer.invoke("workspaceRouting:providerComparison", filter),
+  bucketChartSvg: (workspaceId, bucket, filter) =>
+    ipcRenderer.invoke(
+      "workspaceRouting:bucketChartSvg",
+      workspaceId,
+      bucket,
+      filter,
+    ),
+  providerComparisonChartSvg: (filter) =>
+    ipcRenderer.invoke(
+      "workspaceRouting:providerComparisonChartSvg",
+      filter,
+    ),
+  exportHtmlReport: (workspaceId, filter) =>
+    ipcRenderer.invoke("workspaceRouting:exportHtmlReport", workspaceId, filter),
   clear: (workspaceId) =>
     ipcRenderer.invoke("workspaceRouting:clear", workspaceId),
+});
+
+contextBridge.exposeInMainWorld("workspaceReport", {
+  save: (workspaceId, format, filter) =>
+    ipcRenderer.invoke("workspaceReport:save", workspaceId, format, filter),
 });

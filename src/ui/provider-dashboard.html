@@ -116,6 +116,11 @@
       <h2>Workspace Analytics &amp; Explainability</h2>
       <input id="workspace-id" placeholder="Workspace ID" />
       <div class="row-3">
+        <input id="filter-provider" placeholder="Provider filter" />
+        <input id="filter-start" type="datetime-local" />
+        <input id="filter-end" type="datetime-local" />
+      </div>
+      <div class="row-3">
         <button id="load-unified-view">Load full analytics view</button>
         <button id="refresh-routing-history">Refresh routing data</button>
         <button id="clear-routing-history">Clear workspace history</button>
@@ -124,6 +129,11 @@
         <button id="export-json">Export JSON</button>
         <button id="export-csv">Export CSV</button>
         <button id="export-html-report">Export HTML report</button>
+      </div>
+      <div class="row-3">
+        <button id="save-json">Save JSON</button>
+        <button id="save-csv">Save CSV</button>
+        <button id="save-html">Save HTML</button>
       </div>
       <div class="row-3">
         <button id="load-global-analytics">Load global analytics</button>
@@ -259,9 +269,31 @@
       );
       const reportOut = document.getElementById("report-output");
       const bucketMode = document.getElementById("bucket-mode");
+      const filterProvider = document.getElementById("filter-provider");
+      const filterStart = document.getElementById("filter-start");
+      const filterEnd = document.getElementById("filter-end");
 
       function wsId() {
         return workspaceIdInput.value.trim();
+      }
+
+      function getFilter() {
+        const filter = {};
+        const provider = filterProvider.value.trim();
+        const start = filterStart.value;
+        const end = filterEnd.value;
+
+        if (provider) filter.provider = provider;
+        if (start) {
+          const ts = new Date(start).getTime();
+          if (!Number.isNaN(ts)) filter.startTime = ts;
+        }
+        if (end) {
+          const ts = new Date(end).getTime();
+          if (!Number.isNaN(ts)) filter.endTime = ts;
+        }
+
+        return Object.keys(filter).length > 0 ? filter : undefined;
       }
 
       function setMetrics(summary) {
@@ -309,9 +341,13 @@
         const [policy, context, analytics, raw, svg] = await Promise.all([
           window.workspacePolicy.resolve(id),
           window.workspaceContext.get(id),
-          window.workspaceRouting.analytics(id),
-          window.workspaceRouting.list(id, 25),
-          window.workspaceRouting.bucketChartSvg(id, bucketMode.value),
+          window.workspaceRouting.analytics(id, getFilter()),
+          window.workspaceRouting.list(id, 25, getFilter()),
+          window.workspaceRouting.bucketChartSvg(
+            id,
+            bucketMode.value,
+            getFilter(),
+          ),
         ]);
         policyOutput.textContent = JSON.stringify(policy, null, 2);
         contextOutput.textContent = JSON.stringify(context, null, 2);
@@ -336,8 +372,8 @@
           const id = wsId();
           if (!id) return;
           const [analytics, raw] = await Promise.all([
-            window.workspaceRouting.analytics(id),
-            window.workspaceRouting.list(id, 25),
+            window.workspaceRouting.analytics(id, getFilter()),
+            window.workspaceRouting.list(id, 25, getFilter()),
           ]);
           routingSummary.textContent = JSON.stringify(
             analytics.summary,
@@ -377,6 +413,7 @@
           const rows = await window.workspaceRouting.buckets(
             id,
             bucketMode.value,
+            getFilter(),
           );
           bucketOutput.textContent = JSON.stringify(rows, null, 2);
         });
@@ -389,6 +426,7 @@
           const svg = await window.workspaceRouting.bucketChartSvg(
             id,
             bucketMode.value,
+            getFilter(),
           );
           bucketChartOut.innerHTML = svg;
         });
@@ -396,7 +434,7 @@
       document
         .getElementById("load-global-analytics")
         .addEventListener("click", async () => {
-          const rows = await window.workspaceRouting.globalAnalytics();
+          const rows = await window.workspaceRouting.globalAnalytics(getFilter());
           globalOut.textContent = JSON.stringify(rows, null, 2);
         });
 
@@ -404,8 +442,8 @@
         .getElementById("load-provider-comparison")
         .addEventListener("click", async () => {
           const [rows, svg] = await Promise.all([
-            window.workspaceRouting.providerComparison(),
-            window.workspaceRouting.providerComparisonChartSvg(),
+            window.workspaceRouting.providerComparison(getFilter()),
+            window.workspaceRouting.providerComparisonChartSvg(getFilter()),
           ]);
           comparisonOut.textContent = JSON.stringify(rows, null, 2);
           comparisonChart.innerHTML = svg;
@@ -416,7 +454,10 @@
         .addEventListener("click", async () => {
           const id = wsId();
           if (!id) return;
-          reportOut.textContent = await window.workspaceRouting.exportJson(id);
+          reportOut.textContent = await window.workspaceRouting.exportJson(
+            id,
+            getFilter(),
+          );
         });
 
       document
@@ -424,7 +465,10 @@
         .addEventListener("click", async () => {
           const id = wsId();
           if (!id) return;
-          reportOut.textContent = await window.workspaceRouting.exportCsv(id);
+          reportOut.textContent = await window.workspaceRouting.exportCsv(
+            id,
+            getFilter(),
+          );
         });
 
       document
@@ -432,8 +476,49 @@
         .addEventListener("click", async () => {
           const id = wsId();
           if (!id) return;
-          reportOut.textContent =
-            await window.workspaceRouting.exportHtmlReport(id);
+          reportOut.textContent = await window.workspaceRouting.exportHtmlReport(
+            id,
+            getFilter(),
+          );
+        });
+
+      document
+        .getElementById("save-json")
+        .addEventListener("click", async () => {
+          const id = wsId();
+          if (!id) return;
+          const result = await window.workspaceReport.save(
+            id,
+            "json",
+            getFilter(),
+          );
+          reportOut.textContent = JSON.stringify(result, null, 2);
+        });
+
+      document
+        .getElementById("save-csv")
+        .addEventListener("click", async () => {
+          const id = wsId();
+          if (!id) return;
+          const result = await window.workspaceReport.save(
+            id,
+            "csv",
+            getFilter(),
+          );
+          reportOut.textContent = JSON.stringify(result, null, 2);
+        });
+
+      document
+        .getElementById("save-html")
+        .addEventListener("click", async () => {
+          const id = wsId();
+          if (!id) return;
+          const result = await window.workspaceReport.save(
+            id,
+            "html",
+            getFilter(),
+          );
+          reportOut.textContent = JSON.stringify(result, null, 2);
         });
 
       document
@@ -473,6 +558,21 @@
       // workspaceRouting.analytics
       // workspaceRouting.summary
       // workspaceRouting.list
+      // workspaceRouting.buckets
+      // workspaceRouting.globalAnalytics
+      // workspaceRouting.providerComparison
+      // workspaceRouting.bucketChartSvg
+      // workspaceRouting.providerComparisonChartSvg
+      // workspaceRouting.exportJson
+      // workspaceRouting.exportCsv
+      // workspaceRouting.exportHtmlReport
+      // workspaceReport.save
+      // filter-provider
+      // filter-start
+      // filter-end
+      // save-json-report
+      // save-csv-report
+      // save-html-report
       // providerPolicy
       // listPresets
       // getRoutingHistory
