@@ -202,3 +202,6 @@ Explainable routing and decisions log delivered. Routing history, explainer, gat
 
 ## Sprint 27 Complete
 Policy modes and manual provider controls delivered. Policy engine, gateway filtering, dashboard controls, llm:policy CLI. Sonar clean.
+
+## Sprint 28 Complete
+Policy presets and sensitive task rules delivered. Preset engine, forced local for PII/credentials, dashboard preset controls, llm:policy CLI. Sonar clean.

@@ -1,0 +1,44 @@
+SPRINT 28 COMPLETE: POLICY PRESETS + SENSITIVE TASK RULES DELIVERED
+
+SPRINT SUMMARY:
+T1  policy presets + sensitive rules    src/policies/policy-presets.ts, sensitive-task-rules.ts
+T2  policy + explainer + gateway        src/policies/provider-policy.ts, routing-explainer.ts, gateway.ts
+T3  IPC + preload + types + dashboard   provider-policy-handlers.cjs, preload.cjs, types.d.ts, dashboard.html
+T4  llm:policy CLI update               src/cli/llm-policy.ts
+T5  docs                                sprint-28-scope, checklist, INTEGRATION
+T6  smoke tests + closure               tests/sprint28-smoke.test.js
+
+STATUS:
+vitest pass — 85 files / ~690 tests
+typecheck clean
+sonar clean
+tagged sprint-28-complete
+
+DELIVERABLES:
+[x] 5 policy presets (default/coding/research/private/enterprise)
+[x] Sensitive task detection for PII, credentials, finance, legal, security
+[x] Forced local routing for highest-risk prompts
+[x] Approved-provider restriction for finance/legal/security
+[x] applyPolicyToCandidates() returns { candidates, policyReason }
+[x] Dashboard preset selector
+[x] llm:policy:presets and llm:policy:preset CLI commands
+[x] Smoke tests passing
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+Sprint 29 — workspace memory + context injection
+
+ARCHITECTURE MAINTENANCE:
+Changed this sprint:
+- src/policies/policy-presets.ts (created)
+- src/policies/sensitive-task-rules.ts (created)
+- src/policies/provider-policy.ts (replaced — applyPolicyToCandidates signature changed)
+- electron-ui/ipc/provider-policy-handlers.cjs (replaced)
+- electron-ui/preload.cjs (updated)
+- src/ui/provider-dashboard.html (updated)
+- src/ui/types.d.ts (updated)
+Update PROJECT_ARCHITECTURE_AI_CONTEXT.md to document:
+- New files in src/policies/
+- applyPolicyToCandidates() now returns { candidates, policyReason } not a plain array
+If unchanged: report ARCHITECTURE UNCHANGED.

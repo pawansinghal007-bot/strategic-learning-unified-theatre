@@ -74,10 +74,26 @@ export class Gateway {
     }
 
     const baseCandidates = this.resolveCandidates(parsedRequest.data);
-    const { candidates, policyReason } = applyPolicyToCandidatesWithReason(
+    let { candidates, policyReason } = applyPolicyToCandidatesWithReason(
       baseCandidates,
       parsedRequest.data,
     );
+
+    // If policy (e.g. cloud mode) stripped local but every cloud provider
+    // subsequently fails, we still need a last-resort escape hatch.
+    // Only append local when: not already in list, not request-excluded,
+    // and not explicitly blocked by the active policy.
+    const requestExcluded =
+      parsedRequest.data.constraints?.excludedProviders ?? [];
+    const policyState = getState();
+    if (
+      !candidates.includes("local") &&
+      !requestExcluded.includes("local") &&
+      !policyState.blockedProviders.includes("local") &&
+      this.providers.local
+    ) {
+      candidates = [...candidates, "local"];
+    }
 
     if (!candidates.length) {
       throw new RoutingNoProviderError(
@@ -227,10 +243,29 @@ export class Gateway {
     }
 
     const baseCandidates = this.resolveCandidates(parsedRequest.data);
-    const { candidates, policyReason } = applyPolicyToCandidatesWithReason(
+    let { candidates, policyReason } = applyPolicyToCandidatesWithReason(
       baseCandidates,
       parsedRequest.data,
     );
+
+    // Same local fallback logic as ask() — policy may have stripped local
+    // in cloud mode, but stream() should still reach it if preferred or needed.
+    // Honour preferredProvider: if local was explicitly preferred, put it first.
+    const streamRequestExcluded =
+      parsedRequest.data.constraints?.excludedProviders ?? [];
+    const streamPolicyState = getState();
+    if (
+      !candidates.includes("local") &&
+      !streamRequestExcluded.includes("local") &&
+      !streamPolicyState.blockedProviders.includes("local") &&
+      this.providers.local
+    ) {
+      const preferred = parsedRequest.data.constraints?.preferredProvider;
+      candidates =
+        preferred === "local"
+          ? ["local", ...candidates]
+          : [...candidates, "local"];
+    }
 
     if (!candidates.length) {
       throw new RoutingNoProviderError(
