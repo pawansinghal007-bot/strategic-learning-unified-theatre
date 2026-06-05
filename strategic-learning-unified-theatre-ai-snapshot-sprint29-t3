@@ -1,0 +1,30 @@
+SPRINT 29 — T3 COMPLETE
+
+FILES:
+electron-ui/ipc/workspace-handlers.cjs (created)
+electron-ui/preload.cjs (appended)
+electron-ui/main.cjs (updated)
+src/ui/types.d.ts (replaced)
+src/ui/provider-dashboard.html (replaced)
+
+STATUS:
+workspace policy and context IPC handlers registered
+workspacePolicy and workspaceContext namespaces exposed to renderer
+main.cjs wires new handler correctly
+dashboard workspace panel added
+Sprint 28 panels intact
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] workspacePolicy:get/set/clear/list handlers registered
+[x] workspaceContext:get/set/clear handlers registered
+[x] workspacePolicy and workspaceContext exposed via preload
+[x] main.cjs registers workspace handlers after existing handlers
+[x] Dashboard workspace panel loads, sets, clears policy and context
+[x] types.d.ts covers all new window properties
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+T4 — llm:workspace CLI
