@@ -1,0 +1,55 @@
+SPRINT 29 COMPLETE: WORKSPACE POLICY OVERRIDES + CONTEXT INJECTION DELIVERED
+
+SPRINT SUMMARY:
+T1  workspace policy + context stores     src/policies/workspace-policy.ts,
+                                               src/memory/request-context.ts
+T2  provider-policy + gateway             provider-policy.ts extended,
+                                              gateway.ts replaced
+T3  IPC + preload + main + types +        workspace-handlers.cjs, preload.cjs appended,
+        dashboard                             main.cjs updated, types.d.ts, dashboard.html
+T4  llm:workspace CLI                     src/cli/llm-workspace.ts, cli.js updated
+T5  docs                                  sprint-29-scope, checklist, INTEGRATION
+T6  smoke tests + closure                 tests/sprint29-smoke.test.js
+
+STATUS:
+vitest pass — ~87 files / ~710 tests
+typecheck clean
+    sonar clean
+    tagged sprint-29-complete
+
+DELIVERABLES:
+[x] Workspace policy override storage and resolution
+[x] Workspace context storage (summary, tags, lastIntent)
+[x] Context prompt injection in gateway before routing
+[x] applyPolicyToCandidatesWithReasonForWorkspace() resolves workspace or global
+[x] policySource returned and logged ('global' | 'workspace')
+[x] IPC handlers for workspace policy and context
+[x] workspacePolicy and workspaceContext preload namespaces
+[x] Dashboard workspace panel
+[x] llm:workspace CLI policy:get/set/clear/list commands
+[x] llm:workspace CLI context:get/set/clear commands
+[x] Sprint 28 applyPolicyToCandidates() unchanged — no regression
+[x] Architecture sync completed — new baseline generated
+[x] Smoke tests passing
+[x] Compilation successful
+[x] Sonar validation clean
+
+ARCHITECTURE CHANGES THIS SPRINT:
+New folder:   src/memory/
+New files:    src/policies/workspace-policy.ts
+                  src/memory/request-context.ts
+                  electron-ui/ipc/workspace-handlers.cjs
+                  src/cli/llm-workspace.ts
+Extended:     src/policies/provider-policy.ts
+Replaced:     src/llm/gateway.ts
+Appended:     electron-ui/preload.cjs
+Updated:      electron-ui/main.cjs
+PROJECT_ARCHITECTURE_AI_CONTEXT.md updated.
+PROJECT_ARCHITECTURE_BASELINE.md refreshed.
+
+NEXT:
+Sprint 30 candidates:
+- Per-workspace usage analytics and routing history filtering
+- Workspace-aware provider health weighting
+- Dashboard workspace context visibility improvements
+

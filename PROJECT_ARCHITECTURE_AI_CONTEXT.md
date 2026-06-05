@@ -1034,3 +1034,23 @@ ARCHITECTURE CHANGE NOTE
 - These files impact routing/policy logic and therefore require `PROJECT_ARCHITECTURE_AI_CONTEXT.md` to stay current.
 - `PROJECT_ARCHITECTURE_BASELINE-20260604-091302.md` was not modified by this sprint.
 - Do not mark the architecture as unchanged for this pass.
+
+
+---
+## Architecture Sync — 2026-06-05T01:48:49.652Z
+
+Trigger files changed:
+- electron-ui/ipc/workspace-handlers.cjs
+- electron-ui/main.cjs
+- electron-ui/preload.cjs
+- src/cli/llm-workspace.ts
+- src/llm/gateway.ts
+- src/llm/routing-history.ts
+- src/policies/policy-presets.ts
+- src/policies/provider-policy.ts
+- src/policies/workspace-policy.ts
+- src/shared/contracts/provider.ts
+- src/shared/schemas/provider.schema.ts
+- src/ui/types.d.ts
+
+Structural change: YES

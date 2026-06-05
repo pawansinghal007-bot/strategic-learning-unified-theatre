@@ -218,6 +218,36 @@
         <div class="section-title">All workspace overrides</div>
         <div id="workspaceOverridesTable" class="empty">No overrides loaded.</div>
       </div>
+      <div class="policy-grid">
+        <div class="card policy-row">
+          <div class="section-title">Resolve workspace policy</div>
+          <div class="policy-group">
+            <label>Workspace ID</label>
+            <div style="font-size: 13px; color: var(--muted);">Uses current workspace ID from form above</div>
+          </div>
+          <div class="policy-actions">
+            <button id="resolveWorkspacePolicyBtn">Resolve policy</button>
+          </div>
+          <div class="policy-group">
+            <div class="section-title">Resolved policy</div>
+            <pre id="resolvedPolicyResult" class="empty">No policy resolved.</pre>
+          </div>
+        </div>
+        <div class="card policy-row">
+          <div class="section-title">Build context prompt</div>
+          <div class="policy-group">
+            <label>Workspace ID</label>
+            <div style="font-size: 13px; color: var(--muted);">Uses current workspace ID from form above</div>
+          </div>
+          <div class="policy-actions">
+            <button id="buildContextPromptBtn">Build prompt</button>
+          </div>
+          <div class="policy-group">
+            <div class="section-title">Built prompt</div>
+            <pre id="builtPromptResult" class="empty">No prompt built.</pre>
+          </div>
+        </div>
+      </div>
     </section>
 
     <section>
@@ -457,6 +487,34 @@
         '</tr></thead><tbody>' + rows.join('') + '</tbody></table>';
     }
 
+    async function resolveWorkspacePolicy() {
+      const workspaceId = document.getElementById('workspaceId').value.trim();
+      if (!workspaceId) {
+        alert('Workspace ID is required to resolve workspace policy.');
+        return;
+      }
+      try {
+        const resolved = await window.workspacePolicy.resolve(workspaceId);
+        document.getElementById('resolvedPolicyResult').textContent = JSON.stringify(resolved, null, 2);
+      } catch (e) {
+        document.getElementById('resolvedPolicyResult').textContent = 'Error resolving policy: ' + e.message;
+      }
+    }
+
+    async function buildContextPrompt() {
+      const workspaceId = document.getElementById('workspaceId').value.trim();
+      if (!workspaceId) {
+        alert('Workspace ID is required to build context prompt.');
+        return;
+      }
+      try {
+        const prompt = await window.workspaceContext.buildPrompt(workspaceId);
+        document.getElementById('builtPromptResult').textContent = prompt || 'No prompt generated.';
+      } catch (e) {
+        document.getElementById('builtPromptResult').textContent = 'Error building prompt: ' + e.message;
+      }
+    }
+
     document.getElementById('applyRoutingMode').addEventListener('click', async () => {
       const mode = document.getElementById('routingMode').value;
       await window.providerPolicy.setMode(mode);
@@ -476,6 +534,8 @@
     document.getElementById('saveWorkspaceContextBtn').addEventListener('click', saveWorkspaceContext);
     document.getElementById('clearWorkspaceContextBtn').addEventListener('click', clearWorkspaceContext);
     document.getElementById('listWorkspaceOverridesBtn').addEventListener('click', listWorkspaceOverrides);
+    document.getElementById('resolveWorkspacePolicyBtn').addEventListener('click', resolveWorkspacePolicy);
+    document.getElementById('buildContextPromptBtn').addEventListener('click', buildContextPrompt);
 
     document.getElementById('refreshBtn').addEventListener('click', loadTelemetry);
     document.getElementById('resetAllBtn').addEventListener('click', async () => { await window.providerTelemetry.resetAll(); await loadTelemetry(); });

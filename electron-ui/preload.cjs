@@ -148,6 +148,7 @@ contextBridge.exposeInMainWorld("workspacePolicy", {
   clear: (workspaceId) =>
     ipcRenderer.invoke("workspacePolicy:clear", workspaceId),
   list: () => ipcRenderer.invoke("workspacePolicy:list"),
+  resolve: (workspaceId) => ipcRenderer.invoke("workspacePolicy:resolve", workspaceId),
 });
 
 contextBridge.exposeInMainWorld("workspaceContext", {
@@ -156,4 +157,5 @@ contextBridge.exposeInMainWorld("workspaceContext", {
     ipcRenderer.invoke("workspaceContext:set", workspaceId, payload),
   clear: (workspaceId) =>
     ipcRenderer.invoke("workspaceContext:clear", workspaceId),
+  buildPrompt: (workspaceId) => ipcRenderer.invoke("workspaceContext:prompt", workspaceId),
 });

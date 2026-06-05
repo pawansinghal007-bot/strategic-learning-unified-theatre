@@ -26,6 +26,11 @@ declare global {
       set: (workspaceId: string, policy: Record<string, any>) => Promise<any>;
       clear: (workspaceId: string) => Promise<boolean>;
       list: () => Promise<any[]>;
+      resolve: (workspaceId: string) => Promise<{
+        policy: any;
+        source: 'global' | 'workspace';
+        workspaceId?: string;
+      }>;
     };
     workspaceContext: {
       get: (workspaceId: string) => Promise<any | null>;
@@ -38,6 +43,7 @@ declare global {
         },
       ) => Promise<any>;
       clear: (workspaceId: string) => Promise<boolean>;
+      buildPrompt: (workspaceId: string) => Promise<string | null>;
     };
   }
 }

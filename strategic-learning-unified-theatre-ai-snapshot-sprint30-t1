@@ -1,0 +1,99 @@
+SPRINT 30 — T1 COMPLETE
+
+AUDIT FINDINGS:
+AUDIT REPORT — SPRINT 30 T1
+STEP 1: REPO STATE ✓
+STEP 2: IPC HANDLERS AUDIT ✓
+File: workspace-handlers.cjs
+
+Registered Channels:
+
+workspacePolicy:get → workspacePolicy().getWorkspacePolicyOverride(workspaceId)
+workspacePolicy:set → workspacePolicy().setWorkspacePolicyOverride(workspaceId, policy)
+workspacePolicy:clear → workspacePolicy().clearWorkspacePolicyOverride(workspaceId)
+workspacePolicy:list → workspacePolicy().listWorkspacePolicyOverrides()
+workspaceContext:get → workspaceContext().getWorkspaceContext(workspaceId)
+workspaceContext:set → workspaceContext().saveWorkspaceContext(workspaceId, payload)
+workspaceContext:clear → workspaceContext().clearWorkspaceContext(workspaceId)
+Expected but Missing:
+
+⚠️ workspacePolicy:resolve — NOT REGISTERED (T2 task)
+⚠️ workspaceContext:prompt (buildRequestContextPrompt) — NOT REGISTERED (T3 task)
+STEP 3: PRELOAD BRIDGE AUDIT ✓
+File: preload.cjs
+
+Exposed via contextBridge:
+
+Gaps: NONE — all exposed methods match registered handlers.
+
+STEP 4: TYPES INTERFACE AUDIT ✓
+File: types.d.ts:1-40
+
+Window Interface Declarations:
+
+Gaps: NONE — types match preload and IPC signatures exactly.
+
+STEP 5: DASHBOARD HTML AUDIT ✓
+File: provider-dashboard.html:163
+
+Workspace Management Panel: EXISTS
+
+IPC Calls Verified:
+
+window.workspacePolicy.get(workspaceId) [line 293] ✓
+window.workspacePolicy.set(workspaceId, policy) [line 308] ✓
+window.workspacePolicy.clear(workspaceId) [line 314] ✓
+window.workspacePolicy.list() [line 320] ✓
+window.workspaceContext.get(workspaceId) [line 297] ✓
+window.workspaceContext.set(workspaceId, payload) [line 325] ✓
+window.workspaceContext.clear(workspaceId) [line 331] ✓
+Dashboard Gaps: NONE — all IPC calls match registered handlers.
+
+STEP 6: CLI COMMANDS AUDIT ✓
+File: llm-workspace.ts:13
+
+Export: registerLlmWorkspace(program: Command) — EXPORTED ✓
+
+Wiring in cli.js:
+
+Import: cli.js:36 ✓
+Registration: cli.js:625 registerLlmWorkspace(program) ✓
+Registered Commands:
+
+CLI Gaps: NONE — all commands are properly implemented and wired.
+
+STEP 7: COMPREHENSIVE AUDIT REPORT
+Component	Status	Details
+IPC Channels Registered	✓ 7/7	workspacePolicy (4), workspaceContext (3)
+IPC Missing	⚠️ 2	workspacePolicy:resolve, workspaceContext:prompt (intended for T2/T3)
+Preload Methods	✓ 7/7	All handlers bridged correctly
+Preload Gaps	✓ NONE	Perfect alignment with IPC
+Types.d.ts	✓ 7/7	All signatures declared
+Types Gaps	✓ NONE	Perfect alignment with preload
+Dashboard Panel	✓ EXISTS	Workspace management section (lines 163–236)
+Dashboard IPC Calls	✓ 7/7	All 7 calls match registered handlers
+Dashboard Gaps	✓ NONE	No unregistered channels called
+CLI Commands	✓ 7 subcommands	policy (4), context (3)
+CLI Export	✓ registerLlmWorkspace	Exported and wired in cli.js
+CLI Gaps	✓ NONE	Full implementation complete
+Summary:
+ARCHITECTURE CLEAN — Sprint 29 workspace layer fully integrated
+NO DRIFT DETECTED — All paths, patterns, and conventions align with baseline
+SURFACE COMPLETE — IPC, preload, types, dashboard, and CLI all synchronized
+INTENTIONAL GAPS — 2 channels (resolve, prompt) marked for T2/T3 sprints
+WIRING VERIFIED — main.cjs and cli.js properly register handlers and commands
+
+STATUS:
+Audit complete — no files modified
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] IPC channel audit complete
+[x] Preload namespace audit complete
+[x] Types.d.ts audit complete
+[x] Dashboard workspace panel audit complete
+[x] CLI audit complete
+
+NEXT:
+T2 — fill gaps identified in audit

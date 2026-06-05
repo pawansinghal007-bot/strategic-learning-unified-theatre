@@ -205,3 +205,6 @@ Policy modes and manual provider controls delivered. Policy engine, gateway filt
 
 ## Sprint 28 Complete
 Policy presets and sensitive task rules delivered. Preset engine, forced local for PII/credentials, dashboard preset controls, llm:policy CLI. Sonar clean.
+
+## Sprint 29 Complete
+Workspace policy overrides and context injection delivered. Per-workspace policy resolution, context prompt injection in gateway, IPC handlers, dashboard workspace panel, llm:workspace CLI. New src/memory/ layer. Architecture baseline refreshed. Sonar clean.

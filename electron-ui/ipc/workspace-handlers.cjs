@@ -53,6 +53,16 @@ function registerWorkspaceHandlers() {
     }
     return workspaceContext().clearWorkspaceContext(workspaceId);
   });
+
+  ipcMain.handle("workspacePolicy:resolve", async (_event, workspaceId) => {
+    const { resolveWorkspacePolicyState } = require("../../src/policies/workspace-policy.js");
+    return resolveWorkspacePolicyState(workspaceId);
+  });
+
+  ipcMain.handle("workspaceContext:prompt", async (_event, workspaceId) => {
+    const { buildRequestContextPrompt } = require("../../src/memory/request-context.js");
+    return buildRequestContextPrompt(workspaceId);
+  });
 }
 
 module.exports = { registerWorkspaceHandlers };
