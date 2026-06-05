@@ -1,0 +1,48 @@
+SPRINT 31 COMPLETE: UNIFIED WORKSPACE VIEW + WORKSPACE ROUTING HISTORY DELIVERED
+
+SPRINT SUMMARY:
+T1  routing-history + IPC + main    routing-history.ts extended,
+                                        workspace-routing-handlers.cjs created,
+                                        main.cjs updated
+T2  preload + types + dashboard     preload.cjs appended,
+                                        types.d.ts replaced,
+                                        provider-dashboard.html replaced
+T3  smoke tests + closure           tests/sprint31-smoke.test.js
+
+STATUS:
+vitest pass — ~88 files / ~740 tests
+typecheck clean
+sonar clean
+tagged sprint-31-complete
+
+DELIVERABLES:
+[x] listRoutingHistoryForWorkspace() filters routing history by workspace
+[x] getWorkspaceRoutingSummary() returns total/success/failure/providerCounts/latest
+[x] clearRoutingHistoryForWorkspace() removes entries for a workspace
+[x] workspaceRouting:list/summary/clear IPC channels registered
+[x] workspaceRouting preload namespace exposed to renderer
+[x] types.d.ts workspaceRouting typed
+[x] Dashboard unified workspace view: policy + context + routing in one screen
+[x] Policy source badge shows global vs workspace
+[x] Routing outcomes refresh and clear from dashboard
+[x] Sprint 30 behaviour unchanged — no regression
+[x] Architecture sync completed — new baseline generated
+[x] Smoke tests passing
+[x] Compilation successful
+[x] Sonar validation clean
+
+ARCHITECTURE CHANGES THIS SPRINT:
+Extended:  src/llm/routing-history.ts
+New:       electron-ui/ipc/workspace-routing-handlers.cjs
+Appended:  electron-ui/preload.cjs
+Updated:   electron-ui/main.cjs
+Replaced:  src/ui/types.d.ts, src/ui/provider-dashboard.html
+PROJECT_ARCHITECTURE_AI_CONTEXT.md updated.
+PROJECT_ARCHITECTURE_BASELINE.md refreshed.
+
+NEXT:
+Sprint 32 candidates:
+- Workspace analytics and decision explainability
+- Charts/trends for provider usage per workspace
+- Human-readable timeline of routing decisions with reasons
+- Per-workspace latency and error rate tracking

@@ -211,3 +211,6 @@ Workspace policy overrides and context injection delivered. Per-workspace policy
 
 ## Sprint 30 Complete
 Workspace control plane consolidated. workspacePolicy:resolve and workspaceContext:prompt IPC channels filled. Dashboard updated. Architecture sync complete. Sonar clean.
+
+## Sprint 31 Complete
+Unified workspace view delivered. Workspace routing history filtering, getWorkspaceRoutingSummary, clearRoutingHistoryForWorkspace, workspaceRouting IPC/preload, dashboard shows resolved policy + context + routing outcomes per workspace. New IPC file. Architecture baseline refreshed. Sonar clean.
