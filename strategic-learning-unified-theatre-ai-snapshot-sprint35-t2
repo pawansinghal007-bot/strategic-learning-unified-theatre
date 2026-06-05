@@ -1,0 +1,34 @@
+  SPRINT 35 — T2 COMPLETE
+
+  FILES:
+    electron-ui/preload.cjs (updated)
+    src/ui/types.d.ts (updated)
+    src/ui/provider-dashboard.html (updated)
+    docs/sprint-35-scope.md
+    docs/sprint-35-checklist.md
+    docs/INTEGRATION.md
+
+  STATUS:
+    workspaceRouting preload methods updated with filter params
+    workspaceReport namespace appended to preload
+    types.d.ts covers filter types and workspaceReport
+    dashboard filter controls added
+    dashboard save-to-disk buttons added
+    Sprint 25–34 compatibility strings preserved
+    docs committed
+    compile clean
+    sonar clean
+
+  DELIVERABLES:
+    [x] workspaceRouting preload methods accept filter param
+    [x] workspaceReport.save exposed to renderer
+    [x] types.d.ts RoutingHistoryFilter and workspaceReport typed
+    [x] Dashboard provider + date range filter controls
+    [x] Dashboard Save JSON/CSV/HTML to disk buttons
+    [x] buildFilter() helper passes filter to all IPC calls
+    [x] Compatibility strings preserved
+    [x] Compilation successful
+    [x] Sonar validation clean
+
+  NEXT:
+    T3 — smoke tests + sprint closure

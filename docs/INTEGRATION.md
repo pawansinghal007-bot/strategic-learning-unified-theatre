@@ -20,10 +20,10 @@ workspaceReport:save
 
 ## Architecture — extended from Sprint 34
 
-Main:      electron-ui/main.cjs
-Preload:   electron-ui/preload.cjs
-IPC:       electron-ui/ipc/workspace-routing-handlers.cjs
-           electron-ui/ipc/workspace-report-handlers.cjs
+Main: electron-ui/main.cjs
+Preload: electron-ui/preload.cjs
+IPC: electron-ui/ipc/workspace-routing-handlers.cjs
+electron-ui/ipc/workspace-report-handlers.cjs
 
 ## Smoke test
 

@@ -112,7 +112,8 @@ function matchesFilter(
     return false;
   if (typeof filter.endTime === "number" && timestamp > filter.endTime)
     return false;
-  if (filter.provider && String(item.provider) !== filter.provider) return false;
+  if (filter.provider && String(item.provider) !== filter.provider)
+    return false;
   return true;
 }
 

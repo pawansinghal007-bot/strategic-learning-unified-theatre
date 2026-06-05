@@ -434,7 +434,8 @@
       document
         .getElementById("load-global-analytics")
         .addEventListener("click", async () => {
-          const rows = await window.workspaceRouting.globalAnalytics(getFilter());
+          const rows =
+            await window.workspaceRouting.globalAnalytics(getFilter());
           globalOut.textContent = JSON.stringify(rows, null, 2);
         });
 
@@ -476,10 +477,8 @@
         .addEventListener("click", async () => {
           const id = wsId();
           if (!id) return;
-          reportOut.textContent = await window.workspaceRouting.exportHtmlReport(
-            id,
-            getFilter(),
-          );
+          reportOut.textContent =
+            await window.workspaceRouting.exportHtmlReport(id, getFilter());
         });
 
       document

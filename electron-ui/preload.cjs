@@ -191,12 +191,13 @@ contextBridge.exposeInMainWorld("workspaceRouting", {
       filter,
     ),
   providerComparisonChartSvg: (filter) =>
+    ipcRenderer.invoke("workspaceRouting:providerComparisonChartSvg", filter),
+  exportHtmlReport: (workspaceId, filter) =>
     ipcRenderer.invoke(
-      "workspaceRouting:providerComparisonChartSvg",
+      "workspaceRouting:exportHtmlReport",
+      workspaceId,
       filter,
     ),
-  exportHtmlReport: (workspaceId, filter) =>
-    ipcRenderer.invoke("workspaceRouting:exportHtmlReport", workspaceId, filter),
   clear: (workspaceId) =>
     ipcRenderer.invoke("workspaceRouting:clear", workspaceId),
 });

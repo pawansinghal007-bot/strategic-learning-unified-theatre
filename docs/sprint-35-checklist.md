@@ -1,6 +1,7 @@
 # Sprint 35 — Concrete Closure Checklist
 
 ## Drop-in checklist
+
 - [x] RoutingHistoryFilter interface added to routing-history.ts
 - [x] Filter parameters added to all analytics functions
 - [x] electron-ui/ipc/workspace-report-handlers.cjs created
@@ -15,7 +16,9 @@
 - [x] Git tagged and pushed
 
 ## Suggested next sprint
+
 Sprint 36: audit trail hardening
+
 - Immutable append-only audit log separate from routing history
 - Policy change audit events (mode change, block/allow, preset apply)
 - Tamper-evident checksums
