@@ -175,8 +175,7 @@ contextBridge.exposeInMainWorld("workspaceRouting", {
     ipcRenderer.invoke("workspaceRouting:analytics", workspaceId),
   buckets: (workspaceId, bucket) =>
     ipcRenderer.invoke("workspaceRouting:buckets", workspaceId, bucket),
-  globalAnalytics: () =>
-    ipcRenderer.invoke("workspaceRouting:globalAnalytics"),
+  globalAnalytics: () => ipcRenderer.invoke("workspaceRouting:globalAnalytics"),
   exportJson: (workspaceId) =>
     ipcRenderer.invoke("workspaceRouting:exportJson", workspaceId),
   exportCsv: (workspaceId) =>

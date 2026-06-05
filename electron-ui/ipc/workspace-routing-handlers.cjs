@@ -58,23 +58,34 @@ function registerWorkspaceRoutingHandlers() {
     return routingHistory().clearRoutingHistoryForWorkspace(workspaceId);
   });
 
-  ipcMain.handle("workspaceRouting:buckets", async (_event, workspaceId, bucket) => {
-    const { getWorkspaceTimeBuckets } = require('../../src/llm/routing-history.js');
-    return getWorkspaceTimeBuckets(workspaceId, bucket || 'day');
-  });
+  ipcMain.handle(
+    "workspaceRouting:buckets",
+    async (_event, workspaceId, bucket) => {
+      const {
+        getWorkspaceTimeBuckets,
+      } = require("../../src/llm/routing-history.js");
+      return getWorkspaceTimeBuckets(workspaceId, bucket || "day");
+    },
+  );
 
   ipcMain.handle("workspaceRouting:globalAnalytics", async () => {
-    const { getGlobalWorkspaceAnalytics } = require('../../src/llm/routing-history.js');
+    const {
+      getGlobalWorkspaceAnalytics,
+    } = require("../../src/llm/routing-history.js");
     return getGlobalWorkspaceAnalytics();
   });
 
   ipcMain.handle("workspaceRouting:exportJson", async (_event, workspaceId) => {
-    const { exportWorkspaceAnalyticsJson } = require('../../src/llm/routing-history.js');
+    const {
+      exportWorkspaceAnalyticsJson,
+    } = require("../../src/llm/routing-history.js");
     return exportWorkspaceAnalyticsJson(workspaceId);
   });
 
   ipcMain.handle("workspaceRouting:exportCsv", async (_event, workspaceId) => {
-    const { exportWorkspaceAnalyticsCsv } = require('../../src/llm/routing-history.js');
+    const {
+      exportWorkspaceAnalyticsCsv,
+    } = require("../../src/llm/routing-history.js");
     return exportWorkspaceAnalyticsCsv(workspaceId);
   });
 }

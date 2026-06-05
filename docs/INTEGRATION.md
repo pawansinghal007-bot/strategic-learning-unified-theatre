@@ -13,16 +13,18 @@ Sprints 18–32 must already be integrated.
 - src/ui/provider-dashboard.html (Time Buckets + Global Analytics panels)
 
 ## New IPC channels (Sprint 33)
+
 workspaceRouting:buckets
 workspaceRouting:globalAnalytics
 workspaceRouting:exportJson
 workspaceRouting:exportCsv
 
 ## Architecture unchanged from Sprint 32
-Main:      electron-ui/main.cjs
-Preload:   electron-ui/preload.cjs
-IPC:       electron-ui/ipc/workspace-routing-handlers.cjs (now 10 channels)
-Services:  src/llm/routing-history.ts
+
+Main: electron-ui/main.cjs
+Preload: electron-ui/preload.cjs
+IPC: electron-ui/ipc/workspace-routing-handlers.cjs (now 10 channels)
+Services: src/llm/routing-history.ts
 
 ## Smoke test
 

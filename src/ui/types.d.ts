@@ -114,7 +114,7 @@ declare global {
       }>;
       buckets: (
         workspaceId: string,
-        bucket: 'hour' | 'day',
+        bucket: "hour" | "day",
       ) => Promise<
         Array<{
           bucket: string;

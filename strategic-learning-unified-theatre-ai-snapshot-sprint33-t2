@@ -1,0 +1,33 @@
+SPRINT 33 — T2 COMPLETE
+
+FILES:
+    electron-ui/preload.cjs (extended)
+    src/ui/types.d.ts (updated)
+    src/ui/provider-dashboard.html (updated)
+    docs/sprint-33-scope.md
+    docs/sprint-33-checklist.md
+    docs/INTEGRATION.md
+
+STATUS:
+    workspaceRouting preload block extended with buckets/globalAnalytics/exportJson/exportCsv
+    types.d.ts updated with 4 new method signatures
+    dashboard Time Buckets and Global Analytics panels added
+    export buttons functional
+    Sprint 32 compatibility block preserved and extended
+    docs committed
+    compile clean
+    sonar clean
+
+DELIVERABLES:
+    [x] workspaceRouting.buckets/globalAnalytics/exportJson/exportCsv exposed to renderer
+    [x] All Sprint 32 preload methods unchanged
+    [x] types.d.ts covers all new operations
+    [x] Dashboard Time Buckets panel loads bucketed data
+    [x] Dashboard Global Analytics panel shows cross-workspace rollup
+    [x] Dashboard export buttons call exportJson and exportCsv
+    [x] Sprint 32 compatibility strings preserved
+    [x] Compilation successful
+    [x] Sonar validation clean
+
+NEXT:
+    T3 — smoke tests + sprint closure

@@ -279,18 +279,18 @@ export interface GlobalWorkspaceAnalyticsPoint {
   latestTimestamp: number | null;
 }
 
-function formatBucket(timestamp: number, bucket: 'hour' | 'day'): string {
+function formatBucket(timestamp: number, bucket: "hour" | "day"): string {
   const date = new Date(timestamp);
   const y = date.getUTCFullYear();
-  const m = String(date.getUTCMonth() + 1).padStart(2, '0');
-  const d = String(date.getUTCDate()).padStart(2, '0');
-  const h = String(date.getUTCHours()).padStart(2, '0');
-  return bucket === 'hour' ? `${y}-${m}-${d} ${h}:00` : `${y}-${m}-${d}`;
+  const m = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const d = String(date.getUTCDate()).padStart(2, "0");
+  const h = String(date.getUTCHours()).padStart(2, "0");
+  return bucket === "hour" ? `${y}-${m}-${d} ${h}:00` : `${y}-${m}-${d}`;
 }
 
 export function getWorkspaceTimeBuckets(
   workspaceId: string,
-  bucket: 'hour' | 'day' = 'day',
+  bucket: "hour" | "day" = "day",
 ): TimeBucketPoint[] {
   const items = listRoutingHistoryForWorkspace(workspaceId, 500);
   const grouped = new Map<string, typeof items>();
@@ -308,7 +308,7 @@ export function getWorkspaceTimeBuckets(
       const successCount = entries.filter((e) => e.success).length;
       const failureCount = entries.length - successCount;
       const latencyItems = entries.filter(
-        (e) => typeof (e.latencyMs ?? e.latency) === 'number'
+        (e) => typeof (e.latencyMs ?? e.latency) === "number",
       );
       const avgLatencyMs =
         latencyItems.length > 0
@@ -341,7 +341,7 @@ export function getGlobalWorkspaceAnalytics(): GlobalWorkspaceAnalyticsPoint[] {
   const grouped = new Map<string, typeof all>();
 
   for (const item of all) {
-    const wid = (item.workspaceId as string) ?? 'unscoped';
+    const wid = (item.workspaceId as string) ?? "unscoped";
     const list = grouped.get(wid) ?? [];
     list.push(item);
     grouped.set(wid, list);
@@ -353,7 +353,7 @@ export function getGlobalWorkspaceAnalytics(): GlobalWorkspaceAnalyticsPoint[] {
       const failureCount = entries.length - successCount;
       const total = entries.length;
       const latencyItems = entries.filter(
-        (e) => typeof (e.latencyMs ?? e.latency) === 'number'
+        (e) => typeof (e.latencyMs ?? e.latency) === "number",
       );
       const avgLatencyMs =
         latencyItems.length > 0
@@ -389,8 +389,8 @@ export function exportWorkspaceAnalyticsJson(workspaceId: string): string {
       workspaceId,
       exportedAt: new Date().toISOString(),
       analytics: getWorkspaceAnalytics(workspaceId),
-      dailyBuckets: getWorkspaceTimeBuckets(workspaceId, 'day'),
-      hourlyBuckets: getWorkspaceTimeBuckets(workspaceId, 'hour'),
+      dailyBuckets: getWorkspaceTimeBuckets(workspaceId, "day"),
+      hourlyBuckets: getWorkspaceTimeBuckets(workspaceId, "hour"),
     },
     null,
     2,
@@ -398,10 +398,24 @@ export function exportWorkspaceAnalyticsJson(workspaceId: string): string {
 }
 
 export function exportWorkspaceAnalyticsCsv(workspaceId: string): string {
-  const rows = getWorkspaceTimeBuckets(workspaceId, 'day');
-  const header = ['bucket', 'total', 'successCount', 'failureCount', 'successRate', 'avgLatencyMs'];
+  const rows = getWorkspaceTimeBuckets(workspaceId, "day");
+  const header = [
+    "bucket",
+    "total",
+    "successCount",
+    "failureCount",
+    "successRate",
+    "avgLatencyMs",
+  ];
   const body = rows.map((row) =>
-    [row.bucket, row.total, row.successCount, row.failureCount, row.successRate, row.avgLatencyMs].join(',')
+    [
+      row.bucket,
+      row.total,
+      row.successCount,
+      row.failureCount,
+      row.successRate,
+      row.avgLatencyMs,
+    ].join(","),
   );
-  return [header.join(','), ...body].join('\n');
+  return [header.join(","), ...body].join("\n");
 }
