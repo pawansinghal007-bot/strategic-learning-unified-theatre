@@ -112,6 +112,31 @@ declare global {
           workspaceId: string | null;
         }>;
       }>;
+      buckets: (
+        workspaceId: string,
+        bucket: 'hour' | 'day',
+      ) => Promise<
+        Array<{
+          bucket: string;
+          total: number;
+          successCount: number;
+          failureCount: number;
+          successRate: number;
+          avgLatencyMs: number;
+        }>
+      >;
+      globalAnalytics: () => Promise<
+        Array<{
+          workspaceId: string;
+          total: number;
+          successRate: number;
+          errorRate: number;
+          avgLatencyMs: number;
+          latestTimestamp: number | null;
+        }>
+      >;
+      exportJson: (workspaceId: string) => Promise<string>;
+      exportCsv: (workspaceId: string) => Promise<string>;
       clear: (workspaceId: string) => Promise<boolean>;
     };
   }

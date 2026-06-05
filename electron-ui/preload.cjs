@@ -173,6 +173,14 @@ contextBridge.exposeInMainWorld("workspaceRouting", {
     ipcRenderer.invoke("workspaceRouting:timeline", workspaceId, limit),
   analytics: (workspaceId) =>
     ipcRenderer.invoke("workspaceRouting:analytics", workspaceId),
+  buckets: (workspaceId, bucket) =>
+    ipcRenderer.invoke("workspaceRouting:buckets", workspaceId, bucket),
+  globalAnalytics: () =>
+    ipcRenderer.invoke("workspaceRouting:globalAnalytics"),
+  exportJson: (workspaceId) =>
+    ipcRenderer.invoke("workspaceRouting:exportJson", workspaceId),
+  exportCsv: (workspaceId) =>
+    ipcRenderer.invoke("workspaceRouting:exportCsv", workspaceId),
   clear: (workspaceId) =>
     ipcRenderer.invoke("workspaceRouting:clear", workspaceId),
 });

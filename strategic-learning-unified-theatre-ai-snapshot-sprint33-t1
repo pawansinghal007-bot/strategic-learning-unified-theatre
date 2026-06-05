@@ -1,0 +1,31 @@
+SPRINT 33 — T1 COMPLETE
+
+FILES:
+src/llm/routing-history.ts (extended)
+electron-ui/ipc/workspace-routing-handlers.cjs (extended)
+
+STATUS:
+getWorkspaceTimeBuckets() — hourly and daily bucketing
+getGlobalWorkspaceAnalytics() — cross-workspace rollup
+exportWorkspaceAnalyticsJson() — JSON export
+exportWorkspaceAnalyticsCsv() — CSV export with header
+IPC: workspaceRouting:buckets/globalAnalytics/exportJson/exportCsv registered
+All Sprint 32 exports and IPC channels preserved
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] getWorkspaceTimeBuckets() returns daily/hourly bucket points
+[x] getGlobalWorkspaceAnalytics() returns cross-workspace rollup
+[x] exportWorkspaceAnalyticsJson() returns formatted JSON string
+[x] exportWorkspaceAnalyticsCsv() returns CSV with header row
+[x] workspaceRouting:buckets IPC channel registered
+[x] workspaceRouting:globalAnalytics IPC channel registered
+[x] workspaceRouting:exportJson IPC channel registered
+[x] workspaceRouting:exportCsv IPC channel registered
+[x] All Sprint 32 functions and channels preserved
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+T2 — preload + types + dashboard + docs
