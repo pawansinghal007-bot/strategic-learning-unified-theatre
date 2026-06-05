@@ -1,0 +1,29 @@
+SPRINT 34 — T1 COMPLETE
+
+FILES:
+    src/llm/routing-history.ts (extended)
+    electron-ui/ipc/workspace-routing-handlers.cjs (replaced)
+
+STATUS:
+    getProviderComparisonAcrossWorkspaces() groups by workspace+provider
+    getWorkspaceBucketChartSvg() generates SVG line chart
+    getProviderComparisonChartSvg() generates SVG bar chart
+    exportWorkspaceAnalyticsHtmlReport() generates full HTML report with SVG
+    workspaceRouting:providerComparison/bucketChartSvg/providerComparisonChartSvg/exportHtmlReport registered
+    All Sprint 33 IPC channels preserved
+    Import path uses src/ not dist/
+    compile clean
+    sonar clean
+
+DELIVERABLES:
+    [x] getProviderComparisonAcrossWorkspaces() returns sorted comparison points
+    [x] getWorkspaceBucketChartSvg() returns valid SVG string
+    [x] getProviderComparisonChartSvg() returns valid SVG string
+    [x] exportWorkspaceAnalyticsHtmlReport() returns full HTML with embedded SVG
+    [x] 4 new IPC channels registered
+    [x] All Sprint 33 channels preserved
+    [x] Compilation successful
+    [x] Sonar validation clean
+
+NEXT:
+    T2 — preload update + types + dashboard

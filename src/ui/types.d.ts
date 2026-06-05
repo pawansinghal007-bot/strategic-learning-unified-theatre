@@ -82,36 +82,7 @@ declare global {
           workspaceId: string | null;
         }>
       >;
-      analytics: (workspaceId: string) => Promise<{
-        summary: {
-          workspaceId: string;
-          total: number;
-          successCount: number;
-          failureCount: number;
-          successRate: number;
-          avgLatencyMs: number;
-          errorRate: number;
-          providerCounts: Record<string, number>;
-          latest: any | null;
-        };
-        trends: Array<{
-          provider: string;
-          count: number;
-          successCount: number;
-          failureCount: number;
-          avgLatencyMs: number;
-        }>;
-        timeline: Array<{
-          id: string;
-          timestamp: number;
-          title: string;
-          detail: string;
-          severity: "info" | "warning" | "error";
-          provider: string;
-          success: boolean;
-          workspaceId: string | null;
-        }>;
-      }>;
+      analytics: (workspaceId: string) => Promise<any>;
       buckets: (
         workspaceId: string,
         bucket: "hour" | "day",
@@ -137,6 +108,21 @@ declare global {
       >;
       exportJson: (workspaceId: string) => Promise<string>;
       exportCsv: (workspaceId: string) => Promise<string>;
+      providerComparison: () => Promise<
+        Array<{
+          workspaceId: string;
+          provider: string;
+          count: number;
+          successRate: number;
+          avgLatencyMs: number;
+        }>
+      >;
+      bucketChartSvg: (
+        workspaceId: string,
+        bucket: "hour" | "day",
+      ) => Promise<string>;
+      providerComparisonChartSvg: () => Promise<string>;
+      exportHtmlReport: (workspaceId: string) => Promise<string>;
       clear: (workspaceId: string) => Promise<boolean>;
     };
   }

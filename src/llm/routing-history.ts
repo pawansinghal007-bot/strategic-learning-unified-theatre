@@ -551,9 +551,7 @@ export function getProviderComparisonAcrossWorkspaces(): ProviderWorkspaceCompar
         provider,
         count: entries.length,
         successRate:
-          entries.length > 0
-            ? round((successCount / entries.length) * 100)
-            : 0,
+          entries.length > 0 ? round((successCount / entries.length) * 100) : 0,
         avgLatencyMs,
       };
     })

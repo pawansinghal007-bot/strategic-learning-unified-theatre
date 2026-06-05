@@ -180,6 +180,14 @@ contextBridge.exposeInMainWorld("workspaceRouting", {
     ipcRenderer.invoke("workspaceRouting:exportJson", workspaceId),
   exportCsv: (workspaceId) =>
     ipcRenderer.invoke("workspaceRouting:exportCsv", workspaceId),
+  providerComparison: () =>
+    ipcRenderer.invoke("workspaceRouting:providerComparison"),
+  bucketChartSvg: (workspaceId, bucket) =>
+    ipcRenderer.invoke("workspaceRouting:bucketChartSvg", workspaceId, bucket),
+  providerComparisonChartSvg: () =>
+    ipcRenderer.invoke("workspaceRouting:providerComparisonChartSvg"),
+  exportHtmlReport: (workspaceId) =>
+    ipcRenderer.invoke("workspaceRouting:exportHtmlReport", workspaceId),
   clear: (workspaceId) =>
     ipcRenderer.invoke("workspaceRouting:clear", workspaceId),
 });
