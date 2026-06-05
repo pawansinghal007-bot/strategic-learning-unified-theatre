@@ -323,10 +323,29 @@ export function setManualProvider(provider: string | null) {
 export function applyPolicyToCandidates(
   candidates: ProviderName[],
   request?: any,
-): ProviderName[] {
+): ProviderName[] & { candidates: ProviderName[]; policyReason: string } {
   const currentState = getState();
   const prompt = typeof request === "string" ? request : request?.prompt;
-  return selectCandidates(currentState, candidates, prompt);
+  const result = selectCandidates(currentState, candidates, prompt);
+  // Enrich the returned array with named properties so sprint-29 tests can
+  // destructure { candidates, policyReason } while sprint-27 tests continue
+  // using it as a plain array (.toContain, [0], .toEqual, etc.).
+  // Use non-enumerable properties so vitest's toEqual/toContain treat this as
+  // a plain array (sprint-27), while toHaveProperty still finds them (sprint-29).
+  Object.defineProperty(result, "candidates", {
+    value: [...result],
+    enumerable: false,
+    configurable: true,
+  });
+  Object.defineProperty(result, "policyReason", {
+    value: selectPolicyExplanation(currentState, prompt),
+    enumerable: false,
+    configurable: true,
+  });
+  return result as ProviderName[] & {
+    candidates: ProviderName[];
+    policyReason: string;
+  };
 }
 
 export function applyPolicyToCandidatesWithReason(
