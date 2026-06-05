@@ -75,12 +75,28 @@ export function recordProviderSuccess(provider: string, response: any) {
   autoResetIfNeeded(provider, snapshot);
   const rec = ensureRecord(provider, snapshot);
 
+  const usage = response?.usage ?? {};
+
+  const inputTokens =
+    usage.inputTokens ?? usage.promptTokens ?? usage.prompt_tokens ?? 0;
+
+  const outputTokens =
+    usage.outputTokens ??
+    usage.completionTokens ??
+    usage.completion_tokens ??
+    0;
+
+  const totalTokens =
+    usage.totalTokens ?? usage.total_tokens ?? inputTokens + outputTokens;
+
+  const estimatedCostUsd = usage.estimatedCostUsd ?? usage.costUsd ?? 0;
+
   rec.requestCount += 1;
   rec.successCount += 1;
-  rec.inputTokens += response.usage?.inputTokens ?? 0;
-  rec.outputTokens += response.usage?.outputTokens ?? 0;
-  rec.totalTokens += response.usage?.totalTokens ?? 0;
-  rec.estimatedCostUsd += response.usage?.estimatedCostUsd ?? 0;
+  rec.inputTokens += inputTokens;
+  rec.outputTokens += outputTokens;
+  rec.totalTokens += totalTokens;
+  rec.estimatedCostUsd += estimatedCostUsd;
   rec.lastUsedAt = Date.now();
 
   saveUsage(snapshot);

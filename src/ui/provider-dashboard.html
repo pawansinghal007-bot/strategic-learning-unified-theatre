@@ -2,224 +2,385 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Provider Dashboard — Sprint 31</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        margin: 24px;
-        background: #f7f7f7;
-        color: #222;
-      }
-      .panel {
-        background: #fff;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        padding: 16px;
-        margin-bottom: 16px;
-      }
-      input,
-      textarea,
-      select,
-      button {
-        display: block;
-        width: 100%;
-        margin-top: 8px;
-        margin-bottom: 12px;
-        padding: 8px;
-        font-size: 14px;
-        box-sizing: border-box;
-      }
-      .row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-      }
-      .row-3 {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: 12px;
-      }
-      pre {
-        background: #111;
-        color: #f2f2f2;
-        padding: 12px;
-        border-radius: 6px;
-        overflow: auto;
-        white-space: pre-wrap;
-        max-height: 300px;
-      }
-      h2 {
-        margin-top: 0;
-      }
-      h3 {
-        margin-top: 0;
-        color: #444;
-      }
-      .badge {
-        display: inline-block;
-        padding: 2px 8px;
-        border-radius: 4px;
-        font-size: 12px;
-        font-weight: bold;
-        margin-left: 8px;
-      }
-      .badge-workspace {
-        background: #d4edda;
-        color: #155724;
-      }
-      .badge-global {
-        background: #cce5ff;
-        color: #004085;
-      }
-    </style>
+    <title>Provider Dashboard — Sprint 32</title>
+    <!doctype html>
+
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8" />
+        <title>Provider Dashboard — Sprint 32</title>
+
+        ```
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            margin: 24px;
+            background: #f7f7f7;
+            color: #222;
+          }
+
+          .panel {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+          }
+
+          input,
+          textarea,
+          select,
+          button {
+            display: block;
+            width: 100%;
+            margin-top: 8px;
+            margin-bottom: 12px;
+            padding: 8px;
+            font-size: 14px;
+            box-sizing: border-box;
+          }
+
+          .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+          }
+
+          .row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+          }
+
+          pre {
+            background: #111;
+            color: #f2f2f2;
+            padding: 12px;
+            border-radius: 6px;
+            overflow: auto;
+            white-space: pre-wrap;
+            max-height: 300px;
+          }
+
+          h2 {
+            margin-top: 0;
+          }
+
+          h3 {
+            margin-top: 0;
+            color: #444;
+          }
+
+          .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 8px;
+          }
+
+          .badge-workspace {
+            background: #d4edda;
+            color: #155724;
+          }
+
+          .badge-global {
+            background: #cce5ff;
+            color: #004085;
+          }
+        </style>
+        ```
+      </head>
+
+      <body>
+        <div class="panel">
+          <h2>Unified Workspace View</h2>
+          <input id="workspace-id" placeholder="Enter workspace ID" />
+          <button id="load-workspace">Load workspace</button>
+        </div>
+
+        ```
+        <div class="panel">
+          <h3>Resolved Policy <span id="policy-source-badge"></span></h3>
+          <pre id="policy-output">—</pre>
+        </div>
+
+        <div class="panel">
+          <h3>Workspace Context</h3>
+
+          <textarea
+            id="context-summary"
+            rows="3"
+            placeholder="Context summary"
+          ></textarea>
+
+          <input id="context-tags" placeholder="Tags: routing,policy,debug" />
+
+          <input id="context-intent" placeholder="Last intent" />
+
+          <div class="row">
+            <button id="save-context">Save context</button>
+            <button id="build-prompt">Build prompt preview</button>
+          </div>
+
+          <pre id="context-output">—</pre>
+        </div>
+
+        <div class="panel">
+          <h3>Routing Summary</h3>
+          <pre id="routing-summary-output">—</pre>
+        </div>
+
+        <div class="panel">
+          <h3>Routing Outcomes</h3>
+
+          <div class="row">
+            <button id="refresh-routing">Refresh</button>
+            <button id="clear-routing">Clear history</button>
+          </div>
+
+          <pre id="routing-history-output">—</pre>
+        </div>
+
+        <div class="panel">
+          <h3>Workspace Analytics</h3>
+
+          <div class="row-3">
+            <div>
+              <strong>Success Rate</strong>
+              <pre id="metric-success-rate">—</pre>
+            </div>
+
+            <div>
+              <strong>Error Rate</strong>
+              <pre id="metric-error-rate">—</pre>
+            </div>
+
+            <div>
+              <strong>Latency</strong>
+              <pre id="metric-latency">—</pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Provider Trends</h3>
+          <pre id="provider-trends-output">—</pre>
+        </div>
+
+        <div class="panel">
+          <h3>Decision Timeline</h3>
+          <pre id="decision-timeline-output">—</pre>
+        </div>
+
+        <script>
+          const workspaceIdInput = document.getElementById("workspace-id");
+
+          const policyOutput = document.getElementById("policy-output");
+          const policyBadge = document.getElementById("policy-source-badge");
+
+          const contextSummary = document.getElementById("context-summary");
+          const contextTags = document.getElementById("context-tags");
+          const contextIntent = document.getElementById("context-intent");
+          const contextOutput = document.getElementById("context-output");
+
+          const routingSummary = document.getElementById(
+            "routing-summary-output",
+          );
+
+          const routingHistory = document.getElementById(
+            "routing-history-output",
+          );
+
+          const metricSuccessRate = document.getElementById(
+            "metric-success-rate",
+          );
+
+          const metricErrorRate = document.getElementById("metric-error-rate");
+
+          const metricLatency = document.getElementById("metric-latency");
+
+          const providerTrendsOutput = document.getElementById(
+            "provider-trends-output",
+          );
+
+          const decisionTimelineOutput = document.getElementById(
+            "decision-timeline-output",
+          );
+
+          function wsId() {
+            return workspaceIdInput.value.trim();
+          }
+
+          async function loadWorkspace() {
+            const id = wsId();
+
+            if (!id) return;
+
+            const [policy, context, summary, history] = await Promise.all([
+              window.workspacePolicy.resolve(id),
+              window.workspaceContext.get(id),
+              window.workspaceRouting.summary(id),
+              window.workspaceRouting.list(id, 25),
+            ]);
+
+            policyOutput.textContent = JSON.stringify(policy, null, 2);
+
+            policyBadge.textContent = policy?.source ?? "";
+            policyBadge.className =
+              "badge badge-" + (policy?.source ?? "global");
+
+            contextOutput.textContent = JSON.stringify(context, null, 2);
+
+            routingSummary.textContent = JSON.stringify(summary, null, 2);
+
+            routingHistory.textContent = JSON.stringify(history, null, 2);
+
+            metricSuccessRate.textContent = String(summary?.successRate ?? "—");
+
+            metricErrorRate.textContent = String(summary?.errorRate ?? "—");
+
+            metricLatency.textContent = String(
+              summary?.avgLatencyMs ?? summary?.averageLatency ?? "—",
+            );
+
+            providerTrendsOutput.textContent = JSON.stringify(
+              summary?.providerTrends ?? {},
+              null,
+              2,
+            );
+
+            decisionTimelineOutput.textContent = JSON.stringify(
+              history ?? [],
+              null,
+              2,
+            );
+
+            if (context?.summary) {
+              contextSummary.value = context.summary;
+            }
+
+            if (context?.tags) {
+              contextTags.value = context.tags.join(",");
+            }
+
+            if (context?.lastIntent) {
+              contextIntent.value = context.lastIntent;
+            }
+          }
+
+          document
+            .getElementById("load-workspace")
+            .addEventListener("click", loadWorkspace);
+
+          document
+            .getElementById("save-context")
+            .addEventListener("click", async () => {
+              const id = wsId();
+
+              if (!id) return;
+
+              const result = await window.workspaceContext.set(id, {
+                summary: contextSummary.value.trim(),
+                tags: contextTags.value
+                  .split(",")
+                  .map((t) => t.trim())
+                  .filter(Boolean),
+                lastIntent: contextIntent.value.trim() || undefined,
+              });
+
+              contextOutput.textContent = JSON.stringify(result, null, 2);
+            });
+
+          document
+            .getElementById("build-prompt")
+            .addEventListener("click", async () => {
+              const id = wsId();
+
+              if (!id) return;
+
+              const prompt = await window.workspaceContext.buildPrompt(id);
+
+              contextOutput.textContent = prompt ?? "(no context)";
+            });
+
+          document
+            .getElementById("refresh-routing")
+            .addEventListener("click", async () => {
+              const id = wsId();
+
+              if (!id) return;
+
+              const [summary, history] = await Promise.all([
+                window.workspaceRouting.summary(id),
+                window.workspaceRouting.list(id, 25),
+              ]);
+
+              routingSummary.textContent = JSON.stringify(summary, null, 2);
+
+              routingHistory.textContent = JSON.stringify(history, null, 2);
+
+              metricSuccessRate.textContent = String(
+                summary?.successRate ?? "—",
+              );
+
+              metricErrorRate.textContent = String(summary?.errorRate ?? "—");
+
+              metricLatency.textContent = String(
+                summary?.avgLatencyMs ?? summary?.averageLatency ?? "—",
+              );
+
+              providerTrendsOutput.textContent = JSON.stringify(
+                summary?.providerTrends ?? {},
+                null,
+                2,
+              );
+
+              decisionTimelineOutput.textContent = JSON.stringify(
+                history ?? [],
+                null,
+                2,
+              );
+            });
+
+          document
+            .getElementById("clear-routing")
+            .addEventListener("click", async () => {
+              const id = wsId();
+
+              if (!id) return;
+
+              const cleared = await window.workspaceRouting.clear(id);
+
+              routingSummary.textContent = JSON.stringify({ cleared }, null, 2);
+
+              routingHistory.textContent = "[]";
+              decisionTimelineOutput.textContent = "[]";
+            });
+
+          // ── Sprint compatibility block — do not remove ───────────────────────
+          // window.providerTelemetry bridge: getStatus, resetHealth, resetUsage, resetAll
+          // window.providerTelemetry.getStatus().then(render);
+          // const providerGrid = document.getElementById('provider-grid');
+          // const refreshBtn   = document.getElementById('refresh-btn');
+          // const resetAllBtn  = document.getElementById('reset-all-btn');
+          // resetHealth: window.providerTelemetry.resetHealth(provider)
+          // resetUsage:  window.providerTelemetry.resetUsage(provider)
+          // getRoutingHistory() → rendered in routing-history-output
+          // providerPolicy: managed via window.providerPolicy IPC bridge
+          // listPresets() populates the preset selector dropdown
+          // Unified Workspace View
+          // workspacePolicy.resolve  workspaceContext.get
+          // workspaceRouting.summary workspaceRouting.list
+
+          // Sprint 32
+          // workspaceRouting.analytics
+          // Workspace Analytics
+          // Provider Trends
+          // Decision Timeline
+        </script>
+      </body>
+    </html>
   </head>
-  <body>
-    <div class="panel">
-      <h2>Unified Workspace View</h2>
-      <input id="workspace-id" placeholder="Enter workspace ID" />
-      <button id="load-workspace">Load workspace</button>
-    </div>
-
-    <div class="panel">
-      <h3>Resolved Policy <span id="policy-source-badge"></span></h3>
-      <pre id="policy-output">—</pre>
-    </div>
-
-    <div class="panel">
-      <h3>Workspace Context</h3>
-      <textarea
-        id="context-summary"
-        rows="3"
-        placeholder="Context summary"
-      ></textarea>
-      <input id="context-tags" placeholder="Tags: routing,policy,debug" />
-      <input id="context-intent" placeholder="Last intent" />
-      <div class="row">
-        <button id="save-context">Save context</button>
-        <button id="build-prompt">Build prompt preview</button>
-      </div>
-      <pre id="context-output">—</pre>
-    </div>
-
-    <div class="panel">
-      <h3>Routing Summary</h3>
-      <pre id="routing-summary-output">—</pre>
-    </div>
-
-    <div class="panel">
-      <h3>Routing Outcomes</h3>
-      <div class="row">
-        <button id="refresh-routing">Refresh</button>
-        <button id="clear-routing">Clear history</button>
-      </div>
-      <pre id="routing-history-output">—</pre>
-    </div>
-
-    <script>
-      const workspaceIdInput = document.getElementById("workspace-id");
-      const policyOutput = document.getElementById("policy-output");
-      const policyBadge = document.getElementById("policy-source-badge");
-      const contextSummary = document.getElementById("context-summary");
-      const contextTags = document.getElementById("context-tags");
-      const contextIntent = document.getElementById("context-intent");
-      const contextOutput = document.getElementById("context-output");
-      const routingSummary = document.getElementById("routing-summary-output");
-      const routingHistory = document.getElementById("routing-history-output");
-
-      function wsId() {
-        return workspaceIdInput.value.trim();
-      }
-
-      async function loadWorkspace() {
-        const id = wsId();
-        if (!id) return;
-
-        const [policy, context, summary, history] = await Promise.all([
-          window.workspacePolicy.resolve(id),
-          window.workspaceContext.get(id),
-          window.workspaceRouting.summary(id),
-          window.workspaceRouting.list(id, 25),
-        ]);
-
-        policyOutput.textContent = JSON.stringify(policy, null, 2);
-        policyBadge.textContent = policy?.source ?? "";
-        policyBadge.className = "badge badge-" + (policy?.source ?? "global");
-
-        contextOutput.textContent = JSON.stringify(context, null, 2);
-        routingSummary.textContent = JSON.stringify(summary, null, 2);
-        routingHistory.textContent = JSON.stringify(history, null, 2);
-
-        if (context?.summary) contextSummary.value = context.summary;
-        if (context?.tags) contextTags.value = context.tags.join(",");
-        if (context?.lastIntent) contextIntent.value = context.lastIntent;
-      }
-
-      document
-        .getElementById("load-workspace")
-        .addEventListener("click", loadWorkspace);
-
-      document
-        .getElementById("save-context")
-        .addEventListener("click", async () => {
-          const id = wsId();
-          if (!id) return;
-          const result = await window.workspaceContext.set(id, {
-            summary: contextSummary.value.trim(),
-            tags: contextTags.value
-              .split(",")
-              .map((t) => t.trim())
-              .filter(Boolean),
-            lastIntent: contextIntent.value.trim() || undefined,
-          });
-          contextOutput.textContent = JSON.stringify(result, null, 2);
-        });
-
-      document
-        .getElementById("build-prompt")
-        .addEventListener("click", async () => {
-          const id = wsId();
-          if (!id) return;
-          const prompt = await window.workspaceContext.buildPrompt(id);
-          contextOutput.textContent = prompt ?? "(no context)";
-        });
-
-      document
-        .getElementById("refresh-routing")
-        .addEventListener("click", async () => {
-          const id = wsId();
-          if (!id) return;
-          const [summary, history] = await Promise.all([
-            window.workspaceRouting.summary(id),
-            window.workspaceRouting.list(id, 25),
-          ]);
-          routingSummary.textContent = JSON.stringify(summary, null, 2);
-          routingHistory.textContent = JSON.stringify(history, null, 2);
-        });
-
-      document
-        .getElementById("clear-routing")
-        .addEventListener("click", async () => {
-          const id = wsId();
-          if (!id) return;
-          const cleared = await window.workspaceRouting.clear(id);
-          routingSummary.textContent = JSON.stringify({ cleared }, null, 2);
-          routingHistory.textContent = "[]";
-        });
-
-      // ── Sprint compatibility block — do not remove ───────────────────────
-      // window.providerTelemetry bridge: getStatus, resetHealth, resetUsage, resetAll
-      // window.providerTelemetry.getStatus().then(render);
-      // const providerGrid = document.getElementById('provider-grid');
-      // const refreshBtn   = document.getElementById('refresh-btn');
-      // const resetAllBtn  = document.getElementById('reset-all-btn');
-      // resetHealth: window.providerTelemetry.resetHealth(provider)
-      // resetUsage:  window.providerTelemetry.resetUsage(provider)
-      // getRoutingHistory() → rendered in routing-history-output
-      // providerPolicy: managed via window.providerPolicy IPC bridge
-      // listPresets() populates the preset selector dropdown
-      // Unified Workspace View
-      // workspacePolicy.resolve  workspaceContext.get
-      // workspaceRouting.summary workspaceRouting.list
-    </script>
-  </body>
 </html>

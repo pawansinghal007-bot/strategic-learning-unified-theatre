@@ -1,0 +1,28 @@
+SPRINT 32 — T2 COMPLETE
+
+FILES:
+electron-ui/preload.cjs (updated)
+src/ui/types.d.ts (replaced)
+src/ui/provider-dashboard.html (replaced)
+
+STATUS:
+workspaceRouting preload block updated with trends/timeline/analytics
+all other preload namespaces intact
+types.d.ts covers full analytics payload shapes
+dashboard shows metrics/trends/timeline/raw data
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] workspaceRouting.trends/timeline/analytics exposed to renderer
+[x] Sprint 31 preload namespaces unchanged
+[x] types.d.ts analytics types correct
+[x] Dashboard metrics panel (total/successRate/errorRate/latency/latest)
+[x] Provider trends table populated from workspaceRouting.trends()
+[x] Timeline rendered from workspaceRouting.analytics()
+[x] Raw routing outcomes displayed
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+T3 — smoke tests + sprint closure
