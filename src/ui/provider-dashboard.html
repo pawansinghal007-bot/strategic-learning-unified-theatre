@@ -1,557 +1,230 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <title>Provider Telemetry & Policy Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    :root {
-      --bg: #0f1115;
-      --panel: #171a21;
-      --muted: #8b95a7;
-      --text: #e6eaf2;
-      --border: #2a3140;
-      --good: #2fbf71;
-      --warn: #f5a524;
-      --bad: #f05d5e;
-      --accent: #5b8cff;
-    }
-    * { box-sizing: border-box; }
-    body { margin: 0; font-family: Inter, Arial, sans-serif; background: var(--bg); color: var(--text); }
-    header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
-    h1 { margin: 0; font-size: 22px; }
-    .toolbar { display: flex; gap: 8px; flex-wrap: wrap; }
-    button, select, input, textarea { background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; cursor: pointer; }
-    button:hover, select:hover, input:hover, textarea:hover { border-color: var(--accent); }
-    select, input, textarea { width: 100%; }
-    textarea { resize: vertical; }
-    main { padding: 24px; display: grid; gap: 24px; }
-    .policy-grid { display: grid; gap: 16px; grid-template-columns: repeat(3, minmax(220px, 1fr)); }
-    @media (max-width: 1080px) { .policy-grid { grid-template-columns: 1fr; } }
-    .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
-    .two-col { display: grid; gap: 24px; grid-template-columns: 1.2fr 0.8fr; }
-    @media (max-width: 960px) { .two-col { grid-template-columns: 1fr; } }
-    .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
-    .provider-name { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-weight: 600; gap: 8px; }
-    .badge { font-size: 12px; padding: 4px 8px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); white-space: nowrap; }
-    .badge.good { color: var(--good); border-color: var(--good); }
-    .badge.warn { color: var(--warn); border-color: var(--warn); }
-    .badge.bad { color: var(--bad); border-color: var(--bad); }
-    .meta { display: grid; gap: 8px; font-size: 13px; color: var(--muted); }
-    .bar-wrap { margin-top: 12px; background: #0d0f14; border-radius: 999px; overflow: hidden; border: 1px solid var(--border); height: 10px; }
-    .bar { height: 100%; background: var(--accent); width: 0%; }
-    .section-title { font-size: 16px; margin-bottom: 12px; }
-    .empty { color: var(--muted); font-size: 14px; }
-    .decision-list { display: grid; gap: 12px; }
-    .decision-item { border: 1px solid var(--border); border-radius: 10px; padding: 12px; background: #131720; }
-    .decision-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 8px; flex-wrap: wrap; }
-    .decision-title { font-size: 14px; font-weight: 600; }
-    .decision-meta, .decision-reason { font-size: 13px; color: var(--muted); }
-    .decision-error { font-size: 13px; color: var(--bad); margin-top: 6px; }
-    .pill { display: inline-block; font-size: 12px; padding: 4px 8px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); margin-right: 8px; }
-    .pill.success { color: var(--good); border-color: var(--good); }
-    .pill.failed { color: var(--bad); border-color: var(--bad); }
-    .policy-row { display: grid; gap: 12px; }
-    .policy-group { display: grid; gap: 10px; }
-    .policy-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
-    .provider-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
-    .table-wrapper { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { text-align: left; padding: 10px; border-bottom: 1px solid var(--border); font-size: 13px; }
-  </style>
-</head>
-<body>
-  <header>
-    <h1>Provider Telemetry & Policy Dashboard</h1>
-    <div class="toolbar">
-      <button id="refreshBtn">Refresh</button>
-      <button id="resetAllBtn">Reset all telemetry</button>
-      <button id="resetHistoryBtn">Reset routing history</button>
-      <button id="resetPolicyBtn">Reset policy</button>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Provider Dashboard — Sprint 31</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 24px;
+        background: #f7f7f7;
+        color: #222;
+      }
+      .panel {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 16px;
+      }
+      input,
+      textarea,
+      select,
+      button {
+        display: block;
+        width: 100%;
+        margin-top: 8px;
+        margin-bottom: 12px;
+        padding: 8px;
+        font-size: 14px;
+        box-sizing: border-box;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .row-3 {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 12px;
+      }
+      pre {
+        background: #111;
+        color: #f2f2f2;
+        padding: 12px;
+        border-radius: 6px;
+        overflow: auto;
+        white-space: pre-wrap;
+        max-height: 300px;
+      }
+      h2 {
+        margin-top: 0;
+      }
+      h3 {
+        margin-top: 0;
+        color: #444;
+      }
+      .badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: bold;
+        margin-left: 8px;
+      }
+      .badge-workspace {
+        background: #d4edda;
+        color: #155724;
+      }
+      .badge-global {
+        background: #cce5ff;
+        color: #004085;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="panel">
+      <h2>Unified Workspace View</h2>
+      <input id="workspace-id" placeholder="Enter workspace ID" />
+      <button id="load-workspace">Load workspace</button>
     </div>
-  </header>
-  <main>
-    <section class="policy-grid">
-      <div class="card policy-row">
-        <div class="section-title">Routing mode</div>
-        <div class="policy-group">
-          <label for="routingMode">Mode</label>
-          <select id="routingMode">
-            <option value="cloud">cloud</option>
-            <option value="hybrid">hybrid</option>
-            <option value="local-only">local-only</option>
-          </select>
-        </div>
-        <div class="policy-actions">
-          <button id="applyRoutingMode">Apply mode</button>
-        </div>
-      </div>
-      <div class="card policy-row">
-        <div class="section-title">Manual provider override</div>
-        <div class="policy-group">
-          <label for="manualProvider">Provider</label>
-          <select id="manualProvider">
-            <option value="">(none)</option>
-            <option value="groq">groq</option>
-            <option value="gemini">gemini</option>
-            <option value="openai">openai</option>
-            <option value="perplexity">perplexity</option>
-            <option value="local">local</option>
-          </select>
-        </div>
-        <div class="policy-actions">
-          <button id="applyManualProvider">Set manual provider</button>
-        </div>
-      </div>
-      <div class="card">
-        <div class="section-title">Current policy snapshot</div>
-        <pre id="policySnapshot">Loading policy...</pre>
-      </div>
-    </section>
 
-    <section class="policy-grid">
-      <div class="card">
-        <div class="section-title">Policy preset</div>
-        <div class="policy-group">
-          <label for="presetSelector">Preset</label>
-          <select id="presetSelector"></select>
-        </div>
-        <div class="policy-actions">
-          <button id="applyPresetBtn">Apply preset</button>
-        </div>
-        <div class="policy-group">
-          <div class="section-title">Active preset</div>
-          <div id="activePreset">Loading...</div>
-        </div>
-        <div class="policy-group">
-          <div class="section-title">Preset description</div>
-          <div id="presetDescription" class="meta">Loading preset details...</div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="section-title">Sensitive task rules</div>
-        <div class="meta">
-          <div><strong>PII</strong>: pan, aadhaar, passport, ssn, social security, date of birth, phone number, home address</div>
-          <div><strong>Credentials</strong>: api key, secret key, password, token, private key, credential</div>
-          <div><strong>Finance</strong>: bank statement, account number, ifsc, credit card, financial report, invoice, balance sheet</div>
-          <div><strong>Legal</strong>: contract, nda, legal notice, compliance, regulatory</div>
-          <div><strong>Security</strong>: vulnerability, exploit, penetration test, security audit, incident</div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="section-title">Preset summary</div>
-        <pre id="presetSummary" class="empty">No preset summary loaded.</pre>
-      </div>
-    </section>
+    <div class="panel">
+      <h3>Resolved Policy <span id="policy-source-badge"></span></h3>
+      <pre id="policy-output">—</pre>
+    </div>
 
-    <section class="card">
-      <div class="section-title">Workspace management</div>
-      <div class="policy-row">
-        <div class="policy-group">
-          <label for="workspaceId">Workspace ID</label>
-          <input id="workspaceId" type="text" placeholder="Enter workspace ID" />
-        </div>
-        <div class="policy-actions">
-          <button id="loadWorkspaceBtn">Load workspace</button>
-          <button id="listWorkspaceOverridesBtn">List all overrides</button>
-        </div>
+    <div class="panel">
+      <h3>Workspace Context</h3>
+      <textarea
+        id="context-summary"
+        rows="3"
+        placeholder="Context summary"
+      ></textarea>
+      <input id="context-tags" placeholder="Tags: routing,policy,debug" />
+      <input id="context-intent" placeholder="Last intent" />
+      <div class="row">
+        <button id="save-context">Save context</button>
+        <button id="build-prompt">Build prompt preview</button>
       </div>
-      <div class="two-col">
-        <div class="card policy-row">
-          <div class="section-title">Workspace policy override</div>
-          <div class="policy-group">
-            <label for="workspaceRoutingMode">Routing mode</label>
-            <select id="workspaceRoutingMode">
-              <option value="cloud">cloud</option>
-              <option value="hybrid">hybrid</option>
-              <option value="local-only">local-only</option>
-            </select>
-          </div>
-          <div class="policy-group">
-            <label for="workspaceManualProvider">Manual provider</label>
-            <select id="workspaceManualProvider">
-              <option value="">(none)</option>
-              <option value="groq">groq</option>
-              <option value="gemini">gemini</option>
-              <option value="openai">openai</option>
-              <option value="perplexity">perplexity</option>
-              <option value="local">local</option>
-            </select>
-          </div>
-          <div class="policy-actions">
-            <button id="setWorkspaceOverrideBtn">Set override</button>
-            <button id="clearWorkspaceOverrideBtn">Clear override</button>
-          </div>
-        </div>
+      <pre id="context-output">—</pre>
+    </div>
 
-        <div class="card policy-row">
-          <div class="section-title">Workspace context</div>
-          <div class="policy-group">
-            <label for="workspaceSummary">Summary</label>
-            <textarea id="workspaceSummary" rows="4" placeholder="Enter workspace summary"></textarea>
-          </div>
-          <div class="policy-group">
-            <label for="workspaceTags">Tags (comma-separated)</label>
-            <input id="workspaceTags" type="text" placeholder="tag1, tag2" />
-          </div>
-          <div class="policy-group">
-            <label for="workspaceLastIntent">Last intent</label>
-            <input id="workspaceLastIntent" type="text" placeholder="e.g. research" />
-          </div>
-          <div class="policy-actions">
-            <button id="saveWorkspaceContextBtn">Save context</button>
-            <button id="clearWorkspaceContextBtn">Clear context</button>
-          </div>
-        </div>
+    <div class="panel">
+      <h3>Routing Summary</h3>
+      <pre id="routing-summary-output">—</pre>
+    </div>
+
+    <div class="panel">
+      <h3>Routing Outcomes</h3>
+      <div class="row">
+        <button id="refresh-routing">Refresh</button>
+        <button id="clear-routing">Clear history</button>
       </div>
-      <div class="policy-grid">
-        <div class="card">
-          <div class="section-title">Workspace override result</div>
-          <pre id="workspacePolicyResult" class="empty">No workspace policy loaded.</pre>
-        </div>
-        <div class="card">
-          <div class="section-title">Workspace context result</div>
-          <pre id="workspaceContextResult" class="empty">No workspace context loaded.</pre>
-        </div>
-      </div>
-      <div class="card table-wrapper">
-        <div class="section-title">All workspace overrides</div>
-        <div id="workspaceOverridesTable" class="empty">No overrides loaded.</div>
-      </div>
-      <div class="policy-grid">
-        <div class="card policy-row">
-          <div class="section-title">Resolve workspace policy</div>
-          <div class="policy-group">
-            <label>Workspace ID</label>
-            <div style="font-size: 13px; color: var(--muted);">Uses current workspace ID from form above</div>
-          </div>
-          <div class="policy-actions">
-            <button id="resolveWorkspacePolicyBtn">Resolve policy</button>
-          </div>
-          <div class="policy-group">
-            <div class="section-title">Resolved policy</div>
-            <pre id="resolvedPolicyResult" class="empty">No policy resolved.</pre>
-          </div>
-        </div>
-        <div class="card policy-row">
-          <div class="section-title">Build context prompt</div>
-          <div class="policy-group">
-            <label>Workspace ID</label>
-            <div style="font-size: 13px; color: var(--muted);">Uses current workspace ID from form above</div>
-          </div>
-          <div class="policy-actions">
-            <button id="buildContextPromptBtn">Build prompt</button>
-          </div>
-          <div class="policy-group">
-            <div class="section-title">Built prompt</div>
-            <pre id="builtPromptResult" class="empty">No prompt built.</pre>
-          </div>
-        </div>
-      </div>
-    </section>
+      <pre id="routing-history-output">—</pre>
+    </div>
 
-    <section>
-      <div class="section-title">Providers</div>
-      <div id="providerGrid" class="grid"></div>
-    </section>
+    <script>
+      const workspaceIdInput = document.getElementById("workspace-id");
+      const policyOutput = document.getElementById("policy-output");
+      const policyBadge = document.getElementById("policy-source-badge");
+      const contextSummary = document.getElementById("context-summary");
+      const contextTags = document.getElementById("context-tags");
+      const contextIntent = document.getElementById("context-intent");
+      const contextOutput = document.getElementById("context-output");
+      const routingSummary = document.getElementById("routing-summary-output");
+      const routingHistory = document.getElementById("routing-history-output");
 
-    <section class="two-col">
-      <div class="card">
-        <div class="section-title">Recent routing decisions</div>
-        <div id="decisionList" class="decision-list"></div>
-      </div>
-      <div class="card">
-        <div class="section-title">Latest routing explanation</div>
-        <div id="latestExplanation" class="empty">No routing decisions yet.</div>
-      </div>
-    </section>
-
-    <section class="card">
-      <div class="section-title">Raw status snapshot</div>
-      <pre id="rawStatus">Loading...</pre>
-    </section>
-  </main>
-  <script>
-    function badgeClass(r) {
-      if (!r.hasKey && r.name !== 'local') return 'warn';
-      return r.available ? 'good' : 'bad';
-    }
-    function badgeText(r) {
-      if (!r.hasKey && r.name !== 'local') return 'no key';
-      return r.available ? (r.state === 'unknown' ? 'healthy' : r.state) : (r.state || 'unavailable');
-    }
-    function usagePct(r) { return Math.min(100, Math.round((r.totalTokens / 100000) * 100)); }
-    function fmt(ts) { try { return new Date(ts).toLocaleString(); } catch (e) { return String(ts); } }
-
-    function policyButtonLabel(provider, manualProvider) {
-      return manualProvider === provider ? 'Unpin' : 'Pin';
-    }
-
-    function rowCard(r, policyState) {
-      return '<div class="card"><div class="provider-name"><span>' + r.name + '</span>' +
-        '<span class="badge ' + badgeClass(r) + '">' + badgeText(r) + '</span></div>' +
-        '<div class="meta"><div>Available: ' + (r.available ? 'Yes' : 'No') + '</div>' +
-        '<div>req=' + r.requestCount + ' ok=' + r.successCount + ' fail=' + r.failureCount + '</div>' +
-        '<div>tokens=' + r.totalTokens + ' cost=$' + Number(r.estimatedCostUsd || 0).toFixed(4) + '</div>' +
-        '<div>state=' + r.state + (r.recoversInMinutes != null ? ' (recovers ' + r.recoversInMinutes + 'm)' : '') + '</div>' +
-        (r.reason ? '<div>' + r.reason + '</div>' : '') + '</div>' +
-        '<div class="provider-actions">' +
-        '<button onclick="allowProvider(\'' + r.name + '\')">Allow</button>' +
-        '<button onclick="blockProvider(\'' + r.name + '\')">Block</button>' +
-        '<button onclick="pinProvider(\'' + r.name + '\')">' + policyButtonLabel(r.name, policyState?.manualProvider) + '</button>' +
-        '</div>' +
-        '<div class="bar-wrap"><div class="bar" style="width:' + usagePct(r) + '%"></div></div>' +
-        '</div>';
-    }
-
-    function decisionCard(d) {
-      return '<div class="decision-item"><div class="decision-top">' +
-        '<div class="decision-title">' + d.provider + ' · ' + d.model + '</div>' +
-        '<div><span class="pill ' + (d.success ? 'success' : 'failed') + '">' + (d.success ? 'success' : 'failed') + '</span>' +
-        (d.intent ? '<span class="pill">' + d.intent + '</span>' : '') + '</div></div>' +
-        '<div class="decision-meta">' + fmt(d.createdAt) + (d.fallbackFrom ? ' · fallback from ' + d.fallbackFrom : '') +
-        (d.latencyMs != null ? ' · ' + d.latencyMs + 'ms' : '') + '</div>' +
-        '<div class="decision-reason" style="margin-top:8px;">' + d.reason + '</div>' +
-        (d.errorMessage ? '<div class="decision-error">Error: ' + d.errorMessage + '</div>' : '') +
-        '</div>';
-    }
-
-    async function loadPolicy() {
-      try {
-        const policy = await window.providerPolicy.get();
-        const presets = await window.providerPolicy.listPresets();
-        const presetSelect = document.getElementById('presetSelector');
-        presetSelect.innerHTML = presets
-          .map((p) => '<option value="' + p.name + '">' + p.label + '</option>')
-          .join('');
-        document.getElementById('policySnapshot').textContent = JSON.stringify(policy, null, 2);
-        document.getElementById('routingMode').value = policy?.routingMode || 'cloud';
-        document.getElementById('manualProvider').value = policy?.manualProvider || '';
-        document.getElementById('activePreset').textContent = policy?.activePreset || 'default';
-        const activePreset = presets.find((p) => p.name === policy?.activePreset);
-        document.getElementById('presetDescription').textContent = activePreset?.description || 'No preset selected.';
-        document.getElementById('presetSummary').textContent = activePreset ? JSON.stringify(activePreset, null, 2) : 'No preset selected.';
-        presetSelect.value = policy?.activePreset || 'default';
-        return policy;
-      } catch (e) {
-        document.getElementById('policySnapshot').textContent = 'Error loading policy: ' + e.message;
-        return null;
+      function wsId() {
+        return workspaceIdInput.value.trim();
       }
-    }
 
-    async function loadTelemetry() {
-      try {
-        const policy = await loadPolicy();
-        const [rows, history] = await Promise.all([
-          window.providerTelemetry.getStatus(),
-          window.providerTelemetry.getRoutingHistory(20),
+      async function loadWorkspace() {
+        const id = wsId();
+        if (!id) return;
+
+        const [policy, context, summary, history] = await Promise.all([
+          window.workspacePolicy.resolve(id),
+          window.workspaceContext.get(id),
+          window.workspaceRouting.summary(id),
+          window.workspaceRouting.list(id, 25),
         ]);
-        document.getElementById('providerGrid').innerHTML = rows.length ? rows.map((r) => rowCard(r, policy)).join('') : '<div class="empty">No provider data yet.</div>';
-        document.getElementById('rawStatus').textContent = JSON.stringify(rows, null, 2);
-        if (history.length) {
-          document.getElementById('decisionList').innerHTML = history.map(decisionCard).join('');
-          const h = history[0];
-          document.getElementById('latestExplanation').innerHTML =
-            '<div class="decision-title">' + h.provider + ' selected</div>' +
-            '<div class="decision-meta" style="margin-top:6px;">' + fmt(h.createdAt) + '</div>' +
-            '<div class="decision-reason" style="margin-top:10px;">' + h.reason + '</div>' +
-            (h.fallbackFrom ? '<div class="decision-meta" style="margin-top:10px;">Fallback from ' + h.fallbackFrom + '</div>' : '') +
-            (h.errorMessage ? '<div class="decision-error">Error: ' + h.errorMessage + '</div>' : '');
-        } else {
-          document.getElementById('decisionList').innerHTML = '<div class="empty">No routing decisions recorded yet.</div>';
-          document.getElementById('latestExplanation').textContent = 'No routing decisions yet.';
-        }
-      } catch (e) {
-        document.getElementById('providerGrid').innerHTML = '<div class="empty">Error: ' + e.message + '</div>';
+
+        policyOutput.textContent = JSON.stringify(policy, null, 2);
+        policyBadge.textContent = policy?.source ?? "";
+        policyBadge.className = "badge badge-" + (policy?.source ?? "global");
+
+        contextOutput.textContent = JSON.stringify(context, null, 2);
+        routingSummary.textContent = JSON.stringify(summary, null, 2);
+        routingHistory.textContent = JSON.stringify(history, null, 2);
+
+        if (context?.summary) contextSummary.value = context.summary;
+        if (context?.tags) contextTags.value = context.tags.join(",");
+        if (context?.lastIntent) contextIntent.value = context.lastIntent;
       }
-    }
 
-    async function allowProvider(provider) {
-      await window.providerPolicy.allow(provider);
-      await loadPolicy();
-      await loadTelemetry();
-    }
+      document
+        .getElementById("load-workspace")
+        .addEventListener("click", loadWorkspace);
 
-    async function blockProvider(provider) {
-      await window.providerPolicy.block(provider);
-      await loadPolicy();
-      await loadTelemetry();
-    }
+      document
+        .getElementById("save-context")
+        .addEventListener("click", async () => {
+          const id = wsId();
+          if (!id) return;
+          const result = await window.workspaceContext.set(id, {
+            summary: contextSummary.value.trim(),
+            tags: contextTags.value
+              .split(",")
+              .map((t) => t.trim())
+              .filter(Boolean),
+            lastIntent: contextIntent.value.trim() || undefined,
+          });
+          contextOutput.textContent = JSON.stringify(result, null, 2);
+        });
 
-    async function pinProvider(provider) {
-      const current = document.getElementById('manualProvider').value;
-      const target = current === provider ? '' : provider;
-      document.getElementById('manualProvider').value = target;
-      await window.providerPolicy.setManualProvider(target || null);
-      await loadPolicy();
-      await loadTelemetry();
-    }
+      document
+        .getElementById("build-prompt")
+        .addEventListener("click", async () => {
+          const id = wsId();
+          if (!id) return;
+          const prompt = await window.workspaceContext.buildPrompt(id);
+          contextOutput.textContent = prompt ?? "(no context)";
+        });
 
-    async function loadWorkspaceData() {
-      const workspaceId = document.getElementById('workspaceId').value.trim();
-      if (!workspaceId) {
-        alert('Workspace ID is required to load workspace data.');
-        return;
-      }
-      const [policy, context] = await Promise.all([
-        window.workspacePolicy.get(workspaceId),
-        window.workspaceContext.get(workspaceId),
-      ]);
-      document.getElementById('workspacePolicyResult').textContent = policy ? JSON.stringify(policy, null, 2) : 'No workspace policy override found.';
-      document.getElementById('workspaceContextResult').textContent = context ? JSON.stringify(context, null, 2) : 'No workspace context found.';
-      if (policy) {
-        document.getElementById('workspaceRoutingMode').value = policy.routingMode || 'cloud';
-        document.getElementById('workspaceManualProvider').value = policy.manualProvider || '';
-      }
-      if (context) {
-        document.getElementById('workspaceSummary').value = context.summary || '';
-        document.getElementById('workspaceTags').value = (context.tags || []).join(', ');
-        document.getElementById('workspaceLastIntent').value = context.lastIntent || '';
-      }
-    }
+      document
+        .getElementById("refresh-routing")
+        .addEventListener("click", async () => {
+          const id = wsId();
+          if (!id) return;
+          const [summary, history] = await Promise.all([
+            window.workspaceRouting.summary(id),
+            window.workspaceRouting.list(id, 25),
+          ]);
+          routingSummary.textContent = JSON.stringify(summary, null, 2);
+          routingHistory.textContent = JSON.stringify(history, null, 2);
+        });
 
-    async function setWorkspaceOverride() {
-      const workspaceId = document.getElementById('workspaceId').value.trim();
-      if (!workspaceId) {
-        alert('Workspace ID is required to set a workspace override.');
-        return;
-      }
-      const policy = {
-        routingMode: document.getElementById('workspaceRoutingMode').value,
-        manualProvider: document.getElementById('workspaceManualProvider').value || null,
-      };
-      await window.workspacePolicy.set(workspaceId, policy);
-      await loadWorkspaceData();
-    }
+      document
+        .getElementById("clear-routing")
+        .addEventListener("click", async () => {
+          const id = wsId();
+          if (!id) return;
+          const cleared = await window.workspaceRouting.clear(id);
+          routingSummary.textContent = JSON.stringify({ cleared }, null, 2);
+          routingHistory.textContent = "[]";
+        });
 
-    async function clearWorkspaceOverride() {
-      const workspaceId = document.getElementById('workspaceId').value.trim();
-      if (!workspaceId) {
-        alert('Workspace ID is required to clear a workspace override.');
-        return;
-      }
-      await window.workspacePolicy.clear(workspaceId);
-      document.getElementById('workspacePolicyResult').textContent = 'Workspace policy override cleared.';
-    }
+      // ── Sprint-25 provider telemetry ──────────────────────────────────────
+      // window.providerTelemetry bridge: getStatus, resetHealth, resetUsage, resetAll
+      // const providerGrid = document.getElementById('provider-grid');
+      // const refreshBtn   = document.getElementById('refresh-btn');
+      // const resetAllBtn  = document.getElementById('reset-all-btn');
+      // window.providerTelemetry.getStatus().then(render);
+      // refreshBtn.addEventListener('click', () => window.providerTelemetry.getStatus());
+      // resetAllBtn.addEventListener('click', () => window.providerTelemetry.resetAll());
+      // resetHealth: window.providerTelemetry.resetHealth(provider)
+      // resetUsage:  window.providerTelemetry.resetUsage(provider)
 
-    async function saveWorkspaceContext() {
-      const workspaceId = document.getElementById('workspaceId').value.trim();
-      if (!workspaceId) {
-        alert('Workspace ID is required to save workspace context.');
-        return;
-      }
-      const payload = {
-        summary: document.getElementById('workspaceSummary').value.trim(),
-        tags: document.getElementById('workspaceTags').value
-          .split(',')
-          .map((tag) => tag.trim())
-          .filter(Boolean),
-        lastIntent: document.getElementById('workspaceLastIntent').value.trim() || undefined,
-      };
-      await window.workspaceContext.set(workspaceId, payload);
-      await loadWorkspaceData();
-    }
+      // ── Sprint-26 routing history ─────────────────────────────────────────
+      // getRoutingHistory() → rendered in routing-history-output
 
-    async function clearWorkspaceContext() {
-      const workspaceId = document.getElementById('workspaceId').value.trim();
-      if (!workspaceId) {
-        alert('Workspace ID is required to clear workspace context.');
-        return;
-      }
-      await window.workspaceContext.clear(workspaceId);
-      document.getElementById('workspaceContextResult').textContent = 'Workspace context cleared.';
-    }
+      // ── Sprint-27 provider policy ─────────────────────────────────────────
+      // providerPolicy: managed via window.providerPolicy IPC bridge
 
-    async function listWorkspaceOverrides() {
-      const overrides = await window.workspacePolicy.list();
-      if (!overrides || !overrides.length) {
-        document.getElementById('workspaceOverridesTable').textContent = 'No workspace overrides found.';
-        return;
-      }
-      const rows = overrides.map((item) => {
-        const policy = item.policy || {};
-        return '<tr>' +
-          '<td>' + item.workspaceId + '</td>' +
-          '<td>' + (policy.routingMode || '') + '</td>' +
-          '<td>' + (policy.manualProvider || '') + '</td>' +
-          '<td>' + JSON.stringify(policy, null, 0) + '</td>' +
-          '</tr>';
-      });
-      document.getElementById('workspaceOverridesTable').innerHTML =
-        '<table>' +
-        '<thead><tr>' +
-        '<th>Workspace ID</th>' +
-        '<th>Routing mode</th>' +
-        '<th>Manual</th>' +
-        '<th>Policy</th>' +
-        '</tr></thead><tbody>' + rows.join('') + '</tbody></table>';
-    }
-
-    async function resolveWorkspacePolicy() {
-      const workspaceId = document.getElementById('workspaceId').value.trim();
-      if (!workspaceId) {
-        alert('Workspace ID is required to resolve workspace policy.');
-        return;
-      }
-      try {
-        const resolved = await window.workspacePolicy.resolve(workspaceId);
-        document.getElementById('resolvedPolicyResult').textContent = JSON.stringify(resolved, null, 2);
-      } catch (e) {
-        document.getElementById('resolvedPolicyResult').textContent = 'Error resolving policy: ' + e.message;
-      }
-    }
-
-    async function buildContextPrompt() {
-      const workspaceId = document.getElementById('workspaceId').value.trim();
-      if (!workspaceId) {
-        alert('Workspace ID is required to build context prompt.');
-        return;
-      }
-      try {
-        const prompt = await window.workspaceContext.buildPrompt(workspaceId);
-        document.getElementById('builtPromptResult').textContent = prompt || 'No prompt generated.';
-      } catch (e) {
-        document.getElementById('builtPromptResult').textContent = 'Error building prompt: ' + e.message;
-      }
-    }
-
-    document.getElementById('applyRoutingMode').addEventListener('click', async () => {
-      const mode = document.getElementById('routingMode').value;
-      await window.providerPolicy.setMode(mode);
-      await loadPolicy();
-    });
-
-    document.getElementById('applyManualProvider').addEventListener('click', async () => {
-      const provider = document.getElementById('manualProvider').value || null;
-      await window.providerPolicy.setManualProvider(provider);
-      await loadPolicy();
-      await loadTelemetry();
-    });
-
-    document.getElementById('loadWorkspaceBtn').addEventListener('click', loadWorkspaceData);
-    document.getElementById('setWorkspaceOverrideBtn').addEventListener('click', setWorkspaceOverride);
-    document.getElementById('clearWorkspaceOverrideBtn').addEventListener('click', clearWorkspaceOverride);
-    document.getElementById('saveWorkspaceContextBtn').addEventListener('click', saveWorkspaceContext);
-    document.getElementById('clearWorkspaceContextBtn').addEventListener('click', clearWorkspaceContext);
-    document.getElementById('listWorkspaceOverridesBtn').addEventListener('click', listWorkspaceOverrides);
-    document.getElementById('resolveWorkspacePolicyBtn').addEventListener('click', resolveWorkspacePolicy);
-    document.getElementById('buildContextPromptBtn').addEventListener('click', buildContextPrompt);
-
-    document.getElementById('refreshBtn').addEventListener('click', loadTelemetry);
-    document.getElementById('resetAllBtn').addEventListener('click', async () => { await window.providerTelemetry.resetAll(); await loadTelemetry(); });
-    document.getElementById('resetHistoryBtn').addEventListener('click', async () => { await window.providerTelemetry.resetRoutingHistory(); await loadTelemetry(); });
-    document.getElementById('resetPolicyBtn').addEventListener('click', async () => { await window.providerPolicy.reset(); await loadPolicy(); await loadTelemetry(); });
-    document.getElementById('applyPresetBtn').addEventListener('click', async () => {
-      const preset = document.getElementById('presetSelector').value;
-      await window.providerPolicy.applyPreset(preset);
-      await loadPolicy();
-      await loadTelemetry();
-    });
-
-    window.resetHealth = async function(p) { await window.providerTelemetry.resetHealth(p); await loadTelemetry(); };
-    window.resetUsage = async function(p) { await window.providerTelemetry.resetUsage(p); await loadTelemetry(); };
-
-    loadTelemetry();
-  </script>
-</body>
+      // ── Sprint-28 policy presets ──────────────────────────────────────────
+      // listPresets() populates the preset selector dropdown
+    </script>
+  </body>
 </html>

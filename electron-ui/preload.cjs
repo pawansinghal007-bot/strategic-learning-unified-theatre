@@ -159,3 +159,12 @@ contextBridge.exposeInMainWorld("workspaceContext", {
     ipcRenderer.invoke("workspaceContext:clear", workspaceId),
   buildPrompt: (workspaceId) => ipcRenderer.invoke("workspaceContext:prompt", workspaceId),
 });
+
+contextBridge.exposeInMainWorld('workspaceRouting', {
+  list: (workspaceId, limit) =>
+    ipcRenderer.invoke('workspaceRouting:list', workspaceId, limit),
+  summary: (workspaceId) =>
+    ipcRenderer.invoke('workspaceRouting:summary', workspaceId),
+  clear: (workspaceId) =>
+    ipcRenderer.invoke('workspaceRouting:clear', workspaceId),
+});

@@ -166,7 +166,7 @@ describe("Sprint 25 — Provider Telemetry IPC and Dashboard", () => {
     });
 
     it("is HTML document", () => {
-      expect(dashboardContent).toContain("<!DOCTYPE html>");
+      expect(dashboardContent).toContain("<!doctype html>");
     });
 
     it("references window.providerTelemetry", () => {

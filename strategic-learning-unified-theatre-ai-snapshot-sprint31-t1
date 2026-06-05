@@ -1,0 +1,27 @@
+SPRINT 31 — T1 COMPLETE
+
+FILES:
+src/llm/routing-history.ts (extended)
+electron-ui/ipc/workspace-routing-handlers.cjs (created)
+electron-ui/main.cjs (updated)
+
+STATUS:
+listRoutingHistoryForWorkspace() filters by workspaceId
+getWorkspaceRoutingSummary() returns total/success/failure/providerCounts/latest
+clearRoutingHistoryForWorkspace() removes entries for a workspace
+IPC handlers registered for workspaceRouting:list/summary/clear
+main.cjs wires new handler correctly
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] listRoutingHistoryForWorkspace() returns only entries for the given workspace
+[x] getWorkspaceRoutingSummary() returns correct counts and latest entry
+[x] clearRoutingHistoryForWorkspace() removes entries and returns boolean
+[x] workspaceRouting:list/summary/clear IPC channels registered
+[x] main.cjs appended — no existing registrations modified
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+T2 — preload + types + dashboard unified workspace view

@@ -15,7 +15,7 @@ declare global {
       get: () => Promise<any>;
       listPresets: () => Promise<any[]>;
       applyPreset: (name: string) => Promise<any>;
-      setMode: (mode: "cloud" | "hybrid" | "local-only") => Promise<any>;
+      setMode: (mode: 'cloud' | 'hybrid' | 'local-only') => Promise<any>;
       allow: (provider: string) => Promise<any>;
       block: (provider: string) => Promise<any>;
       setManualProvider: (provider: string | null) => Promise<any>;
@@ -23,27 +23,36 @@ declare global {
     };
     workspacePolicy: {
       get: (workspaceId: string) => Promise<any | null>;
-      set: (workspaceId: string, policy: Record<string, any>) => Promise<any>;
-      clear: (workspaceId: string) => Promise<boolean>;
-      list: () => Promise<any[]>;
       resolve: (workspaceId: string) => Promise<{
         policy: any;
         source: 'global' | 'workspace';
         workspaceId?: string;
       }>;
+      set: (workspaceId: string, policy: Record<string, any>) => Promise<any>;
+      clear: (workspaceId: string) => Promise<boolean>;
+      list: () => Promise<any[]>;
     };
     workspaceContext: {
       get: (workspaceId: string) => Promise<any | null>;
-      set: (
-        workspaceId: string,
-        payload: {
-          summary: string;
-          tags?: string[];
-          lastIntent?: string;
-        },
-      ) => Promise<any>;
+      set: (workspaceId: string, payload: {
+        summary: string;
+        tags?: string[];
+        lastIntent?: string;
+      }) => Promise<any>;
       clear: (workspaceId: string) => Promise<boolean>;
       buildPrompt: (workspaceId: string) => Promise<string | null>;
+    };
+    workspaceRouting: {
+      list: (workspaceId: string, limit?: number) => Promise<any[]>;
+      summary: (workspaceId: string) => Promise<{
+        workspaceId: string;
+        total: number;
+        successCount: number;
+        failureCount: number;
+        providerCounts: Record<string, number>;
+        latest: any | null;
+      }>;
+      clear: (workspaceId: string) => Promise<boolean>;
     };
   }
 }
