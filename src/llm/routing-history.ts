@@ -96,6 +96,26 @@ function toTimelineEntry(item: RoutingHistoryEntry): WorkspaceTimelineEntry {
 
 export type RoutingHistoryEntry = RoutingHistoryRecord;
 
+export interface RoutingHistoryFilter {
+  startTime?: number;
+  endTime?: number;
+  provider?: string;
+}
+
+function matchesFilter(
+  item: RoutingHistoryEntry,
+  filter?: RoutingHistoryFilter,
+): boolean {
+  if (!filter) return true;
+  const timestamp = item.timestamp ?? item.createdAt;
+  if (typeof filter.startTime === "number" && timestamp < filter.startTime)
+    return false;
+  if (typeof filter.endTime === "number" && timestamp > filter.endTime)
+    return false;
+  if (filter.provider && String(item.provider) !== filter.provider) return false;
+  return true;
+}
+
 export function recordRoutingDecision(input: RoutingDecisionInput) {
   const snapshot = loadHistory();
 
@@ -137,14 +157,19 @@ export function resetRoutingHistory() {
 export function listRoutingHistoryForWorkspace(
   workspaceId: string,
   limit = 50,
+  filter?: RoutingHistoryFilter,
 ): RoutingHistoryEntry[] {
   const history = loadHistory();
   return history
     .filter((item) => item.workspaceId === workspaceId)
+    .filter((item) => matchesFilter(item, filter))
     .slice(0, Math.max(0, limit));
 }
 
-export function getWorkspaceRoutingSummary(workspaceId: string): {
+export function getWorkspaceRoutingSummary(
+  workspaceId: string,
+  filter?: RoutingHistoryFilter,
+): {
   workspaceId: string;
   total: number;
   successCount: number;
@@ -155,7 +180,7 @@ export function getWorkspaceRoutingSummary(workspaceId: string): {
   avgLatencyMs: number;
   errorRate: number;
 } {
-  const items = listRoutingHistoryForWorkspace(workspaceId, 100);
+  const items = listRoutingHistoryForWorkspace(workspaceId, 100, filter);
   const successCount = items.filter((item) => item.success).length;
   const failureCount = items.filter((item) => !item.success).length;
   const total = items.length;
@@ -202,8 +227,9 @@ export function clearRoutingHistoryForWorkspace(workspaceId: string): boolean {
 
 export function getWorkspaceProviderTrends(
   workspaceId: string,
+  filter?: RoutingHistoryFilter,
 ): WorkspaceProviderTrendPoint[] {
-  const items = listRoutingHistoryForWorkspace(workspaceId, 200);
+  const items = listRoutingHistoryForWorkspace(workspaceId, 200, filter);
   const byProvider = new Map<string, RoutingHistoryEntry[]>();
 
   for (const item of items) {
@@ -241,21 +267,25 @@ export function getWorkspaceProviderTrends(
 export function getWorkspaceRoutingTimeline(
   workspaceId: string,
   limit = 50,
+  filter?: RoutingHistoryFilter,
 ): WorkspaceTimelineEntry[] {
-  return listRoutingHistoryForWorkspace(workspaceId, limit).map(
+  return listRoutingHistoryForWorkspace(workspaceId, limit, filter).map(
     toTimelineEntry,
   );
 }
 
-export function getWorkspaceAnalytics(workspaceId: string): {
+export function getWorkspaceAnalytics(
+  workspaceId: string,
+  filter?: RoutingHistoryFilter,
+): {
   summary: ReturnType<typeof getWorkspaceRoutingSummary>;
   trends: WorkspaceProviderTrendPoint[];
   timeline: WorkspaceTimelineEntry[];
 } {
   return {
-    summary: getWorkspaceRoutingSummary(workspaceId),
-    trends: getWorkspaceProviderTrends(workspaceId),
-    timeline: getWorkspaceRoutingTimeline(workspaceId, 25),
+    summary: getWorkspaceRoutingSummary(workspaceId, filter),
+    trends: getWorkspaceProviderTrends(workspaceId, filter),
+    timeline: getWorkspaceRoutingTimeline(workspaceId, 25, filter),
   };
 }
 
@@ -299,8 +329,9 @@ function formatBucket(timestamp: number, bucket: "hour" | "day"): string {
 export function getWorkspaceTimeBuckets(
   workspaceId: string,
   bucket: "hour" | "day" = "day",
+  filter?: RoutingHistoryFilter,
 ): TimeBucketPoint[] {
-  const items = listRoutingHistoryForWorkspace(workspaceId, 500);
+  const items = listRoutingHistoryForWorkspace(workspaceId, 500, filter);
   const grouped = new Map<string, typeof items>();
 
   for (const item of items) {
@@ -344,8 +375,12 @@ export function getWorkspaceTimeBuckets(
     });
 }
 
-export function getGlobalWorkspaceAnalytics(): GlobalWorkspaceAnalyticsPoint[] {
-  const all = getRoutingHistory(500);
+export function getGlobalWorkspaceAnalytics(
+  filter?: RoutingHistoryFilter,
+): GlobalWorkspaceAnalyticsPoint[] {
+  const all = getRoutingHistory(500).filter((item) =>
+    matchesFilter(item, filter),
+  );
   const grouped = new Map<string, typeof all>();
 
   for (const item of all) {
@@ -391,22 +426,29 @@ export function getGlobalWorkspaceAnalytics(): GlobalWorkspaceAnalyticsPoint[] {
     .sort((a, b) => b.total - a.total);
 }
 
-export function exportWorkspaceAnalyticsJson(workspaceId: string): string {
+export function exportWorkspaceAnalyticsJson(
+  workspaceId: string,
+  filter?: RoutingHistoryFilter,
+): string {
   return JSON.stringify(
     {
       workspaceId,
       exportedAt: new Date().toISOString(),
-      analytics: getWorkspaceAnalytics(workspaceId),
-      dailyBuckets: getWorkspaceTimeBuckets(workspaceId, "day"),
-      hourlyBuckets: getWorkspaceTimeBuckets(workspaceId, "hour"),
+      filter: filter ?? null,
+      analytics: getWorkspaceAnalytics(workspaceId, filter),
+      dailyBuckets: getWorkspaceTimeBuckets(workspaceId, "day", filter),
+      hourlyBuckets: getWorkspaceTimeBuckets(workspaceId, "hour", filter),
     },
     null,
     2,
   );
 }
 
-export function exportWorkspaceAnalyticsCsv(workspaceId: string): string {
-  const rows = getWorkspaceTimeBuckets(workspaceId, "day");
+export function exportWorkspaceAnalyticsCsv(
+  workspaceId: string,
+  filter?: RoutingHistoryFilter,
+): string {
+  const rows = getWorkspaceTimeBuckets(workspaceId, "day", filter);
   const header = [
     "bucket",
     "total",
@@ -520,8 +562,10 @@ function createBarChartSvg(
 </svg>`.trim();
 }
 
-export function getProviderComparisonAcrossWorkspaces(): ProviderWorkspaceComparisonPoint[] {
-  const store = loadHistory();
+export function getProviderComparisonAcrossWorkspaces(
+  filter?: RoutingHistoryFilter,
+): ProviderWorkspaceComparisonPoint[] {
+  const store = loadHistory().filter((item) => matchesFilter(item, filter));
   const grouped = new Map<string, RoutingHistoryEntry[]>();
 
   for (const item of store) {
@@ -561,16 +605,19 @@ export function getProviderComparisonAcrossWorkspaces(): ProviderWorkspaceCompar
 export function getWorkspaceBucketChartSvg(
   workspaceId: string,
   bucket: "hour" | "day" = "day",
+  filter?: RoutingHistoryFilter,
 ): string {
-  const rows = getWorkspaceTimeBuckets(workspaceId, bucket);
+  const rows = getWorkspaceTimeBuckets(workspaceId, bucket, filter);
   return createLineChartSvg(
     rows.map((row) => ({ label: row.bucket, value: row.total })),
     `Workspace ${workspaceId} ${bucket}ly routing volume`,
   );
 }
 
-export function getProviderComparisonChartSvg(): string {
-  const rows = getProviderComparisonAcrossWorkspaces().slice(0, 12);
+export function getProviderComparisonChartSvg(
+  filter?: RoutingHistoryFilter,
+): string {
+  const rows = getProviderComparisonAcrossWorkspaces(filter).slice(0, 12);
   return createBarChartSvg(
     rows.map((row) => ({
       label: `${row.workspaceId}:${row.provider}`,
@@ -582,9 +629,10 @@ export function getProviderComparisonChartSvg(): string {
 
 export function exportWorkspaceAnalyticsHtmlReport(
   workspaceId: string,
+  filter?: RoutingHistoryFilter,
 ): string {
-  const analytics = getWorkspaceAnalytics(workspaceId);
-  const bucketSvg = getWorkspaceBucketChartSvg(workspaceId, "day");
+  const analytics = getWorkspaceAnalytics(workspaceId, filter);
+  const bucketSvg = getWorkspaceBucketChartSvg(workspaceId, "day", filter);
 
   return `<!doctype html>
 <html lang="en">
