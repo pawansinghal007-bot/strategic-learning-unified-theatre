@@ -1,0 +1,46 @@
+SPRINT 32 COMPLETE: WORKSPACE ANALYTICS AND EXPLAINABILITY DELIVERED
+
+SPRINT SUMMARY:
+T1  routing-history + IPC handler    routing-history.ts extended with analytics,
+                                         workspace-routing-handlers.cjs replaced
+T2  preload + types + dashboard      preload.cjs updated, types.d.ts replaced,
+                                         provider-dashboard.html replaced
+T3  smoke tests + closure            tests/sprint32-smoke.test.js
+
+STATUS:
+vitest pass — ~89 files / ~755 tests
+typecheck clean
+sonar clean
+tagged sprint-32-complete
+
+DELIVERABLES:
+[x] getWorkspaceProviderTrends() returns per-provider counts/latency sorted by volume
+[x] getWorkspaceRoutingTimeline() maps entries to human-readable timeline
+[x] getWorkspaceAnalytics() returns combined summary/trends/timeline
+[x] WorkspaceRoutingSummary includes successRate/avgLatencyMs/errorRate
+[x] workspaceRouting:trends/timeline/analytics IPC channels registered
+[x] IPC handler imports from src/ not dist/ (corrected from Perplexity plan)
+[x] workspaceRouting preload block updated — other namespaces intact
+[x] types.d.ts full analytics types
+[x] Dashboard analytics view: metrics tiles, provider trends table, timeline
+[x] Sprint 31 behaviour unchanged — no regression
+[x] Architecture context updated — no new baseline needed
+[x] Smoke tests passing
+[x] Compilation successful
+[x] Sonar validation clean
+
+ARCHITECTURE CHANGES THIS SPRINT:
+Extended:  src/llm/routing-history.ts
+Replaced:  electron-ui/ipc/workspace-routing-handlers.cjs
+Updated:   electron-ui/preload.cjs (workspaceRouting block only)
+Replaced:  src/ui/types.d.ts, src/ui/provider-dashboard.html
+No new files. No new folders. Context update only — no baseline regenerated.
+PROJECT_ARCHITECTURE_AI_CONTEXT.md updated.
+
+NEXT:
+Sprint 33 candidates:
+    - Time-bucketed charts and exportable reports for workspace routing analytics
+    - Hourly/daily bucketing of routing decisions with trend visualization
+    - CSV/JSON export of workspace analytics
+    - Global analytics across all workspaces
+

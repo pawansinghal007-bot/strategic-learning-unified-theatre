@@ -214,3 +214,6 @@ Workspace control plane consolidated. workspacePolicy:resolve and workspaceConte
 
 ## Sprint 31 Complete
 Unified workspace view delivered. Workspace routing history filtering, getWorkspaceRoutingSummary, clearRoutingHistoryForWorkspace, workspaceRouting IPC/preload, dashboard shows resolved policy + context + routing outcomes per workspace. New IPC file. Architecture baseline refreshed. Sonar clean.
+
+## Sprint 32 Complete
+Workspace analytics and explainability delivered. getWorkspaceProviderTrends, getWorkspaceRoutingTimeline, getWorkspaceAnalytics added to routing-history.ts. WorkspaceRoutingSummary extended with successRate/avgLatencyMs/errorRate. IPC channels for trends/timeline/analytics. Dashboard analytics view with metrics tiles, provider trends table, decision timeline. Import path corrected from dist/ to src/. Sonar clean.
