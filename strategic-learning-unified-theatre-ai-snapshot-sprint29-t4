@@ -1,0 +1,26 @@
+SPRINT 29 — T4 COMPLETE
+
+FILES:
+src/cli/llm-workspace.ts (created)
+cli.js (updated)
+
+STATUS:
+llm:workspace policy:get/set/clear/list commands working
+llm:workspace context:get/set/clear commands working
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] llm:workspace policy:get shows override or no-override message
+[x] llm:workspace policy:set validates mode and provider before saving
+[x] llm:workspace policy:clear confirms removal
+[x] llm:workspace policy:list shows all overrides
+[x] llm:workspace context:get shows context or no-context message
+[x] llm:workspace context:set requires --summary
+[x] llm:workspace context:clear confirms removal
+[x] cli.js wires registerLlmWorkspace
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+T5 — docs

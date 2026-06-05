@@ -26,10 +26,8 @@ function write(
 }
 
 export const logger = {
-  info: (message: string, context?: unknown) =>
-    write("info", message, context),
-  warn: (message: string, context?: unknown) =>
-    write("warn", message, context),
+  info: (message: string, context?: unknown) => write("info", message, context),
+  warn: (message: string, context?: unknown) => write("warn", message, context),
   error: (message: string, context?: unknown) =>
     write("error", message, context),
 };

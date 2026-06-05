@@ -1,40 +1,50 @@
-# Sprint 28 Patch Integration
+# Sprint 29 Patch Integration
 
 ## Prerequisites
 
-Sprints 18–27 must already be integrated.
+Sprints 18–28 must already be integrated.
 
 ## Files added or replaced
 
-- src/policies/policy-presets.ts
-- src/policies/sensitive-task-rules.ts
-- src/policies/provider-policy.ts
-- src/llm/routing-explainer.ts
-- src/llm/gateway.ts
-- electron-ui/ipc/provider-policy-handlers.cjs
-- electron-ui/preload.cjs (updated)
-- src/ui/types.d.ts
-- src/ui/provider-dashboard.html
-- src/cli/llm-policy.ts
+- src/policies/workspace-policy.ts (new)
+- src/memory/request-context.ts (new — new folder src/memory/)
+- src/policies/provider-policy.ts (extended)
+- src/llm/gateway.ts (replaced)
+- electron-ui/ipc/workspace-handlers.cjs (new)
+- electron-ui/preload.cjs (appended)
+- electron-ui/main.cjs (updated)
+- src/ui/types.d.ts (replaced)
+- src/ui/provider-dashboard.html (replaced)
+- src/cli/llm-workspace.ts (new)
+- cli.js (updated)
 
-## Architecture — unchanged from Sprint 27
+## Architecture — changes from Sprint 28
 
-Main: electron-ui/main.cjs
-Preload: electron-ui/preload.cjs
-IPC: electron-ui/ipc/provider-telemetry-handlers.cjs
-electron-ui/ipc/provider-policy-handlers.cjs
-Dashboard: src/ui/provider-dashboard.html
-Services: src/llm/_.ts, src/policies/_.ts
+Main: electron-ui/main.cjs (registerWorkspaceHandlers added)
+Preload: electron-ui/preload.cjs (workspacePolicy, workspaceContext namespaces added)
+IPC: electron-ui/ipc/workspace-handlers.cjs (new)
+Services: src/policies/workspace-policy.ts (new)
+src/memory/request-context.ts (new)
+CLI: src/cli/llm-workspace.ts (new)
+
+## Paths that do NOT exist — never reference
+
+- src/ipc/
+- src/preload/
+- src/main/
+- tests/\*.test.ts
 
 ## Smoke test
 
-1. Run: node cli.js llm:policy:presets
-2. Run: node cli.js llm:policy:preset research
-3. Confirm research tasks prefer Perplexity
-4. Send a prompt with password or API key — confirm local routing forced
-5. Open dashboard — confirm active preset shown
+1. node cli.js llm:workspace policy:set ws-1 --mode hybrid --provider gemini
+2. node cli.js llm:workspace policy:get ws-1
+3. node cli.js llm:workspace context:set ws-1 --summary "Routing debug project" --tags routing,debug
+4. node cli.js llm:workspace context:get ws-1
+5. Confirm gateway ask with workspaceId ws-1 injects context into prompt
+6. Open dashboard — confirm workspace panel loads and saves correctly
 
 ## Suggested next sprint hooks
 
-- Workspace memory store
-- Context injection per workspace
+- Per-workspace routing history and usage analytics
+- Workspace-aware provider health weighting
+- Dashboard workspace context visibility
