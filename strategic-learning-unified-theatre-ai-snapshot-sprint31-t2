@@ -1,0 +1,27 @@
+SPRINT 31 — T2 COMPLETE
+
+FILES:
+electron-ui/preload.cjs (appended)
+src/ui/types.d.ts (replaced)
+src/ui/provider-dashboard.html (replaced)
+
+STATUS:
+workspaceRouting namespace exposed to renderer
+types.d.ts covers all window namespaces including workspaceRouting
+unified workspace view renders policy/context/routing in one screen
+Sprint 30 preload namespaces unchanged
+compile clean
+sonar clean
+
+DELIVERABLES:
+[x] workspaceRouting.list/summary/clear exposed via preload
+[x] types.d.ts workspaceRouting typed
+[x] Dashboard loads policy, context, and routing in parallel for a workspace
+[x] Dashboard shows policy source badge (global/workspace)
+[x] Save context and build prompt work from dashboard
+[x] Routing outcomes refresh and clear work from dashboard
+[x] Compilation successful
+[x] Sonar validation clean
+
+NEXT:
+T3 — smoke tests + sprint closure

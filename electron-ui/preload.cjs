@@ -148,7 +148,8 @@ contextBridge.exposeInMainWorld("workspacePolicy", {
   clear: (workspaceId) =>
     ipcRenderer.invoke("workspacePolicy:clear", workspaceId),
   list: () => ipcRenderer.invoke("workspacePolicy:list"),
-  resolve: (workspaceId) => ipcRenderer.invoke("workspacePolicy:resolve", workspaceId),
+  resolve: (workspaceId) =>
+    ipcRenderer.invoke("workspacePolicy:resolve", workspaceId),
 });
 
 contextBridge.exposeInMainWorld("workspaceContext", {
@@ -157,14 +158,15 @@ contextBridge.exposeInMainWorld("workspaceContext", {
     ipcRenderer.invoke("workspaceContext:set", workspaceId, payload),
   clear: (workspaceId) =>
     ipcRenderer.invoke("workspaceContext:clear", workspaceId),
-  buildPrompt: (workspaceId) => ipcRenderer.invoke("workspaceContext:prompt", workspaceId),
+  buildPrompt: (workspaceId) =>
+    ipcRenderer.invoke("workspaceContext:prompt", workspaceId),
 });
 
-contextBridge.exposeInMainWorld('workspaceRouting', {
+contextBridge.exposeInMainWorld("workspaceRouting", {
   list: (workspaceId, limit) =>
-    ipcRenderer.invoke('workspaceRouting:list', workspaceId, limit),
+    ipcRenderer.invoke("workspaceRouting:list", workspaceId, limit),
   summary: (workspaceId) =>
-    ipcRenderer.invoke('workspaceRouting:summary', workspaceId),
+    ipcRenderer.invoke("workspaceRouting:summary", workspaceId),
   clear: (workspaceId) =>
-    ipcRenderer.invoke('workspaceRouting:clear', workspaceId),
+    ipcRenderer.invoke("workspaceRouting:clear", workspaceId),
 });
