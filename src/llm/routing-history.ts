@@ -22,7 +22,7 @@ type RoutingDecisionInput = {
 type RoutingHistoryRecord = {
   id: string;
   requestId: string;
-  workspaceId: string;
+  workspaceId?: string | null;
   provider: string;
   model: string;
   intent?: string;
@@ -45,6 +45,8 @@ function saveHistory(records: RoutingHistoryRecord[]) {
 function nextId() {
   return `route_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
+
+export type RoutingHistoryEntry = RoutingHistoryRecord;
 
 export function recordRoutingDecision(input: RoutingDecisionInput) {
   const snapshot = loadHistory();
@@ -82,4 +84,47 @@ export function getRoutingHistory(limit = 50) {
 export function resetRoutingHistory() {
   saveHistory([]);
   logger.info("routing.history.reset");
+}
+
+export function listRoutingHistoryForWorkspace(
+  workspaceId: string,
+  limit = 50,
+): RoutingHistoryEntry[] {
+  const history = loadHistory();
+  return history
+    .filter((item) => item.workspaceId === workspaceId)
+    .slice(0, Math.max(0, limit));
+}
+
+export function getWorkspaceRoutingSummary(workspaceId: string): {
+  workspaceId: string;
+  total: number;
+  successCount: number;
+  failureCount: number;
+  providerCounts: Record<string, number>;
+  latest: RoutingHistoryEntry | null;
+} {
+  const items = listRoutingHistoryForWorkspace(workspaceId, 100);
+  const successCount = items.filter((item) => item.success).length;
+  const failureCount = items.filter((item) => !item.success).length;
+  const providerCounts = items.reduce<Record<string, number>>((acc, item) => {
+    acc[String(item.provider)] = (acc[String(item.provider)] ?? 0) + 1;
+    return acc;
+  }, {});
+  return {
+    workspaceId,
+    total: items.length,
+    successCount,
+    failureCount,
+    providerCounts,
+    latest: items[0] ?? null,
+  };
+}
+
+export function clearRoutingHistoryForWorkspace(workspaceId: string): boolean {
+  const store = loadHistory();
+  const before = store.length;
+  const filtered = store.filter((item) => item.workspaceId !== workspaceId);
+  saveHistory(filtered);
+  return before !== filtered.length;
 }

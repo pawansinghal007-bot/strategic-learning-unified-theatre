@@ -1,0 +1,36 @@
+SPRINT 30 COMPLETE: WORKSPACE CONTROL PLANE CONSOLIDATED
+
+SPRINT SUMMARY:
+T1  audit                  IPC, preload, types, dashboard, CLI gap analysis
+T2  gap fills + docs       workspace-handlers.cjs, preload.cjs, types.d.ts,
+                               dashboard, docs
+T3  smoke tests + closure  tests/sprint30-smoke.test.js
+
+STATUS:
+vitest pass — 87+ files / 720+ tests
+typecheck clean
+sonar clean
+tagged sprint-30-complete
+
+DELIVERABLES:
+[x] workspacePolicy:resolve IPC + preload + types + dashboard
+[x] workspaceContext:prompt (buildPrompt) IPC + preload + types + dashboard
+[x] All 9 workspace IPC channels fully reachable from renderer
+[x] All preload methods typed
+[x] Dashboard workspace panel complete
+[x] Smoke tests passing
+[x] Architecture sync completed
+
+ARCHITECTURE CHANGES THIS SPRINT:
+Extended:
+- electron-ui/ipc/workspace-handlers.cjs (2 new handlers)
+- electron-ui/preload.cjs (2 new methods)
+- src/ui/types.d.ts (2 new type signatures)
+- src/ui/provider-dashboard.html (2 new buttons)
+
+NEXT:
+Sprint 31 — unified workspace view
+- Dashboard shows resolved policy + context + routing outcomes per workspace
+- Workspace routing history filtering by workspaceId
+
+ARCHITECTURE SYNC STATUS: [UPDATED | UNCHANGED]

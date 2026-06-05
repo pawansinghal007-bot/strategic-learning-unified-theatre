@@ -208,3 +208,6 @@ Policy presets and sensitive task rules delivered. Preset engine, forced local f
 
 ## Sprint 29 Complete
 Workspace policy overrides and context injection delivered. Per-workspace policy resolution, context prompt injection in gateway, IPC handlers, dashboard workspace panel, llm:workspace CLI. New src/memory/ layer. Architecture baseline refreshed. Sonar clean.
+
+## Sprint 30 Complete
+Workspace control plane consolidated. workspacePolicy:resolve and workspaceContext:prompt IPC channels filled. Dashboard updated. Architecture sync complete. Sonar clean.
