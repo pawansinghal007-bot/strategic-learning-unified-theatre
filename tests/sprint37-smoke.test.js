@@ -198,7 +198,7 @@ describe("Sprint 37 smoke tests — file surface", () => {
       join(process.cwd(), "electron-ui/preload.cjs"),
       "utf-8",
     );
-    expect(source).toContain("exposeInMainWorld('workspaceApproval'");
+    expect(source).toContain('exposeInMainWorld("workspaceApproval"');
     expect(source).toContain("workspaceApproval:list");
     expect(source).toContain("workspaceApproval:resolve");
   });

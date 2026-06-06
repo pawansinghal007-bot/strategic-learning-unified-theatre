@@ -1,0 +1,33 @@
+  SPRINT 39 — T2 COMPLETE
+
+  FILES:
+    electron-ui/preload.cjs (appended)
+    src/ui/types.d.ts (updated)
+    src/ui/provider-dashboard.html (updated)
+    docs/sprint-39-scope.md
+    docs/sprint-39-checklist.md
+    docs/INTEGRATION.md
+
+  STATUS:
+    workspaceQuota preload block appended — all existing blocks untouched
+    types.d.ts workspaceQuota interface added
+    dashboard Workspace Quotas panel functional
+    workspace-quota-status and workspace-quota-alert elements present
+    Sprint 25–38 compatibility strings preserved
+    docs committed
+    compile clean
+    sonar clean
+
+  DELIVERABLES:
+    [x] workspaceQuota preload namespace exposed to renderer
+    [x] types.d.ts workspaceQuota policy/usage/evaluation shapes typed
+    [x] Dashboard quota-workspace-id, quota-daily-limit, quota-weekly-limit inputs
+    [x] Dashboard quota-mode select with alert/fallback/block options
+    [x] Dashboard save/load/recordUsage/evaluate/clearUsage buttons
+    [x] Dashboard workspace-quota-status and workspace-quota-alert elements
+    [x] Sprint 38 panels and compatibility strings preserved
+    [x] Compilation successful
+    [x] Sonar validation clean
+
+  NEXT:
+    T3 — smoke tests + sprint closure

@@ -141,10 +141,14 @@ contextBridge.exposeInMainWorld("providerPolicy", {
   reset: () => ipcRenderer.invoke("providerPolicy:reset"),
 });
 
-contextBridge.exposeInMainWorld('workspaceApproval', {
+contextBridge.exposeInMainWorld("workspacePolicy", {
   get: (workspaceId) => ipcRenderer.invoke("workspacePolicy:get", workspaceId),
   set: (workspaceId, policyPatch, options) =>
-  ipcRenderer.invoke("workspacePolicy:set", workspaceId, policyPatch, options),
+    ipcRenderer.invoke(
+      "workspacePolicy:set",
+      workspaceId,
+      policyPatch,
+      options,
     ),
   clear: (workspaceId) =>
     ipcRenderer.invoke("workspacePolicy:clear", workspaceId),
@@ -152,7 +156,6 @@ contextBridge.exposeInMainWorld('workspaceApproval', {
   resolve: (workspaceId) =>
     ipcRenderer.invoke("workspacePolicy:resolve", workspaceId),
 });
-
 contextBridge.exposeInMainWorld("workspaceContext", {
   get: (workspaceId) => ipcRenderer.invoke("workspaceContext:get", workspaceId),
   set: (workspaceId, payload) =>
@@ -213,7 +216,8 @@ contextBridge.exposeInMainWorld("audit", {
   verify: (filter) => ipcRenderer.invoke("audit:verify", filter),
   latest: (filter) => ipcRenderer.invoke("audit:latest", filter),
   exportJson: (filter) => ipcRenderer.invoke("audit:exportJson", filter),
-  exportHtmlReport: (filter) => ipcRenderer.invoke("audit:exportHtmlReport", filter),
+  exportHtmlReport: (filter) =>
+    ipcRenderer.invoke("audit:exportHtmlReport", filter),
 });
 
 contextBridge.exposeInMainWorld("workspaceApproval", {
@@ -229,19 +233,19 @@ contextBridge.exposeInMainWorld("workspaceApproval", {
     ),
 });
 
-contextBridge.exposeInMainWorld('workspaceQuota', {
-  get: (workspaceId) => ipcRenderer.invoke('workspaceQuota:get', workspaceId),
-  list: () => ipcRenderer.invoke('workspaceQuota:list'),
+contextBridge.exposeInMainWorld("workspaceQuota", {
+  get: (workspaceId) => ipcRenderer.invoke("workspaceQuota:get", workspaceId),
+  list: () => ipcRenderer.invoke("workspaceQuota:list"),
   set: (workspaceId, quotaPatch, options) =>
-    ipcRenderer.invoke('workspaceQuota:set', workspaceId, quotaPatch, options),
+    ipcRenderer.invoke("workspaceQuota:set", workspaceId, quotaPatch, options),
   clear: (workspaceId, requestedBy) =>
-    ipcRenderer.invoke('workspaceQuota:clear', workspaceId, requestedBy),
+    ipcRenderer.invoke("workspaceQuota:clear", workspaceId, requestedBy),
   recordUsage: (workspaceId, payload) =>
-    ipcRenderer.invoke('workspaceQuota:recordUsage', workspaceId, payload),
+    ipcRenderer.invoke("workspaceQuota:recordUsage", workspaceId, payload),
   usage: (workspaceId, now) =>
-    ipcRenderer.invoke('workspaceQuota:usage', workspaceId, now),
+    ipcRenderer.invoke("workspaceQuota:usage", workspaceId, now),
   evaluate: (workspaceId, now) =>
-    ipcRenderer.invoke('workspaceQuota:evaluate', workspaceId, now),
+    ipcRenderer.invoke("workspaceQuota:evaluate", workspaceId, now),
   clearUsage: (workspaceId) =>
-    ipcRenderer.invoke('workspaceQuota:clearUsage', workspaceId),
+    ipcRenderer.invoke("workspaceQuota:clearUsage", workspaceId),
 });
