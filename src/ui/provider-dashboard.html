@@ -154,6 +154,26 @@
     </div>
 
     <div class="panel">
+      <h3>Workspace Approvals</h3>
+      <div class="row-3">
+        <button id="load-workspace-approvals">Load approvals</button>
+      </div>
+      <pre id="workspace-approval-output">—</pre>
+      <input id="approval-id" placeholder="Approval ID" />
+      <select id="approval-status">
+        <option value="approved">approved</option>
+        <option value="rejected">rejected</option>
+      </select>
+      <input id="approval-reviewed-by" placeholder="Reviewed by" />
+      <textarea
+        id="approval-review-note"
+        rows="2"
+        placeholder="Review note"
+      ></textarea>
+      <button id="resolve-workspace-approval">Resolve approval</button>
+    </div>
+
+    <div class="panel">
       <h3>Resolved Policy</h3>
       <pre id="policy-output">—</pre>
     </div>
@@ -572,6 +592,42 @@
       });
 
       document
+        .getElementById("load-workspace-approvals")
+        .addEventListener("click", async () => {
+          const id = wsId();
+          const res = await window.workspaceApproval.list(
+            id || undefined,
+            undefined,
+          );
+          document.getElementById("workspace-approval-output").textContent =
+            JSON.stringify(res, null, 2);
+        });
+
+      document
+        .getElementById("resolve-workspace-approval")
+        .addEventListener("click", async () => {
+          const approvalId = document
+            .getElementById("approval-id")
+            .value.trim();
+          const status = document.getElementById("approval-status").value;
+          const reviewedBy = document
+            .getElementById("approval-reviewed-by")
+            .value.trim();
+          const reviewNote = document
+            .getElementById("approval-review-note")
+            .value.trim();
+          if (!approvalId) return;
+          const res = await window.workspaceApproval.resolve(
+            approvalId,
+            status,
+            reviewedBy || undefined,
+            reviewNote || undefined,
+          );
+          document.getElementById("workspace-approval-output").textContent =
+            JSON.stringify(res, null, 2);
+        });
+
+      document
         .getElementById("build-prompt")
         .addEventListener("click", async () => {
           const id = wsId();
@@ -582,6 +638,7 @@
 
       // Sprint compatibility block
       // Audit Trail
+      // Workspace Approvals
       // Unified Workspace View
       // Workspace Analytics & Explainability
       // Workspace Analytics

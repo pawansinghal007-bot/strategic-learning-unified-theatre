@@ -143,8 +143,8 @@ contextBridge.exposeInMainWorld("providerPolicy", {
 
 contextBridge.exposeInMainWorld("workspacePolicy", {
   get: (workspaceId) => ipcRenderer.invoke("workspacePolicy:get", workspaceId),
-  set: (workspaceId, policy) =>
-    ipcRenderer.invoke("workspacePolicy:set", workspaceId, policy),
+  set: (workspaceId, policy, options) =>
+    ipcRenderer.invoke("workspacePolicy:set", workspaceId, policy, options),
   clear: (workspaceId) =>
     ipcRenderer.invoke("workspacePolicy:clear", workspaceId),
   list: () => ipcRenderer.invoke("workspacePolicy:list"),
@@ -211,4 +211,17 @@ contextBridge.exposeInMainWorld("audit", {
   list: (limit, filter) => ipcRenderer.invoke("audit:list", limit, filter),
   verify: () => ipcRenderer.invoke("audit:verify"),
   latest: () => ipcRenderer.invoke("audit:latest"),
+});
+
+contextBridge.exposeInMainWorld("workspaceApproval", {
+  list: (workspaceId, status) =>
+    ipcRenderer.invoke("workspaceApproval:list", workspaceId, status),
+  resolve: (approvalId, status, reviewedBy, reviewNote) =>
+    ipcRenderer.invoke(
+      "workspaceApproval:resolve",
+      approvalId,
+      status,
+      reviewedBy,
+      reviewNote,
+    ),
 });

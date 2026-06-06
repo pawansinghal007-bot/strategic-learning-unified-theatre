@@ -1,0 +1,35 @@
+  SPRINT 37 — T1 COMPLETE
+
+  FILES:
+    src/governance/workspace-approvals.ts (created — new folder src/governance/)
+    electron-ui/ipc/workspace-policy-handlers.cjs (replaced)
+
+  STATUS:
+    createWorkspaceApprovalRequest() persists pending approval with audit event
+    listWorkspaceApprovalRequests() filters by workspaceId and status
+    resolveWorkspaceApprovalRequest() updates status and writes audit event
+    clearWorkspaceApprovals() resets store
+    workspacePolicy.set writes audit event
+    workspacePolicy.clear writes audit event
+    sensitive patch detection triggers approval request creation
+    workspaceApproval:list/resolve IPC channels registered
+    all existing workspace policy channels preserved
+    compile clean
+    sonar clean
+
+  DELIVERABLES:
+    [x] src/governance/ folder created with workspace-approvals.ts
+    [x] createWorkspaceApprovalRequest() writes workspaceApproval.requested audit event
+    [x] resolveWorkspaceApprovalRequest() writes approved/rejected audit event
+    [x] Sensitive patches (local-only/manualProvider/blockedProviders) trigger approval
+    [x] workspaceApproval:list IPC channel registered
+    [x] workspaceApproval:resolve IPC channel registered
+    [x] workspacePolicy:set writes audit event
+    [x] workspacePolicy:clear writes audit event
+    [x] All existing workspace policy channels preserved
+    [x] main.cjs unchanged — approval channels registered inside existing handler
+    [x] Compilation successful
+    [x] Sonar validation clean
+
+  NEXT:
+    T2 — preload workspaceApproval namespace + types + dashboard approvals panel

@@ -28,9 +28,41 @@ declare global {
         source: "global" | "workspace";
         workspaceId?: string;
       }>;
-      set: (workspaceId: string, policy: Record<string, any>) => Promise<any>;
+      set: (
+        workspaceId: string,
+        policyPatch: Record<string, any>,
+        options?: {
+          requestedBy?: string;
+          reason?: string;
+        },
+      ) => Promise<any>;
       clear: (workspaceId: string) => Promise<boolean>;
       list: () => Promise<any[]>;
+    };
+    workspaceApproval: {
+      list: (
+        workspaceId?: string,
+        status?: "pending" | "approved" | "rejected",
+      ) => Promise<
+        Array<{
+          id: string;
+          workspaceId: string;
+          status: "pending" | "approved" | "rejected";
+          policyChange: Record<string, unknown>;
+          requestedBy: string | null;
+          reviewedBy: string | null;
+          reason: string | null;
+          reviewNote: string | null;
+          createdAt: number;
+          updatedAt: number;
+        }>
+      >;
+      resolve: (
+        approvalId: string,
+        status: "approved" | "rejected",
+        reviewedBy?: string,
+        reviewNote?: string,
+      ) => Promise<any>;
     };
     workspaceContext: {
       get: (workspaceId: string) => Promise<any | null>;
