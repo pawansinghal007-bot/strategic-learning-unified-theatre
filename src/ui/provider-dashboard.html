@@ -143,6 +143,17 @@
     </div>
 
     <div class="panel">
+      <h3>Audit Trail</h3>
+      <div class="row-3">
+        <button id="load-audit-events">Load audit events</button>
+        <button id="verify-audit-log">Verify audit integrity</button>
+        <button id="load-latest-audit">Load latest event</button>
+      </div>
+      <pre id="audit-output">—</pre>
+      <pre id="audit-verify-output">—</pre>
+    </div>
+
+    <div class="panel">
       <h3>Resolved Policy</h3>
       <pre id="policy-output">—</pre>
     </div>
@@ -272,6 +283,11 @@
       const filterProvider = document.getElementById("filter-provider");
       const filterStart = document.getElementById("filter-start");
       const filterEnd = document.getElementById("filter-end");
+      const auditOutput = document.getElementById("audit-output");
+      const auditVerifyOutput = document.getElementById("audit-verify-output");
+      const loadAuditBtn = document.getElementById("load-audit-events");
+      const verifyAuditBtn = document.getElementById("verify-audit-log");
+      const loadLatestAuditBtn = document.getElementById("load-latest-audit");
 
       function wsId() {
         return workspaceIdInput.value.trim();
@@ -536,6 +552,25 @@
           contextOutput.textContent = JSON.stringify(result, null, 2);
         });
 
+      loadAuditBtn?.addEventListener("click", async () => {
+        const id = wsId();
+        const res = await window.audit.list(
+          50,
+          id ? { workspaceId: id } : undefined,
+        );
+        auditOutput.textContent = JSON.stringify(res, null, 2);
+      });
+
+      verifyAuditBtn?.addEventListener("click", async () => {
+        const res = await window.audit.verify();
+        auditVerifyOutput.textContent = JSON.stringify(res, null, 2);
+      });
+
+      loadLatestAuditBtn?.addEventListener("click", async () => {
+        const res = await window.audit.latest();
+        auditOutput.textContent = JSON.stringify(res, null, 2);
+      });
+
       document
         .getElementById("build-prompt")
         .addEventListener("click", async () => {
@@ -546,6 +581,7 @@
         });
 
       // Sprint compatibility block
+      // Audit Trail
       // Unified Workspace View
       // Workspace Analytics & Explainability
       // Workspace Analytics

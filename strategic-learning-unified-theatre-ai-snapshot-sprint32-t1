@@ -1,28 +1,28 @@
-SPRINT 32 — T1 COMPLETE
+  SPRINT 32 — T1 COMPLETE
 
-FILES:
-src/llm/routing-history.ts (extended)
-electron-ui/ipc/workspace-routing-handlers.cjs (replaced)
+  FILES:
+    src/llm/routing-history.ts (extended)
+    electron-ui/ipc/workspace-routing-handlers.cjs (replaced)
 
-STATUS:
-getWorkspaceProviderTrends() returns per-provider counts and latency
-getWorkspaceRoutingTimeline() returns human-readable timeline entries
-getWorkspaceAnalytics() returns combined summary/trends/timeline
-WorkspaceRoutingSummary now includes successRate/avgLatencyMs/errorRate
-IPC channels for trends/timeline/analytics registered
-import path uses src/ not dist/
-compile clean
-sonar clean
+  STATUS:
+    getWorkspaceProviderTrends() returns per-provider counts and latency
+    getWorkspaceRoutingTimeline() returns human-readable timeline entries
+    getWorkspaceAnalytics() returns combined summary/trends/timeline
+    WorkspaceRoutingSummary now includes successRate/avgLatencyMs/errorRate
+    IPC channels for trends/timeline/analytics registered
+    import path uses src/ not dist/
+    compile clean
+    sonar clean
 
-DELIVERABLES:
-[x] getWorkspaceProviderTrends() returns sorted provider trend points
-[x] getWorkspaceRoutingTimeline() maps entries to WorkspaceTimelineEntry
-[x] getWorkspaceAnalytics() returns all three analytics payloads
-[x] WorkspaceRoutingSummary includes successRate, avgLatencyMs, errorRate
-[x] workspaceRouting:trends/timeline/analytics IPC channels registered
-[x] All Sprint 31 IPC channels preserved
-[x] Compilation successful
-[x] Sonar validation clean
+  DELIVERABLES:
+    [x] getWorkspaceProviderTrends() returns sorted provider trend points
+    [x] getWorkspaceRoutingTimeline() maps entries to WorkspaceTimelineEntry
+    [x] getWorkspaceAnalytics() returns all three analytics payloads
+    [x] WorkspaceRoutingSummary includes successRate, avgLatencyMs, errorRate
+    [x] workspaceRouting:trends/timeline/analytics IPC channels registered
+    [x] All Sprint 31 IPC channels preserved
+    [x] Compilation successful
+    [x] Sonar validation clean
 
-NEXT:
-T2 — preload update + types + dashboard analytics view
+  NEXT:
+    T2 — preload update + types + dashboard analytics view

@@ -206,3 +206,9 @@ contextBridge.exposeInMainWorld("workspaceReport", {
   save: (workspaceId, format, filter) =>
     ipcRenderer.invoke("workspaceReport:save", workspaceId, format, filter),
 });
+
+contextBridge.exposeInMainWorld("audit", {
+  list: (limit, filter) => ipcRenderer.invoke("audit:list", limit, filter),
+  verify: () => ipcRenderer.invoke("audit:verify"),
+  latest: () => ipcRenderer.invoke("audit:latest"),
+});

@@ -68,10 +68,9 @@ declare global {
         successCount: number;
         failureCount: number;
         successRate: number;
-        avgLatencyMs: number;
         errorRate: number;
-        providerCounts: Record<string, number>;
-        latest: any | null;
+        avgLatencyMs: number;
+        latest: number | null;
       }>;
       trends: (
         workspaceId: string,
@@ -80,15 +79,7 @@ declare global {
           endTime?: number;
           provider?: string;
         },
-      ) => Promise<
-        Array<{
-          provider: string;
-          count: number;
-          successCount: number;
-          failureCount: number;
-          avgLatencyMs: number;
-        }>
-      >;
+      ) => Promise<any[]>;
       timeline: (
         workspaceId: string,
         limit?: number,
@@ -97,18 +88,7 @@ declare global {
           endTime?: number;
           provider?: string;
         },
-      ) => Promise<
-        Array<{
-          id: string;
-          timestamp: number;
-          title: string;
-          detail: string;
-          severity: "info" | "warning" | "error";
-          provider: string;
-          success: boolean;
-          workspaceId: string | null;
-        }>
-      >;
+      ) => Promise<any[]>;
       analytics: (
         workspaceId: string,
         filter?: {
@@ -125,30 +105,31 @@ declare global {
           endTime?: number;
           provider?: string;
         },
-      ) => Promise<
-        Array<{
-          bucket: string;
-          total: number;
-          successCount: number;
-          failureCount: number;
-          successRate: number;
-          avgLatencyMs: number;
-        }>
-      >;
+      ) => Promise<any[]>;
       globalAnalytics: (filter?: {
         startTime?: number;
         endTime?: number;
         provider?: string;
-      }) => Promise<
-        Array<{
-          workspaceId: string;
-          total: number;
-          successRate: number;
-          errorRate: number;
-          avgLatencyMs: number;
-          latestTimestamp: number | null;
-        }>
-      >;
+      }) => Promise<any[]>;
+      providerComparison: (filter?: {
+        startTime?: number;
+        endTime?: number;
+        provider?: string;
+      }) => Promise<any[]>;
+      bucketChartSvg: (
+        workspaceId: string,
+        bucket: "hour" | "day",
+        filter?: {
+          startTime?: number;
+          endTime?: number;
+          provider?: string;
+        },
+      ) => Promise<string>;
+      providerComparisonChartSvg: (filter?: {
+        startTime?: number;
+        endTime?: number;
+        provider?: string;
+      }) => Promise<string>;
       exportJson: (
         workspaceId: string,
         filter?: {
@@ -165,33 +146,6 @@ declare global {
           provider?: string;
         },
       ) => Promise<string>;
-      providerComparison: (filter?: {
-        startTime?: number;
-        endTime?: number;
-        provider?: string;
-      }) => Promise<
-        Array<{
-          workspaceId: string;
-          provider: string;
-          count: number;
-          successRate: number;
-          avgLatencyMs: number;
-        }>
-      >;
-      bucketChartSvg: (
-        workspaceId: string,
-        bucket: "hour" | "day",
-        filter?: {
-          startTime?: number;
-          endTime?: number;
-          provider?: string;
-        },
-      ) => Promise<string>;
-      providerComparisonChartSvg: (filter?: {
-        startTime?: number;
-        endTime?: number;
-        provider?: string;
-      }) => Promise<string>;
       exportHtmlReport: (
         workspaceId: string,
         filter?: {
@@ -217,6 +171,41 @@ declare global {
         filePath: string | null;
         format: string;
       }>;
+    };
+    audit: {
+      list: (
+        limit?: number,
+        filter?: {
+          action?: string;
+          workspaceId?: string;
+          targetType?: string;
+          startTime?: number;
+          endTime?: number;
+        },
+      ) => Promise<
+        Array<{
+          id: string;
+          seq: number;
+          timestamp: number;
+          action: string;
+          actor: { type: string; id?: string };
+          targetType: string;
+          targetId: string | null;
+          workspaceId: string | null;
+          details: Record<string, unknown> | null;
+          prevHash: string | null;
+          hash: string;
+        }>
+      >;
+      verify: () => Promise<{
+        ok: boolean;
+        checked: number;
+        failedAtSeq: number | null;
+        expectedHash: string | null;
+        actualHash: string | null;
+        reason: string | null;
+      }>;
+      latest: () => Promise<any | null>;
     };
   }
 }
