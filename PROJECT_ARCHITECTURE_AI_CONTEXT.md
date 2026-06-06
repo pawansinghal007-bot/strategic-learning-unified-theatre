@@ -1144,3 +1144,19 @@ Trigger files changed:
 - src/ui/types.d.ts
 
 Structural change: YES
+
+
+---
+## Architecture Sync — 2026-06-06T14:23:54.706Z
+
+Trigger files changed:
+- electron-ui/ipc/audit-handlers.cjs
+- electron-ui/ipc/provider-policy-handlers.cjs
+- electron-ui/ipc/workspace-policy-handlers.cjs
+- electron-ui/ipc/workspace-report-handlers.cjs
+- electron-ui/main.cjs
+- electron-ui/preload.cjs
+- src/llm/routing-history.ts
+- src/ui/types.d.ts
+
+Structural change: YES

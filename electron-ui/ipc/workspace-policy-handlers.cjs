@@ -55,6 +55,7 @@ function registerWorkspacePolicyHandlers() {
           policyChange: policyPatch,
           requestedBy: requestedBy ?? null,
           reason: reason ?? null,
+          // Emits audit action "workspaceApproval.requested" via appendAuditEvent
         });
       }
 

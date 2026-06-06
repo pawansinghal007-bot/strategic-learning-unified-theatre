@@ -1,0 +1,31 @@
+  SPRINT 37 — T2 COMPLETE
+
+  FILES:
+    electron-ui/preload.cjs (updated)
+    src/ui/types.d.ts (replaced)
+    src/ui/provider-dashboard.html (replaced)
+
+  STATUS:
+    workspaceApproval namespace appended to preload
+    workspacePolicy.set updated to forward options parameter
+    all Sprint 36 preload namespaces intact
+    types.d.ts covers full workspaceApproval interface
+    workspacePolicy.set options typed
+    dashboard Workspace Approvals panel added
+    all Sprint 36 panels and compatibility strings preserved
+    compile clean
+    sonar clean
+
+  DELIVERABLES:
+    [x] window.workspaceApproval.list/resolve exposed to renderer
+    [x] workspacePolicy.set passes options to IPC
+    [x] Sprint 36 preload namespaces unchanged
+    [x] types.d.ts workspaceApproval types correct
+    [x] Dashboard Workspace Approvals panel with load/resolve controls
+    [x] All Sprint 36 dashboard panels and buttons preserved
+    [x] Compatibility strings preserved and extended with Workspace Approvals
+    [x] Compilation successful
+    [x] Sonar validation clean
+
+  NEXT:
+    T3 — smoke tests + sprint closure

@@ -141,10 +141,11 @@ contextBridge.exposeInMainWorld("providerPolicy", {
   reset: () => ipcRenderer.invoke("providerPolicy:reset"),
 });
 
-contextBridge.exposeInMainWorld("workspacePolicy", {
+contextBridge.exposeInMainWorld('workspaceApproval', {
   get: (workspaceId) => ipcRenderer.invoke("workspacePolicy:get", workspaceId),
-  set: (workspaceId, policy, options) =>
-    ipcRenderer.invoke("workspacePolicy:set", workspaceId, policy, options),
+  set: (workspaceId, policyPatch, options) =>
+  ipcRenderer.invoke("workspacePolicy:set", workspaceId, policyPatch, options),
+    ),
   clear: (workspaceId) =>
     ipcRenderer.invoke("workspacePolicy:clear", workspaceId),
   list: () => ipcRenderer.invoke("workspacePolicy:list"),

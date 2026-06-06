@@ -42,12 +42,12 @@ declare global {
     workspaceApproval: {
       list: (
         workspaceId?: string,
-        status?: "pending" | "approved" | "rejected",
+        status?: "pending" | "approved" | "rejected", // was "pending" | "approved" | "rejected"
       ) => Promise<
         Array<{
           id: string;
           workspaceId: string;
-          status: "pending" | "approved" | "rejected";
+          status: "pending" | "approved" | "rejected"; // was "pending" | "approved" | "rejected"
           policyChange: Record<string, unknown>;
           requestedBy: string | null;
           reviewedBy: string | null;
@@ -59,7 +59,7 @@ declare global {
       >;
       resolve: (
         approvalId: string,
-        status: "approved" | "rejected",
+        status: "approved" | "rejected", // was "approved" | "rejected"
         reviewedBy?: string,
         reviewNote?: string,
       ) => Promise<any>;
