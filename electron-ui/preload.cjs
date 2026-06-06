@@ -248,4 +248,10 @@ contextBridge.exposeInMainWorld("workspaceQuota", {
     ipcRenderer.invoke("workspaceQuota:evaluate", workspaceId, now),
   clearUsage: (workspaceId) =>
     ipcRenderer.invoke("workspaceQuota:clearUsage", workspaceId),
+  rollup: (now) =>
+    ipcRenderer.invoke("workspaceQuota:rollup", now),
+  notifications: (workspaceId) =>
+    ipcRenderer.invoke("workspaceQuota:notifications", workspaceId),
+  resetDaily: (now) =>
+    ipcRenderer.invoke("workspaceQuota:resetDaily", now),
 });

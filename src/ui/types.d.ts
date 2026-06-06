@@ -71,6 +71,7 @@ declare global {
         weeklyLimit: number | null;
         mode: "alert" | "fallback" | "block";
         fallbackProvider: string | null;
+        alertThresholdPct: number | null;
         createdAt: number;
         updatedAt: number;
       } | null>;
@@ -81,6 +82,7 @@ declare global {
           weeklyLimit: number | null;
           mode: "alert" | "fallback" | "block";
           fallbackProvider: string | null;
+          alertThresholdPct: number | null;
           createdAt: number;
           updatedAt: number;
         }>
@@ -92,6 +94,7 @@ declare global {
           weeklyLimit?: number | null;
           mode?: "alert" | "fallback" | "block";
           fallbackProvider?: string | null;
+          alertThresholdPct?: number | null;
         },
         options?: {
           requestedBy?: string;
@@ -103,6 +106,7 @@ declare global {
         weeklyLimit: number | null;
         mode: "alert" | "fallback" | "block";
         fallbackProvider: string | null;
+        alertThresholdPct: number | null;
         createdAt: number;
         updatedAt: number;
       }>;
@@ -122,8 +126,12 @@ declare global {
         exceededDaily: boolean;
         exceededWeekly: boolean;
         exceeded: boolean;
+        thresholdReachedDaily: boolean;
+        thresholdReachedWeekly: boolean;
+        thresholdReached: boolean;
         mode: "alert" | "fallback" | "block" | null;
         fallbackProvider: string | null;
+        alertThresholdPct: number | null;
       }>;
       usage: (
         workspaceId: string,
@@ -137,8 +145,12 @@ declare global {
         exceededDaily: boolean;
         exceededWeekly: boolean;
         exceeded: boolean;
+        thresholdReachedDaily: boolean;
+        thresholdReachedWeekly: boolean;
+        thresholdReached: boolean;
         mode: "alert" | "fallback" | "block" | null;
         fallbackProvider: string | null;
+        alertThresholdPct: number | null;
       }>;
       evaluate: (
         workspaceId: string,
@@ -148,6 +160,7 @@ declare global {
         shouldFallback: boolean;
         shouldAlert: boolean;
         blocked: boolean;
+        thresholdReached: boolean;
         fallbackProvider: string | null;
         usage: {
           workspaceId: string;
@@ -158,11 +171,39 @@ declare global {
           exceededDaily: boolean;
           exceededWeekly: boolean;
           exceeded: boolean;
+          thresholdReachedDaily: boolean;
+          thresholdReachedWeekly: boolean;
+          thresholdReached: boolean;
           mode: "alert" | "fallback" | "block" | null;
           fallbackProvider: string | null;
+          alertThresholdPct: number | null;
         };
       }>;
       clearUsage: (workspaceId?: string) => Promise<{ ok: true }>;
+      rollup: (now?: number) => Promise<
+        Array<{
+          workspaceId: string;
+          mode: "alert" | "fallback" | "block";
+          fallbackProvider: string | null;
+          dailyLimit: number | null;
+          weeklyLimit: number | null;
+          alertThresholdPct: number | null;
+          dayCount: number;
+          weekCount: number;
+          thresholdReached: boolean;
+          exceeded: boolean;
+        }>
+      >;
+      notifications: (workspaceId?: string) => Promise<
+        Array<{
+          workspaceId: string;
+          type: "threshold" | "exceeded";
+          timestamp: number;
+          dayCount: number;
+          weekCount: number;
+        }>
+      >;
+      resetDaily: (now?: number) => Promise<{ ok: true; resetAt: number }>;
     };
     workspaceContext: {
       get: (workspaceId: string) => Promise<any | null>;

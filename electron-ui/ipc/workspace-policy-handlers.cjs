@@ -14,6 +14,10 @@ function approvals() {
   return require("../../src/governance/workspace-approvals.js");
 }
 
+function quotas() {
+  return require("../../src/governance/workspace-quotas.js");
+}
+
 function isSensitivePolicyPatch(policyPatch) {
   if (!policyPatch || typeof policyPatch !== "object") return false;
   return Boolean(
@@ -189,6 +193,18 @@ function registerWorkspacePolicyHandlers() {
       clearWorkspaceQuotaUsage,
     } = require("../../src/governance/workspace-quotas.js");
     return clearWorkspaceQuotaUsage(workspaceId);
+  });
+
+  ipcMain.handle("workspaceQuota:rollup", async (_event, now) => {
+    return quotas().getWorkspaceQuotaRollup(now);
+  });
+
+  ipcMain.handle("workspaceQuota:notifications", async (_event, workspaceId) => {
+    return quotas().listWorkspaceQuotaNotifications(workspaceId);
+  });
+
+  ipcMain.handle("workspaceQuota:resetDaily", async (_event, now) => {
+    return quotas().resetWorkspaceQuotaDaily(now);
   });
 }
 

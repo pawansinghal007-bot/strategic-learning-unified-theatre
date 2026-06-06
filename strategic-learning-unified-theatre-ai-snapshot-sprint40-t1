@@ -1,0 +1,31 @@
+  SPRINT 40 — T1 COMPLETE
+
+  FILES:
+    src/governance/workspace-quotas.ts (extended)
+    src/llm/gateway.ts (extended)
+
+  STATUS:
+    getWorkspaceQuotaRollup() returns per-workspace usage summary array
+    listWorkspaceQuotaNotifications() returns threshold/exceeded events newest-first
+    resetWorkspaceQuotaDaily() prunes old-day usage records + writes dailyReset audit event
+    applyWorkspaceQuotaEnforcement() records usage, evaluates quota, returns GatewayQuotaDecision
+    enforceWorkspaceQuotaOrThrow() throws WORKSPACE_QUOTA_EXCEEDED when mode=block
+    Gateway.ask() quota gate handles block / fallback-swap / alert logging
+    compile clean
+    sonar clean
+
+  DELIVERABLES:
+    [x] getWorkspaceQuotaRollup() added to workspace-quotas.ts
+    [x] listWorkspaceQuotaNotifications() added to workspace-quotas.ts
+    [x] resetWorkspaceQuotaDaily() added to workspace-quotas.ts + audit event
+    [x] GatewayQuotaDecision interface exported from gateway.ts
+    [x] applyWorkspaceQuotaEnforcement() exported from gateway.ts
+    [x] enforceWorkspaceQuotaOrThrow() exported from gateway.ts
+    [x] Quota gate wired inside Gateway.ask() — block/fallback/alert branches
+    [x] main.cjs unchanged
+    [x] audit-handlers.cjs unchanged
+    [x] Compilation successful
+    [x] Sonar validation clean
+
+  NEXT:
+    T2 — IPC channels + preload + types
