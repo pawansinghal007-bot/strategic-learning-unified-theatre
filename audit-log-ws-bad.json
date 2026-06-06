@@ -1,0 +1,33 @@
+{
+  "exportedAt": "2026-06-06T16:14:16.197Z",
+  "filter": {
+    "workspaceId": "ws-bad"
+  },
+  "verification": {
+    "ok": false,
+    "reason": "hash_mismatch",
+    "failedAtSeq": 1,
+    "checked": 1,
+    "expectedHash": "ba65b416b99666025be12725b9ab3be7e7dff8013f7508ff6ce5bb8f143969e4",
+    "actualHash": "e73bf64aad9ec9ea04c630cc7578768e4574a9e99b2738b5bb20d4c19e92fb6f"
+  },
+  "count": 1,
+  "events": [
+    {
+      "seq": 1,
+      "action": "tampered.action",
+      "actor": {
+        "type": "user",
+        "id": "alice"
+      },
+      "targetType": "workspacePolicy",
+      "workspaceId": "ws-bad",
+      "details": {
+        "manualProvider": "openai"
+      },
+      "timestamp": 1780762456197,
+      "prevHash": null,
+      "hash": "e73bf64aad9ec9ea04c630cc7578768e4574a9e99b2738b5bb20d4c19e92fb6f"
+    }
+  ]
+}

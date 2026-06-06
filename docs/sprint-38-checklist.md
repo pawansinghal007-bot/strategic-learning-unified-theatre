@@ -1,6 +1,7 @@
 # Sprint 38 — Concrete Closure Checklist
 
 ## Drop-in checklist
+
 - [x] src/audit/audit-log.ts extended with export functions
 - [x] electron-ui/ipc/audit-handlers.cjs extended with export channels
 - [x] electron-ui/preload.cjs audit block updated
@@ -13,7 +14,9 @@
 - [x] Git tagged and pushed
 
 ## Suggested next sprint
+
 Sprint 39: workspace-level rate limiting and quota governance
+
 - Per-workspace request quota (daily/weekly limits)
 - Quota exceeded policy: block / fallback / alert
 - Quota dashboard panel

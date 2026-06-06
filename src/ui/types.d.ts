@@ -229,15 +229,13 @@ declare global {
           hash: string;
         }>
       >;
-      verify: (
-        filter?: {
-          action?: string;
-          workspaceId?: string;
-          targetType?: string;
-          startTime?: number;
-          endTime?: number;
-        },
-      ) => Promise<{
+      verify: (filter?: {
+        action?: string;
+        workspaceId?: string;
+        targetType?: string;
+        startTime?: number;
+        endTime?: number;
+      }) => Promise<{
         ok: boolean;
         checked: number;
         failedAtSeq: number | null;
@@ -245,26 +243,22 @@ declare global {
         actualHash: string | null;
         reason: string | null;
       }>;
-      latest: (
-        filter?: {
-          action?: string;
-          workspaceId?: string;
-          targetType?: string;
-          startTime?: number;
-          endTime?: number;
-        },
-      ) => Promise<any | null>;
-      exportJson: (
-        filter?: {
-          action?: string;
-          workspaceId?: string;
-          targetType?: string;
-          startTime?: number;
-          endTime?: number;
-        },
-      ) => Promise<{
+      latest: (filter?: {
+        action?: string;
+        workspaceId?: string;
+        targetType?: string;
+        startTime?: number;
+        endTime?: number;
+      }) => Promise<any | null>;
+      exportJson: (filter?: {
+        action?: string;
+        workspaceId?: string;
+        targetType?: string;
+        startTime?: number;
+        endTime?: number;
+      }) => Promise<{
         ok: true;
-        format: 'json';
+        format: "json";
         filePath: string;
         count: number;
         verification: {
@@ -276,17 +270,15 @@ declare global {
           reason: string | null;
         };
       }>;
-      exportHtmlReport: (
-        filter?: {
-          action?: string;
-          workspaceId?: string;
-          targetType?: string;
-          startTime?: number;
-          endTime?: number;
-        },
-      ) => Promise<{
+      exportHtmlReport: (filter?: {
+        action?: string;
+        workspaceId?: string;
+        targetType?: string;
+        startTime?: number;
+        endTime?: number;
+      }) => Promise<{
         ok: true;
-        format: 'html';
+        format: "html";
         filePath: string;
         count: number;
         verification: {

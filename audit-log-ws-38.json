@@ -1,0 +1,48 @@
+{
+  "exportedAt": "2026-06-06T16:14:16.167Z",
+  "filter": {
+    "workspaceId": "ws-38"
+  },
+  "verification": {
+    "ok": true,
+    "failedAtSeq": null,
+    "checked": 2,
+    "reason": null,
+    "expectedHash": null,
+    "actualHash": null
+  },
+  "count": 2,
+  "events": [
+    {
+      "seq": 1,
+      "action": "workspacePolicy.set",
+      "actor": {
+        "type": "user",
+        "id": "pawan"
+      },
+      "targetType": "workspacePolicy",
+      "workspaceId": "ws-38",
+      "details": {
+        "routingMode": "local-only"
+      },
+      "timestamp": 1780762456166,
+      "prevHash": null,
+      "hash": "60e4c8bd20be57c1f144e7de74592f773f320421a2f936690b391fccc3e47790"
+    },
+    {
+      "seq": 2,
+      "action": "workspaceApproval.requested",
+      "actor": {
+        "type": "system"
+      },
+      "targetType": "workspaceApproval",
+      "workspaceId": "ws-38",
+      "details": {
+        "requestedBy": "pawan"
+      },
+      "timestamp": 1780762456167,
+      "prevHash": "60e4c8bd20be57c1f144e7de74592f773f320421a2f936690b391fccc3e47790",
+      "hash": "46e349997ee6787a1fbb17cea6cca06de9dccf065b6e89f0762902b2bc450435"
+    }
+  ]
+}

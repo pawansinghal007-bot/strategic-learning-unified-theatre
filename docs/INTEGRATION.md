@@ -19,9 +19,9 @@ audit:exportHtmlReport
 
 ## Architecture unchanged from Sprint 37
 
-Main:    electron-ui/main.cjs (no changes needed)
-Audit:   src/audit/audit-log.ts
-IPC:     electron-ui/ipc/audit-handlers.cjs
+Main: electron-ui/main.cjs (no changes needed)
+Audit: src/audit/audit-log.ts
+IPC: electron-ui/ipc/audit-handlers.cjs
 
 ## Smoke test
 

@@ -1,0 +1,30 @@
+{
+  "exportedAt": "2026-06-06T16:14:16.201Z",
+  "filter": {
+    "workspaceId": "ws-meta"
+  },
+  "verification": {
+    "ok": true,
+    "failedAtSeq": null,
+    "checked": 1,
+    "reason": null,
+    "expectedHash": null,
+    "actualHash": null
+  },
+  "count": 1,
+  "events": [
+    {
+      "seq": 1,
+      "action": "workspaceApproval.approved",
+      "actor": {
+        "type": "user"
+      },
+      "targetType": "workspaceApproval",
+      "workspaceId": "ws-meta",
+      "details": {},
+      "timestamp": 1780762456200,
+      "prevHash": null,
+      "hash": "18f910ff24ed01a8a9ece4699df42188f55df612cd974d9e960511c4a6cf111b"
+    }
+  ]
+}

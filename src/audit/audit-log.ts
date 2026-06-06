@@ -1,4 +1,6 @@
 import { createHash } from "crypto";
+import { writeFileSync } from "fs";
+import { join } from "path";
 import { readJsonFile, writeJsonFile } from "../llm/storage.js";
 
 const AUDIT_FILE = "audit-log.json";
@@ -107,7 +109,13 @@ export function appendAuditEvent(payload: {
 
 export function listAuditEvents(
   limit?: number,
-  filter?: { workspaceId?: string },
+  filter?: {
+    action?: string;
+    workspaceId?: string;
+    targetType?: string;
+    startTime?: number;
+    endTime?: number;
+  },
 ): AuditEvent[] {
   const store = loadAuditStore();
 
@@ -115,6 +123,18 @@ export function listAuditEvents(
 
   if (filter?.workspaceId) {
     events = events.filter((event) => event.workspaceId === filter.workspaceId);
+  }
+  if (filter?.action) {
+    events = events.filter((event) => event.action === filter.action);
+  }
+  if (filter?.targetType) {
+    events = events.filter((event) => event.targetType === filter.targetType);
+  }
+  if (filter?.startTime) {
+    events = events.filter((event) => event.timestamp >= filter.startTime!);
+  }
+  if (filter?.endTime) {
+    events = events.filter((event) => event.timestamp <= filter.endTime!);
   }
 
   events.sort((a, b) => b.seq - a.seq);
@@ -131,13 +151,47 @@ export function clearAuditLog(): void {
   saveAuditStore({ events: [] });
 }
 
-export function verifyAuditLogIntegrity() {
+export interface AuditVerificationResult {
+  ok: boolean;
+  checked: number;
+  failedAtSeq: number | null;
+  reason?: string | null;
+  expectedHash?: string | null;
+  actualHash?: string | null;
+}
+
+export function verifyAuditLogIntegrity(filter?: {
+  action?: string;
+  workspaceId?: string;
+  targetType?: string;
+  startTime?: number;
+  endTime?: number;
+}): AuditVerificationResult {
   const store = loadAuditStore();
+  // Apply filter to get only the relevant events in sequence order
+  let events = store.events;
+  if (filter?.workspaceId) {
+    events = events.filter((e) => e.workspaceId === filter.workspaceId);
+  }
+  if (filter?.action) {
+    events = events.filter((e) => e.action === filter.action);
+  }
+  if (filter?.targetType) {
+    events = events.filter((e) => e.targetType === filter.targetType);
+  }
+  if (filter?.startTime) {
+    events = events.filter((e) => e.timestamp >= filter.startTime!);
+  }
+  if (filter?.endTime) {
+    events = events.filter((e) => e.timestamp <= filter.endTime!);
+  }
+  // Reassign store.events to filtered set for verification loop below
+  const filteredStore = { events };
 
-  for (let i = 0; i < store.events.length; i += 1) {
-    const current = store.events[i];
+  for (let i = 0; i < filteredStore.events.length; i += 1) {
+    const current = filteredStore.events[i];
 
-    const expectedPrevHash = i === 0 ? null : store.events[i - 1].hash;
+    const expectedPrevHash = i === 0 ? null : filteredStore.events[i - 1].hash;
 
     if (current.prevHash !== expectedPrevHash) {
       return {
@@ -145,6 +199,8 @@ export function verifyAuditLogIntegrity() {
         reason: "hash_mismatch",
         failedAtSeq: current.seq,
         checked: i,
+        expectedHash: expectedPrevHash,
+        actualHash: current.prevHash,
       };
     }
 
@@ -156,6 +212,8 @@ export function verifyAuditLogIntegrity() {
         reason: "hash_mismatch",
         failedAtSeq: current.seq,
         checked: i + 1,
+        expectedHash,
+        actualHash: current.hash,
       };
     }
   }
@@ -163,7 +221,10 @@ export function verifyAuditLogIntegrity() {
   return {
     ok: true,
     failedAtSeq: null,
-    checked: store.events.length,
+    checked: filteredStore.events.length,
+    reason: null,
+    expectedHash: null,
+    actualHash: null,
   };
 }
 
@@ -256,9 +317,6 @@ export function exportAuditLogJson(filter?: {
   startTime?: number;
   endTime?: number;
 }): AuditExportResult {
-  const { writeFileSync } = require("fs");
-  const { join } = require("path");
-
   const events = listAuditEvents(undefined, filter).slice().reverse();
   const verification = verifyAuditLogIntegrity(filter);
   const suffix = filter?.workspaceId ? `-${filter.workspaceId}` : "";
@@ -296,9 +354,6 @@ export function exportAuditLogHtmlReport(filter?: {
   startTime?: number;
   endTime?: number;
 }): AuditExportResult {
-  const { writeFileSync } = require("fs");
-  const { join } = require("path");
-
   const events = listAuditEvents(undefined, filter).slice().reverse();
   const verification = verifyAuditLogIntegrity(filter);
   const suffix = filter?.workspaceId ? `-${filter.workspaceId}` : "";

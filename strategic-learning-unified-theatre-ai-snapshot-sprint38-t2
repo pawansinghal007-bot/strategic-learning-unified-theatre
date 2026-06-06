@@ -1,0 +1,36 @@
+  SPRINT 38 — T2 COMPLETE
+
+  FILES:
+    electron-ui/preload.cjs (updated)
+    src/ui/types.d.ts (updated)
+    src/ui/provider-dashboard.html (updated)
+    docs/sprint-38-scope.md
+    docs/sprint-38-checklist.md
+    docs/INTEGRATION.md
+
+  STATUS:
+    preload audit block updated with exportJson/exportHtmlReport
+    verify and latest now accept filter param in preload and types
+    types.d.ts AuditExportResult shapes added
+    dashboard has audit-verification-badge and audit-verification-alert
+    dashboard export-audit-json and export-audit-html buttons added
+    badge set to verified/failed on DOMContentLoaded
+    Sprint 37 Workspace Approvals panel preserved
+    Sprint 25–37 compatibility strings preserved
+    docs committed
+    compile clean
+    sonar clean
+
+  DELIVERABLES:
+    [x] preload audit.exportJson and audit.exportHtmlReport exposed
+    [x] preload audit.verify and audit.latest accept filter
+    [x] types.d.ts exportJson/exportHtmlReport result shapes
+    [x] Dashboard audit badge shows verified/failed on load
+    [x] Dashboard alert visible on verification failure
+    [x] Dashboard Export audit JSON button calls window.audit.exportJson
+    [x] Dashboard Export audit HTML button calls window.audit.exportHtmlReport
+    [x] Compilation successful
+    [x] Sonar validation clean
+
+  NEXT:
+    T3 — smoke tests + sprint closure
