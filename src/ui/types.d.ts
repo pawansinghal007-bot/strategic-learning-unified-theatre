@@ -64,6 +64,106 @@ declare global {
         reviewNote?: string,
       ) => Promise<any>;
     };
+    workspaceQuota: {
+      get: (workspaceId: string) => Promise<{
+        workspaceId: string;
+        dailyLimit: number | null;
+        weeklyLimit: number | null;
+        mode: "alert" | "fallback" | "block";
+        fallbackProvider: string | null;
+        createdAt: number;
+        updatedAt: number;
+      } | null>;
+      list: () => Promise<
+        Array<{
+          workspaceId: string;
+          dailyLimit: number | null;
+          weeklyLimit: number | null;
+          mode: "alert" | "fallback" | "block";
+          fallbackProvider: string | null;
+          createdAt: number;
+          updatedAt: number;
+        }>
+      >;
+      set: (
+        workspaceId: string,
+        quotaPatch: {
+          dailyLimit?: number | null;
+          weeklyLimit?: number | null;
+          mode?: "alert" | "fallback" | "block";
+          fallbackProvider?: string | null;
+        },
+        options?: {
+          requestedBy?: string;
+          reason?: string;
+        },
+      ) => Promise<{
+        workspaceId: string;
+        dailyLimit: number | null;
+        weeklyLimit: number | null;
+        mode: "alert" | "fallback" | "block";
+        fallbackProvider: string | null;
+        createdAt: number;
+        updatedAt: number;
+      }>;
+      clear: (
+        workspaceId: string,
+        requestedBy?: string,
+      ) => Promise<{ ok: true }>;
+      recordUsage: (
+        workspaceId: string,
+        payload?: { timestamp?: number; provider?: string | null },
+      ) => Promise<{
+        workspaceId: string;
+        dayCount: number;
+        weekCount: number;
+        dailyLimit: number | null;
+        weeklyLimit: number | null;
+        exceededDaily: boolean;
+        exceededWeekly: boolean;
+        exceeded: boolean;
+        mode: "alert" | "fallback" | "block" | null;
+        fallbackProvider: string | null;
+      }>;
+      usage: (
+        workspaceId: string,
+        now?: number,
+      ) => Promise<{
+        workspaceId: string;
+        dayCount: number;
+        weekCount: number;
+        dailyLimit: number | null;
+        weeklyLimit: number | null;
+        exceededDaily: boolean;
+        exceededWeekly: boolean;
+        exceeded: boolean;
+        mode: "alert" | "fallback" | "block" | null;
+        fallbackProvider: string | null;
+      }>;
+      evaluate: (
+        workspaceId: string,
+        now?: number,
+      ) => Promise<{
+        allowed: boolean;
+        shouldFallback: boolean;
+        shouldAlert: boolean;
+        blocked: boolean;
+        fallbackProvider: string | null;
+        usage: {
+          workspaceId: string;
+          dayCount: number;
+          weekCount: number;
+          dailyLimit: number | null;
+          weeklyLimit: number | null;
+          exceededDaily: boolean;
+          exceededWeekly: boolean;
+          exceeded: boolean;
+          mode: "alert" | "fallback" | "block" | null;
+          fallbackProvider: string | null;
+        };
+      }>;
+      clearUsage: (workspaceId?: string) => Promise<{ ok: true }>;
+    };
     workspaceContext: {
       get: (workspaceId: string) => Promise<any | null>;
       set: (

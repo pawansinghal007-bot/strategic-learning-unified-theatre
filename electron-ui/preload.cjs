@@ -228,3 +228,20 @@ contextBridge.exposeInMainWorld("workspaceApproval", {
       reviewNote,
     ),
 });
+
+contextBridge.exposeInMainWorld('workspaceQuota', {
+  get: (workspaceId) => ipcRenderer.invoke('workspaceQuota:get', workspaceId),
+  list: () => ipcRenderer.invoke('workspaceQuota:list'),
+  set: (workspaceId, quotaPatch, options) =>
+    ipcRenderer.invoke('workspaceQuota:set', workspaceId, quotaPatch, options),
+  clear: (workspaceId, requestedBy) =>
+    ipcRenderer.invoke('workspaceQuota:clear', workspaceId, requestedBy),
+  recordUsage: (workspaceId, payload) =>
+    ipcRenderer.invoke('workspaceQuota:recordUsage', workspaceId, payload),
+  usage: (workspaceId, now) =>
+    ipcRenderer.invoke('workspaceQuota:usage', workspaceId, now),
+  evaluate: (workspaceId, now) =>
+    ipcRenderer.invoke('workspaceQuota:evaluate', workspaceId, now),
+  clearUsage: (workspaceId) =>
+    ipcRenderer.invoke('workspaceQuota:clearUsage', workspaceId),
+});

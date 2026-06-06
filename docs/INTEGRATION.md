@@ -1,32 +1,39 @@
-# Sprint 38 Patch Integration
+# Sprint 39 Patch Integration
 
 ## Prerequisites
 
-Sprints 18–37 must already be integrated.
+Sprints 18–38 must already be integrated.
+
+## New files
+
+- src/governance/workspace-quotas.ts
 
 ## Files extended
 
-- src/audit/audit-log.ts (2 new export functions + AuditExportResult interface)
-- electron-ui/ipc/audit-handlers.cjs (2 new channels)
-- electron-ui/preload.cjs (audit block updated)
-- src/ui/types.d.ts (export result types added)
-- src/ui/provider-dashboard.html (badge/alert/export buttons added)
+- electron-ui/ipc/workspace-policy-handlers.cjs (8 new quota channels)
+- electron-ui/preload.cjs (workspaceQuota block appended)
+- src/ui/types.d.ts (workspaceQuota interface added)
+- src/ui/provider-dashboard.html (Workspace Quotas panel added)
 
-## New IPC channels (Sprint 38)
+## New IPC channels (Sprint 39)
 
-audit:exportJson
-audit:exportHtmlReport
+workspaceQuota:get
+workspaceQuota:list
+workspaceQuota:set
+workspaceQuota:clear
+workspaceQuota:recordUsage
+workspaceQuota:usage
+workspaceQuota:evaluate
+workspaceQuota:clearUsage
 
-## Architecture unchanged from Sprint 37
+## Architecture unchanged from Sprint 38
 
-Main: electron-ui/main.cjs (no changes needed)
-Audit: src/audit/audit-log.ts
-IPC: electron-ui/ipc/audit-handlers.cjs
+No new IPC files. No main.cjs changes. No audit-log.ts changes.
 
 ## Smoke test
 
-1. Load dashboard — audit badge should show "verified" if log is clean
-2. Click Export audit JSON — file written to project root
-3. Click Export audit HTML — HTML file written to project root
-4. Tamper audit-log.json manually — reload dashboard — badge shows "failed"
+1. Set a quota: dailyLimit=2, mode=block for a workspace
+2. Record 3 usage entries — third should trigger exceeded event
+3. Evaluate — result.blocked should be true
+4. Open audit trail — workspaceQuota.exceeded event should appear
 5. Run architecture sync check

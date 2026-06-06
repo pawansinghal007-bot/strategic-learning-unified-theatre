@@ -1,0 +1,33 @@
+  SPRINT 39 — T1 COMPLETE
+
+  FILES:
+    src/governance/workspace-quotas.ts (created)
+    electron-ui/ipc/workspace-policy-handlers.cjs (extended)
+
+  STATUS:
+    setWorkspaceQuotaPolicy() persists policy and writes audit event
+    getWorkspaceQuotaPolicy() returns policy or null
+    listWorkspaceQuotaPolicies() sorted by workspaceId
+    clearWorkspaceQuotaPolicy() removes policy and writes audit event
+    recordWorkspaceQuotaUsage() increments usage and writes exceeded audit event if breached
+    getWorkspaceQuotaUsage() returns day/week counts and exceeded flags
+    evaluateWorkspaceQuotaStatus() returns allowed/blocked/fallback/alert
+    8 new IPC channels: get/list/set/clear/recordUsage/usage/evaluate/clearUsage
+    All Sprint 37 workspace policy and approval channels preserved
+    compile clean
+    sonar clean
+
+  DELIVERABLES:
+    [x] WorkspaceQuotaPolicy interface exported
+    [x] WorkspaceQuotaUsage interface exported
+    [x] WorkspaceQuotaEvaluation interface exported
+    [x] setWorkspaceQuotaPolicy() writes workspaceQuota.set audit event
+    [x] clearWorkspaceQuotaPolicy() writes workspaceQuota.clear audit event
+    [x] recordWorkspaceQuotaUsage() writes usageRecorded and exceeded audit events
+    [x] evaluateWorkspaceQuotaStatus() returns all evaluation fields
+    [x] workspaceQuota:get/list/set/clear/recordUsage/usage/evaluate/clearUsage IPC channels
+    [x] Compilation successful
+    [x] Sonar validation clean
+
+  NEXT:
+    T2 — preload + types + dashboard + docs

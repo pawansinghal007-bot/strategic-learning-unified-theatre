@@ -210,6 +210,40 @@
     </div>
 
     <div class="panel">
+      <h3>Workspace Quotas</h3>
+      <input id="quota-workspace-id" placeholder="Workspace ID" />
+      <div class="row-3">
+        <input id="quota-daily-limit" type="number" placeholder="Daily limit" />
+        <input
+          id="quota-weekly-limit"
+          type="number"
+          placeholder="Weekly limit"
+        />
+        <select id="quota-mode">
+          <option value="alert">alert</option>
+          <option value="fallback">fallback</option>
+          <option value="block">block</option>
+        </select>
+      </div>
+      <input id="quota-fallback-provider" placeholder="Fallback provider" />
+      <div class="row-3">
+        <button id="save-workspace-quota">Save quota</button>
+        <button id="load-workspace-quota">Load quota</button>
+        <button id="record-workspace-quota-usage">Record quota usage</button>
+      </div>
+      <div class="row-3">
+        <button id="evaluate-workspace-quota">Evaluate quota</button>
+        <button id="clear-workspace-quota-usage">Clear quota usage</button>
+        <div></div>
+      </div>
+      <pre id="workspace-quota-output">—</pre>
+      <div id="workspace-quota-status">Status: —</div>
+      <div id="workspace-quota-alert" class="alert-fail" style="display: none">
+        workspace quota exceeded
+      </div>
+    </div>
+
+    <div class="panel">
       <h3>Resolved Policy</h3>
       <pre id="policy-output">—</pre>
     </div>
@@ -344,6 +378,22 @@
       const loadAuditBtn = document.getElementById("load-audit-events");
       const verifyAuditBtn = document.getElementById("verify-audit-log");
       const loadLatestAuditBtn = document.getElementById("load-latest-audit");
+      const quotaWorkspaceId = document.getElementById("quota-workspace-id");
+      const quotaDailyLimit = document.getElementById("quota-daily-limit");
+      const quotaWeeklyLimit = document.getElementById("quota-weekly-limit");
+      const quotaMode = document.getElementById("quota-mode");
+      const quotaFallbackProvider = document.getElementById(
+        "quota-fallback-provider",
+      );
+      const workspaceQuotaOutput = document.getElementById(
+        "workspace-quota-output",
+      );
+      const workspaceQuotaStatus = document.getElementById(
+        "workspace-quota-status",
+      );
+      const workspaceQuotaAlert = document.getElementById(
+        "workspace-quota-alert",
+      );
 
       function wsId() {
         return workspaceIdInput.value.trim();
@@ -366,6 +416,78 @@
         }
 
         return Object.keys(filter).length > 0 ? filter : undefined;
+      }
+
+      function quotaWsId() {
+        return quotaWorkspaceId?.value.trim() || "";
+      }
+
+      function clearQuotaStatus() {
+        if (workspaceQuotaStatus) {
+          workspaceQuotaStatus.textContent = "Status: —";
+        }
+        if (workspaceQuotaAlert) {
+          workspaceQuotaAlert.style.display = "none";
+        }
+      }
+
+      function renderQuotaResult(result) {
+        if (workspaceQuotaOutput) {
+          workspaceQuotaOutput.textContent = JSON.stringify(result, null, 2);
+        }
+      }
+
+      function updateQuotaAlert(exceeded) {
+        if (!workspaceQuotaAlert) return;
+        workspaceQuotaAlert.style.display = exceeded ? "block" : "none";
+      }
+
+      function updateQuotaStatus(message, exceeded = false) {
+        if (workspaceQuotaStatus) {
+          workspaceQuotaStatus.textContent = `Status: ${message}`;
+        }
+        updateQuotaAlert(exceeded);
+      }
+
+      function formatQuotaModeValue(value) {
+        return value || "alert";
+      }
+
+      function parseLimit(value) {
+        if (
+          value === undefined ||
+          value === null ||
+          String(value).trim() === ""
+        ) {
+          return null;
+        }
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : null;
+      }
+
+      function getQuotaPayload() {
+        return {
+          dailyLimit: parseLimit(quotaDailyLimit?.value),
+          weeklyLimit: parseLimit(quotaWeeklyLimit?.value),
+          mode: formatQuotaModeValue(quotaMode?.value),
+          fallbackProvider: quotaFallbackProvider?.value.trim() || null,
+        };
+      }
+
+      function setQuotaForm(policy) {
+        if (!policy) return;
+        if (quotaDailyLimit) {
+          quotaDailyLimit.value = policy.dailyLimit ?? "";
+        }
+        if (quotaWeeklyLimit) {
+          quotaWeeklyLimit.value = policy.weeklyLimit ?? "";
+        }
+        if (quotaMode) {
+          quotaMode.value = policy.mode;
+        }
+        if (quotaFallbackProvider) {
+          quotaFallbackProvider.value = policy.fallbackProvider ?? "";
+        }
       }
 
       function setMetrics(summary) {
@@ -690,6 +812,77 @@
         });
 
       document
+        .getElementById("save-workspace-quota")
+        .addEventListener("click", async () => {
+          const id = quotaWsId();
+          if (!id) return;
+          const payload = getQuotaPayload();
+          const result = await window.workspaceQuota.set(
+            id,
+            payload,
+            undefined,
+          );
+          renderQuotaResult(result);
+          updateQuotaStatus(
+            `saved (${result.mode}, daily=${result.dailyLimit}, weekly=${result.weeklyLimit})`,
+            false,
+          );
+        });
+
+      document
+        .getElementById("load-workspace-quota")
+        .addEventListener("click", async () => {
+          const id = quotaWsId();
+          if (!id) return;
+          const policy = await window.workspaceQuota.get(id);
+          renderQuotaResult(policy);
+          if (policy) {
+            setQuotaForm(policy);
+            updateQuotaStatus(`loaded (${policy.mode})`, false);
+          } else {
+            updateQuotaStatus("no quota policy found", false);
+          }
+        });
+
+      document
+        .getElementById("record-workspace-quota-usage")
+        .addEventListener("click", async () => {
+          const id = quotaWsId();
+          if (!id) return;
+          const result = await window.workspaceQuota.recordUsage(id, {
+            provider: quotaFallbackProvider?.value.trim() || null,
+          });
+          renderQuotaResult(result);
+          updateQuotaStatus(
+            `usage recorded: day=${result.dayCount} week=${result.weekCount}`,
+            result.exceeded,
+          );
+        });
+
+      document
+        .getElementById("evaluate-workspace-quota")
+        .addEventListener("click", async () => {
+          const id = quotaWsId();
+          if (!id) return;
+          const result = await window.workspaceQuota.evaluate(id, undefined);
+          renderQuotaResult(result);
+          updateQuotaStatus(
+            `allowed=${result.allowed} mode=${result.usage.mode}`,
+            result.blocked || result.shouldAlert || result.shouldFallback,
+          );
+        });
+
+      document
+        .getElementById("clear-workspace-quota-usage")
+        .addEventListener("click", async () => {
+          const id = quotaWsId();
+          if (!id) return;
+          const result = await window.workspaceQuota.clearUsage(id);
+          renderQuotaResult(result);
+          updateQuotaStatus("usage cleared", false);
+        });
+
+      document
         .getElementById("resolve-workspace-approval")
         .addEventListener("click", async () => {
           const approvalId = document
@@ -767,6 +960,11 @@
       // audit-verification-alert
       // window.audit.exportJson
       // window.audit.exportHtmlReport
+      // Workspace Quotas
+      // workspace-quota-status
+      // workspace-quota-alert
+      // window.workspaceQuota.set
+      // window.workspaceQuota.evaluate
     </script>
   </body>
 </html>
