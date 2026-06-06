@@ -229,3 +229,6 @@ Filtered analytics and save-to-disk reports delivered. RoutingHistoryFilter adde
 
 ## Sprint 36 Complete
 Audit trail hardening delivered. Append-only hash-chained audit log in src/audit/audit-log.ts. SHA-256 hash chaining with tamper detection. Policy change events (setRoutingMode/allow/block/setManualProvider/reset/applyPreset) and report save events recorded. audit:list/verify/latest IPC. Preload audit namespace. Dashboard Audit Trail panel. New src/audit/ folder. Architecture baseline refreshed. Sonar clean.
+
+## Sprint 37 Complete
+Workspace approvals governance delivered. src/governance/workspace-approvals.ts with createWorkspaceApprovalRequest, listWorkspaceApprovalRequests, resolveWorkspaceApprovalRequest. Sensitive policy patches (local-only/manualProvider/blockedProviders) trigger approval requests. workspacePolicy.set/clear write audit events. workspaceApproval:list/resolve IPC channels. workspaceApproval preload namespace. Dashboard Workspace Approvals panel. New src/governance/ folder. Architecture baseline refreshed. Sonar clean.

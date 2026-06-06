@@ -20,6 +20,16 @@ function registerAuditHandlers() {
   ipcMain.handle("audit:latest", async () => {
     return getLatestAuditEvent();
   });
+
+  ipcMain.handle('audit:exportJson', async (_event, filter) => {
+    const { exportAuditLogJson } = require('../../src/audit/audit-log.js');
+    return exportAuditLogJson(filter || undefined);
+  });
+
+  ipcMain.handle('audit:exportHtmlReport', async (_event, filter) => {
+    const { exportAuditLogHtmlReport } = require('../../src/audit/audit-log.js');
+    return exportAuditLogHtmlReport(filter || undefined);
+  });
 }
 
 module.exports = { registerAuditHandlers };

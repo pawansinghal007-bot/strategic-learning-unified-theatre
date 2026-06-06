@@ -1,0 +1,53 @@
+  SPRINT 37 COMPLETE: WORKSPACE APPROVALS GOVERNANCE DELIVERED
+
+  SPRINT SUMMARY:
+    T1  governance service + policy handler  src/governance/workspace-approvals.ts,
+        audit events + approval IPC          workspace-policy-handlers.cjs replaced
+    T2  preload + types + dashboard          preload.cjs updated,
+                                             types.d.ts replaced,
+                                             dashboard Workspace Approvals panel
+    T3  smoke tests + closure               tests/sprint37-smoke.test.js
+
+  STATUS:
+    vitest pass — ~94 files / ~835 tests
+    typecheck clean
+    sonar clean
+    tagged sprint-37-complete
+
+  DELIVERABLES:
+    [x] createWorkspaceApprovalRequest() with pending status + audit event
+    [x] listWorkspaceApprovalRequests() filters by workspaceId and status
+    [x] getWorkspaceApprovalRequest() by ID
+    [x] resolveWorkspaceApprovalRequest() updates status + audit event
+    [x] clearWorkspaceApprovals() resets store
+    [x] Sensitive patches trigger approval (local-only/manualProvider/blockedProviders)
+    [x] workspacePolicy.set writes workspacePolicy.set audit event
+    [x] workspacePolicy.clear writes workspacePolicy.clear audit event
+    [x] workspaceApproval:list/resolve IPC channels in workspace-policy-handlers.cjs
+    [x] workspaceApproval preload namespace exposed
+    [x] workspacePolicy.set accepts optional options parameter
+    [x] types.d.ts workspaceApproval interface typed
+    [x] Dashboard Workspace Approvals panel with load/resolve controls
+    [x] Sprint 36 panels, audit trail, and compatibility strings preserved
+    [x] Architecture sync completed — new baseline generated (new folder)
+    [x] Smoke tests passing
+    [x] Compilation successful
+    [x] Sonar validation clean
+
+  ARCHITECTURE CHANGES THIS SPRINT:
+    New folder:  src/governance/
+    New files:   src/governance/workspace-approvals.ts
+    Replaced:    electron-ui/ipc/workspace-policy-handlers.cjs
+    Updated:     electron-ui/preload.cjs
+    Replaced:    src/ui/types.d.ts, src/ui/provider-dashboard.html
+    No new IPC files. No main.cjs changes.
+    PROJECT_ARCHITECTURE_AI_CONTEXT.md updated.
+    PROJECT_ARCHITECTURE_BASELINE.md refreshed.
+
+  NEXT:
+    Sprint 38 candidates:
+      - Audit log export (JSON/HTML report from audit events)
+      - Alerting on failed audit verification (dashboard badge/notification)
+      - Approval workflow email/notification hooks
+      - Workspace-level rate limiting and quota governance
+
