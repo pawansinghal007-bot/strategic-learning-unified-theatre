@@ -9,6 +9,7 @@ export interface WorkspaceQuotaPolicy {
   weeklyLimit: number | null;
   mode: "alert" | "fallback" | "block";
   fallbackProvider: string | null;
+  alertThresholdPct: number | null;
   createdAt: number;
   updatedAt: number;
 }
@@ -22,6 +23,7 @@ export interface WorkspaceQuotaUsage {
   exceededDaily: boolean;
   exceededWeekly: boolean;
   exceeded: boolean;
+  thresholdReached: boolean;
   mode: "alert" | "fallback" | "block" | null;
   fallbackProvider: string | null;
 }
@@ -40,16 +42,44 @@ interface QuotaRecord {
   timestamp: number;
 }
 
+interface QuotaNotification {
+  workspaceId: string;
+  type: "threshold" | "exceeded";
+  timestamp: number;
+  dayCount: number;
+  weekCount: number;
+}
+
+function pushQuotaNotification(input: QuotaNotification): void {
+  const store = loadStore();
+  store.notifications.push(input);
+  saveStore(store);
+}
+
 interface QuotaStore {
   policies: WorkspaceQuotaPolicy[];
   usage: QuotaRecord[];
+  notifications: QuotaNotification[];
+  lastDailyResetAt: number | null;
 }
 
 function loadStore(): QuotaStore {
-  const store = readJsonFile(QUOTA_FILE, { policies: [], usage: [] });
+  const store = readJsonFile(QUOTA_FILE, {
+    policies: [],
+    usage: [],
+    notifications: [],
+    lastDailyResetAt: null,
+  });
   return {
     policies: Array.isArray(store?.policies) ? [...store.policies] : [],
     usage: Array.isArray(store?.usage) ? [...store.usage] : [],
+    notifications: Array.isArray(store?.notifications)
+      ? [...store.notifications]
+      : [],
+    lastDailyResetAt:
+      typeof store?.lastDailyResetAt === "number"
+        ? store.lastDailyResetAt
+        : null,
   };
 }
 
@@ -75,6 +105,7 @@ export function setWorkspaceQuotaPolicy(input: {
   weeklyLimit?: number | null;
   mode?: "alert" | "fallback" | "block";
   fallbackProvider?: string | null;
+  alertThresholdPct?: number | null;
   requestedBy?: string | null;
   reason?: string | null;
 }): WorkspaceQuotaPolicy {
@@ -91,8 +122,10 @@ export function setWorkspaceQuotaPolicy(input: {
       typeof input.weeklyLimit === "number" ? input.weeklyLimit : null,
     mode: input.mode ?? "alert",
     fallbackProvider: input.fallbackProvider ?? null,
-    createdAt:
-      existingIndex >= 0 ? store.policies[existingIndex].createdAt : now,
+    alertThresholdPct:
+      typeof input.alertThresholdPct === "number"
+        ? input.alertThresholdPct
+        : null,
     updatedAt: now,
   };
 
@@ -186,6 +219,25 @@ export function getWorkspaceQuotaUsage(
     typeof policy?.weeklyLimit === "number"
       ? weekCount > policy.weeklyLimit
       : false;
+  const thresholdReached = (() => {
+    if (
+      !policy ||
+      typeof policy.alertThresholdPct !== "number" ||
+      policy.alertThresholdPct <= 0
+    ) {
+      return false;
+    }
+
+    const thresholdFactor = policy.alertThresholdPct / 100;
+    const dailyThresholdReached =
+      typeof policy.dailyLimit === "number" &&
+      dayCount >= Math.ceil(policy.dailyLimit * thresholdFactor);
+    const weeklyThresholdReached =
+      typeof policy.weeklyLimit === "number" &&
+      weekCount >= Math.ceil(policy.weeklyLimit * thresholdFactor);
+
+    return dailyThresholdReached || weeklyThresholdReached;
+  })();
 
   return {
     workspaceId,
@@ -196,6 +248,7 @@ export function getWorkspaceQuotaUsage(
     exceededDaily,
     exceededWeekly,
     exceeded: exceededDaily || exceededWeekly,
+    thresholdReached,
     mode: policy?.mode ?? null,
     fallbackProvider: policy?.fallbackProvider ?? null,
   };
@@ -260,4 +313,66 @@ export function evaluateWorkspaceQuotaStatus(
         : null,
     usage,
   };
+}
+
+export function getWorkspaceQuotaRollup(now = Date.now()): Array<{
+  workspaceId: string;
+  mode: "alert" | "fallback" | "block";
+  fallbackProvider: string | null;
+  dailyLimit: number | null;
+  weeklyLimit: number | null;
+  alertThresholdPct: number | null;
+  dayCount: number;
+  weekCount: number;
+  thresholdReached: boolean;
+  exceeded: boolean;
+}> {
+  return listWorkspaceQuotaPolicies().map((policy) => {
+    const usage = getWorkspaceQuotaUsage(policy.workspaceId, now);
+    return {
+      workspaceId: policy.workspaceId,
+      mode: policy.mode,
+      fallbackProvider: policy.fallbackProvider,
+      dailyLimit: policy.dailyLimit,
+      weeklyLimit: policy.weeklyLimit,
+      alertThresholdPct: policy.alertThresholdPct,
+      dayCount: usage.dayCount,
+      weekCount: usage.weekCount,
+      thresholdReached: usage.thresholdReached,
+      exceeded: usage.exceeded,
+    };
+  });
+}
+
+export function listWorkspaceQuotaNotifications(
+  workspaceId?: string,
+): QuotaNotification[] {
+  const store = loadStore();
+  const rows = workspaceId
+    ? store.notifications.filter((n) => n.workspaceId === workspaceId)
+    : store.notifications;
+  return rows.slice().sort((a, b) => b.timestamp - a.timestamp);
+}
+
+export function resetWorkspaceQuotaDaily(now = Date.now()): {
+  ok: true;
+  resetAt: number;
+} {
+  const store = loadStore();
+  const today = dayKey(now);
+  store.usage = store.usage.filter(
+    (record) => dayKey(record.timestamp) === today,
+  );
+  store.lastDailyResetAt = now;
+  saveStore(store);
+
+  appendAuditEvent({
+    action: "workspaceQuota.dailyReset",
+    actor: { type: "system" },
+    targetType: "workspaceQuota",
+    workspaceId: null,
+    details: { resetAt: now },
+  });
+
+  return { ok: true, resetAt: now };
 }

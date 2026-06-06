@@ -29,6 +29,10 @@ import {
   markProviderFromError,
 } from "./provider-health";
 import { recordProviderFailure, recordProviderSuccess } from "./provider-usage";
+import {
+  evaluateWorkspaceQuotaStatus,
+  recordWorkspaceQuotaUsage,
+} from "../governance/workspace-quotas.js";
 import { explainRoutingSelection } from "./routing-explainer";
 import { recordRoutingDecision } from "./routing-history";
 import {
@@ -42,6 +46,16 @@ import { buildRequestContextPrompt } from "../memory/request-context";
 export interface GatewayOptions {
   providers?: Partial<Record<ProviderName, ProviderAdapter>>;
   defaultOrder?: ProviderName[];
+}
+
+export interface GatewayQuotaDecision {
+  allowed: boolean;
+  blocked: boolean;
+  shouldFallback: boolean;
+  shouldAlert: boolean;
+  thresholdReached: boolean;
+  provider: string | null;
+  quota: ReturnType<typeof evaluateWorkspaceQuotaStatus>;
 }
 
 export class Gateway {
@@ -142,11 +156,54 @@ export class Gateway {
       }
 
       const startedAt = Date.now();
+      let selectedProviderName: ProviderName = providerName;
+      let selectedProvider: ProviderAdapter | undefined = provider;
+
+      if (parsedRequest.data.workspaceId) {
+        const quotaDecision = applyWorkspaceQuotaEnforcement({
+          workspaceId: parsedRequest.data.workspaceId,
+          provider: providerName,
+          now: startedAt,
+        });
+
+        if (quotaDecision.blocked) {
+          logger.warn("gateway.provider.blocked_by_workspace_quota", {
+            workspaceId: parsedRequest.data.workspaceId,
+            provider: providerName,
+          });
+          throw Object.assign(new Error("Workspace quota exceeded"), {
+            code: "WORKSPACE_QUOTA_EXCEEDED",
+            workspaceId: parsedRequest.data.workspaceId,
+            quota: quotaDecision.quota,
+          });
+        }
+
+        if (
+          quotaDecision.shouldFallback &&
+          quotaDecision.provider &&
+          quotaDecision.provider !== providerName &&
+          this.providers[quotaDecision.provider as ProviderName]
+        ) {
+          fallbackFrom = providerName;
+          selectedProviderName = quotaDecision.provider as ProviderName;
+          selectedProvider = this.providers[selectedProviderName];
+        }
+
+        if (quotaDecision.shouldAlert || quotaDecision.thresholdReached) {
+          logger.warn("gateway.workspace_quota.alert", {
+            workspaceId: parsedRequest.data.workspaceId,
+            provider: providerName,
+            fallbackProvider: quotaDecision.provider,
+            thresholdReached: quotaDecision.thresholdReached,
+            shouldAlert: quotaDecision.shouldAlert,
+          });
+        }
+      }
 
       try {
         logger.info("gateway.provider.try", {
           requestId: parsedRequest.data.requestId,
-          provider: providerName,
+          provider: selectedProviderName,
         });
 
         // Inject workspace context into prompt if available
@@ -167,10 +224,10 @@ export class Gateway {
           }
         }
 
-        const rawResponse = await provider.ask(requestData);
+        const rawResponse = await selectedProvider!.ask(requestData);
         const normalizedResponse = this.normalizeResponse(
           rawResponse,
-          providerName,
+          selectedProviderName,
           parsedRequest.data.requestId,
         );
 
@@ -178,16 +235,16 @@ export class Gateway {
           providerResponseSchema.safeParse(normalizedResponse);
         if (!parsedResponse.success) {
           throw new ValidationFailedError("Invalid provider response", {
-            provider: providerName,
+            provider: selectedProviderName,
             issues: parsedResponse.error.flatten(),
           });
         }
 
-        recordProviderSuccess(providerName, parsedResponse.data);
+        recordProviderSuccess(selectedProviderName, parsedResponse.data);
 
         const reason = explainRoutingSelection(
           parsedRequest.data,
-          providerName,
+          selectedProviderName,
           {
             fallbackFrom,
             unavailableProviders,
@@ -198,7 +255,7 @@ export class Gateway {
 
         recordRoutingDecision({
           request: parsedRequest.data,
-          provider: providerName,
+          provider: selectedProviderName,
           model: parsedResponse.data.model,
           success: true,
           reason,
@@ -208,7 +265,7 @@ export class Gateway {
 
         logger.info("gateway.ask.success", {
           requestId: parsedRequest.data.requestId,
-          provider: providerName,
+          provider: selectedProviderName,
           model: parsedResponse.data.model,
           reason,
         });
@@ -224,24 +281,24 @@ export class Gateway {
         const message = error instanceof Error ? error.message : String(error);
 
         try {
-          recordProviderFailure(providerName);
+          recordProviderFailure(selectedProviderName);
         } catch (_) {
           /* non-fatal */
         }
 
         if (error instanceof DomainError) {
           try {
-            markProviderFromError(providerName, error);
+            markProviderFromError(selectedProviderName, error);
           } catch (_) {
             /* non-fatal */
           }
         }
 
-        const reason = `Provider ${providerName} failed and the gateway moved to fallback.`;
+        const reason = `Provider ${selectedProviderName} failed and the gateway moved to fallback.`;
 
         recordRoutingDecision({
           request: parsedRequest.data,
-          provider: providerName,
+          provider: selectedProviderName,
           model: "unknown-model",
           success: false,
           reason,
@@ -250,12 +307,12 @@ export class Gateway {
           errorMessage: message,
         });
 
-        errors.push({ provider: providerName, message });
+        errors.push({ provider: selectedProviderName, message });
         fallbackFrom = providerName;
 
         logger.warn("gateway.provider.failed", {
           requestId: parsedRequest.data.requestId,
-          provider: providerName,
+          provider: selectedProviderName,
           error: message,
         });
       }
@@ -454,6 +511,54 @@ export class Gateway {
       raw: response.raw ?? response,
     };
   }
+}
+
+export function applyWorkspaceQuotaEnforcement(input: {
+  workspaceId: string;
+  provider: string;
+  countUsage?: boolean;
+  now?: number;
+}): GatewayQuotaDecision {
+  const now = input.now ?? Date.now();
+
+  if (input.countUsage !== false) {
+    recordWorkspaceQuotaUsage({
+      workspaceId: input.workspaceId,
+      timestamp: now,
+      provider: input.provider,
+    });
+  }
+
+  const quota = evaluateWorkspaceQuotaStatus(input.workspaceId, now);
+
+  return {
+    allowed: quota.allowed,
+    blocked: quota.blocked,
+    shouldFallback: quota.shouldFallback,
+    shouldAlert: quota.shouldAlert,
+    thresholdReached: quota.thresholdReached,
+    provider: quota.shouldFallback ? quota.fallbackProvider : input.provider,
+    quota,
+  };
+}
+
+export function enforceWorkspaceQuotaOrThrow(input: {
+  workspaceId: string;
+  provider: string;
+  countUsage?: boolean;
+  now?: number;
+}) {
+  const decision = applyWorkspaceQuotaEnforcement(input);
+
+  if (decision.blocked) {
+    const error = new Error("Workspace quota exceeded");
+    (error as any).code = "WORKSPACE_QUOTA_EXCEEDED";
+    (error as any).workspaceId = input.workspaceId;
+    (error as any).quota = decision.quota;
+    throw error;
+  }
+
+  return decision;
 }
 
 export const gateway = new Gateway();
