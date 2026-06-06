@@ -9,159 +9,118 @@ function routingHistory() {
 function registerWorkspaceRoutingHandlers() {
   ipcMain.handle(
     "workspaceRouting:list",
-    async (_event, workspaceId, limit = 50, filter = null) => {
-      if (!workspaceId || typeof workspaceId !== "string")
+    async (_event, workspaceId, limit = 50) => {
+      if (!workspaceId || typeof workspaceId !== "string") {
         throw new Error("workspaceId is required");
+      }
       return routingHistory().listRoutingHistoryForWorkspace(
         workspaceId,
         limit,
-        filter || undefined,
       );
     },
   );
 
-  ipcMain.handle(
-    "workspaceRouting:summary",
-    async (_event, workspaceId, filter = null) => {
-      if (!workspaceId || typeof workspaceId !== "string")
-        throw new Error("workspaceId is required");
-      return routingHistory().getWorkspaceRoutingSummary(
-        workspaceId,
-        filter || undefined,
-      );
-    },
-  );
+  ipcMain.handle("workspaceRouting:summary", async (_event, workspaceId) => {
+    if (!workspaceId || typeof workspaceId !== "string") {
+      throw new Error("workspaceId is required");
+    }
+    return routingHistory().getWorkspaceRoutingSummary(workspaceId);
+  });
 
-  ipcMain.handle(
-    "workspaceRouting:trends",
-    async (_event, workspaceId, filter = null) => {
-      if (!workspaceId || typeof workspaceId !== "string")
-        throw new Error("workspaceId is required");
-      return routingHistory().getWorkspaceProviderTrends(
-        workspaceId,
-        filter || undefined,
-      );
-    },
-  );
+  ipcMain.handle("workspaceRouting:trends", async (_event, workspaceId) => {
+    if (!workspaceId || typeof workspaceId !== "string") {
+      throw new Error("workspaceId is required");
+    }
+    return routingHistory().getWorkspaceProviderTrends(workspaceId);
+  });
 
   ipcMain.handle(
     "workspaceRouting:timeline",
-    async (_event, workspaceId, limit = 50, filter = null) => {
-      if (!workspaceId || typeof workspaceId !== "string")
+    async (_event, workspaceId, limit = 50) => {
+      if (!workspaceId || typeof workspaceId !== "string") {
         throw new Error("workspaceId is required");
-      return routingHistory().getWorkspaceRoutingTimeline(
-        workspaceId,
-        limit,
-        filter || undefined,
-      );
+      }
+      return routingHistory().getWorkspaceRoutingTimeline(workspaceId, limit);
     },
   );
 
-  ipcMain.handle(
-    "workspaceRouting:analytics",
-    async (_event, workspaceId, filter = null) => {
-      if (!workspaceId || typeof workspaceId !== "string")
-        throw new Error("workspaceId is required");
-      return routingHistory().getWorkspaceAnalytics(
-        workspaceId,
-        filter || undefined,
-      );
-    },
-  );
+  ipcMain.handle("workspaceRouting:analytics", async (_event, workspaceId) => {
+    if (!workspaceId || typeof workspaceId !== "string") {
+      throw new Error("workspaceId is required");
+    }
+    return routingHistory().getWorkspaceAnalytics(workspaceId);
+  });
 
+  ipcMain.handle("workspaceRouting:clear", async (_event, workspaceId) => {
+    if (!workspaceId || typeof workspaceId !== "string") {
+      throw new Error("workspaceId is required");
+    }
+    return routingHistory().clearRoutingHistoryForWorkspace(workspaceId);
+  });
+
+  // ── Sprint 33 ────────────────────────────────────────────────────────
   ipcMain.handle(
     "workspaceRouting:buckets",
-    async (_event, workspaceId, bucket = "day", filter = null) => {
-      if (!workspaceId || typeof workspaceId !== "string")
+    async (_event, workspaceId, granularity = "day") => {
+      if (!workspaceId || typeof workspaceId !== "string") {
         throw new Error("workspaceId is required");
-      return routingHistory().getWorkspaceTimeBuckets(
-        workspaceId,
-        bucket,
-        filter || undefined,
-      );
+      }
+      return routingHistory().getWorkspaceTimeBuckets(workspaceId, granularity);
     },
   );
 
-  ipcMain.handle(
-    "workspaceRouting:globalAnalytics",
-    async (_event, filter = null) => {
-      return routingHistory().getGlobalWorkspaceAnalytics(filter || undefined);
-    },
-  );
+  ipcMain.handle("workspaceRouting:globalAnalytics", async (_event) => {
+    return routingHistory().getGlobalWorkspaceAnalytics();
+  });
 
-  ipcMain.handle(
-    "workspaceRouting:exportJson",
-    async (_event, workspaceId, filter = null) => {
-      if (!workspaceId || typeof workspaceId !== "string")
-        throw new Error("workspaceId is required");
-      return routingHistory().exportWorkspaceAnalyticsJson(
-        workspaceId,
-        filter || undefined,
-      );
-    },
-  );
+  ipcMain.handle("workspaceRouting:exportJson", async (_event, workspaceId) => {
+    if (!workspaceId || typeof workspaceId !== "string") {
+      throw new Error("workspaceId is required");
+    }
+    return routingHistory().exportWorkspaceAnalyticsJson(workspaceId);
+  });
 
-  ipcMain.handle(
-    "workspaceRouting:exportCsv",
-    async (_event, workspaceId, filter = null) => {
-      if (!workspaceId || typeof workspaceId !== "string")
-        throw new Error("workspaceId is required");
-      return routingHistory().exportWorkspaceAnalyticsCsv(
-        workspaceId,
-        filter || undefined,
-      );
-    },
-  );
+  ipcMain.handle("workspaceRouting:exportCsv", async (_event, workspaceId) => {
+    if (!workspaceId || typeof workspaceId !== "string") {
+      throw new Error("workspaceId is required");
+    }
+    return routingHistory().exportWorkspaceAnalyticsCsv(workspaceId);
+  });
 
-  // Sprint 34 — new channels
-  ipcMain.handle(
-    "workspaceRouting:providerComparison",
-    async (_event, filter = null) => {
-      return routingHistory().getProviderComparisonAcrossWorkspaces(
-        filter || undefined,
-      );
-    },
-  );
+  // ── Sprint 34 ────────────────────────────────────────────────────────
+  ipcMain.handle("workspaceRouting:providerComparison", async (_event) => {
+    return routingHistory().getProviderComparisonAcrossWorkspaces();
+  });
 
   ipcMain.handle(
     "workspaceRouting:bucketChartSvg",
-    async (_event, workspaceId, bucket = "day", filter = null) => {
-      if (!workspaceId || typeof workspaceId !== "string")
+    async (_event, workspaceId, granularity = "day") => {
+      if (!workspaceId || typeof workspaceId !== "string") {
         throw new Error("workspaceId is required");
+      }
       return routingHistory().getWorkspaceBucketChartSvg(
         workspaceId,
-        bucket,
-        filter || undefined,
+        granularity,
       );
     },
   );
 
   ipcMain.handle(
     "workspaceRouting:providerComparisonChartSvg",
-    async (_event, filter = null) => {
-      return routingHistory().getProviderComparisonChartSvg(
-        filter || undefined,
-      );
+    async (_event) => {
+      return routingHistory().getProviderComparisonChartSvg();
     },
   );
 
   ipcMain.handle(
     "workspaceRouting:exportHtmlReport",
-    async (_event, workspaceId, filter = null) => {
-      if (!workspaceId || typeof workspaceId !== "string")
+    async (_event, workspaceId) => {
+      if (!workspaceId || typeof workspaceId !== "string") {
         throw new Error("workspaceId is required");
-      return routingHistory().exportWorkspaceAnalyticsHtmlReport(
-        workspaceId,
-        filter || undefined,
-      );
+      }
+      return routingHistory().exportWorkspaceAnalyticsHtmlReport(workspaceId);
     },
   );
-
-  ipcMain.handle("workspaceRouting:clear", async (_event, workspaceId) => {
-    if (!workspaceId || typeof workspaceId !== "string")
-      throw new Error("workspaceId is required");
-    return routingHistory().clearRoutingHistoryForWorkspace(workspaceId);
-  });
 }
 
 module.exports = { registerWorkspaceRoutingHandlers };

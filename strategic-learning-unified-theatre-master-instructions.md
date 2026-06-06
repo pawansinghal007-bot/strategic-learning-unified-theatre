@@ -223,3 +223,6 @@ Time-bucketed analytics, global workspace analytics, and JSON/CSV export deliver
 
 ## Sprint 34 Complete
 SVG charts, provider comparison, and HTML report artifacts delivered. getProviderComparisonAcrossWorkspaces, getWorkspaceBucketChartSvg, getProviderComparisonChartSvg, exportWorkspaceAnalyticsHtmlReport. 4 new IPC channels. Dashboard Bucket Chart and Provider Comparison panels render inline SVG. No external chart dependencies. HTML escaping in all SVG and report output. Sonar clean.
+
+## Sprint 35 Complete
+Filtered analytics and save-to-disk reports delivered. RoutingHistoryFilter added to all workspace analytics functions. workspaceReport:save IPC with Electron dialog. Dashboard filter controls and save-to-disk buttons. Sonar clean.

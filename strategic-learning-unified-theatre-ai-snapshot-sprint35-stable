@@ -1,0 +1,45 @@
+  SPRINT 35 COMPLETE: FILTERED ANALYTICS AND SAVE-TO-DISK REPORTS
+
+  SPRINT SUMMARY:
+    T1  routing-history + IPC   RoutingHistoryFilter, filter params, report save handler, main wiring
+    T2  preload + types + dash  workspaceRouting filter params, workspaceReport namespace, dashboard controls
+    T3  smoke tests + closure   tests/sprint35-smoke.test.js
+
+  STATUS:
+    vitest pass — 91+ files / 800+ tests
+    typecheck clean
+    sonar clean
+    tagged sprint-35-complete
+
+  DELIVERABLES:
+    [x] RoutingHistoryFilter interface (startTime, endTime, provider)
+    [x] All workspace analytics functions accept optional filter
+    [x] Filter applied: provider match, startTime/endTime range
+    [x] exportWorkspaceAnalyticsJson includes filter in output
+    [x] workspaceReport:save IPC handler with Electron showSaveDialog
+    [x] Reports saved to disk as HTML, JSON, or CSV
+    [x] workspaceReport preload namespace exposed to renderer
+    [x] Dashboard provider + date range filter controls
+    [x] Dashboard Save JSON/CSV/HTML to disk buttons
+    [x] Sprint 25–34 compatibility strings preserved
+    [x] Smoke tests passing
+    [x] Architecture sync completed
+
+  ARCHITECTURE CHANGES THIS SPRINT:
+  Extended:
+    - src/llm/routing-history.ts
+    - electron-ui/ipc/workspace-routing-handlers.cjs
+    - electron-ui/preload.cjs
+    - src/ui/types.d.ts
+    - src/ui/provider-dashboard.html
+    - electron-ui/main.cjs
+  Created:
+    - electron-ui/ipc/workspace-report-handlers.cjs
+
+  NEXT:
+    Sprint 36 candidates:
+    - Audit trail hardening (immutable append-only audit log)
+    - Policy change audit events (mode/block/allow/preset)
+    - Tamper-evident checksums on audit log
+
+  ARCHITECTURE SYNC STATUS: [UPDATED | UNCHANGED]

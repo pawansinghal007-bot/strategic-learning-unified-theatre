@@ -102,6 +102,18 @@ export interface RoutingHistoryFilter {
   provider?: string;
 }
 
+export interface WorkspaceRoutingSummary {
+  workspaceId: string;
+  total: number;
+  successCount: number;
+  failureCount: number;
+  providerCounts: Record<string, number>;
+  latest: RoutingHistoryEntry | null;
+  successRate: number;
+  avgLatencyMs: number;
+  errorRate: number;
+}
+
 function matchesFilter(
   item: RoutingHistoryEntry,
   filter?: RoutingHistoryFilter,
@@ -170,17 +182,7 @@ export function listRoutingHistoryForWorkspace(
 export function getWorkspaceRoutingSummary(
   workspaceId: string,
   filter?: RoutingHistoryFilter,
-): {
-  workspaceId: string;
-  total: number;
-  successCount: number;
-  failureCount: number;
-  providerCounts: Record<string, number>;
-  latest: RoutingHistoryEntry | null;
-  successRate: number;
-  avgLatencyMs: number;
-  errorRate: number;
-} {
+): WorkspaceRoutingSummary {
   const items = listRoutingHistoryForWorkspace(workspaceId, 100, filter);
   const successCount = items.filter((item) => item.success).length;
   const failureCount = items.filter((item) => !item.success).length;
@@ -279,7 +281,7 @@ export function getWorkspaceAnalytics(
   workspaceId: string,
   filter?: RoutingHistoryFilter,
 ): {
-  summary: ReturnType<typeof getWorkspaceRoutingSummary>;
+  summary: WorkspaceRoutingSummary;
   trends: WorkspaceProviderTrendPoint[];
   timeline: WorkspaceTimelineEntry[];
 } {
