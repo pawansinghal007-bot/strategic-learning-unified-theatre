@@ -1,0 +1,29 @@
+  SPRINT 36 — T2 COMPLETE
+
+  FILES:
+    electron-ui/preload.cjs (appended)
+    src/ui/types.d.ts (replaced)
+    src/ui/provider-dashboard.html (replaced)
+
+  STATUS:
+    audit namespace appended to preload
+    all Sprint 35 preload namespaces intact
+    types.d.ts covers full audit interface
+    dashboard Audit Trail panel added
+    all Sprint 35 panels preserved
+    Sprint compatibility block extended with Audit Trail
+    compile clean
+    sonar clean
+
+  DELIVERABLES:
+    [x] window.audit.list/verify/latest exposed to renderer
+    [x] Sprint 35 preload namespaces unchanged
+    [x] types.d.ts audit types correct
+    [x] Dashboard Audit Trail panel with load/verify/latest buttons
+    [x] All Sprint 35 dashboard panels and buttons preserved
+    [x] Compatibility strings preserved and extended
+    [x] Compilation successful
+    [x] Sonar validation clean
+
+  NEXT:
+    T3 — smoke tests + sprint closure

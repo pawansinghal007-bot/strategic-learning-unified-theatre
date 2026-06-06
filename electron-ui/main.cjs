@@ -23,6 +23,7 @@ const {
 const {
   registerWorkspaceReportHandlers,
 } = require("./ipc/workspace-report-handlers.cjs");
+const { registerAuditHandlers } = require("./ipc/audit-handlers.cjs");
 const { createLogger } = require("../src/logger.js");
 const { registerIpcHandlers } = require("../src/main/ipc/ipcAdapter");
 const { IPC_CHANNELS } = require("../src/shared/ipc/contract");
@@ -573,6 +574,7 @@ app.whenReady().then(async () => {
     registerWorkspaceHandlers();
     registerWorkspaceRoutingHandlers();
     registerWorkspaceReportHandlers();
+    registerAuditHandlers();
     mainLogger.info("ipc.capture.handlers.success", { correlationId: "ipc" });
   } catch (err) {
     mainLogger.error("ipc.capture.handlers.failure", {

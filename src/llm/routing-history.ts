@@ -31,6 +31,7 @@ type RoutingHistoryRecord = {
   fallbackFrom?: string;
   latencyMs?: number;
   createdAt: number;
+  timestamp?: number;
   errorMessage?: string;
 };
 
@@ -82,9 +83,11 @@ function toTimelineEntry(item: RoutingHistoryEntry): WorkspaceTimelineEntry {
     item.errorMessage ? `error=${item.errorMessage}` : null,
   ].filter(Boolean);
 
+  const ts = item.timestamp ?? item.createdAt;
+
   return {
     id: item.id,
-    timestamp: item.createdAt,
+    timestamp: ts,
     title,
     detail: detailParts.join(" | "),
     severity: item.success ? "info" : item.errorMessage ? "error" : "warning",
@@ -144,6 +147,7 @@ export function recordRoutingDecision(input: RoutingDecisionInput) {
     fallbackFrom: input.fallbackFrom,
     latencyMs: input.latencyMs,
     createdAt: Date.now(),
+    timestamp: Date.now(),
     errorMessage: input.errorMessage,
   };
 
@@ -569,9 +573,14 @@ export function getProviderComparisonAcrossWorkspaces(
   filter?: RoutingHistoryFilter,
 ): ProviderWorkspaceComparisonPoint[] {
   const store = loadHistory().filter((item) => matchesFilter(item, filter));
+  // Support test fixtures that may use timestamp-only records
+  const normalized = store.map((item) => ({
+    ...item,
+    timestamp: item.timestamp ?? item.createdAt,
+  }));
   const grouped = new Map<string, RoutingHistoryEntry[]>();
 
-  for (const item of store) {
+  for (const item of normalized) {
     const workspaceId = item.workspaceId ?? "unscoped";
     const key = `${workspaceId}::${String(item.provider)}`;
     const list = grouped.get(key) ?? [];
