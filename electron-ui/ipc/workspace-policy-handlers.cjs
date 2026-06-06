@@ -110,6 +110,86 @@ function registerWorkspacePolicyHandlers() {
       );
     },
   );
+
+  ipcMain.handle("workspaceQuota:get", async (_event, workspaceId) => {
+    const {
+      getWorkspaceQuotaPolicy,
+    } = require("../../src/governance/workspace-quotas.js");
+    return getWorkspaceQuotaPolicy(workspaceId);
+  });
+
+  ipcMain.handle("workspaceQuota:list", async () => {
+    const {
+      listWorkspaceQuotaPolicies,
+    } = require("../../src/governance/workspace-quotas.js");
+    return listWorkspaceQuotaPolicies();
+  });
+
+  ipcMain.handle(
+    "workspaceQuota:set",
+    async (_event, workspaceId, quotaPatch, options) => {
+      const {
+        setWorkspaceQuotaPolicy,
+      } = require("../../src/governance/workspace-quotas.js");
+      return setWorkspaceQuotaPolicy({
+        workspaceId,
+        dailyLimit: quotaPatch?.dailyLimit ?? null,
+        weeklyLimit: quotaPatch?.weeklyLimit ?? null,
+        mode: quotaPatch?.mode ?? "alert",
+        fallbackProvider: quotaPatch?.fallbackProvider ?? null,
+        requestedBy: options?.requestedBy ?? null,
+        reason: options?.reason ?? null,
+      });
+    },
+  );
+
+  ipcMain.handle(
+    "workspaceQuota:clear",
+    async (_event, workspaceId, requestedBy) => {
+      const {
+        clearWorkspaceQuotaPolicy,
+      } = require("../../src/governance/workspace-quotas.js");
+      return clearWorkspaceQuotaPolicy(workspaceId, requestedBy ?? null);
+    },
+  );
+
+  ipcMain.handle(
+    "workspaceQuota:recordUsage",
+    async (_event, workspaceId, payload) => {
+      const {
+        recordWorkspaceQuotaUsage,
+      } = require("../../src/governance/workspace-quotas.js");
+      return recordWorkspaceQuotaUsage({
+        workspaceId,
+        timestamp: payload?.timestamp,
+        provider: payload?.provider ?? null,
+      });
+    },
+  );
+
+  ipcMain.handle("workspaceQuota:usage", async (_event, workspaceId, now) => {
+    const {
+      getWorkspaceQuotaUsage,
+    } = require("../../src/governance/workspace-quotas.js");
+    return getWorkspaceQuotaUsage(workspaceId, now);
+  });
+
+  ipcMain.handle(
+    "workspaceQuota:evaluate",
+    async (_event, workspaceId, now) => {
+      const {
+        evaluateWorkspaceQuotaStatus,
+      } = require("../../src/governance/workspace-quotas.js");
+      return evaluateWorkspaceQuotaStatus(workspaceId, now);
+    },
+  );
+
+  ipcMain.handle("workspaceQuota:clearUsage", async (_event, workspaceId) => {
+    const {
+      clearWorkspaceQuotaUsage,
+    } = require("../../src/governance/workspace-quotas.js");
+    return clearWorkspaceQuotaUsage(workspaceId);
+  });
 }
 
 module.exports = { registerWorkspacePolicyHandlers };

@@ -232,3 +232,6 @@ Audit trail hardening delivered. Append-only hash-chained audit log in src/audit
 
 ## Sprint 37 Complete
 Workspace approvals governance delivered. src/governance/workspace-approvals.ts with createWorkspaceApprovalRequest, listWorkspaceApprovalRequests, resolveWorkspaceApprovalRequest. Sensitive policy patches (local-only/manualProvider/blockedProviders) trigger approval requests. workspacePolicy.set/clear write audit events. workspaceApproval:list/resolve IPC channels. workspaceApproval preload namespace. Dashboard Workspace Approvals panel. New src/governance/ folder. Architecture baseline refreshed. Sonar clean.
+
+## Sprint 38 Complete
+Audit log export and verification alerting delivered. exportAuditLogJson and exportAuditLogHtmlReport appended to audit-log.ts. audit:exportJson/exportHtmlReport IPC. Preload audit block updated. Dashboard verification badge/alert on load. Export buttons functional. Sonar clean.

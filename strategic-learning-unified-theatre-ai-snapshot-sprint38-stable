@@ -1,0 +1,48 @@
+  SPRINT 38 COMPLETE: AUDIT LOG EXPORT AND VERIFICATION ALERTING
+
+  SPRINT SUMMARY:
+    T1  audit-log.ts + IPC    AuditExportResult, exportAuditLogJson,
+                               exportAuditLogHtmlReport, 2 new IPC channels
+    T2  preload + types + dash audit block updated, export types added,
+                               verification badge/alert/export buttons
+    T3  smoke tests + closure  tests/sprint38-smoke.test.js
+
+  STATUS:
+    vitest pass — 94+ files / 850+ tests
+    typecheck clean
+    sonar clean
+    tagged sprint-38-complete
+
+  DELIVERABLES:
+    [x] exportAuditLogJson() writes JSON export with embedded verification
+    [x] exportAuditLogHtmlReport() writes HTML report with hash chain table
+    [x] Tampered log produces verification.ok === false in export
+    [x] audit:exportJson and audit:exportHtmlReport IPC channels
+    [x] preload audit.exportJson/exportHtmlReport exposed to renderer
+    [x] preload audit.verify/latest accept optional filter
+    [x] types.d.ts AuditExportResult shapes declared
+    [x] Dashboard audit verification badge on load
+    [x] Dashboard failure alert shown when verification fails
+    [x] Dashboard Export audit JSON and HTML buttons functional
+    [x] Sprint 37 Workspace Approvals panel preserved
+    [x] Sprint 25–37 compatibility strings preserved
+    [x] Smoke tests passing
+    [x] Architecture sync completed
+
+  ARCHITECTURE CHANGES THIS SPRINT:
+  Extended:
+    - src/audit/audit-log.ts
+    - electron-ui/ipc/audit-handlers.cjs
+    - electron-ui/preload.cjs
+    - src/ui/types.d.ts
+    - src/ui/provider-dashboard.html
+  No new files. No new folders. No main.cjs changes.
+
+  NEXT:
+    Sprint 39 candidates:
+    - Per-workspace request quota (daily/weekly limits)
+    - Quota exceeded policy: block / fallback / alert
+    - Quota dashboard panel
+    - Quota audit events
+
+  ARCHITECTURE SYNC STATUS: [UPDATED | UNCHANGED]
