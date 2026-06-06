@@ -21,13 +21,15 @@ function registerAuditHandlers() {
     return getLatestAuditEvent();
   });
 
-  ipcMain.handle('audit:exportJson', async (_event, filter) => {
-    const { exportAuditLogJson } = require('../../src/audit/audit-log.js');
+  ipcMain.handle("audit:exportJson", async (_event, filter) => {
+    const { exportAuditLogJson } = require("../../src/audit/audit-log.js");
     return exportAuditLogJson(filter || undefined);
   });
 
-  ipcMain.handle('audit:exportHtmlReport', async (_event, filter) => {
-    const { exportAuditLogHtmlReport } = require('../../src/audit/audit-log.js');
+  ipcMain.handle("audit:exportHtmlReport", async (_event, filter) => {
+    const {
+      exportAuditLogHtmlReport,
+    } = require("../../src/audit/audit-log.js");
     return exportAuditLogHtmlReport(filter || undefined);
   });
 }

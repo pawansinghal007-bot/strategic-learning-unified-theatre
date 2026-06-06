@@ -171,19 +171,19 @@ export function verifyAuditLogIntegrity() {
 
 export interface AuditExportResult {
   ok: true;
-  format: 'json' | 'html';
+  format: "json" | "html";
   filePath: string;
   count: number;
   verification: AuditVerificationResult;
 }
 
 function escapeHtmlAudit(value: unknown): string {
-  return String(value ?? '')
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;');
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
 }
 
 function toHtmlReport(
@@ -193,20 +193,20 @@ function toHtmlReport(
   const rows = events
     .map((event) => {
       return [
-        '<tr>',
+        "<tr>",
         `<td>${event.seq}</td>`,
         `<td>${escapeHtmlAudit(new Date(event.timestamp).toISOString())}</td>`,
         `<td>${escapeHtmlAudit(event.action)}</td>`,
-        `<td>${escapeHtmlAudit(event.actor?.type ?? '')}</td>`,
+        `<td>${escapeHtmlAudit(event.actor?.type ?? "")}</td>`,
         `<td>${escapeHtmlAudit(event.targetType)}</td>`,
-        `<td>${escapeHtmlAudit(event.workspaceId ?? '')}</td>`,
+        `<td>${escapeHtmlAudit(event.workspaceId ?? "")}</td>`,
         `<td><pre>${escapeHtmlAudit(JSON.stringify(event.details ?? null, null, 2))}</pre></td>`,
-        `<td><code>${escapeHtmlAudit(event.prevHash ?? '')}</code></td>`,
+        `<td><code>${escapeHtmlAudit(event.prevHash ?? "")}</code></td>`,
         `<td><code>${escapeHtmlAudit(event.hash)}</code></td>`,
-        '</tr>',
-      ].join('\n');
+        "</tr>",
+      ].join("\n");
     })
-    .join('\n');
+    .join("\n");
 
   return `<!doctype html>
 <html lang="en">
@@ -229,13 +229,13 @@ pre { margin: 0; white-space: pre-wrap; word-break: break-word; }
 <h1>Audit Log Report</h1>
 <p>Generated: ${escapeHtmlAudit(new Date().toISOString())}</p>
 <p>Integrity:
-<span class="${verification.ok ? 'ok' : 'fail'}">
-${verification.ok ? 'PASS' : 'FAIL'}
+<span class="${verification.ok ? "ok" : "fail"}">
+${verification.ok ? "PASS" : "FAIL"}
 </span>
 </p>
 <p>Checked: ${verification.checked}</p>
-<p>Failed at seq: ${escapeHtmlAudit(String(verification.failedAtSeq ?? ''))}</p>
-<p>Reason: ${escapeHtmlAudit(verification.reason ?? '')}</p>
+<p>Failed at seq: ${escapeHtmlAudit(String(verification.failedAtSeq ?? ""))}</p>
+<p>Reason: ${escapeHtmlAudit(verification.reason ?? "")}</p>
 <h2>Events</h2>
 <table>
 <thead>
@@ -249,21 +249,19 @@ ${rows}
 </html>`;
 }
 
-export function exportAuditLogJson(
-  filter?: {
-    action?: string;
-    workspaceId?: string;
-    targetType?: string;
-    startTime?: number;
-    endTime?: number;
-  },
-): AuditExportResult {
-  const { writeFileSync } = require('fs');
-  const { join } = require('path');
+export function exportAuditLogJson(filter?: {
+  action?: string;
+  workspaceId?: string;
+  targetType?: string;
+  startTime?: number;
+  endTime?: number;
+}): AuditExportResult {
+  const { writeFileSync } = require("fs");
+  const { join } = require("path");
 
   const events = listAuditEvents(undefined, filter).slice().reverse();
   const verification = verifyAuditLogIntegrity(filter);
-  const suffix = filter?.workspaceId ? `-${filter.workspaceId}` : '';
+  const suffix = filter?.workspaceId ? `-${filter.workspaceId}` : "";
   const filePath = join(process.cwd(), `audit-log${suffix}.json`);
 
   writeFileSync(
@@ -279,30 +277,40 @@ export function exportAuditLogJson(
       null,
       2,
     ),
-    'utf8',
+    "utf8",
   );
 
-  return { ok: true, format: 'json', filePath, count: events.length, verification };
+  return {
+    ok: true,
+    format: "json",
+    filePath,
+    count: events.length,
+    verification,
+  };
 }
 
-export function exportAuditLogHtmlReport(
-  filter?: {
-    action?: string;
-    workspaceId?: string;
-    targetType?: string;
-    startTime?: number;
-    endTime?: number;
-  },
-): AuditExportResult {
-  const { writeFileSync } = require('fs');
-  const { join } = require('path');
+export function exportAuditLogHtmlReport(filter?: {
+  action?: string;
+  workspaceId?: string;
+  targetType?: string;
+  startTime?: number;
+  endTime?: number;
+}): AuditExportResult {
+  const { writeFileSync } = require("fs");
+  const { join } = require("path");
 
   const events = listAuditEvents(undefined, filter).slice().reverse();
   const verification = verifyAuditLogIntegrity(filter);
-  const suffix = filter?.workspaceId ? `-${filter.workspaceId}` : '';
+  const suffix = filter?.workspaceId ? `-${filter.workspaceId}` : "";
   const filePath = join(process.cwd(), `audit-log${suffix}.html`);
 
-  writeFileSync(filePath, toHtmlReport(events, verification), 'utf8');
+  writeFileSync(filePath, toHtmlReport(events, verification), "utf8");
 
-  return { ok: true, format: 'html', filePath, count: events.length, verification };
+  return {
+    ok: true,
+    format: "html",
+    filePath,
+    count: events.length,
+    verification,
+  };
 }

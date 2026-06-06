@@ -1,0 +1,29 @@
+  SPRINT 38 — T1 COMPLETE
+
+  FILES:
+    src/audit/audit-log.ts (extended)
+    electron-ui/ipc/audit-handlers.cjs (extended)
+
+  STATUS:
+    AuditExportResult interface added
+    exportAuditLogJson() writes audit-log[-workspaceId].json
+    exportAuditLogHtmlReport() writes audit-log[-workspaceId].html
+    Both include verification result and event count
+    audit:exportJson and audit:exportHtmlReport IPC channels registered
+    All Sprint 36 audit exports preserved
+    compile clean
+    sonar clean
+
+  DELIVERABLES:
+    [x] AuditExportResult interface exported
+    [x] exportAuditLogJson() returns ok/format/filePath/count/verification
+    [x] exportAuditLogHtmlReport() returns ok/format/filePath/count/verification
+    [x] HTML report includes hash chain table and verification pass/fail
+    [x] audit:exportJson IPC channel registered
+    [x] audit:exportHtmlReport IPC channel registered
+    [x] All Sprint 36/37 channels preserved
+    [x] Compilation successful
+    [x] Sonar validation clean
+
+  NEXT:
+    T2 — preload + types + dashboard + docs

@@ -105,6 +105,30 @@
         overflow: auto;
         margin-top: 8px;
       }
+      .badge-ok {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: #d1fae5;
+        color: #166534;
+        font-weight: 700;
+      }
+      .badge-fail {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: #fee2e2;
+        color: #991b1b;
+        font-weight: 700;
+      }
+      .alert-fail {
+        background: #fee2e2;
+        border: 1px solid #fecaca;
+        color: #991b1b;
+        padding: 12px;
+        border-radius: 6px;
+        margin-top: 12px;
+      }
       h2,
       h3 {
         margin-top: 0;
@@ -148,6 +172,14 @@
         <button id="load-audit-events">Load audit events</button>
         <button id="verify-audit-log">Verify audit integrity</button>
         <button id="load-latest-audit">Load latest event</button>
+      </div>
+      <div class="row-3">
+        <button id="export-audit-json">Export audit JSON</button>
+        <button id="export-audit-html">Export audit HTML</button>
+        <span id="audit-verification-badge" class="badge-ok">verified</span>
+      </div>
+      <div id="audit-verification-alert" class="alert-fail" style="display:none;">
+        Audit verification failed. See details in the verification output.
       </div>
       <pre id="audit-output">—</pre>
       <pre id="audit-verify-output">—</pre>
@@ -371,6 +403,31 @@
         }
       }
 
+      function setAuditVerificationState(result) {
+        if (!result || typeof result.ok !== "boolean") return;
+        const badge = document.getElementById("audit-verification-badge");
+        const alert = document.getElementById("audit-verification-alert");
+        if (!badge || !alert) return;
+
+        if (result.ok) {
+          badge.textContent = "verified";
+          badge.className = "badge-ok";
+          alert.style.display = "none";
+        } else {
+          badge.textContent = "failed";
+          badge.className = "badge-fail";
+          alert.style.display = "block";
+        }
+      }
+
+      async function verifyAuditIntegrity() {
+        const res = await window.audit.verify(
+          wsId() ? { workspaceId: wsId() } : undefined,
+        );
+        auditVerifyOutput.textContent = JSON.stringify(res, null, 2);
+        setAuditVerificationState(res);
+      }
+
       async function loadUnifiedView() {
         const id = wsId();
         if (!id) return;
@@ -556,6 +613,8 @@
           reportOut.textContent = JSON.stringify(result, null, 2);
         });
 
+      document.addEventListener("DOMContentLoaded", verifyAuditIntegrity);
+
       document
         .getElementById("save-context")
         .addEventListener("click", async () => {
@@ -582,14 +641,37 @@
       });
 
       verifyAuditBtn?.addEventListener("click", async () => {
-        const res = await window.audit.verify();
+        const filter = wsId() ? { workspaceId: wsId() } : undefined;
+        const res = await window.audit.verify(filter);
         auditVerifyOutput.textContent = JSON.stringify(res, null, 2);
+        setAuditVerificationState(res);
       });
 
       loadLatestAuditBtn?.addEventListener("click", async () => {
-        const res = await window.audit.latest();
+        const filter = wsId() ? { workspaceId: wsId() } : undefined;
+        const res = await window.audit.latest(filter);
         auditOutput.textContent = JSON.stringify(res, null, 2);
       });
+
+      document
+        .getElementById("export-audit-json")
+        .addEventListener("click", async () => {
+          const id = wsId();
+          const result = await window.audit.exportJson(
+            id ? { workspaceId: id } : undefined,
+          );
+          auditOutput.textContent = JSON.stringify(result, null, 2);
+        });
+
+      document
+        .getElementById("export-audit-html")
+        .addEventListener("click", async () => {
+          const id = wsId();
+          const result = await window.audit.exportHtmlReport(
+            id ? { workspaceId: id } : undefined,
+          );
+          auditOutput.textContent = JSON.stringify(result, null, 2);
+        });
 
       document
         .getElementById("load-workspace-approvals")
@@ -677,6 +759,10 @@
       // providerGrid
       // refreshBtn
       // resetAllBtn
+      // audit-verification-badge
+      // audit-verification-alert
+      // window.audit.exportJson
+      // window.audit.exportHtmlReport
     </script>
   </body>
 </html>

@@ -210,8 +210,10 @@ contextBridge.exposeInMainWorld("workspaceReport", {
 
 contextBridge.exposeInMainWorld("audit", {
   list: (limit, filter) => ipcRenderer.invoke("audit:list", limit, filter),
-  verify: () => ipcRenderer.invoke("audit:verify"),
-  latest: () => ipcRenderer.invoke("audit:latest"),
+  verify: (filter) => ipcRenderer.invoke("audit:verify", filter),
+  latest: (filter) => ipcRenderer.invoke("audit:latest", filter),
+  exportJson: (filter) => ipcRenderer.invoke("audit:exportJson", filter),
+  exportHtmlReport: (filter) => ipcRenderer.invoke("audit:exportHtmlReport", filter),
 });
 
 contextBridge.exposeInMainWorld("workspaceApproval", {

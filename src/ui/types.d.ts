@@ -229,7 +229,15 @@ declare global {
           hash: string;
         }>
       >;
-      verify: () => Promise<{
+      verify: (
+        filter?: {
+          action?: string;
+          workspaceId?: string;
+          targetType?: string;
+          startTime?: number;
+          endTime?: number;
+        },
+      ) => Promise<{
         ok: boolean;
         checked: number;
         failedAtSeq: number | null;
@@ -237,7 +245,59 @@ declare global {
         actualHash: string | null;
         reason: string | null;
       }>;
-      latest: () => Promise<any | null>;
+      latest: (
+        filter?: {
+          action?: string;
+          workspaceId?: string;
+          targetType?: string;
+          startTime?: number;
+          endTime?: number;
+        },
+      ) => Promise<any | null>;
+      exportJson: (
+        filter?: {
+          action?: string;
+          workspaceId?: string;
+          targetType?: string;
+          startTime?: number;
+          endTime?: number;
+        },
+      ) => Promise<{
+        ok: true;
+        format: 'json';
+        filePath: string;
+        count: number;
+        verification: {
+          ok: boolean;
+          checked: number;
+          failedAtSeq: number | null;
+          expectedHash: string | null;
+          actualHash: string | null;
+          reason: string | null;
+        };
+      }>;
+      exportHtmlReport: (
+        filter?: {
+          action?: string;
+          workspaceId?: string;
+          targetType?: string;
+          startTime?: number;
+          endTime?: number;
+        },
+      ) => Promise<{
+        ok: true;
+        format: 'html';
+        filePath: string;
+        count: number;
+        verification: {
+          ok: boolean;
+          checked: number;
+          failedAtSeq: number | null;
+          expectedHash: string | null;
+          actualHash: string | null;
+          reason: string | null;
+        };
+      }>;
     };
   }
 }

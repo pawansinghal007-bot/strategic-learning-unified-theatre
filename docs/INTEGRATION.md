@@ -1,34 +1,32 @@
-# Sprint 35 Patch Integration
+# Sprint 38 Patch Integration
 
 ## Prerequisites
 
-Sprints 18–34 must already be integrated.
+Sprints 18–37 must already be integrated.
 
-## Files modified
+## Files extended
 
-- src/llm/routing-history.ts (filter params on all analytics functions)
-- electron-ui/ipc/workspace-report-handlers.cjs (new — dialog save)
-- electron-ui/ipc/workspace-routing-handlers.cjs (filter params added)
-- electron-ui/main.cjs (registerWorkspaceReportHandlers wired)
-- electron-ui/preload.cjs (workspaceRouting updated, workspaceReport added)
-- src/ui/types.d.ts (filter types, workspaceReport interface)
-- src/ui/provider-dashboard.html (filter controls and save buttons)
+- src/audit/audit-log.ts (2 new export functions + AuditExportResult interface)
+- electron-ui/ipc/audit-handlers.cjs (2 new channels)
+- electron-ui/preload.cjs (audit block updated)
+- src/ui/types.d.ts (export result types added)
+- src/ui/provider-dashboard.html (badge/alert/export buttons added)
 
-## New IPC channel (Sprint 35)
+## New IPC channels (Sprint 38)
 
-workspaceReport:save
+audit:exportJson
+audit:exportHtmlReport
 
-## Architecture — extended from Sprint 34
+## Architecture unchanged from Sprint 37
 
-Main: electron-ui/main.cjs
-Preload: electron-ui/preload.cjs
-IPC: electron-ui/ipc/workspace-routing-handlers.cjs
-electron-ui/ipc/workspace-report-handlers.cjs
+Main:    electron-ui/main.cjs (no changes needed)
+Audit:   src/audit/audit-log.ts
+IPC:     electron-ui/ipc/audit-handlers.cjs
 
 ## Smoke test
 
-1. Apply provider filter and load analytics — verify only that provider appears
-2. Apply date range and verify results filtered
-3. Click Save HTML to disk — Electron dialog should open
-4. Verify saved file contains expected HTML content
+1. Load dashboard — audit badge should show "verified" if log is clean
+2. Click Export audit JSON — file written to project root
+3. Click Export audit HTML — HTML file written to project root
+4. Tamper audit-log.json manually — reload dashboard — badge shows "failed"
 5. Run architecture sync check
