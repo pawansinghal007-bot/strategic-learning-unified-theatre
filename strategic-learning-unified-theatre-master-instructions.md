@@ -226,3 +226,6 @@ SVG charts, provider comparison, and HTML report artifacts delivered. getProvide
 
 ## Sprint 35 Complete
 Filtered analytics and save-to-disk reports delivered. RoutingHistoryFilter added to all workspace analytics functions. workspaceReport:save IPC with Electron dialog. Dashboard filter controls and save-to-disk buttons. Sonar clean.
+
+## Sprint 36 Complete
+Audit trail hardening delivered. Append-only hash-chained audit log in src/audit/audit-log.ts. SHA-256 hash chaining with tamper detection. Policy change events (setRoutingMode/allow/block/setManualProvider/reset/applyPreset) and report save events recorded. audit:list/verify/latest IPC. Preload audit namespace. Dashboard Audit Trail panel. New src/audit/ folder. Architecture baseline refreshed. Sonar clean.

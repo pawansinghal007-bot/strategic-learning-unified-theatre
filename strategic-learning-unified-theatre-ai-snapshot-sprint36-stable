@@ -1,0 +1,57 @@
+  SPRINT 36 COMPLETE: AUDIT TRAIL HARDENING — APPEND-ONLY HASH-CHAINED AUDIT LOG
+
+  SPRINT SUMMARY:
+    T1  audit log + IPC + policy/report   src/audit/audit-log.ts created,
+        audit events                       audit-handlers.cjs created,
+                                           provider-policy-handlers.cjs replaced,
+                                           workspace-report-handlers.cjs replaced,
+                                           main.cjs updated
+    T2  preload + types + dashboard        preload.cjs appended,
+                                           types.d.ts replaced,
+                                           dashboard Audit Trail panel added
+    T3  smoke tests + closure              tests/sprint36-smoke.test.js
+
+  STATUS:
+    vitest pass — ~93 files / ~820 tests
+    typecheck clean
+    sonar clean
+    tagged sprint-36-complete
+
+  DELIVERABLES:
+    [x] appendAuditEvent() with SHA-256 hash chaining in audit-log.json
+    [x] verifyAuditLogIntegrity() detects tampered events by hash or prevHash
+    [x] listAuditEvents() returns newest-first with optional AuditFilter
+    [x] getLatestAuditEvent() returns most recent event
+    [x] clearAuditLog() resets store
+    [x] Policy change events: setRoutingMode/allow/block/setManualProvider/reset/applyPreset
+    [x] Report save event recorded with file path and filter details
+    [x] audit:list/verify/latest IPC channels registered
+    [x] main.cjs appended — no existing registrations modified
+    [x] audit preload namespace exposed to renderer
+    [x] types.d.ts audit interface typed
+    [x] Dashboard Audit Trail panel functional
+    [x] All Sprint 35 panels and compatibility strings preserved
+    [x] Architecture sync completed — new baseline generated (new folder + new IPC)
+    [x] Smoke tests passing
+    [x] Compilation successful
+    [x] Sonar validation clean
+
+  ARCHITECTURE CHANGES THIS SPRINT:
+    New folder:  src/audit/
+    New files:   src/audit/audit-log.ts
+                 electron-ui/ipc/audit-handlers.cjs
+    Replaced:    electron-ui/ipc/provider-policy-handlers.cjs
+                 electron-ui/ipc/workspace-report-handlers.cjs
+    Updated:     electron-ui/main.cjs
+    Appended:    electron-ui/preload.cjs
+    Replaced:    src/ui/types.d.ts, src/ui/provider-dashboard.html
+    PROJECT_ARCHITECTURE_AI_CONTEXT.md updated.
+    PROJECT_ARCHITECTURE_BASELINE.md refreshed.
+
+  NEXT:
+    Sprint 37 candidates:
+      - Workspace policy change audit events (set/clear workspace overrides)
+      - Audit log export (JSON/HTML report from audit events)
+      - Alerting on failed audit verification
+      - Workspace-level governance and approvals workflow
+
