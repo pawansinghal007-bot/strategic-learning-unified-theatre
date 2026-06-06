@@ -1,0 +1,54 @@
+  SPRINT 39 COMPLETE: WORKSPACE QUOTA GOVERNANCE
+
+  SPRINT SUMMARY:
+    T1  quota service + IPC    src/governance/workspace-quotas.ts created,
+                               8 new IPC channels in workspace-policy-handlers.cjs
+    T2  preload + types + dash workspaceQuota preload block appended,
+                               workspaceQuota types added, dashboard quota panel
+    T3  smoke tests + closure  tests/sprint39-smoke.test.js
+
+  STATUS:
+    vitest pass — 94+ files / 870+ tests
+    typecheck clean
+    sonar clean
+    tagged sprint-39-complete
+
+  DELIVERABLES:
+    [x] setWorkspaceQuotaPolicy() — persist policy + audit event
+    [x] getWorkspaceQuotaPolicy() — returns policy or null
+    [x] listWorkspaceQuotaPolicies() — sorted list
+    [x] clearWorkspaceQuotaPolicy() — removes + audit event
+    [x] recordWorkspaceQuotaUsage() — increments usage + exceeded audit event
+    [x] getWorkspaceQuotaUsage() — day/week counts + exceeded flags
+    [x] evaluateWorkspaceQuotaStatus() — allowed/blocked/fallback/alert
+    [x] clearWorkspaceQuotaUsage() — resets usage records
+    [x] workspaceQuota:get/list/set/clear/recordUsage/usage/evaluate/clearUsage IPC
+    [x] workspaceQuota preload namespace exposed to renderer
+    [x] types.d.ts workspaceQuota interface typed
+    [x] Dashboard Workspace Quotas panel functional
+    [x] audit-log.ts unchanged — Sprint 38 export behavior preserved
+    [x] Sprint 37/38 panels and compatibility strings preserved
+    [x] Smoke tests passing
+    [x] Architecture sync completed
+
+  ARCHITECTURE CHANGES THIS SPRINT:
+  New files:
+    - src/governance/workspace-quotas.ts
+  Extended:
+    - electron-ui/ipc/workspace-policy-handlers.cjs
+    - electron-ui/preload.cjs
+    - src/ui/types.d.ts
+    - src/ui/provider-dashboard.html
+  Unchanged:
+    - src/audit/audit-log.ts
+    - electron-ui/main.cjs
+    - electron-ui/ipc/audit-handlers.cjs
+
+  NEXT:
+    Sprint 40 candidates:
+    - Gateway quota enforcement (wire evaluateWorkspaceQuotaStatus into gateway.ts)
+    - Quota reset schedule (daily reset via cron/interval)
+    - Multi-workspace quota rollup view
+    - Quota threshold alerts via notification hooks
+
+  ARCHITECTURE SYNC STATUS: [UPDATED | UNCHANGED]

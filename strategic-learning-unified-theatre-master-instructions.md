@@ -235,3 +235,6 @@ Workspace approvals governance delivered. src/governance/workspace-approvals.ts 
 
 ## Sprint 38 Complete
 Audit log export and verification alerting delivered. exportAuditLogJson and exportAuditLogHtmlReport appended to audit-log.ts. audit:exportJson/exportHtmlReport IPC. Preload audit block updated. Dashboard verification badge/alert on load. Export buttons functional. Sonar clean.
+
+## Sprint 39 Complete
+Workspace quota governance delivered. src/governance/workspace-quotas.ts. setWorkspaceQuotaPolicy/recordWorkspaceQuotaUsage/evaluateWorkspaceQuotaStatus. Audit events: workspaceQuota.set/clear/usageRecorded/exceeded. 8 IPC channels in workspace-policy-handlers.cjs. Preload workspaceQuota namespace. Dashboard Workspace Quotas panel. Sonar clean.

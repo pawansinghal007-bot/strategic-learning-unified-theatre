@@ -90,6 +90,7 @@ function sanitizePolicy(raw: PolicyState): PolicyState {
 }
 
 export function getProviderPolicy(): PolicyState {
+  if (state) return state;
   const raw = readJsonFile(POLICY_FILE, DEFAULT_POLICY);
   return sanitizePolicy(raw);
 }
