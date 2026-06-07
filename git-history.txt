@@ -1,0 +1,200 @@
+8901dec3 (HEAD -> main, origin/main) feat(sprint-40-t2): quota IPC channels, preload rollup/notifications/resetDaily, types
+6f45e63b feat(sprint-40-t1): quota rollup, notifications, daily reset, gateway enforcement
+5b649208 feat(sprint-37-t2): preload workspaceApproval namespace, types, dashboard approvals panel
+e79d87f3 feat(sprint-37-t1): workspace approvals service, policy audit events, approval IPC
+2f31a1ec (tag: sprint-39-complete) feat(sprint-39): workspace quota governance — sprint 39 complete
+e207a013 feat(sprint-39-t2): preload quota namespace, types, dashboard quota panel
+5f47f157 feat(sprint-39-t1): workspace quota service and IPC channels
+3da17488 (tag: sprint-38-complete) feat(sprint-38): audit log export and verification alerting — sprint 38 complete
+c35e1f16 feat(sprint-38-t2): preload export methods, types, dashboard badge and alert
+1e2cfccf feat(sprint-38-t1): audit log JSON/HTML export functions and IPC channels
+0b66be6f (tag: sprint-37-complete) feat(sprint-37): workspace approvals governance — sprint 37 complete
+e2268091 feat(sprint-37-t2): preload workspaceApproval namespace, types, dashboard approvals panel
+5100da0c feat(sprint-37-t1): workspace approvals service, policy audit events, approval IPC
+58f47d2b (tag: sprint-36-complete) feat(sprint-36): audit trail hardening — append-only hash-chained audit log
+c6b86c1e feat(sprint-36-t2): preload audit namespace, types, dashboard audit panel
+fda3a9c3 feat(sprint-32-t1): workspace analytics helpers and IPC channels
+14dcd3a5 (tag: sprint-35-complete) feat(sprint-35): filtered analytics and save-to-disk reports — sprint 35 complete
+acd2d2be feat(sprint-35-t2): preload filter params, workspaceReport namespace, dashboard filters
+ec8762c1 feat(sprint-35-t1): add filter params to analytics, workspace report save IPC
+f22a73ac feat(sprint-34): SVG charts, provider comparison, HTML reports — sprint 34 complete
+cb9995a4 (tag: sprint-34-complete) feat(sprint-34): SVG charts, provider comparison, HTML reports — sprint 34 complete
+3a528040 feat(sprint-34-t2): preload chart methods, types, analytics dashboard
+d6c32862 feat(sprint-34-t1): SVG charts, provider comparison, HTML report, IPC channels
+aa4965b1 (tag: sprint-33-complete) feat(sprint-33): time-bucketed analytics, global analytics, export — sprint 33 complete
+ba6fcb41 feat(sprint-33-t2): preload, types, dashboard, and docs for analytics export
+af16cc0c feat(sprint-33-t1): add time buckets, global analytics, and export helpers
+57e8c961 (tag: sprint-32-complete) feat(sprint-32): workspace analytics and explainability — sprint 32 complete
+c3ea8c9a feat(sprint-32-t2): preload analytics methods, types, analytics dashboard
+fca2e1de feat(sprint-32-t1): workspace analytics helpers and IPC channels
+9df228fe (tag: sprint-31-complete) feat(sprint-31): unified workspace view + workspace routing history — sprint 31 complete
+6e686e18 feat(sprint-31-t2): preload workspaceRouting namespace, types, unified dashboard
+7cf4c0d8 feat(sprint-31-t1): workspace routing history helpers, IPC handler, main wiring
+aeacdec4 (tag: sprint-30-complete) feat(sprint-30): workspace control plane consolidated — sprint 30 complete
+17e41b1a (tag: sprint-29-complete) feat(sprint-29): workspace policy overrides and context injection — sprint 29 complete
+d9043d84 docs(sprint-29-t5): add sprint 29 scope, checklist, and integration notes
+1ea19749 feat(sprint-29-t4): add llm:workspace CLI commands
+4908c03f feat(sprint-29-t3): workspace IPC handlers, preload namespaces, dashboard panel
+c79d5eb5 feat(sprint-29-t2): workspace-aware policy and context injection in gateway
+3ee731e9 feat(sprint-29-t1): add workspace policy store and request context store
+793484c2 chore: add architecture sync rules and check script
+8f0206af (tag: sprint-28-complete) feat(sprint-28): policy presets, sensitive task rules — sprint 28 complete
+6e6fd545 docs(sprint-28-t5): add sprint 28 scope, checklist, and integration notes
+2869f608 feat(sprint-28-t4): add preset commands to llm:policy CLI
+25d3e84b feat(sprint-28-t3): add preset IPC, preload, types, and dashboard preset controls
+f41cf617 feat(sprint-28-t2): add preset support and sensitive task filtering to policy, explainer, gateway
+ce621d9c feat(sprint-28-t1): add policy presets and sensitive task rules
+8469e223 (tag: sprint-27-complete) feat(sprint-27): policy modes, allow/block, manual pinning — sprint 27 complete
+b4364c1f docs(sprint-27-t5): add sprint 27 scope, checklist, and integration notes
+7a4d3b77 feat(sprint-27-t4): add llm:policy CLI commands
+874b704e feat(sprint-27-t3): add policy IPC, preload bridge, and dashboard policy controls
+aa3d25d7 feat(sprint-27-t2): add policy filtering to gateway and routing explainer
+c86811a6 feat(sprint-27-t1): add provider policy engine
+4ab2b313 (tag: sprint-26-complete) feat(sprint-26): explainable routing, decisions log — sprint 26 complete
+58fd6569 docs(sprint-26-t5): add sprint 26 scope, checklist, and integration notes
+723e1a2d feat(sprint-26-t4): add llm:routing CLI commands
+0c8154a5 feat(sprint-26-t3): extend IPC, preload, and dashboard with routing history
+44d4a867 feat(sprint-26-t2): add routing hooks to gateway
+ff6b0773 feat(sprint-26-t1): add routing history and routing explainer
+523296fa (tag: sprint-25-complete) feat(sprint-25): dashboard IPC, preload bridge, telemetry panel — sprint 25 complete
+2ad7ae69 feat(sprint-25-t5): add dashboard IPC smoke tests
+66b6dd88 docs(sprint-25-t4): add sprint 25 scope, checklist, and integration notes
+13e92fd3 feat(sprint-25-t3): add provider telemetry dashboard HTML panel
+1b2bea4e feat(sprint-25-t2): add preload bridge for provider telemetry
+3c1e5572 feat(sprint-25-t1): add provider telemetry IPC handlers
+9a2aaffa (tag: sprint-24-complete) feat(sprint-24): persistent health and usage storage — sprint 24 complete
+f9d4c81d docs(sprint-24-t5): add sprint 24 scope, checklist, and integration notes
+78129041 feat(sprint-24-t4): update CLI files for persistent storage
+30912d99 feat(sprint-24-t3): persist provider usage to JSON storage, add resetAllProviderTelemetry
+c01948e0 feat(sprint-24-t2): persist provider health to JSON storage
+27d25c43 feat(sprint-24-t1): add shared JSON storage helper
+2a191231 (tag: sprint-23-complete) feat(sprint-23): usage tracking, llm:usage CLI — sprint 23 complete
+6b3b7908 feat(sprint-23-t5): add usage tracking smoke tests
+4fe433ee docs(sprint-23-t4): add sprint 23 scope, checklist, and integration notes
+a62a9559 feat(sprint-23-t3): add llm:usage CLI and enrich llm:health with usage totals
+84917ac7 feat(sprint-23-t2): add usage hooks to gateway and enrich status rows
+4c9fbcc2 feat(sprint-23-t1): add provider usage tracker
+7c551d24 (tag: sprint-22-complete) feat(sprint-22): provider status CLI, health inspection — sprint 22 complete
+a2412cab feat(sprint-22-t4): add provider status smoke tests
+8e41070b docs(sprint-22-t3): add sprint 22 scope, checklist, and integration notes
+1b165187 feat(sprint-22-t2): add llm:health and llm:health:reset CLI commands
+754cf15b feat(sprint-22-t1): add provider status helper
+c3654cec (tag: sprint-21-complete) feat(sprint-21): health-aware fallback routing, provider health tracker — sprint 21 complete
+23360774 feat(sprint-21-t4): add health and fallback smoke tests
+e9333c56 docs(sprint-21-t3): add sprint 21 scope, checklist, and integration notes
+719a92a5 docs(sprint-21-t3): add sprint 21 scope, checklist, and integration notes
+2d7aab8f feat(sprint-21-t2): replace gateway with health-aware fallback version
+2a127e0f feat(sprint-21-t1): add provider health tracker
+0acae42f chore: sprint 20 stable snapshot and master instructions update
+49f5e54d (tag: sprint-20-complete) feat(sprint-20): provider expansion, base adapter, streaming, error normalizer — sprint 20 complete
+4956ebf6 docs(sprint-20-t5): add sprint 20 scope, checklist, and integration notes
+87c91423 feat(sprint-20-t4): expand gateway with all providers and stream support
+8932407c feat(sprint-20-t3): add openai, gemini, groq, perplexity adapters and providers barrel
+aa41d370 feat(sprint-20-t2): add base provider adapter, update local to extend base
+25cad652 feat(sprint-20-t1): add provider error normalizer
+ecfe01dc fix(sprint-19): rewrite smoke test as plain JS — remove TS type annotations
+bdcd3adc (tag: sprint-19-complete) feat(sprint-19): base gateway, local adapter, logger, smoke tests — sprint 19 complete
+b6dab613 docs(sprint-19-t4): add sprint 19 scope, checklist, and integration notes
+7bf405e3 feat(sprint-19-t3): add gateway class and llm barrel export
+71579bcb feat(sprint-19-t2): add local provider adapter stub
+0d2ec1af feat(sprint-19-t1): add shared logger
+c6167437 (tag: slut-v2.4-complete) SLUT: PROJECT COMPLETE — all 436 issues resolved — v2.4-stable
+3280bb7f (tag: slut-v2.3-stable) SLUT 9: sprint 9 complete — v2.3-stable
+e0e545bb SLUT 9: all remaining rules fixes
+8ef9f9e2 (tag: slut-v2.2-stable) SLUT 8: sprint 8 complete — v2.2-stable
+d2562013 SLUT 8: S7735+S6594+S7748+S6535 fixes
+43818adf (tag: slut-v2.1-stable) SLUT 7D: sprint 7 complete — v2.1-stable
+ef5d8abd Update CURRENT_ACTIVE_SNAPSHOT.md: v2.1b-active → v2.1c-active
+1ac5b761 SLUT 7C: S4624+S7721 complete — v2.1c-active
+3cd1cced SLUT 7C: S7721 remove duplicate nested functions in llm.test.js
+726ce3aa SLUT 7C: S4624+S7721 fixes (config, inference, plugin-loader, scorer helpers)
+0e2e59f9 SLUT 7C: S4624 nested template src/commands/ai.js
+3e0bbbcf SLUT 7C: S4624 nested template renderer/screens/Accounts.jsx
+3ddfe78f SLUT 7C: S4624 nested template test-bc2-integration.js
+5000ce16 SLUT 7C: S4624 nested template electron-ui/ipc/handlers.cjs
+2053c1b4 SLUT 7C: S7721 hoist staged helpers in llm.test.js
+d6463943 SLUT 7B: S7772+S7773 complete — v2.1b-active
+5a840139 SLUT 7B: S7773 Number.* src/llm/training-exporter.js
+29b07332 SLUT 7B: S7773 Number.* src/commands/bc2-sync.js
+2be7d0d2 SLUT 7B: S7773 Number.* vscode-extension/collector.js
+77d039b6 SLUT 7B: S7772 node: prefix tests/chaos-utils.test.js
+14d98523 SLUT 7B: S7772 node: prefix tests/chaos-slo.test.js
+f2317467 SLUT 7B: S7772 node: prefix scripts/validate-waivers.mjs
+3ef9c736 SLUT 7B: S7772 node: prefix scripts/reconcile-hotspot-register.mjs
+a7ef5db3 SLUT 7B: S7772 node: prefix scripts/check-sonar-readiness.mjs
+b89066cc SLUT 7B: S7772 node: prefix test-bc2-integration.js
+29c4782e SLUT 7A: triage S4624+S7772+S7773+S7721
+9128abb6 (tag: slut-v2.0-stable) SLUT 6D: sprint 6 complete — v2.0-stable
+7059ef0a SLUT 6D: S1874 deprecated API schema.js browser-bridge.js
+2215e21c SLUT 6Da: S1874 deprecated API schemas.js idea-store.js browser-pane.cjs
+b71dd32a SLUT 6D: S1874 deprecated API schemas.js idea-store.js browser-pane.cjs
+68f359ea SLUT 6C: S2486 complete — v2.0c-active
+03d70c56 SLUT 6C: partial
+7a9b6558 SLUT 6C: S2486 empty catch browser-bridge.js
+3cbf1443 SLUT 6C: S2486 empty catch capture-handlers.cjs
+53262364 SLUT 6C: S2486 empty catch startup-bootstrap.js
+b49d953e SLUT 6C: S2486 empty catch config.js
+c15cc2dd SLUT 6C: S2486 empty catch handlers.cjs
+afb22a17 SLUT 6C: S2486 empty catch daemonStatus.js
+758c2cbd SLUT 6C: S2486 empty catch check-sonar-readiness.mjs
+bc380549 SLUT 6C: S2486 empty catch first batch
+d7421b92 SLUT 6B: S7780 complete — v2.0b-active
+31b2f6e4 SLUT 6B: S7780 String.raw test-bc2-diagnostics.js
+0c2864c8 SLUT 6B: S7780 String.raw src/encrypt.js
+aef2c8c8 SLUT 6B: S7780 String.raw tests/ai-memory.test.js
+e9ebcfa7 SLUT 6B: S7780 String.raw scripts/install.js
+7e825271 SLUT 6B: S7780 String.raw src/internal/paths.js
+f7c24284 SLUT 6A: triage S2486+S1874+S7780 — v2.0a-active
+f7f6b921 SLUT: remove tracked .scannerwork from git
+2e64bc53 SLUT: ignore .scannerwork directory
+b43ac7ff (tag: slut-v1.9-stable) SLUT 5D: sprint 5 complete — v1.9-stable
+ddff4df6 SLUT 5C: S7785 top-level await install.js
+bc12d9ae SLUT 5C: S7785 top-level await smoke-test-sprint12.js
+e57079b9 SLUT 5C: S7785 top-level await debug-plugin-run.mjs
+7e847886 SLUT 5C: S7785 top-level await daemon-runner.js
+fe8836e4 SLUT 5C: S7785 top-level await watch-browser-activity.mjs
+2224af5e SLUT 5C: S7785 top-level await one-time-capture.mjs
+98667a11 SLUT 5C: S7785 top-level await audit-experience-db.mjs
+34a97c15 SLUT 5C: S7785 top-level await plugin_test_runner.mjs
+cbee4fae SLUT 5C: S7785 top-level await validate-waivers.mjs
+2fb93521 SLUT 5C: S7785 top-level await validate-governance-config.mjs
+796a6dca SLUT 5C: S7785 top-level await reconcile-hotspot-register.mjs
+8c4b3e8f SLUT 5C: S7785 top-level await check-sonar-readiness.mjs
+6ad0e7f9 SLUT 5C: S7785 top-level await src/cli.js
+ccba86c7 SLUT 5B: S6582+S6853 complete — v1.9b-active
+94aafdbc SLUT 5B: S6853 form labels — BrowserAutomation (3), PromptTemplates (2), Settings (1), RobotFramework (1)
+f3309285 SLUT 5B: S6853 form labels Accounts.jsx (10 fixes)
+f8553345 SLUT 5B: S6582 optional chaining — all files (18 fixes)
+9eb16927 SLUT 5B: S6582 optional chaining check-sonar-readiness.mjs
+b8e22c21 SLUT 5A: triage S6582+S6853+S7785
+ca86b2b2 SLUT 4: S7744 complete — v1.9-stable
+cc49beeb SLUT 4A: S7744 fix spread syntax handlers.cjs
+c8bc9844 SLUT 4A: S7744 remove useless empty object spread handlers.cjs
+01c88228 SLUT 4A: S7744 remove useless empty object spread document-ingester.js
+caf98a18 SLUT 4A: S7744 remove useless empty object spread experience-db.js
+9c8cbd6c SLUT 4A: S7744 remove useless empty object spread collector.js
+7af10656 SLUT 4A: S7744 remove useless empty object spread config.js
+7f0ff9b2 SLUT: redact exposed Sonar token from tracked files
+fabc0eeb (tag: slut-v1.8-stable) SLUT 3D: sprint 3 complete — v1.8-stable
+515a821e SLUT 4A: S7744 empty object src/llm/experience-db.js
+0c2341ae SLUT 4A: S7744 empty object vscode-extension/collector.js
+66249ed1 SLUT 4A: S7744 empty object src/llm/document-ingester.js
+c10e689d SLUT 4A: S7744 empty object config.js
+5f437a6e SLUT 4A: S1854+S1481 (3 files) — removed 3 unused variables: tests/e2e/enhance-schedule.test.js (history), tests/browser-bridge.test.js (mistakes), tests/llm/llm.test.js (ingestSpy+callCount), src/commands/browser.js (filename)
+007ce9d4 SLUT 4A: S1854+S1481 (4 files) — removed 4 unused variables: tests/storage/collector.test.js (message2), test-bc2-integration.js (options), src/commands/idea.js (created), src/llm/experience-db.js (filename)
+a4ca4f0a SLUT 4A: S1854+S1481 electron-ui/ipc/handlers.cjs, src/test-runner.js — removed unused registerChannel function and results array
+f241642b SLUT 4A: S1854+S1481 BrowserPanel.jsx — removed unused browserUrl state
+b4c10eb1 SLUT 3D: sprint 3 complete — v1.8-stable
+9936bbc2 (tag: slut-v1.8c) SLUT 3C: S3358 complete — v1.8c-active
+19b67510 SLUT 3C: S3358 complete — v1.8c-active
+2f59ce0f SLUT 3C: S3358 ternary src/agent-handoff.js (additional)
+b9511864 SLUT 3C: S3358 ternary src/agent-handoff.js
+acd493f9 SLUT 3C: S3358 ternary src/llm/document-ingester.js
+648b0864 SLUT 3C: S3358 ternary src/accounts/health.js
+b14b1eda SLUT 3C: S3358 ternary src/local-llm.js
+2e579746 SLUT 3C: S3358 ternary src/llm/local-llm.js
+82c9cef4 SLUT 3C: S3358 ternary Sidebar.jsx + Accounts.jsx
+a334cb83 SLUT 3C: S3358 ternary src/llm/local-llm.js
+26047b5b SLUT 3C: S3358 ternary src/local-llm.js
+b62a79ce fix: expand nested ternary in src/internal/reporter.js to if/else
+bd1519b5 fix: replace nested ternary in src/internal/paths.js with if/else

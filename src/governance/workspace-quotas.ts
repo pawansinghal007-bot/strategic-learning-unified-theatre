@@ -279,7 +279,25 @@ export function recordWorkspaceQuotaUsage(input: {
     },
   });
 
+  if (usage.thresholdReached && !usage.exceeded) {
+    pushQuotaNotification({
+      workspaceId: input.workspaceId,
+      type: "threshold",
+      timestamp: ts,
+      dayCount: usage.dayCount,
+      weekCount: usage.weekCount,
+    });
+  }
+
   if (usage.exceeded) {
+    pushQuotaNotification({
+      workspaceId: input.workspaceId,
+      type: "exceeded",
+      timestamp: ts,
+      dayCount: usage.dayCount,
+      weekCount: usage.weekCount,
+    });
+
     appendAuditEvent({
       action: "workspaceQuota.exceeded",
       actor: { type: "system" },

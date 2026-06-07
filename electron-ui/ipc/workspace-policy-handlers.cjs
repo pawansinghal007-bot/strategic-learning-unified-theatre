@@ -141,6 +141,7 @@ function registerWorkspacePolicyHandlers() {
         weeklyLimit: quotaPatch?.weeklyLimit ?? null,
         mode: quotaPatch?.mode ?? "alert",
         fallbackProvider: quotaPatch?.fallbackProvider ?? null,
+        alertThresholdPct: quotaPatch?.alertThresholdPct ?? null, // ← add this
         requestedBy: options?.requestedBy ?? null,
         reason: options?.reason ?? null,
       });
@@ -199,9 +200,12 @@ function registerWorkspacePolicyHandlers() {
     return quotas().getWorkspaceQuotaRollup(now);
   });
 
-  ipcMain.handle("workspaceQuota:notifications", async (_event, workspaceId) => {
-    return quotas().listWorkspaceQuotaNotifications(workspaceId);
-  });
+  ipcMain.handle(
+    "workspaceQuota:notifications",
+    async (_event, workspaceId) => {
+      return quotas().listWorkspaceQuotaNotifications(workspaceId);
+    },
+  );
 
   ipcMain.handle("workspaceQuota:resetDaily", async (_event, now) => {
     return quotas().resetWorkspaceQuotaDaily(now);

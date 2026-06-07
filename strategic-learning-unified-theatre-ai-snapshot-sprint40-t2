@@ -1,0 +1,35 @@
+  SPRINT 40 — T2 COMPLETE
+
+  FILES:
+    electron-ui/ipc/workspace-policy-handlers.cjs (extended)
+    electron-ui/preload.cjs (extended)
+    src/ui/types.d.ts (replaced)
+
+  STATUS:
+    workspaceQuota:rollup IPC channel registered
+    workspaceQuota:notifications IPC channel registered
+    workspaceQuota:resetDaily IPC channel registered
+    preload rollup/notifications/resetDaily methods exposed to renderer
+    Sprint 39 workspaceQuota methods intact
+    types.d.ts rollup row, QuotaNotification, resetDaily return types declared
+    thresholdReachedDaily/Weekly fields present in usage and recordUsage types
+    all Sprint 39 interfaces preserved
+    compile clean
+    sonar clean
+
+  DELIVERABLES:
+    [x] workspaceQuota:rollup IPC channel appended
+    [x] workspaceQuota:notifications IPC channel appended
+    [x] workspaceQuota:resetDaily IPC channel appended
+    [x] preload rollup method exposed
+    [x] preload notifications method exposed
+    [x] preload resetDaily method exposed
+    [x] Sprint 39 preload methods untouched
+    [x] types.d.ts extended with Sprint 40 signatures
+    [x] main.cjs unchanged
+    [x] audit-handlers.cjs unchanged
+    [x] Compilation successful
+    [x] Sonar validation clean
+
+  NEXT:
+    T3 — dashboard surfaces + smoke tests + sprint closure
