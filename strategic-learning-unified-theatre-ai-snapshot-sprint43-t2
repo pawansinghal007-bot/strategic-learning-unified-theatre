@@ -1,0 +1,37 @@
+  SPRINT 43 — T2 COMPLETE
+
+  FILES:
+    electron-ui/ipc/handlers.cjs (llm:ask block replaced)
+    electron-ui/preload.cjs (workspaceKnowledge extended)
+    src/ui/types.d.ts (replaced)
+
+  STATUS:
+    llm:ask retrieves top-8 Milvus chunks before generating response
+    score threshold 0.4 filters low-relevance hits
+    top-6 hits sorted desc prepended as PROJECT CONTEXT block
+    retrieval failure is non-fatal — falls back to empty context
+    knowledge hits array attached to ask response
+    buildPromptContext preload alias exposed
+    types.d.ts buildPromptContext and llm.ask knowledge return typed
+    Sprint 42 preload methods untouched
+    compile clean
+    sonar clean
+
+  DELIVERABLES:
+    [x] llm:ask handler RAG-augmented
+    [x] embedTextBatch called for user query before askLocalLlm
+    [x] Milvus search with explicit output_fields
+    [x] Score threshold filter (>= 0.4)
+    [x] Top-6 sorted desc, context block assembled
+    [x] try/catch guard — Milvus unavailability non-fatal
+    [x] knowledge hits attached to response payload
+    [x] buildPromptContext added to preload workspaceKnowledge block
+    [x] types.d.ts workspaceKnowledge.buildPromptContext typed
+    [x] types.d.ts llm.ask return type extended
+    [x] audit-log.ts unchanged
+    [x] audit-handlers.cjs unchanged
+    [x] Compilation successful
+    [x] Sonar validation clean
+
+  NEXT:
+    T3 — smoke tests + sprint closure

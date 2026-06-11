@@ -257,16 +257,16 @@ module.exports = async function register({ ipcMain, dialog, watcher, app }) {
   });
 
   ipcMain.handle("llm:ask", async (e, payload) => {
-    const userQuery = String(
-      payload?.prompt || payload?.question || "",
-    ).trim();
+    const userQuery = String(payload?.prompt || payload?.question || "").trim();
     if (!userQuery) {
       throw new Error("Prompt is required");
     }
 
     let knowledgeHits = [];
     try {
-      const knowledge = await import(resolveModule("../../src/knowledge/index.js"));
+      const knowledge = await import(
+        resolveModule("../../src/knowledge/index.js")
+      );
       const { getMilvusClient, embedTextBatch } = knowledge;
 
       const vectors = await embedTextBatch([userQuery]);
