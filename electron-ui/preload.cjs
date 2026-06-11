@@ -268,4 +268,6 @@ contextBridge.exposeInMainWorld("workspaceKnowledge", {
     ipcRenderer.invoke("knowledge:ingest", baseDir, featureArea),
   search: (queryText, options) =>
     ipcRenderer.invoke("knowledge:search", queryText, options),
+  buildPromptContext: (queryText, options) =>
+    ipcRenderer.invoke("knowledge:search", queryText, options),
 });

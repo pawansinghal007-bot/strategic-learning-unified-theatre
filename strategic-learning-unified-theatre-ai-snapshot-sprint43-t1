@@ -1,0 +1,30 @@
+  SPRINT 43 — T1 COMPLETE
+
+  FILES:
+    src/knowledge/index.ts (replaced)
+    electron-ui/ipc/knowledge-handlers.cjs (replaced)
+    electron-ui/main.cjs (verified / order corrected)
+
+  STATUS:
+    buildKnowledgePromptBlock() exported — filters by minScore, sorts desc, slices maxChunks
+    normalizeHit() hardens all Milvus field name variants
+    toScoreNumber() safely coerces score/distance/similarity
+    knowledge:search returns normalised hit array
+    knowledge:ingest unchanged in shape
+    compile clean
+    sonar clean
+
+  DELIVERABLES:
+    [x] buildKnowledgePromptBlock() in src/knowledge/index.ts
+    [x] All Sprint 42 barrel exports preserved
+    [x] normalizeHit() added to knowledge-handlers.cjs
+    [x] toScoreNumber() helper added
+    [x] knowledge:search output_fields explicit
+    [x] main.cjs registration order verified
+    [x] audit-log.ts unchanged
+    [x] audit-handlers.cjs unchanged
+    [x] Compilation successful
+    [x] Sonar validation clean
+
+  NEXT:
+    T2 — RAG hook in llm:ask handler + preload buildPromptContext alias + types

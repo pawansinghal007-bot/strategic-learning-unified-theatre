@@ -71,6 +71,7 @@ declare global {
         options?: {
           limit?: number;
           filter?: string;
+          minScore?: number;
         },
       ) => Promise<
         Array<{
@@ -83,8 +84,50 @@ declare global {
           section: string;
           importance: number;
           score: number;
+          text?: string;
         }>
       >;
+      buildPromptContext: (
+        queryText: string,
+        options?: {
+          limit?: number;
+          filter?: string;
+          minScore?: number;
+        },
+      ) => Promise<
+        Array<{
+          chunk_id: string;
+          doc_id: string;
+          source_type: string;
+          sprint: number;
+          feature_area: string;
+          path: string;
+          section: string;
+          importance: number;
+          score: number;
+          text?: string;
+        }>
+      >;
+    };
+    llm: {
+      status: () => Promise<any>;
+      setup: (opts: any) => Promise<any>;
+      ask: (opts: any) => Promise<{
+        answer?: string;
+        knowledge?: Array<{
+          chunk_id: string;
+          doc_id: string;
+          source_type: string;
+          sprint: number;
+          feature_area: string;
+          path: string;
+          section: string;
+          importance: number;
+          score: number;
+          text?: string;
+        }>;
+        [key: string]: any;
+      }>;
     };
     workspaceQuota: {
       get: (workspaceId: string) => Promise<{
