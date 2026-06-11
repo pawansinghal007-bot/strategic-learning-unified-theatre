@@ -17,7 +17,9 @@
 - [x] Git tagged and pushed
 
 ## Suggested next sprint
+
 Sprint 43: contextual AI responses using retrieved knowledge
+
 - Wire knowledge:search into the LLM ask flow
 - Pre-populate prompt with top-k retrieved sprint history chunks
 - Add relevance score threshold filtering

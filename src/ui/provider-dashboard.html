@@ -269,15 +269,9 @@
 
     <div class="panel">
       <h3>Knowledge Layer</h3>
-      <input
-        id="knowledge-base-dir"
-        placeholder="Path to sprint reports dir"
-      />
+      <input id="knowledge-base-dir" placeholder="Path to sprint reports dir" />
       <button id="knowledge-ingest">Ingest sprint history</button>
-      <input
-        id="knowledge-query"
-        placeholder="Ask about the codebase..."
-      />
+      <input id="knowledge-query" placeholder="Ask about the codebase..." />
       <button id="knowledge-search">Search knowledge base</button>
       <pre id="knowledge-results-output">—</pre>
     </div>
@@ -1017,7 +1011,11 @@
             undefined,
           );
           if (knowledgeResultsOutput) {
-            knowledgeResultsOutput.textContent = JSON.stringify(result, null, 2);
+            knowledgeResultsOutput.textContent = JSON.stringify(
+              result,
+              null,
+              2,
+            );
           }
         });
 
@@ -1030,7 +1028,11 @@
             limit: 5,
           });
           if (knowledgeResultsOutput) {
-            knowledgeResultsOutput.textContent = JSON.stringify(result, null, 2);
+            knowledgeResultsOutput.textContent = JSON.stringify(
+              result,
+              null,
+              2,
+            );
           }
         });
 

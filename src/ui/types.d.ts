@@ -65,27 +65,26 @@ declare global {
       ) => Promise<any>;
     };
     workspaceKnowledge: {
-      ingest: (
-        baseDir?: string,
-        featureArea?: string,
-      ) => Promise<{ ok: true }>;
+      ingest: (baseDir?: string, featureArea?: string) => Promise<{ ok: true }>;
       search: (
         queryText: string,
         options?: {
           limit?: number;
           filter?: string;
         },
-      ) => Promise<Array<{
-        chunk_id: string;
-        doc_id: string;
-        source_type: string;
-        sprint: number;
-        feature_area: string;
-        path: string;
-        section: string;
-        importance: number;
-        score: number;
-      }>>;
+      ) => Promise<
+        Array<{
+          chunk_id: string;
+          doc_id: string;
+          source_type: string;
+          sprint: number;
+          feature_area: string;
+          path: string;
+          section: string;
+          importance: number;
+          score: number;
+        }>
+      >;
     };
     workspaceQuota: {
       get: (workspaceId: string) => Promise<{

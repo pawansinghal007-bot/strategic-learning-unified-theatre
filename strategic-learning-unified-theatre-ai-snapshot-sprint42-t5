@@ -1,0 +1,20 @@
+  SPRINT 42 — T5 COMPLETE
+
+  FILES:
+    electron-ui/preload.cjs (extended)
+    src/ui/types.d.ts (extended)
+    src/ui/provider-dashboard.html (updated)
+    docs/sprint-42-scope.md
+    docs/sprint-42-checklist.md
+    docs/INTEGRATION.md
+
+  STATUS:
+    workspaceKnowledge preload namespace exposed
+    types.d.ts knowledge search result shape declared
+    dashboard Knowledge panel with ingest/search controls
+    Sprint 25–41 compatibility strings preserved
+    docs committed
+    compile clean
+    sonar clean
+
+  NEXT: T6 — smoke tests + sprint closure
