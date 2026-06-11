@@ -1,6 +1,7 @@
 # Sprint 41 — Concrete Closure Checklist
 
 ## Drop-in checklist
+
 - [x] src/governance/workspace-quotas.ts extended
 - [x] electron-ui/ipc/workspace-policy-handlers.cjs extended
 - [x] electron-ui/main.cjs extended
@@ -14,7 +15,9 @@
 - [x] Git tagged and pushed
 
 ## Suggested next sprint
+
 Sprint 42 candidates:
+
 - Per-provider quota sub-limits
 - Quota history retention window (configurable TTL)
 - Dashboard quota trend chart

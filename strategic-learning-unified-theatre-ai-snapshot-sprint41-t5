@@ -1,0 +1,21 @@
+  SPRINT 41 — T5 COMPLETE
+
+  FILES:
+    src/ui/provider-dashboard.html (updated)
+    docs/sprint-41-scope.md
+    docs/sprint-41-checklist.md
+    docs/INTEGRATION.md
+
+  STATUS:
+    workspace-quota-live-alert panel added
+    load-workspace-quota-latest-notification button added
+    reset-workspace-quota-daily button added
+    quota-threshold-pct input added to quota form
+    onNotification subscription registered on load
+    Sprint 40 quota rollup/notifications panels preserved
+    Sprint 25–40 compatibility strings preserved
+    docs committed
+    compile clean
+    sonar clean
+
+  NEXT: T6 — smoke tests + sprint closure

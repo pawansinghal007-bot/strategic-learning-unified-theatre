@@ -282,8 +282,20 @@ export function recordWorkspaceQuotaUsage(input: {
   saveStore(store);
 
   const usage = getWorkspaceQuotaUsage(input.workspaceId, ts);
+  const thresholdAlreadyNotified = store.notifications.some(
+    (notification) =>
+      notification.workspaceId === input.workspaceId &&
+      notification.type === "threshold" &&
+      dayKey(notification.timestamp) === dayKey(ts),
+  );
+  const exceededAlreadyNotified = store.notifications.some(
+    (notification) =>
+      notification.workspaceId === input.workspaceId &&
+      notification.type === "exceeded" &&
+      dayKey(notification.timestamp) === dayKey(ts),
+  );
 
-  if (usage.thresholdReached) {
+  if (usage.thresholdReached && !usage.exceeded && !thresholdAlreadyNotified) {
     pushQuotaNotification({
       workspaceId: input.workspaceId,
       type: "threshold",
@@ -319,7 +331,7 @@ export function recordWorkspaceQuotaUsage(input: {
     },
   });
 
-  if (usage.exceeded) {
+  if (usage.exceeded && !exceededAlreadyNotified) {
     pushQuotaNotification({
       workspaceId: input.workspaceId,
       type: "exceeded",
@@ -424,12 +436,15 @@ export function resetWorkspaceQuotaDaily(
 ): {
   ok: true;
   resetAt: number;
+  prunedCount: number;
 } {
   const store = loadStore();
   const today = dayKey(now);
+  const beforeCount = store.usage.length;
   store.usage = store.usage.filter(
     (record) => dayKey(record.timestamp) === today,
   );
+  const prunedCount = beforeCount - store.usage.length;
   store.lastDailyResetAt = now;
   saveStore(store);
 
@@ -450,5 +465,5 @@ export function resetWorkspaceQuotaDaily(
     source,
   });
 
-  return { ok: true, resetAt: now };
+  return { ok: true, resetAt: now, prunedCount };
 }

@@ -502,7 +502,8 @@
 
         if (liveAlert) {
           if (!payload) {
-            liveAlert.textContent = "Live notification: waiting for quota event.";
+            liveAlert.textContent =
+              "Live notification: waiting for quota event.";
           } else {
             const label = `${payload.type.toUpperCase()} :: ${payload.workspaceId} :: ${new Date(payload.timestamp).toLocaleString()}`;
             liveAlert.textContent = `Live notification: ${label}`;
