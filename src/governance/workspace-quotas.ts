@@ -23,7 +23,10 @@ export interface WorkspaceQuotaUsage {
   exceededDaily: boolean;
   exceededWeekly: boolean;
   exceeded: boolean;
+  thresholdReachedDaily: boolean;
+  thresholdReachedWeekly: boolean;
   thresholdReached: boolean;
+  alertThresholdPct: number | null;
   mode: "alert" | "fallback" | "block" | null;
   fallbackProvider: string | null;
 }
@@ -34,6 +37,7 @@ export interface WorkspaceQuotaEvaluation {
   shouldAlert: boolean;
   blocked: boolean;
   fallbackProvider: string | null;
+  thresholdReached: boolean;
   usage: WorkspaceQuotaUsage;
 }
 
@@ -42,24 +46,28 @@ interface QuotaRecord {
   timestamp: number;
 }
 
-interface QuotaNotification {
+export interface WorkspaceQuotaNotification {
   workspaceId: string;
-  type: "threshold" | "exceeded";
+  type: "threshold" | "exceeded" | "dailyReset";
   timestamp: number;
   dayCount: number;
   weekCount: number;
+  source: "usage" | "scheduler" | "manual";
 }
 
-function pushQuotaNotification(input: QuotaNotification): void {
+function pushQuotaNotification(
+  input: WorkspaceQuotaNotification,
+): WorkspaceQuotaNotification {
   const store = loadStore();
   store.notifications.push(input);
   saveStore(store);
+  return input;
 }
 
 interface QuotaStore {
   policies: WorkspaceQuotaPolicy[];
   usage: QuotaRecord[];
-  notifications: QuotaNotification[];
+  notifications: WorkspaceQuotaNotification[];
   lastDailyResetAt: number | null;
 }
 
@@ -99,6 +107,16 @@ function weekKey(timestamp: number): string {
   return d.toISOString().slice(0, 10);
 }
 
+function thresholdReached(
+  count: number,
+  limit: number | null,
+  pct: number | null,
+): boolean {
+  if (typeof limit !== "number" || limit <= 0) return false;
+  if (typeof pct !== "number" || pct <= 0) return false;
+  return count >= Math.ceil(limit * (pct / 100));
+}
+
 export function setWorkspaceQuotaPolicy(input: {
   workspaceId: string;
   dailyLimit?: number | null;
@@ -125,7 +143,11 @@ export function setWorkspaceQuotaPolicy(input: {
     alertThresholdPct:
       typeof input.alertThresholdPct === "number"
         ? input.alertThresholdPct
-        : null,
+        : existingIndex >= 0
+          ? store.policies[existingIndex].alertThresholdPct
+          : null,
+    createdAt:
+      existingIndex >= 0 ? store.policies[existingIndex].createdAt : now,
     updatedAt: now,
   };
 
@@ -147,6 +169,7 @@ export function setWorkspaceQuotaPolicy(input: {
       weeklyLimit: next.weeklyLimit,
       mode: next.mode,
       fallbackProvider: next.fallbackProvider,
+      alertThresholdPct: next.alertThresholdPct,
       reason: input.reason ?? null,
     },
   });
@@ -219,25 +242,16 @@ export function getWorkspaceQuotaUsage(
     typeof policy?.weeklyLimit === "number"
       ? weekCount > policy.weeklyLimit
       : false;
-  const thresholdReached = (() => {
-    if (
-      !policy ||
-      typeof policy.alertThresholdPct !== "number" ||
-      policy.alertThresholdPct <= 0
-    ) {
-      return false;
-    }
-
-    const thresholdFactor = policy.alertThresholdPct / 100;
-    const dailyThresholdReached =
-      typeof policy.dailyLimit === "number" &&
-      dayCount >= Math.ceil(policy.dailyLimit * thresholdFactor);
-    const weeklyThresholdReached =
-      typeof policy.weeklyLimit === "number" &&
-      weekCount >= Math.ceil(policy.weeklyLimit * thresholdFactor);
-
-    return dailyThresholdReached || weeklyThresholdReached;
-  })();
+  const thresholdReachedDaily = thresholdReached(
+    dayCount,
+    policy?.dailyLimit ?? null,
+    policy?.alertThresholdPct ?? null,
+  );
+  const thresholdReachedWeekly = thresholdReached(
+    weekCount,
+    policy?.weeklyLimit ?? null,
+    policy?.alertThresholdPct ?? null,
+  );
 
   return {
     workspaceId,
@@ -248,7 +262,10 @@ export function getWorkspaceQuotaUsage(
     exceededDaily,
     exceededWeekly,
     exceeded: exceededDaily || exceededWeekly,
-    thresholdReached,
+    thresholdReachedDaily,
+    thresholdReachedWeekly,
+    thresholdReached: thresholdReachedDaily || thresholdReachedWeekly,
+    alertThresholdPct: policy?.alertThresholdPct ?? null,
     mode: policy?.mode ?? null,
     fallbackProvider: policy?.fallbackProvider ?? null,
   };
@@ -266,6 +283,29 @@ export function recordWorkspaceQuotaUsage(input: {
 
   const usage = getWorkspaceQuotaUsage(input.workspaceId, ts);
 
+  if (usage.thresholdReached) {
+    pushQuotaNotification({
+      workspaceId: input.workspaceId,
+      type: "threshold",
+      timestamp: ts,
+      dayCount: usage.dayCount,
+      weekCount: usage.weekCount,
+      source: "usage",
+    });
+    appendAuditEvent({
+      action: "workspaceQuota.thresholdAlert",
+      actor: { type: "system" },
+      targetType: "workspaceQuota",
+      workspaceId: input.workspaceId,
+      details: {
+        type: "threshold",
+        dayCount: usage.dayCount,
+        weekCount: usage.weekCount,
+        alertThresholdPct: usage.alertThresholdPct,
+      },
+    });
+  }
+
   appendAuditEvent({
     action: "workspaceQuota.usageRecorded",
     actor: { type: "system" },
@@ -279,16 +319,6 @@ export function recordWorkspaceQuotaUsage(input: {
     },
   });
 
-  if (usage.thresholdReached && !usage.exceeded) {
-    pushQuotaNotification({
-      workspaceId: input.workspaceId,
-      type: "threshold",
-      timestamp: ts,
-      dayCount: usage.dayCount,
-      weekCount: usage.weekCount,
-    });
-  }
-
   if (usage.exceeded) {
     pushQuotaNotification({
       workspaceId: input.workspaceId,
@@ -296,6 +326,7 @@ export function recordWorkspaceQuotaUsage(input: {
       timestamp: ts,
       dayCount: usage.dayCount,
       weekCount: usage.weekCount,
+      source: "usage",
     });
 
     appendAuditEvent({
@@ -329,6 +360,7 @@ export function evaluateWorkspaceQuotaStatus(
       usage.exceeded && usage.mode === "fallback"
         ? usage.fallbackProvider
         : null,
+    thresholdReached: usage.thresholdReached,
     usage,
   };
 }
@@ -364,7 +396,7 @@ export function getWorkspaceQuotaRollup(now = Date.now()): Array<{
 
 export function listWorkspaceQuotaNotifications(
   workspaceId?: string,
-): QuotaNotification[] {
+): WorkspaceQuotaNotification[] {
   const store = loadStore();
   const rows = workspaceId
     ? store.notifications.filter((n) => n.workspaceId === workspaceId)
@@ -372,7 +404,24 @@ export function listWorkspaceQuotaNotifications(
   return rows.slice().sort((a, b) => b.timestamp - a.timestamp);
 }
 
-export function resetWorkspaceQuotaDaily(now = Date.now()): {
+export function getLatestWorkspaceQuotaNotification(
+  workspaceId?: string,
+): WorkspaceQuotaNotification | null {
+  return listWorkspaceQuotaNotifications(workspaceId)[0] ?? null;
+}
+
+export function shouldRunWorkspaceQuotaDailyReset(now = Date.now()): boolean {
+  const store = loadStore();
+  if (typeof store.lastDailyResetAt !== "number") return true;
+  const lastReset = new Date(store.lastDailyResetAt).toISOString().slice(0, 10);
+  const today = new Date(now).toISOString().slice(0, 10);
+  return lastReset !== today;
+}
+
+export function resetWorkspaceQuotaDaily(
+  now = Date.now(),
+  source: "scheduler" | "manual" = "manual",
+): {
   ok: true;
   resetAt: number;
 } {
@@ -390,6 +439,15 @@ export function resetWorkspaceQuotaDaily(now = Date.now()): {
     targetType: "workspaceQuota",
     workspaceId: null,
     details: { resetAt: now },
+  });
+
+  pushQuotaNotification({
+    workspaceId: "__global__",
+    type: "dailyReset",
+    timestamp: now,
+    dayCount: 0,
+    weekCount: 0,
+    source,
   });
 
   return { ok: true, resetAt: now };

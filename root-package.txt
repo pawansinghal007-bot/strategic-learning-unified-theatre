@@ -1,0 +1,149 @@
+{
+  "name": "strategic-learning-unified-theatre",
+  "version": "0.1.0",
+  "description": "Strategic Learning Unified Theatre local project with screen capture, LLM ingestion, and adapter training.",
+  "type": "module",
+  "main": "./src/cli.js",
+  "electron": "./electron-tray/main.js",
+  "author": {
+    "name": "Pawan",
+    "email": "pawan@example.com"
+  },
+  "bin": {
+    "strategic-learning-unified-theatre": "./src/cli.js"
+  },
+  "scripts": {
+    "start": "node ./src/cli.js",
+    "rebuild:node": "npm_config_node_gyp=\"\" npm rebuild better-sqlite3 --build-from-source",
+    "rebuild:electron": "electron-rebuild -f -w better-sqlite3",
+    "test": "npm run rebuild:node && cross-env VSCODE_ROTATOR_MOCK_LLM=1 NODE_OPTIONS=--max-old-space-size=8192 vitest run",
+    "test:unit": "npm run rebuild:node && cross-env VSCODE_ROTATOR_MOCK_LLM=1 NODE_OPTIONS=--max-old-space-size=8192 vitest run",
+    "test:e2e": "npm run rebuild:electron && npx playwright test e2e/",
+    "test:e2e:report": "npm run rebuild:electron && npx playwright test e2e/ --reporter=html",
+    "test:e2e:headed": "npm run rebuild:electron && npx playwright test e2e/ --headed",
+    "test:all": "npm run test:unit && npm run test:e2e",
+    "coverage": "npm run rebuild:node && vitest run --coverage",
+    "coverage:report": "npm run rebuild:node && vitest run --coverage --reporter=html",
+    "test:ci": "npm run rebuild:node && vitest run --coverage --reporter=verbose",
+    "test:integration": "npm run rebuild:node && cross-env VSCODE_ROTATOR_MOCK_LLM=0 NODE_OPTIONS=--max-old-space-size=8192 vitest -c vitest.integration.config.js run",
+    "test:serial": "node run-tests.cjs",
+    "test:chaos": "node ./scripts/chaos/run-chaos.js",
+    "test:chaos:kill-daemon": "node ./scripts/chaos/run-chaos.js --scenario kill-daemon",
+    "test:chaos:corrupt-config": "node ./scripts/chaos/run-chaos.js --scenario corrupt-config",
+    "test:chaos:burst-load": "node ./scripts/chaos/run-chaos.js --scenario burst-load",
+    "test:robot": "robot --outputdir robot-results robot/",
+    "test:robot:functional": "robot --outputdir robot-results --suite functional robot/",
+    "test:robot:regression": "robot --outputdir robot-results --suite regression robot/",
+    "test:robot:nonfunc": "robot --outputdir robot-results --suite non-functional robot/",
+    "test:tdd": "node ./src/test-runner.js tdd-check",
+    "tray": "electron ./electron-tray/main.js",
+    "install-service": "node ./scripts/install.js",
+    "ui:dev": "vite",
+    "ui:build": "vite build",
+    "electron:dev": "npm run ui:build && cross-env NODE_ENV=development electron ./electron-ui/main.cjs",
+    "electron:build": "npm run rebuild:electron && npm run ui:build && electron-builder",
+    "dist:win": "electron-builder --win nsis",
+    "dist:linux": "electron-builder --linux AppImage",
+    "dist:all": "electron-builder -mwl",
+    "dist": "npm run dist:all",
+    "validate:governance": "node scripts/validate-governance-config.mjs",
+    "sonar:validate-waivers": "node scripts/validate-waivers.mjs",
+    "sonar:reconcile": "node scripts/reconcile-hotspot-register.mjs",
+    "sonar:check": "node scripts/check-sonar-readiness.mjs",
+    "sonar:scan": "echo 'not implemented'",
+    "sonar:wait": "echo 'not implemented'",
+    "sonar:export": "echo 'not implemented'"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "build": {
+    "appId": "com.strategiclearning.unifiedtheatre",
+    "productName": "UnifiedTheatre",
+    "icon": "build/icons/512x512.png",
+    "extraMetadata": {
+      "main": "electron-ui/main.cjs"
+    },
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "electron-ui/dist/**/*",
+      "electron-ui/*.cjs",
+      "electron-ui/ipc/**/*",
+      "src/**/*",
+      "package.json"
+    ],
+    "publish": [
+      {
+        "provider": "generic",
+        "url": "https://updates.example.com/unifiedtheatre"
+      }
+    ],
+    "generateUpdatesFilesForAllChannels": true,
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "publisherName": [
+        "Your Company, Inc."
+      ],
+      "artifactName": "${productName}-Setup-${version}.${ext}"
+    },
+    "linux": {
+      "maintainer": "pawan@example.com",
+      "target": [
+        "AppImage"
+      ],
+      "category": "Utility",
+      "artifactName": "${productName}-${version}-${os}-${arch}.${ext}"
+    }
+  },
+  "dependencies": {
+    "ajv": "^8.12.0",
+    "better-sqlite3": "^12.10.0",
+    "chalk": "^5.6.2",
+    "chokidar": "^5.0.0",
+    "commander": "^14.0.3",
+    "electron-store": "^8.2.0",
+    "electron-updater": "^6.0.0",
+    "fflate": "^0.8.3",
+    "gray-matter": "^4.0.3",
+    "llama": "^2.2.0",
+    "marked": "^18.0.4",
+    "nanoid": "^5.1.11",
+    "ora": "^9.4.0",
+    "prop-types": "^15.8.1",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "typescript": "^5.9.3",
+    "yaml": "^2.9.0",
+    "zod": "^4.4.3"
+  },
+  "optionalDependencies": {
+    "mammoth": "^1.12.0",
+    "onnxruntime-node": "^1.26.0",
+    "pdf-parse": "^2.4.5"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.29.7",
+    "@electron/rebuild": "^3.7.2",
+    "@playwright/test": "^1.60.0",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/babel__core": "^7.20.5",
+    "@types/jest": "^30.0.0",
+    "@vitejs/plugin-react": "^6.0.2",
+    "@vitest/coverage-v8": "^4.1.7",
+    "autoprefixer": "^10.5.0",
+    "cross-env": "^10.1.0",
+    "electron": "^33.4.11",
+    "electron-builder": "^24.0.0",
+    "jsdom": "^29.1.1",
+    "playwright": "^1.60.0",
+    "tailwindcss": "^3.4.5",
+    "vite": "^8.0.14",
+    "vitest": "^4.1.7"
+  }
+}

@@ -1,0 +1,15 @@
+name: Local AI Config
+version: 1.0.0
+schema: v1
+
+models:
+  - name: Qwen3-Coder
+    provider: ollama
+    model: qwen3-coder-next:latest
+    apiBase: http://localhost:11434
+
+tabAutocompleteModel:
+  name: Qwen3-Coder
+  provider: ollama
+  model: qwen3-coder-next:latest
+  apiBase: http://localhost:11434

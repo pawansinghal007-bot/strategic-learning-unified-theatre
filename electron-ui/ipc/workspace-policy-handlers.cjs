@@ -1,6 +1,6 @@
 "use strict";
 
-const { ipcMain } = require("electron");
+const { ipcMain, BrowserWindow } = require("electron");
 
 function audit() {
   return require("../../src/audit/audit-log.js");
@@ -26,6 +26,15 @@ function isSensitivePolicyPatch(policyPatch) {
     (Array.isArray(policyPatch.blockedProviders) &&
       policyPatch.blockedProviders.length > 0),
   );
+}
+
+function broadcastQuotaNotification(payload) {
+  const windows = BrowserWindow.getAllWindows();
+  for (const win of windows) {
+    if (!win.isDestroyed()) {
+      win.webContents.send("workspaceQuota:notification", payload);
+    }
+  }
 }
 
 function registerWorkspacePolicyHandlers() {
@@ -161,14 +170,20 @@ function registerWorkspacePolicyHandlers() {
   ipcMain.handle(
     "workspaceQuota:recordUsage",
     async (_event, workspaceId, payload) => {
-      const {
-        recordWorkspaceQuotaUsage,
-      } = require("../../src/governance/workspace-quotas.js");
-      return recordWorkspaceQuotaUsage({
+      const usage = quotas().recordWorkspaceQuotaUsage({
         workspaceId,
         timestamp: payload?.timestamp,
         provider: payload?.provider ?? null,
       });
+      const latest = quotas().getLatestWorkspaceQuotaNotification(workspaceId);
+      if (
+        latest &&
+        latest.workspaceId === workspaceId &&
+        (latest.type === "threshold" || latest.type === "exceeded")
+      ) {
+        broadcastQuotaNotification(latest);
+      }
+      return usage;
     },
   );
 
@@ -196,20 +211,45 @@ function registerWorkspacePolicyHandlers() {
     return clearWorkspaceQuotaUsage(workspaceId);
   });
 
-  ipcMain.handle("workspaceQuota:rollup", async (_event, now) => {
-    return quotas().getWorkspaceQuotaRollup(now);
-  });
+  ipcMain.handle(
+    "workspaceQuota:latestNotification",
+    async (_event, workspaceId) => {
+      const {
+        getLatestWorkspaceQuotaNotification,
+      } = require("../../src/governance/workspace-quotas.js");
+      return getLatestWorkspaceQuotaNotification(workspaceId);
+    },
+  );
 
   ipcMain.handle(
     "workspaceQuota:notifications",
     async (_event, workspaceId) => {
-      return quotas().listWorkspaceQuotaNotifications(workspaceId);
+      const {
+        listWorkspaceQuotaNotifications,
+      } = require("../../src/governance/workspace-quotas.js");
+      return listWorkspaceQuotaNotifications(workspaceId);
     },
   );
 
   ipcMain.handle("workspaceQuota:resetDaily", async (_event, now) => {
-    return quotas().resetWorkspaceQuotaDaily(now);
+    const {
+      resetWorkspaceQuotaDaily,
+      getLatestWorkspaceQuotaNotification,
+    } = require("../../src/governance/workspace-quotas.js");
+    const result = resetWorkspaceQuotaDaily(now, "manual");
+    const latest = getLatestWorkspaceQuotaNotification();
+    if (latest && latest.type === "dailyReset") {
+      broadcastQuotaNotification(latest);
+    }
+    return result;
+  });
+
+  ipcMain.handle("workspaceQuota:rollup", async (_event, now) => {
+    return quotas().getWorkspaceQuotaRollup(now);
   });
 }
 
-module.exports = { registerWorkspacePolicyHandlers };
+module.exports = {
+  registerWorkspacePolicyHandlers,
+  broadcastQuotaNotification,
+};

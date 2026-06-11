@@ -1,0 +1,14 @@
+  SPRINT 41 — T2 COMPLETE
+
+  FILE: electron-ui/ipc/workspace-policy-handlers.cjs (extended)
+
+  STATUS:
+    broadcastQuotaNotification helper added
+    workspaceQuota:recordUsage broadcasts threshold/exceeded notifications
+    workspaceQuota:latestNotification IPC registered
+    workspaceQuota:notifications IPC registered
+    workspaceQuota:resetDaily IPC with broadcast registered
+    All Sprint 40 channels preserved
+    compile clean
+
+  NEXT: T3 — main.cjs scheduler wiring

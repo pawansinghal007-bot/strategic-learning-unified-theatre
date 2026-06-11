@@ -24,9 +24,17 @@ const {
   registerWorkspaceReportHandlers,
 } = require("./ipc/workspace-report-handlers.cjs");
 const { registerAuditHandlers } = require("./ipc/audit-handlers.cjs");
+const {
+  registerWorkspacePolicyHandlers,
+  broadcastQuotaNotification,
+} = require("./ipc/workspace-policy-handlers.cjs");
 const { createLogger } = require("../src/logger.js");
 const { registerIpcHandlers } = require("../src/main/ipc/ipcAdapter");
 const { IPC_CHANNELS } = require("../src/shared/ipc/contract");
+
+function quotaService() {
+  return require("../src/governance/workspace-quotas.js");
+}
 
 function readUpdateConfig() {
   const packagedPath = path.join(
@@ -191,6 +199,7 @@ function setupAutoUpdater() {
 }
 
 let mainLogger = null;
+let quotaResetTimer = null;
 
 app.setPath(
   "cache",
@@ -247,7 +256,7 @@ async function createWindow() {
     minWidth: 800,
     minHeight: 560,
     webPreferences: {
-      preload: path.join(__dirname, "preload.cjs"),
+      preload: path.join(__dirname, "preload.bundled.cjs"),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
@@ -467,7 +476,7 @@ app.whenReady().then(async () => {
 
   // register IPC handlers
   try {
-    const handlersPath = path.join(__dirname, "ipc", "handlers.cjs");
+    const handlersPath = path.join(__dirname, "ipc", "handlers.bundled.cjs");
     mainLogger.info("ipc.handlers.load.start", {
       correlationId: "ipc",
       handlersPath,
@@ -575,6 +584,8 @@ app.whenReady().then(async () => {
     registerWorkspaceRoutingHandlers();
     registerWorkspaceReportHandlers();
     registerAuditHandlers();
+    registerWorkspacePolicyHandlers();
+    startQuotaResetScheduler();
     mainLogger.info("ipc.capture.handlers.success", { correlationId: "ipc" });
   } catch (err) {
     mainLogger.error("ipc.capture.handlers.failure", {
@@ -590,6 +601,49 @@ app.whenReady().then(async () => {
   });
 });
 
+function runScheduledQuotaReset(now = Date.now()) {
+  if (!quotaService().shouldRunWorkspaceQuotaDailyReset(now)) {
+    return { ok: true, skipped: true, reason: "already-ran-today" };
+  }
+  const result = quotaService().resetWorkspaceQuotaDaily(now, "scheduler");
+  const latest = quotaService().getLatestWorkspaceQuotaNotification();
+  if (latest && latest.type === "dailyReset") {
+    broadcastQuotaNotification(latest);
+  }
+  return { ok: true, skipped: false, result };
+}
+
+function startQuotaResetScheduler() {
+  if (quotaResetTimer) return quotaResetTimer;
+  runScheduledQuotaReset();
+  quotaResetTimer = setInterval(() => {
+    try {
+      runScheduledQuotaReset();
+    } catch (error) {
+      console.error("workspace quota reset scheduler failed", error);
+    }
+  }, 60 * 1000);
+  return quotaResetTimer;
+}
+
+function stopQuotaResetScheduler() {
+  if (quotaResetTimer) {
+    clearInterval(quotaResetTimer);
+    quotaResetTimer = null;
+  }
+}
+
 app.on("window-all-closed", () => {
+  stopQuotaResetScheduler();
   if (process.platform !== "darwin") app.quit();
 });
+
+app.on("before-quit", () => {
+  stopQuotaResetScheduler();
+});
+
+module.exports = {
+  runScheduledQuotaReset,
+  startQuotaResetScheduler,
+  stopQuotaResetScheduler,
+};

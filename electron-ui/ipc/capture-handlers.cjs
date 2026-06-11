@@ -10,7 +10,7 @@ const path = require("node:path");
 const os = require("node:os");
 const { promises: fsPromises } = require("node:fs");
 const crypto = require("node:crypto");
-const { createLogger } = require("../../src/logger.js");
+const { createLogger } = require("../../src/logger.cjs");
 
 const log = createLogger("electron-capture");
 

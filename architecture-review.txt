@@ -1,0 +1,881 @@
+===== ROOT PACKAGE =====
+{
+  "name": "strategic-learning-unified-theatre",
+  "version": "0.1.0",
+  "description": "Strategic Learning Unified Theatre local project with screen capture, LLM ingestion, and adapter training.",
+  "type": "module",
+  "main": "./src/cli.js",
+  "electron": "./electron-tray/main.js",
+  "author": {
+    "name": "Pawan",
+    "email": "pawan@example.com"
+  },
+  "bin": {
+    "strategic-learning-unified-theatre": "./src/cli.js"
+  },
+  "scripts": {
+    "start": "node ./src/cli.js",
+    "rebuild:node": "npm_config_node_gyp=\"\" npm rebuild better-sqlite3 --build-from-source",
+    "rebuild:electron": "electron-rebuild -f -w better-sqlite3",
+    "test": "npm run rebuild:node && cross-env VSCODE_ROTATOR_MOCK_LLM=1 NODE_OPTIONS=--max-old-space-size=8192 vitest run",
+    "test:unit": "npm run rebuild:node && cross-env VSCODE_ROTATOR_MOCK_LLM=1 NODE_OPTIONS=--max-old-space-size=8192 vitest run",
+    "test:e2e": "npm run rebuild:electron && npx playwright test e2e/",
+    "test:e2e:report": "npm run rebuild:electron && npx playwright test e2e/ --reporter=html",
+    "test:e2e:headed": "npm run rebuild:electron && npx playwright test e2e/ --headed",
+    "test:all": "npm run test:unit && npm run test:e2e",
+    "coverage": "npm run rebuild:node && vitest run --coverage",
+    "coverage:report": "npm run rebuild:node && vitest run --coverage --reporter=html",
+    "test:ci": "npm run rebuild:node && vitest run --coverage --reporter=verbose",
+    "test:integration": "npm run rebuild:node && cross-env VSCODE_ROTATOR_MOCK_LLM=0 NODE_OPTIONS=--max-old-space-size=8192 vitest -c vitest.integration.config.js run",
+    "test:serial": "node run-tests.cjs",
+    "test:chaos": "node ./scripts/chaos/run-chaos.js",
+    "test:chaos:kill-daemon": "node ./scripts/chaos/run-chaos.js --scenario kill-daemon",
+    "test:chaos:corrupt-config": "node ./scripts/chaos/run-chaos.js --scenario corrupt-config",
+    "test:chaos:burst-load": "node ./scripts/chaos/run-chaos.js --scenario burst-load",
+    "test:robot": "robot --outputdir robot-results robot/",
+    "test:robot:functional": "robot --outputdir robot-results --suite functional robot/",
+    "test:robot:regression": "robot --outputdir robot-results --suite regression robot/",
+    "test:robot:nonfunc": "robot --outputdir robot-results --suite non-functional robot/",
+    "test:tdd": "node ./src/test-runner.js tdd-check",
+    "tray": "electron ./electron-tray/main.js",
+    "install-service": "node ./scripts/install.js",
+    "ui:dev": "vite",
+    "ui:build": "vite build",
+    "electron:dev": "npm run ui:build && cross-env NODE_ENV=development electron ./electron-ui/main.cjs",
+    "electron:build": "npm run rebuild:electron && npm run ui:build && electron-builder",
+    "dist:win": "electron-builder --win nsis",
+    "dist:linux": "electron-builder --linux AppImage",
+    "dist:all": "electron-builder -mwl",
+    "dist": "npm run dist:all",
+    "validate:governance": "node scripts/validate-governance-config.mjs",
+    "sonar:validate-waivers": "node scripts/validate-waivers.mjs",
+    "sonar:reconcile": "node scripts/reconcile-hotspot-register.mjs",
+    "sonar:check": "node scripts/check-sonar-readiness.mjs",
+    "sonar:scan": "echo 'not implemented'",
+    "sonar:wait": "echo 'not implemented'",
+    "sonar:export": "echo 'not implemented'"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "build": {
+    "appId": "com.strategiclearning.unifiedtheatre",
+    "productName": "UnifiedTheatre",
+    "icon": "build/icons/512x512.png",
+    "extraMetadata": {
+      "main": "electron-ui/main.cjs"
+    },
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "electron-ui/dist/**/*",
+      "electron-ui/*.cjs",
+      "electron-ui/ipc/**/*",
+      "src/**/*",
+      "package.json"
+    ],
+    "publish": [
+      {
+        "provider": "generic",
+        "url": "https://updates.example.com/unifiedtheatre"
+      }
+    ],
+    "generateUpdatesFilesForAllChannels": true,
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "publisherName": [
+        "Your Company, Inc."
+      ],
+      "artifactName": "${productName}-Setup-${version}.${ext}"
+    },
+    "linux": {
+      "maintainer": "pawan@example.com",
+      "target": [
+        "AppImage"
+      ],
+      "category": "Utility",
+      "artifactName": "${productName}-${version}-${os}-${arch}.${ext}"
+    }
+  },
+  "dependencies": {
+    "ajv": "^8.12.0",
+    "better-sqlite3": "^12.10.0",
+    "chalk": "^5.6.2",
+    "chokidar": "^5.0.0",
+    "commander": "^14.0.3",
+    "electron-store": "^8.2.0",
+    "electron-updater": "^6.0.0",
+    "fflate": "^0.8.3",
+    "gray-matter": "^4.0.3",
+    "llama": "^2.2.0",
+    "marked": "^18.0.4",
+    "nanoid": "^5.1.11",
+    "ora": "^9.4.0",
+    "prop-types": "^15.8.1",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "typescript": "^5.9.3",
+    "yaml": "^2.9.0",
+    "zod": "^4.4.3"
+  },
+  "optionalDependencies": {
+    "mammoth": "^1.12.0",
+    "onnxruntime-node": "^1.26.0",
+    "pdf-parse": "^2.4.5"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.29.7",
+    "@electron/rebuild": "^3.7.2",
+    "@playwright/test": "^1.60.0",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/babel__core": "^7.20.5",
+    "@types/jest": "^30.0.0",
+    "@vitejs/plugin-react": "^6.0.2",
+    "@vitest/coverage-v8": "^4.1.7",
+    "autoprefixer": "^10.5.0",
+    "cross-env": "^10.1.0",
+    "electron": "^33.4.11",
+    "electron-builder": "^24.0.0",
+    "jsdom": "^29.1.1",
+    "playwright": "^1.60.0",
+    "tailwindcss": "^3.4.5",
+    "vite": "^8.0.14",
+    "vitest": "^4.1.7"
+  }
+}
+===== SRC STRUCTURE =====
+src
+src/__tests__
+src/accounts
+src/ai-memory
+src/ai-memory/legacy
+src/ai-memory/repositories
+src/audit
+src/browser-adapters
+src/cli
+src/commands
+src/daemon
+src/domain
+src/governance
+src/installer
+src/installer/hw-probe
+src/installer/hw-probe/node_modules
+src/installer/hw-probe/node_modules/.bin
+src/installer/hw-probe/node_modules/@esbuild
+src/installer/hw-probe/node_modules/@jest
+src/installer/hw-probe/node_modules/@jridgewell
+src/installer/hw-probe/node_modules/@rollup
+src/installer/hw-probe/node_modules/@sinclair
+src/installer/hw-probe/node_modules/@types
+src/installer/hw-probe/node_modules/@vitest
+src/installer/hw-probe/node_modules/acorn
+src/installer/hw-probe/node_modules/acorn-walk
+src/installer/hw-probe/node_modules/ansi-styles
+src/installer/hw-probe/node_modules/assertion-error
+src/installer/hw-probe/node_modules/cac
+src/installer/hw-probe/node_modules/chai
+src/installer/hw-probe/node_modules/check-error
+src/installer/hw-probe/node_modules/confbox
+src/installer/hw-probe/node_modules/cross-spawn
+src/installer/hw-probe/node_modules/debug
+src/installer/hw-probe/node_modules/deep-eql
+src/installer/hw-probe/node_modules/diff-sequences
+src/installer/hw-probe/node_modules/esbuild
+src/installer/hw-probe/node_modules/estree-walker
+src/installer/hw-probe/node_modules/execa
+src/installer/hw-probe/node_modules/get-func-name
+src/installer/hw-probe/node_modules/get-stream
+src/installer/hw-probe/node_modules/human-signals
+src/installer/hw-probe/node_modules/is-stream
+src/installer/hw-probe/node_modules/isexe
+src/installer/hw-probe/node_modules/js-tokens
+src/installer/hw-probe/node_modules/local-pkg
+src/installer/hw-probe/node_modules/loupe
+src/installer/hw-probe/node_modules/magic-string
+src/installer/hw-probe/node_modules/merge-stream
+src/installer/hw-probe/node_modules/mimic-fn
+src/installer/hw-probe/node_modules/mlly
+src/installer/hw-probe/node_modules/ms
+src/installer/hw-probe/node_modules/nanoid
+src/installer/hw-probe/node_modules/npm-run-path
+src/installer/hw-probe/node_modules/onetime
+src/installer/hw-probe/node_modules/p-limit
+src/installer/hw-probe/node_modules/path-key
+src/installer/hw-probe/node_modules/pathe
+src/installer/hw-probe/node_modules/pathval
+src/installer/hw-probe/node_modules/picocolors
+src/installer/hw-probe/node_modules/pkg-types
+src/installer/hw-probe/node_modules/postcss
+src/installer/hw-probe/node_modules/pretty-format
+src/installer/hw-probe/node_modules/react-is
+src/installer/hw-probe/node_modules/rollup
+src/installer/hw-probe/node_modules/shebang-command
+src/installer/hw-probe/node_modules/shebang-regex
+src/installer/hw-probe/node_modules/siginfo
+src/installer/hw-probe/node_modules/signal-exit
+src/installer/hw-probe/node_modules/source-map-js
+src/installer/hw-probe/node_modules/stackback
+src/installer/hw-probe/node_modules/std-env
+src/installer/hw-probe/node_modules/strip-final-newline
+src/installer/hw-probe/node_modules/strip-literal
+src/installer/hw-probe/node_modules/tinybench
+src/installer/hw-probe/node_modules/tinypool
+src/installer/hw-probe/node_modules/tinyspy
+src/installer/hw-probe/node_modules/tsx
+src/installer/hw-probe/node_modules/type-detect
+src/installer/hw-probe/node_modules/typescript
+src/installer/hw-probe/node_modules/ufo
+src/installer/hw-probe/node_modules/vite
+src/installer/hw-probe/node_modules/vite-node
+src/installer/hw-probe/node_modules/vitest
+src/installer/hw-probe/node_modules/which
+src/installer/hw-probe/node_modules/why-is-node-running
+src/installer/hw-probe/node_modules/yocto-queue
+src/internal
+src/llm
+src/llm/providers
+src/main
+src/main/ipc
+src/main/ipc/__tests__
+src/main/ipc/ipcAdapter
+src/main/updater
+src/main/updater/__tests__
+src/memory
+src/policies
+src/profile-templates
+src/renderer
+src/renderer/types
+src/shared
+src/shared/contracts
+src/shared/errors
+src/shared/ipc
+src/shared/ipc/contract
+src/shared/logging
+src/shared/schemas
+src/storage
+src/system
+src/ui
+src/utils
+
+===== PLAYWRIGHT =====
+### ./playwright.config.ts ###
+import { defineConfig, devices } from '@playwright/test';
+import path from 'node:path';
+
+export default defineConfig({
+  testDir: './e2e',
+  timeout: 30000,
+  retries: 1,
+  reporter: [
+    ['list'],
+    ['html', { outputFolder: 'playwright-report', open: 'never' }],
+  ],
+  use: {
+    video: 'on',                    // record every test
+    screenshot: 'on',               // screenshot on failure
+    trace: 'on',                    // full trace for debugging
+    launchOptions: {
+      args: ['--no-sandbox'],
+    },
+  },
+  projects: [
+    {
+      name: 'electron',
+      use: {
+        ...devices['Desktop Chrome'],
+      },
+    },
+  ],
+  outputDir: 'test-results',
+});
+### ./playwright.config.ts:Zone.Identifier ###
+[ZoneTransfer]
+ZoneId=3 
+===== VITE =====
+### ./vite.config.js:Zone.Identifier ###
+[ZoneTransfer]
+ZoneId=3 ### ./vite.config.js ###
+﻿import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { resolve } from 'node:path';
+
+export default defineConfig({
+  base: './',
+  plugins: [react()],
+  root: resolve(__dirname, 'renderer'),
+  css: {
+    postcss: resolve(__dirname, 'postcss.config.cjs'),
+  },
+  build: {
+    outDir: resolve(__dirname, 'electron-ui/dist'),
+    emptyOutDir: true,
+  },
+});
+
+===== TYPESCRIPT =====
+### ./src/installer/hw-probe/tsconfig.json ###
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "outDir": "dist",
+    "rootDir": "src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
+### ./tsconfig.json ###
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "types": []
+  },
+  "include": ["src/shared/**/*"],
+  "files": [
+    "src/shared/contracts/provider.ts",
+    "src/shared/schemas/provider.schema.ts",
+    "src/shared/errors/base.ts",
+    "src/shared/errors/provider.error.ts",
+    "src/shared/errors/routing.error.ts",
+    "src/shared/errors/memory.error.ts",
+    "src/shared/errors/validation.error.ts",
+    "src/shared/errors/index.ts"
+  ]
+}
+### ./node_modules/atomically/tsconfig.json ###
+{
+  "compilerOptions": {
+    "alwaysStrict": true,
+    "declaration": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": true,
+    "inlineSourceMap": false,
+    "jsx": "react",
+    "lib": ["dom", "scripthost", "es2015", "es2016", "es2017", "es2018", "es2019", "es2020"],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "newLine": "LF",
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": false,
+    "outDir": "dist",
+    "pretty": true,
+    "strictNullChecks": true,
+    "target": "es2018"
+  },
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
+### ./node_modules/hasown/tsconfig.json ###
+{
+  "extends": "@ljharb/tsconfig",
+  "exclude": [
+    "coverage",
+  ],
+}
+### ./node_modules/es-set-tostringtag/tsconfig.json ###
+{
+	"extends": "@ljharb/tsconfig",
+	"compilerOptions": {
+		"target": "es2021",
+	},
+	"exclude": [
+		"coverage",
+	],
+}
+### ./node_modules/math-intrinsics/tsconfig.json ###
+{
+	"extends": "@ljharb/tsconfig",
+}
+### ./node_modules/define-data-property/tsconfig.json ###
+{
+  "compilerOptions": {
+    /* Visit https://aka.ms/tsconfig to read more about this file */
+
+    /* Projects */
+
+    /* Language and Environment */
+    "target": "es2022",                                  /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
+    // "lib": [],                                        /* Specify a set of bundled library declaration files that describe the target runtime environment. */
+    // "noLib": true,                                    /* Disable including any library files, including the default lib.d.ts. */
+    "useDefineForClassFields": true,                     /* Emit ECMAScript-standard-compliant class fields. */
+    // "moduleDetection": "auto",                        /* Control what method is used to detect module-format JS files. */
+
+    /* Modules */
+    "module": "commonjs",                                /* Specify what module code is generated. */
+    // "rootDir": "./",                                  /* Specify the root folder within your source files. */
+    // "moduleResolution": "node10",                     /* Specify how TypeScript looks up a file from a given module specifier. */
+    // "baseUrl": "./",                                  /* Specify the base directory to resolve non-relative module names. */
+    // "paths": {},                                      /* Specify a set of entries that re-map imports to additional lookup locations. */
+    // "rootDirs": [],                                   /* Allow multiple folders to be treated as one when resolving modules. */
+    "typeRoots": ["types"],                              /* Specify multiple folders that act like './node_modules/@types'. */
+    "resolveJsonModule": true,                           /* Enable importing .json files. */
+
+    /* JavaScript Support */
+    "allowJs": true,                                    /* Allow JavaScript files to be a part of your program. Use the 'checkJS' option to get errors from these files. */
+    "checkJs": true,                                    /* Enable error reporting in type-checked JavaScript files. */
+    "maxNodeModuleJsDepth": 1,                          /* Specify the maximum folder depth used for checking JavaScript files from 'node_modules'. Only applicable with 'allowJs'. */
+
+    /* Emit */
+    "declaration": true,                                 /* Generate .d.ts files from TypeScript and JavaScript files in your project. */
+    "declarationMap": true,                              /* Create sourcemaps for d.ts files. */
+    // "emitDeclarationOnly": true,                      /* Only output d.ts files and not JavaScript files. */
+    "noEmit": true,                                      /* Disable emitting files from a compilation. */
+
+    /* Interop Constraints */
+    "allowSyntheticDefaultImports": true,                /* Allow 'import x from y' when a module doesn't have a default export. */
+    "esModuleInterop": true,                             /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables 'allowSyntheticDefaultImports' for type compatibility. */
+    "forceConsistentCasingInFileNames": true,            /* Ensure that casing is correct in imports. */
+
+    /* Type Checking */
+    "strict": true,                                      /* Enable all strict type-checking options. */
+    "noImplicitAny": true,                               /* Enable error reporting for expressions and declarations with an implied 'any' type. */
+    "noImplicitThis": true,                              /* Enable error reporting when 'this' is given the type 'any'. */
+    "useUnknownInCatchVariables": true,                  /* Default catch clause variables as 'unknown' instead of 'any'. */
+    "noUnusedLocals": true,                              /* Enable error reporting when local variables aren't read. */
+    "noUnusedParameters": true,                          /* Raise an error when a function parameter isn't read. */
+    "noImplicitReturns": true,                           /* Enable error reporting for codepaths that do not explicitly return in a function. */
+    "noFallthroughCasesInSwitch": true,                  /* Enable error reporting for fallthrough cases in switch statements. */
+    "noUncheckedIndexedAccess": true,                    /* Add 'undefined' to a type when accessed using an index. */
+    "noImplicitOverride": true,                          /* Ensure overriding members in derived classes are marked with an override modifier. */
+    // "noPropertyAccessFromIndexSignature": true,       /* Enforces using indexed accessors for keys declared using an indexed type. */
+
+    /* Completeness */
+    // "skipLibCheck": true                                 /* Skip type checking all .d.ts files. */
+  },
+  "exclude": [
+    "coverage"
+  ]
+}
+### ./node_modules/@testing-library/jest-dom/types/__tests__/jest/tsconfig.json ###
+{
+  "compilerOptions": {
+    "noEmit": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "types": ["jest"]
+  },
+  "include": ["*.ts"]
+}
+### ./node_modules/@testing-library/jest-dom/types/__tests__/jest-globals/tsconfig.json ###
+{
+  "compilerOptions": {
+    "noEmit": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "types": []
+  },
+  "include": ["*.ts"]
+}
+### ./node_modules/@testing-library/jest-dom/types/__tests__/bun/tsconfig.json ###
+{
+  "compilerOptions": {
+    "noEmit": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "types": ["bun", "web"]
+  },
+  "include": ["*.ts"]
+}
+### ./node_modules/@testing-library/jest-dom/types/__tests__/vitest/tsconfig.json ###
+{
+  "compilerOptions": {
+    "noEmit": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "types": []
+  },
+  "include": ["*.ts"]
+}
+### ./node_modules/es-object-atoms/tsconfig.json ###
+{
+	"extends": "@ljharb/tsconfig",
+	"compilerOptions": {
+		"target": "es5",
+		"ignoreDeprecations": "6.0",
+	},
+}
+### ./node_modules/jszip/tsconfig.json ###
+{
+  "compilerOptions": {
+    /* Visit https://aka.ms/tsconfig.json to read more about this file */
+
+    /* Projects */
+    // "incremental": true,                              /* Enable incremental compilation */
+    // "composite": true,                                /* Enable constraints that allow a TypeScript project to be used with project references. */
+    // "tsBuildInfoFile": "./",                          /* Specify the folder for .tsbuildinfo incremental compilation files. */
+    // "disableSourceOfProjectReferenceRedirect": true,  /* Disable preferring source files instead of declaration files when referencing composite projects */
+    // "disableSolutionSearching": true,                 /* Opt a project out of multi-project reference checking when editing. */
+    // "disableReferencedProjectLoad": true,             /* Reduce the number of projects loaded automatically by TypeScript. */
+
+    /* Language and Environment */
+    "target": "es2016",                                  /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
+    // "lib": [],                                        /* Specify a set of bundled library declaration files that describe the target runtime environment. */
+    // "jsx": "preserve",                                /* Specify what JSX code is generated. */
+    // "experimentalDecorators": true,                   /* Enable experimental support for TC39 stage 2 draft decorators. */
+    // "emitDecoratorMetadata": true,                    /* Emit design-type metadata for decorated declarations in source files. */
+    // "jsxFactory": "",                                 /* Specify the JSX factory function used when targeting React JSX emit, e.g. 'React.createElement' or 'h' */
+    // "jsxFragmentFactory": "",                         /* Specify the JSX Fragment reference used for fragments when targeting React JSX emit e.g. 'React.Fragment' or 'Fragment'. */
+    // "jsxImportSource": "",                            /* Specify module specifier used to import the JSX factory functions when using `jsx: react-jsx*`.` */
+    // "reactNamespace": "",                             /* Specify the object invoked for `createElement`. This only applies when targeting `react` JSX emit. */
+    // "noLib": true,                                    /* Disable including any library files, including the default lib.d.ts. */
+    // "useDefineForClassFields": true,                  /* Emit ECMAScript-standard-compliant class fields. */
+
+    /* Modules */
+    "module": "commonjs",                                /* Specify what module code is generated. */
+    // "rootDir": "./",                                  /* Specify the root folder within your source files. */
+    // "moduleResolution": "node",                       /* Specify how TypeScript looks up a file from a given module specifier. */
+    // "baseUrl": "./",                                  /* Specify the base directory to resolve non-relative module names. */
+    // "paths": {},                                      /* Specify a set of entries that re-map imports to additional lookup locations. */
+    // "rootDirs": [],                                   /* Allow multiple folders to be treated as one when resolving modules. */
+    // "typeRoots": [],                                  /* Specify multiple folders that act like `./node_modules/@types`. */
+    // "types": [],                                      /* Specify type package names to be included without being referenced in a source file. */
+    // "allowUmdGlobalAccess": true,                     /* Allow accessing UMD globals from modules. */
+    // "resolveJsonModule": true,                        /* Enable importing .json files */
+    // "noResolve": true,                                /* Disallow `import`s, `require`s or `<reference>`s from expanding the number of files TypeScript should add to a project. */
+
+    /* JavaScript Support */
+    // "allowJs": true,                                  /* Allow JavaScript files to be a part of your program. Use the `checkJS` option to get errors from these files. */
+    // "checkJs": true,                                  /* Enable error reporting in type-checked JavaScript files. */
+    // "maxNodeModuleJsDepth": 1,                        /* Specify the maximum folder depth used for checking JavaScript files from `node_modules`. Only applicable with `allowJs`. */
+
+    /* Emit */
+    // "declaration": true,                              /* Generate .d.ts files from TypeScript and JavaScript files in your project. */
+    // "declarationMap": true,                           /* Create sourcemaps for d.ts files. */
+    // "emitDeclarationOnly": true,                      /* Only output d.ts files and not JavaScript files. */
+    // "sourceMap": true,                                /* Create source map files for emitted JavaScript files. */
+    // "outFile": "./",                                  /* Specify a file that bundles all outputs into one JavaScript file. If `declaration` is true, also designates a file that bundles all .d.ts output. */
+    // "outDir": "./",                                   /* Specify an output folder for all emitted files. */
+    // "removeComments": true,                           /* Disable emitting comments. */
+    "noEmit": true,                                   /* Disable emitting files from a compilation. */
+    // "importHelpers": true,                            /* Allow importing helper functions from tslib once per project, instead of including them per-file. */
+    // "importsNotUsedAsValues": "remove",               /* Specify emit/checking behavior for imports that are only used for types */
+    // "downlevelIteration": true,                       /* Emit more compliant, but verbose and less performant JavaScript for iteration. */
+    // "sourceRoot": "",                                 /* Specify the root path for debuggers to find the reference source code. */
+    // "mapRoot": "",                                    /* Specify the location where debugger should locate map files instead of generated locations. */
+    // "inlineSourceMap": true,                          /* Include sourcemap files inside the emitted JavaScript. */
+    // "inlineSources": true,                            /* Include source code in the sourcemaps inside the emitted JavaScript. */
+    // "emitBOM": true,                                  /* Emit a UTF-8 Byte Order Mark (BOM) in the beginning of output files. */
+    // "newLine": "crlf",                                /* Set the newline character for emitting files. */
+    // "stripInternal": true,                            /* Disable emitting declarations that have `@internal` in their JSDoc comments. */
+    // "noEmitHelpers": true,                            /* Disable generating custom helper functions like `__extends` in compiled output. */
+    // "noEmitOnError": true,                            /* Disable emitting files if any type checking errors are reported. */
+    // "preserveConstEnums": true,                       /* Disable erasing `const enum` declarations in generated code. */
+    // "declarationDir": "./",                           /* Specify the output directory for generated declaration files. */
+    // "preserveValueImports": true,                     /* Preserve unused imported values in the JavaScript output that would otherwise be removed. */
+
+    /* Interop Constraints */
+    // "isolatedModules": true,                          /* Ensure that each file can be safely transpiled without relying on other imports. */
+    // "allowSyntheticDefaultImports": true,             /* Allow 'import x from y' when a module doesn't have a default export. */
+    "esModuleInterop": true,                             /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables `allowSyntheticDefaultImports` for type compatibility. */
+    // "preserveSymlinks": true,                         /* Disable resolving symlinks to their realpath. This correlates to the same flag in node. */
+    "forceConsistentCasingInFileNames": true,            /* Ensure that casing is correct in imports. */
+
+    /* Type Checking */
+    "strict": true,                                      /* Enable all strict type-checking options. */
+    // "noImplicitAny": true,                            /* Enable error reporting for expressions and declarations with an implied `any` type.. */
+    // "strictNullChecks": true,                         /* When type checking, take into account `null` and `undefined`. */
+    // "strictFunctionTypes": true,                      /* When assigning functions, check to ensure parameters and the return values are subtype-compatible. */
+    // "strictBindCallApply": true,                      /* Check that the arguments for `bind`, `call`, and `apply` methods match the original function. */
+    // "strictPropertyInitialization": true,             /* Check for class properties that are declared but not set in the constructor. */
+    // "noImplicitThis": true,                           /* Enable error reporting when `this` is given the type `any`. */
+    // "useUnknownInCatchVariables": true,               /* Type catch clause variables as 'unknown' instead of 'any'. */
+    // "alwaysStrict": true,                             /* Ensure 'use strict' is always emitted. */
+    // "noUnusedLocals": true,                           /* Enable error reporting when a local variables aren't read. */
+    // "noUnusedParameters": true,                       /* Raise an error when a function parameter isn't read */
+    // "exactOptionalPropertyTypes": true,               /* Interpret optional property types as written, rather than adding 'undefined'. */
+    // "noImplicitReturns": true,                        /* Enable error reporting for codepaths that do not explicitly return in a function. */
+    // "noFallthroughCasesInSwitch": true,               /* Enable error reporting for fallthrough cases in switch statements. */
+    // "noUncheckedIndexedAccess": true,                 /* Include 'undefined' in index signature results */
+    // "noImplicitOverride": true,                       /* Ensure overriding members in derived classes are marked with an override modifier. */
+    // "noPropertyAccessFromIndexSignature": true,       /* Enforces using indexed accessors for keys declared using an indexed type */
+    // "allowUnusedLabels": true,                        /* Disable error reporting for unused labels. */
+    // "allowUnreachableCode": true,                     /* Disable error reporting for unreachable code. */
+
+    /* Completeness */
+    // "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
+    // "skipLibCheck": true                                 /* Skip type checking all .d.ts files. */
+  }
+}
+### ./node_modules/crc-32/types/tsconfig.json ###
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "lib": [ "es5" ],
+        "noImplicitAny": true,
+        "noImplicitThis": true,
+        "strictNullChecks": false,
+        "baseUrl": ".",
+        "paths": { "crc-32": ["."] },
+        "types": [],
+        "noEmit": true,
+        "forceConsistentCasingInFileNames": true
+    }
+}
+### ./node_modules/get-proto/tsconfig.json ###
+{
+	"extends": "@ljharb/tsconfig",
+	"compilerOptions": {
+		//"target": "es2021",
+	},
+	"exclude": [
+		"coverage",
+	],
+}
+### ./node_modules/fastq/test/tsconfig.json ###
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "noEmit": true,
+    "strict": true
+  },
+  "files": [
+    "./example.ts"
+  ]
+}
+### ./node_modules/has-symbols/tsconfig.json ###
+{
+	"extends": "@ljharb/tsconfig",
+	"compilerOptions": {
+		"target": "ES2021",
+		"maxNodeModuleJsDepth": 0,
+	},
+	"exclude": [
+		"coverage"
+	]
+}
+### ./node_modules/dunder-proto/tsconfig.json ###
+{
+	"extends": "@ljharb/tsconfig",
+	"compilerOptions": {
+		"target": "ES2021",
+	},
+	"exclude": [
+		"coverage",
+	],
+}
+### ./node_modules/@jest/pattern/tsconfig.json ###
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "build"
+  },
+  "include": ["./src/**/*"],
+  "exclude": ["./**/__tests__/**/*"],
+  "references": [{"path": "../jest-regex-util"}]
+}
+### ./node_modules/es-errors/tsconfig.json ###
+{
+	"compilerOptions": {
+		/* Visit https://aka.ms/tsconfig.json to read more about this file */
+
+		/* Projects */
+
+		/* Language and Environment */
+		"target": "es5",																	/* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
+		// "lib": [],																				/* Specify a set of bundled library declaration files that describe the target runtime environment. */
+		// "noLib": true,																		/* Disable including any library files, including the default lib.d.ts. */
+		"useDefineForClassFields": true,										 /* Emit ECMAScript-standard-compliant class fields. */
+		// "moduleDetection": "auto",												/* Control what method is used to detect module-format JS files. */
+
+		/* Modules */
+		"module": "commonjs",																/* Specify what module code is generated. */
+		// "rootDir": "./",																	/* Specify the root folder within your source files. */
+		// "moduleResolution": "node",											 /* Specify how TypeScript looks up a file from a given module specifier. */
+		// "baseUrl": "./",																	/* Specify the base directory to resolve non-relative module names. */
+		// "paths": {},																			/* Specify a set of entries that re-map imports to additional lookup locations. */
+		// "rootDirs": [],																	 /* Allow multiple folders to be treated as one when resolving modules. */
+		// "typeRoots": ["types"],													 /* Specify multiple folders that act like `./node_modules/@types`. */
+		"resolveJsonModule": true,													 /* Enable importing .json files. */
+		// "allowArbitraryExtensions": true,								 /* Enable importing files with any extension, provided a declaration file is present. */
+
+		/* JavaScript Support */
+		"allowJs": true,																		 /* Allow JavaScript files to be a part of your program. Use the `checkJS` option to get errors from these files. */
+		"checkJs": true,																		 /* Enable error reporting in type-checked JavaScript files. */
+		"maxNodeModuleJsDepth": 1,													 /* Specify the maximum folder depth used for checking JavaScript files from `node_modules`. Only applicable with `allowJs`. */
+
+		/* Emit */
+		"declaration": true,																 /* Generate .d.ts files from TypeScript and JavaScript files in your project. */
+		"declarationMap": true,															/* Create sourcemaps for d.ts files. */
+		"noEmit": true,																			/* Disable emitting files from a compilation. */
+
+		/* Interop Constraints */
+		"allowSyntheticDefaultImports": true,								/* Allow `import x from y` when a module doesn't have a default export. */
+		"esModuleInterop": true,														 /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables `allowSyntheticDefaultImports` for type compatibility. */
+		"forceConsistentCasingInFileNames": true,						/* Ensure that casing is correct in imports. */
+
+		/* Type Checking */
+		"strict": true,																			/* Enable all strict type-checking options. */
+
+		/* Completeness */
+		// "skipLibCheck": true															/* Skip type checking all .d.ts files. */
+	},
+	"exclude": [
+		"coverage",
+	],
+}
+### ./node_modules/boolean/tsconfig.json ###
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "declaration": true,
+    "esModuleInterop": true,
+    "lib": [ "esnext" ],
+    "module": "commonjs",
+    "outDir": "build",
+    "resolveJsonModule": true,
+    "strict": true,
+    "target": "es2019"
+  },
+  "include": [
+    "./**/*.ts"
+  ],
+  "exclude": [
+    "./build"
+  ]
+}
+### ./node_modules/gopd/tsconfig.json ###
+{
+	"extends": "@ljharb/tsconfig",
+	"compilerOptions": {
+		"target": "es2021",
+	},
+	"exclude": [
+		"coverage",
+	],
+}
+### ./node_modules/fast-uri/tsconfig.json ###
+{
+    "compilerOptions": {
+        "allowJs": true,
+        "checkJs": true,
+        "strict": true,
+        "noImplicitAny": true,
+        "target": "es2015"
+    }
+}### ./node_modules/has-tostringtag/tsconfig.json ###
+{
+  "compilerOptions": {
+    /* Visit https://aka.ms/tsconfig to read more about this file */
+
+    /* Projects */
+
+    /* Language and Environment */
+    "target": "ESNext",                                  /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
+    // "lib": [],                                        /* Specify a set of bundled library declaration files that describe the target runtime environment. */
+    // "noLib": true,                                    /* Disable including any library files, including the default lib.d.ts. */
+    "useDefineForClassFields": true,                     /* Emit ECMAScript-standard-compliant class fields. */
+    // "moduleDetection": "auto",                        /* Control what method is used to detect module-format JS files. */
+
+    /* Modules */
+    "module": "commonjs",                                /* Specify what module code is generated. */
+    // "rootDir": "./",                                  /* Specify the root folder within your source files. */
+    // "moduleResolution": "node10",                     /* Specify how TypeScript looks up a file from a given module specifier. */
+    // "baseUrl": "./",                                  /* Specify the base directory to resolve non-relative module names. */
+    // "paths": {},                                      /* Specify a set of entries that re-map imports to additional lookup locations. */
+    // "rootDirs": [],                                   /* Allow multiple folders to be treated as one when resolving modules. */
+    "typeRoots": ["types"],                              /* Specify multiple folders that act like './node_modules/@types'. */
+    "resolveJsonModule": true,                           /* Enable importing .json files. */
+    // "allowArbitraryExtensions": true,                 /* Enable importing files with any extension, provided a declaration file is present. */
+
+    /* JavaScript Support */
+    "allowJs": true,                                     /* Allow JavaScript files to be a part of your program. Use the 'checkJS' option to get errors from these files. */
+    "checkJs": true,                                     /* Enable error reporting in type-checked JavaScript files. */
+    "maxNodeModuleJsDepth": 0,                           /* Specify the maximum folder depth used for checking JavaScript files from 'node_modules'. Only applicable with 'allowJs'. */
+
+    /* Emit */
+    "declaration": true,                                 /* Generate .d.ts files from TypeScript and JavaScript files in your project. */
+    "declarationMap": true,                              /* Create sourcemaps for d.ts files. */
+    "noEmit": true,                                      /* Disable emitting files from a compilation. */
+
+    /* Interop Constraints */
+    "allowSyntheticDefaultImports": true,                /* Allow 'import x from y' when a module doesn't have a default export. */
+    "esModuleInterop": true,                             /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables 'allowSyntheticDefaultImports' for type compatibility. */
+    "forceConsistentCasingInFileNames": true,            /* Ensure that casing is correct in imports. */
+
+    /* Type Checking */
+    "strict": true,                                      /* Enable all strict type-checking options. */
+
+    /* Completeness */
+    //"skipLibCheck": true                                 /* Skip type checking all .d.ts files. */
+  },
+  "exclude": [
+    "coverage"
+  ]
+}
+### ./node_modules/dotenv/types/tsconfig.json ###
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "lib": ["es6"],
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "dotenv": ["."]
+    }
+  }
+}
+### ./node_modules/reusify/tsconfig.json ###
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "noEmit": true,
+    "strict": true
+  },
+  "files": [
+    "./reusify.d.ts"
+  ]
+}
+### ./node_modules/call-bind-apply-helpers/tsconfig.json ###
+{
+	"extends": "@ljharb/tsconfig",
+	"compilerOptions": {
+		"target": "es2021",
+	},
+	"exclude": [
+		"coverage",
+	],
+}### ./node_modules/@babel/traverse/tsconfig.overrides.json ###
+{
+  "compilerOptions": {
+    "strictNullChecks": true,
+    "strictPropertyInitialization": true
+  }
+}### ./node_modules/es-define-property/tsconfig.json ###
+{
+	"extends": "@ljharb/tsconfig",
+	"compilerOptions": {
+		"target": "es2022",
+	},
+	"exclude": [
+		"coverage",
+		"test/list-exports"
+	],
+}

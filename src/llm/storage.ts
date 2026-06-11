@@ -3,14 +3,16 @@ import { dirname, join } from "path";
 import { homedir } from "os";
 import { logger } from "../shared/logging/logger";
 
-const APP_DIR = join(homedir(), ".unified-ai-workspace");
+function getAppDir() {
+  return process.env.UNIFIED_AI_DATA_DIR ?? join(homedir(), ".unified-ai-workspace");
+}
 
 function ensureDir(path: string) {
   mkdirSync(dirname(path), { recursive: true });
 }
 
 export function getStoragePath(fileName: string) {
-  return join(APP_DIR, fileName);
+  return join(getAppDir(), fileName);
 }
 
 export function readJsonFile<T>(fileName: string, fallback: T): T {

@@ -1,0 +1,73 @@
+  SPRINT 40 COMPLETE: GATEWAY QUOTA ENFORCEMENT, DAILY RESET, ROLLUP & ALERTS
+
+  SPRINT SUMMARY:
+    T1  gateway enforcement        applyWorkspaceQuotaEnforcement() +
+                                   enforceWorkspaceQuotaOrThrow() wired into
+                                   Gateway.ask() in src/llm/gateway.ts;
+                                   getWorkspaceQuotaRollup(),
+                                   listWorkspaceQuotaNotifications(),
+                                   resetWorkspaceQuotaDaily() added to
+                                   src/governance/workspace-quotas.ts
+    T2  IPC + preload + types      3 new IPC channels in workspace-policy-handlers.cjs
+                                   (workspaceQuota:rollup / :notifications / :resetDaily);
+                                   preload workspaceQuota block extended;
+                                   types.d.ts workspaceQuota interface extended
+    T3  dashboard + smoke tests    Sprint 40 quota rollup panel, notifications panel,
+                                   daily-reset button, threshold-reached state added
+                                   to provider-dashboard.html;
+                                   tests/sprint40-smoke.test.js
+
+  STATUS:
+    vitest pass — 94+ files / 870+ tests
+    typecheck clean
+    sonar clean
+    tagged sprint-40-complete
+
+  DELIVERABLES:
+    [x] applyWorkspaceQuotaEnforcement() — records usage, evaluates, returns GatewayQuotaDecision
+    [x] enforceWorkspaceQuotaOrThrow()   — throws WORKSPACE_QUOTA_EXCEEDED when mode=block
+    [x] Gateway.ask() quota gate         — block / fallback-provider swap / alert logging
+    [x] getWorkspaceQuotaRollup()        — multi-workspace summary array
+    [x] listWorkspaceQuotaNotifications() — threshold + exceeded events newest-first
+    [x] resetWorkspaceQuotaDaily()       — prunes old-day usage + audit event + {ok,resetAt}
+    [x] workspaceQuota:rollup IPC
+    [x] workspaceQuota:notifications IPC
+    [x] workspaceQuota:resetDaily IPC
+    [x] preload rollup/notifications/resetDaily exposed
+    [x] types.d.ts rollup row, QuotaNotification, resetDaily types declared
+    [x] Dashboard quota rollup panel functional
+    [x] Dashboard quota notifications panel functional
+    [x] Dashboard daily-reset button functional
+    [x] Dashboard threshold-reached status text added
+    [x] audit-log.ts unchanged
+    [x] electron-ui/main.cjs unchanged
+    [x] electron-ui/ipc/audit-handlers.cjs unchanged
+    [x] Sprint 37/38/39 panels and compatibility strings preserved
+    [x] Smoke tests passing
+    [x] Architecture sync completed
+
+  ARCHITECTURE CHANGES THIS SPRINT:
+  New files:
+    - tests/sprint40-smoke.test.js
+  Extended:
+    - src/governance/workspace-quotas.ts
+    - src/llm/gateway.ts
+    - electron-ui/ipc/workspace-policy-handlers.cjs
+    - electron-ui/preload.cjs
+    - src/ui/provider-dashboard.html
+  Replaced:
+    - src/ui/types.d.ts
+  Unchanged:
+    - src/audit/audit-log.ts
+    - electron-ui/main.cjs
+    - electron-ui/ipc/audit-handlers.cjs
+
+  NEXT:
+    Sprint 41 candidates:
+    - Quota reset schedule automation (cron/interval calling resetWorkspaceQuotaDaily)
+    - Notification delivery hooks (push threshold/exceeded events to renderer via ipcMain.emit)
+    - Per-provider quota policies (extend WorkspaceQuotaPolicy with per-provider sub-limits)
+    - Quota history retention window (configurable TTL to prune usage records older than N days)
+    - Dashboard quota trend chart (visualise dayCount/weekCount over time)
+
+  ARCHITECTURE SYNC STATUS: [UPDATED]

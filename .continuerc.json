@@ -1,0 +1,10 @@
+{
+  "models": [
+    {
+      "title": "Qwen3-Coder-Next",
+      "provider": "ollama",
+      "model": "qwen3-coder-next",
+      "apiBase": "http://localhost:11434"
+    }
+  ]
+}

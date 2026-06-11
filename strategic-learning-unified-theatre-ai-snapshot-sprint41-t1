@@ -1,0 +1,17 @@
+  SPRINT 41 — T1 COMPLETE
+
+  FILE: src/governance/workspace-quotas.ts (extended)
+
+  STATUS:
+    alertThresholdPct field on WorkspaceQuotaPolicy
+    WorkspaceQuotaNotification interface added
+    thresholdReached/thresholdReachedDaily/thresholdReachedWeekly in usage
+    pushQuotaNotification private helper
+    recordWorkspaceQuotaUsage pushes threshold and exceeded notifications
+    resetWorkspaceQuotaDaily accepts source param and pushes dailyReset notification
+    getLatestWorkspaceQuotaNotification exported
+    listWorkspaceQuotaNotifications exported
+    shouldRunWorkspaceQuotaDailyReset exported
+    compile clean
+
+  NEXT: T2 — IPC handler extension

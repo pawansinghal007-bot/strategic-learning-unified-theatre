@@ -29,7 +29,7 @@
     "install-service": "node ./scripts/install.js",
     "ui:dev": "vite",
     "ui:build": "vite build",
-    "electron:dev": "npm run ui:build && cross-env NODE_ENV=development electron ./electron-ui/main.cjs",
+    "electron:dev": "npm run ui:build && npm run build:electron-main && cross-env NODE_ENV=development electron ./electron-ui/main.bundled.cjs",
     "electron:build": "npm run ui:build && electron-builder",
     "dist:win": "electron-builder --win nsis",
     "dist:linux": "electron-builder --linux AppImage",
@@ -41,7 +41,8 @@
     "sonar:check": "node scripts/check-sonar-readiness.mjs",
     "sonar:scan": "echo 'not implemented'",
     "sonar:wait": "echo 'not implemented'",
-    "sonar:export": "echo 'not implemented'"
+    "sonar:export": "echo 'not implemented'",
+    "build:electron-main": "node scripts/build-electron-main.mjs"
   },
   "engines": {
     "node": ">=18"
@@ -129,6 +130,7 @@
     "cross-env": "^10.1.0",
     "electron": "^42.2.0",
     "electron-builder": "^24.0.0",
+    "esbuild": "^0.28.0",
     "jsdom": "^29.1.1",
     "tailwindcss": "^3.4.5",
     "vite": "^8.0.14",
