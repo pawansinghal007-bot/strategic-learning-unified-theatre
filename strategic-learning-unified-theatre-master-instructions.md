@@ -241,3 +241,6 @@ Workspace quota governance delivered. src/governance/workspace-quotas.ts. setWor
 
 ## Sprint 41 Complete
 Quota notifications, threshold alerts, and daily reset scheduler. alertThresholdPct, WorkspaceQuotaNotification, getLatestWorkspaceQuotaNotification, shouldRunWorkspaceQuotaDailyReset. broadcastQuotaNotification. workspaceQuota:latestNotification/notifications/resetDaily IPC. Scheduler in main.cjs runs every 60s. preload onNotification subscription. Dashboard live notification panel. Sonar clean.
+
+## Sprint 42 Complete
+Knowledge layer RAG ingestion delivered. src/knowledge/ new domain. KnowledgeDocument/KnowledgeChunk schemas. Milvus client + HNSW index. Word-window chunker. BGE-M3 embedder. ingestSprintHistory() pipeline. knowledge:ingest and knowledge:search IPC. workspaceKnowledge preload namespace. Dashboard Knowledge panel. Sonar clean.

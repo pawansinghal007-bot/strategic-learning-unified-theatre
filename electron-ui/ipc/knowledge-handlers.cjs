@@ -6,6 +6,26 @@ function knowledge() {
   return require("../../src/knowledge/index.js");
 }
 
+function toScoreNumber(v) {
+  if (typeof v === "number" && Number.isFinite(v)) return v;
+  return 0;
+}
+
+function normalizeHit(hit) {
+  return {
+    chunk_id: hit.chunk_id ?? hit.chunkId ?? "",
+    doc_id: hit.doc_id ?? hit.docId ?? "",
+    source_type: hit.source_type ?? hit.sourceType ?? "",
+    sprint: Number(hit.sprint ?? 0),
+    feature_area: hit.feature_area ?? hit.featureArea ?? "",
+    path: hit.path ?? "",
+    section: hit.section ?? "",
+    importance: Number(hit.importance ?? 0),
+    score: toScoreNumber(hit.score ?? hit.distance ?? hit.similarity),
+    text: hit.text ?? "",
+  };
+}
+
 function registerKnowledgeHandlers() {
   ipcMain.handle("knowledge:ingest", async (_event, baseDir, featureArea) => {
     const { ingestSprintHistory } = knowledge();
@@ -34,11 +54,13 @@ function registerKnowledgeHandlers() {
         "path",
         "section",
         "importance",
+        "text",
       ],
       filter: options?.filter ?? undefined,
     });
 
-    return result.results ?? [];
+    const hits = Array.isArray(result?.results) ? result.results : [];
+    return hits.map(normalizeHit);
   });
 }
 

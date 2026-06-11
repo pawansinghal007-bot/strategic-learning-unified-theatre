@@ -1,0 +1,52 @@
+  SPRINT 42 COMPLETE: KNOWLEDGE LAYER — SPRINT HISTORY RAG INGESTION
+
+  SPRINT SUMMARY:
+    T1  schema + deps            KnowledgeDocument, KnowledgeChunk, 2 new npm deps
+    T2  milvus + chunker + embed milvus-client.ts, chunking.ts, embedder.ts
+    T3  ingestor                 ingest-sprint-history.ts, index.ts barrel
+    T4  IPC + main.cjs           knowledge-handlers.cjs, main.cjs extended
+    T5  preload + types + dash   workspaceKnowledge namespace, types, dashboard panel
+    T6  smoke tests + closure    tests/sprint42-smoke.test.js
+
+  STATUS:
+    vitest pass
+    typecheck clean
+    sonar clean
+    tagged sprint-42-complete
+
+  DELIVERABLES:
+    [x] KnowledgeDocument and KnowledgeChunk interfaces
+    [x] Milvus client with HNSW index creation
+    [x] Word-window chunker 512 words / 64 overlap
+    [x] BGE-M3 embedder via @xenova/transformers lazy loader
+    [x] ingestSprintHistory() full pipeline
+    [x] knowledge:ingest and knowledge:search IPC channels
+    [x] workspaceKnowledge preload namespace
+    [x] Dashboard Knowledge panel
+    [x] Sprint 25–41 compatibility strings preserved
+    [x] Smoke tests passing
+    [x] Architecture sync completed
+
+  ARCHITECTURE CHANGES THIS SPRINT:
+  New folder: src/knowledge/
+  New files:  src/knowledge/schema/documents.ts
+              src/knowledge/schema/metadata.ts
+              src/knowledge/ingest/milvus-client.ts
+              src/knowledge/ingest/chunking.ts
+              src/knowledge/ingest/embedder.ts
+              src/knowledge/ingest/ingest-sprint-history.ts
+              src/knowledge/index.ts
+              electron-ui/ipc/knowledge-handlers.cjs
+  Extended:   electron-ui/main.cjs
+              electron-ui/preload.cjs
+              src/ui/types.d.ts
+              src/ui/provider-dashboard.html
+
+  NEXT:
+    Sprint 43 candidates:
+    - Wire knowledge:search into LLM ask flow (RAG-augmented responses)
+    - Pre-populate prompt with top-k retrieved sprint history chunks
+    - Relevance score threshold filtering
+    - Re-ingestion on new sprint completion
+
+  ARCHITECTURE SYNC STATUS: [UPDATED | UNCHANGED]
