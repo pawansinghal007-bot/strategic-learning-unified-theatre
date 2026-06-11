@@ -1,0 +1,72 @@
+  SPRINT 43 COMPLETE: RAG ASK-FLOW — KNOWLEDGE-AUGMENTED LLM RESPONSES
+
+  SPRINT SUMMARY:
+    T1  knowledge index + handler   buildKnowledgePromptBlock() added to
+                                    src/knowledge/index.ts; knowledge-handlers.cjs
+                                    replaced with normalizeHit() + toScoreNumber()
+    T2  RAG hook + preload + types  llm:ask in handlers.cjs augmented with
+                                    Milvus retrieval → score filter → prompt
+                                    assembly; buildPromptContext preload alias;
+                                    types.d.ts extended
+    T3  smoke tests + closure       tests/sprint43-smoke.test.js
+
+  STATUS:
+    vitest pass — 99+ files / 910+ tests
+    typecheck clean
+    sonar clean
+    tagged sprint-43-complete
+
+  DELIVERABLES:
+    [x] buildKnowledgePromptBlock() — filters minScore, sorts desc, slices maxChunks
+    [x] normalizeHit() — handles all Milvus field name variants
+    [x] toScoreNumber() — safely coerces score/distance/similarity
+    [x] llm:ask RAG-augmented — retrieves top-8 Milvus chunks before generation
+    [x] Score threshold 0.4 — low-relevance hits filtered
+    [x] Top-6 sorted desc prepended as PROJECT CONTEXT block
+    [x] try/catch guard — Milvus unavailability non-fatal, falls back to empty context
+    [x] knowledge hits array attached to ask response payload
+    [x] buildPromptContext preload alias exposed on workspaceKnowledge
+    [x] types.d.ts workspaceKnowledge.buildPromptContext typed
+    [x] types.d.ts llm.ask return type extended with optional knowledge array
+    [x] Sprint 42 barrel exports preserved
+    [x] Sprint 42 preload methods untouched
+    [x] audit-log.ts unchanged
+    [x] electron-ui/main.cjs registration order verified
+    [x] audit-handlers.cjs unchanged
+    [x] Smoke tests passing
+    [x] Architecture sync completed
+
+  ARCHITECTURE CHANGES THIS SPRINT:
+  Replaced:
+    - src/knowledge/index.ts           (+ buildKnowledgePromptBlock)
+    - electron-ui/ipc/knowledge-handlers.cjs (+ normalizeHit, toScoreNumber)
+    - src/ui/types.d.ts
+  Extended:
+    - electron-ui/ipc/handlers.cjs     (llm:ask RAG hook)
+    - electron-ui/preload.cjs          (buildPromptContext alias)
+  New files:
+    - tests/sprint43-smoke.test.js
+  Unchanged:
+    - src/audit/audit-log.ts
+    - electron-ui/main.cjs
+    - electron-ui/ipc/audit-handlers.cjs
+    - src/knowledge/ingest/* (all Sprint 42 ingest files)
+    - src/knowledge/schema/* (all Sprint 42 schema files)
+
+  RAG DEFAULTS:
+    retrieval limit:  8 candidates from Milvus
+    score threshold:  0.4  (hits below this are discarded)
+    prompt top-k:     6    (top scoring hits after filter)
+    context separator: "---"
+    collection:       knowledge_chunks
+
+  NEXT:
+    Sprint 44 candidates:
+    - Re-ingestion trigger on new sprint completion (auto-ingest after git tag)
+    - Relevance score display in dashboard Knowledge panel
+    - Per-feature-area retrieval filter (pass filter string to knowledge:search)
+    - Secrets scanning scaffold (src/security/secrets/ — Gitleaks runner,
+      schema, baseline, suppressions)
+    - Quota reset schedule automation (cron calling resetWorkspaceQuotaDaily)
+
+  ARCHITECTURE SYNC STATUS: [UPDATED]

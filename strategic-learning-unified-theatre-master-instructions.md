@@ -244,3 +244,6 @@ Quota notifications, threshold alerts, and daily reset scheduler. alertThreshold
 
 ## Sprint 42 Complete
 Knowledge layer RAG ingestion delivered. src/knowledge/ new domain. KnowledgeDocument/KnowledgeChunk schemas. Milvus client + HNSW index. Word-window chunker. BGE-M3 embedder. ingestSprintHistory() pipeline. knowledge:ingest and knowledge:search IPC. workspaceKnowledge preload namespace. Dashboard Knowledge panel. Sonar clean.
+
+## Sprint 43 Complete
+RAG ask-flow delivered. buildKnowledgePromptBlock() in knowledge index. normalizeHit() + toScoreNumber() in knowledge-handlers.cjs. llm:ask augmented with Milvus retrieval, score threshold 0.4, top-6 context block. try/catch guard keeps ask non-fatal when Milvus unavailable. buildPromptContext preload alias. types.d.ts extended. Architecture sync done. Sonar clean.
