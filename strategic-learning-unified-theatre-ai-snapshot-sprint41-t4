@@ -1,0 +1,18 @@
+  SPRINT 41 — T4 COMPLETE
+
+  FILES:
+    electron-ui/preload.cjs (extended)
+    src/ui/types.d.ts (extended)
+
+  STATUS:
+    workspaceQuota.latestNotification exposed to renderer
+    workspaceQuota.notifications exposed to renderer
+    workspaceQuota.resetDaily exposed to renderer
+    workspaceQuota.onNotification subscription method exposed
+    types.d.ts alertThresholdPct on policy/patch shapes
+    types.d.ts thresholdReached on usage/evaluation shapes
+    types.d.ts WorkspaceQuotaNotification shapes declared
+    All existing preload blocks untouched
+    compile clean
+
+  NEXT: T5 — dashboard update + docs

@@ -1,39 +1,29 @@
-# Sprint 39 Patch Integration
+# Sprint 41 Patch Integration
 
 ## Prerequisites
 
-Sprints 18–38 must already be integrated.
-
-## New files
-
-- src/governance/workspace-quotas.ts
+Sprints 18–40 must already be integrated.
 
 ## Files extended
 
-- electron-ui/ipc/workspace-policy-handlers.cjs (8 new quota channels)
-- electron-ui/preload.cjs (workspaceQuota block appended)
-- src/ui/types.d.ts (workspaceQuota interface added)
-- src/ui/provider-dashboard.html (Workspace Quotas panel added)
+- src/governance/workspace-quotas.ts
+- electron-ui/ipc/workspace-policy-handlers.cjs
+- electron-ui/main.cjs
+- electron-ui/preload.cjs
+- src/ui/types.d.ts
+- src/ui/provider-dashboard.html
 
-## New IPC channels (Sprint 39)
+## New IPC channels
 
-workspaceQuota:get
-workspaceQuota:list
-workspaceQuota:set
-workspaceQuota:clear
-workspaceQuota:recordUsage
-workspaceQuota:usage
-workspaceQuota:evaluate
-workspaceQuota:clearUsage
+workspaceQuota:latestNotification
+workspaceQuota:notifications
+workspaceQuota:resetDaily
 
-## Architecture unchanged from Sprint 38
+## New IPC event (broadcast from main to renderer)
 
-No new IPC files. No main.cjs changes. No audit-log.ts changes.
+workspaceQuota:notification
 
-## Smoke test
+## Architecture notes
 
-1. Set a quota: dailyLimit=2, mode=block for a workspace
-2. Record 3 usage entries — third should trigger exceeded event
-3. Evaluate — result.blocked should be true
-4. Open audit trail — workspaceQuota.exceeded event should appear
-5. Run architecture sync check
+Scheduler in main.cjs runs every 60s, resets once per calendar day.
+broadcastQuotaNotification() sends to all BrowserWindow instances.

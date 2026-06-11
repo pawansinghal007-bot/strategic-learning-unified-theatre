@@ -258,6 +258,7 @@ contextBridge.exposeInMainWorld("workspaceQuota", {
     if (typeof handler !== "function") return () => {};
     const wrapped = (_event, payload) => handler(payload);
     ipcRenderer.on("workspaceQuota:notification", wrapped);
-    return () => ipcRenderer.removeListener("workspaceQuota:notification", wrapped);
+    return () =>
+      ipcRenderer.removeListener("workspaceQuota:notification", wrapped);
   },
 });

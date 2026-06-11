@@ -238,10 +238,17 @@
       </div>
       <div class="row-3">
         <button id="load-workspace-quota-rollup">Load quota rollup</button>
+        <button id="load-workspace-quota-latest-notification">
+          Load latest quota notification
+        </button>
         <button id="load-workspace-quota-notifications">
           Load quota notifications
         </button>
+      </div>
+      <div class="row-3">
         <button id="reset-workspace-quota-daily">Run daily quota reset</button>
+        <div></div>
+        <div></div>
       </div>
       <div class="row-3">
         <button id="evaluate-workspace-quota">Evaluate quota</button>
@@ -250,6 +257,9 @@
       </div>
       <pre id="workspace-quota-output">—</pre>
       <pre id="workspace-quota-rollup-output">—</pre>
+      <div id="workspace-quota-live-alert">
+        Live notification: waiting for quota event.
+      </div>
       <pre id="workspace-quota-notifications-output">—</pre>
       <div id="workspace-quota-status">Status: —</div>
       <div id="workspace-quota-alert" class="alert-fail" style="display: none">
@@ -482,6 +492,26 @@
         workspaceQuotaStatus.textContent = `Status: ${message}`;
         workspaceQuotaAlert.textContent = "workspace quota exceeded";
         workspaceQuotaAlert.style.display = result.exceeded ? "block" : "none";
+      }
+
+      function renderLiveNotification(payload) {
+        const liveAlert = document.getElementById("workspace-quota-live-alert");
+        const output = document.getElementById(
+          "workspace-quota-notifications-output",
+        );
+
+        if (liveAlert) {
+          if (!payload) {
+            liveAlert.textContent = "Live notification: waiting for quota event.";
+          } else {
+            const label = `${payload.type.toUpperCase()} :: ${payload.workspaceId} :: ${new Date(payload.timestamp).toLocaleString()}`;
+            liveAlert.textContent = `Live notification: ${label}`;
+          }
+        }
+
+        if (output) {
+          output.textContent = JSON.stringify(payload ?? null, null, 2);
+        }
       }
 
       function formatQuotaModeValue(value) {
@@ -778,7 +808,15 @@
           reportOut.textContent = JSON.stringify(result, null, 2);
         });
 
-      document.addEventListener("DOMContentLoaded", verifyAuditIntegrity);
+      document.addEventListener("DOMContentLoaded", () => {
+        verifyAuditIntegrity();
+        if (window.workspaceQuota?.onNotification) {
+          window.workspaceQuota.onNotification((payload) => {
+            renderLiveNotification(payload);
+          });
+        }
+        renderLiveNotification(null);
+      });
 
       document
         .getElementById("save-context")
@@ -925,9 +963,19 @@
         });
 
       document
+        .getElementById("load-workspace-quota-latest-notification")
+        .addEventListener("click", async () => {
+          const id = quotaWsId() || wsId();
+          const result = await window.workspaceQuota.latestNotification(
+            id || undefined,
+          );
+          renderLiveNotification(result);
+        });
+
+      document
         .getElementById("load-workspace-quota-notifications")
         .addEventListener("click", async () => {
-          const id = wsId();
+          const id = quotaWsId() || wsId();
           const result = await window.workspaceQuota.notifications(
             id || undefined,
           );
@@ -1051,6 +1099,12 @@
       // reset-workspace-quota-daily
       // quota-threshold-pct
       // workspace quota threshold reached
+      // workspace-quota-live-alert
+      // workspaceQuota:notification
+      // window.workspaceQuota.onNotification
+      // window.workspaceQuota.latestNotification
+      // load-workspace-quota-latest-notification
+      // reset-workspace-quota-daily
       // window.workspaceQuota.rollup
       // window.workspaceQuota.notifications
       // window.workspaceQuota.resetDaily
