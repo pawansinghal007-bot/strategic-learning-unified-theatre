@@ -1,0 +1,55 @@
+  SPRINT 41 COMPLETE: QUOTA NOTIFICATIONS, THRESHOLD ALERTS, DAILY RESET SCHEDULER
+
+  SPRINT SUMMARY:
+    T1  quotas.ts extended       alertThresholdPct, threshold detection,
+                                 WorkspaceQuotaNotification, scheduler helpers
+    T2  IPC handler extended     broadcastQuotaNotification, 3 new channels
+    T3  main.cjs extended        quota reset scheduler lifecycle
+    T4  preload + types          4 new workspaceQuota methods, updated type shapes
+    T5  dashboard + docs         live notification panel, Sprint 41 docs
+    T6  smoke tests + closure    tests/sprint41-smoke.test.js
+
+  STATUS:
+    vitest pass — 94+ files / 890+ tests
+    typecheck clean
+    sonar clean
+    tagged sprint-41-complete
+
+  DELIVERABLES:
+    [x] alertThresholdPct on WorkspaceQuotaPolicy
+    [x] thresholdReached/thresholdReachedDaily/thresholdReachedWeekly in usage
+    [x] WorkspaceQuotaNotification interface with type/source
+    [x] getLatestWorkspaceQuotaNotification and listWorkspaceQuotaNotifications
+    [x] shouldRunWorkspaceQuotaDailyReset — one reset per calendar day
+    [x] broadcastQuotaNotification sends to all BrowserWindows
+    [x] workspaceQuota:latestNotification/notifications/resetDaily IPC channels
+    [x] recordUsage broadcasts on threshold/exceeded
+    [x] resetDaily broadcasts dailyReset notification
+    [x] Scheduler setInterval(60s) in main.cjs, stops on close/before-quit
+    [x] preload onNotification subscription method
+    [x] types alertThresholdPct, thresholdReached, notification shapes
+    [x] Dashboard workspace-quota-live-alert live push panel
+    [x] Sprint 40 panels and Sprint 25–40 compatibility strings preserved
+    [x] Smoke tests passing
+    [x] Architecture sync completed
+
+  ARCHITECTURE CHANGES THIS SPRINT:
+  Extended:
+    - src/governance/workspace-quotas.ts
+    - electron-ui/ipc/workspace-policy-handlers.cjs
+    - electron-ui/main.cjs
+    - electron-ui/preload.cjs
+    - src/ui/types.d.ts
+    - src/ui/provider-dashboard.html
+  Unchanged:
+    - src/audit/audit-log.ts
+    - electron-ui/ipc/audit-handlers.cjs
+
+  NEXT:
+    Sprint 42 candidates:
+    - Per-provider quota sub-limits
+    - Quota history retention window (configurable TTL)
+    - Dashboard quota trend chart
+    - External notification webhook hooks
+
+  ARCHITECTURE SYNC STATUS: [UPDATED | UNCHANGED]

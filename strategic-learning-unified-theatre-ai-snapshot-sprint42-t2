@@ -1,0 +1,15 @@
+  SPRINT 42 — T2 COMPLETE
+
+  FILES:
+    src/knowledge/ingest/milvus-client.ts (created)
+    src/knowledge/ingest/chunking.ts (created)
+    src/knowledge/ingest/embedder.ts (created)
+
+  STATUS:
+    getMilvusClient() lazy singleton
+    ensureKnowledgeCollection() creates collection + HNSW index if absent
+    chunkDocument() word-window chunker 512/64 overlap
+    embedTextBatch() BGE-M3 via @xenova/transformers lazy loader
+    compile clean
+
+  NEXT: T3 — sprint history ingestor

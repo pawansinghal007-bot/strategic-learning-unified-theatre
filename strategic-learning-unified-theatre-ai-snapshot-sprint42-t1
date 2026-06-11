@@ -1,0 +1,16 @@
+  SPRINT 42 — T1 COMPLETE
+
+  FILES:
+    package.json (updated — 2 new deps)
+    src/knowledge/schema/documents.ts (created)
+    src/knowledge/schema/metadata.ts (created)
+
+  STATUS:
+    @zilliz/milvus2-sdk-node installed
+    @xenova/transformers installed
+    KnowledgeDocument interface defined
+    KnowledgeChunk interface defined
+    SourceType union defined
+    compile clean
+
+  NEXT: T2 — Milvus client + chunking + embedder

@@ -238,3 +238,6 @@ Audit log export and verification alerting delivered. exportAuditLogJson and exp
 
 ## Sprint 39 Complete
 Workspace quota governance delivered. src/governance/workspace-quotas.ts. setWorkspaceQuotaPolicy/recordWorkspaceQuotaUsage/evaluateWorkspaceQuotaStatus. Audit events: workspaceQuota.set/clear/usageRecorded/exceeded. 8 IPC channels in workspace-policy-handlers.cjs. Preload workspaceQuota namespace. Dashboard Workspace Quotas panel. Sonar clean.
+
+## Sprint 41 Complete
+Quota notifications, threshold alerts, and daily reset scheduler. alertThresholdPct, WorkspaceQuotaNotification, getLatestWorkspaceQuotaNotification, shouldRunWorkspaceQuotaDailyReset. broadcastQuotaNotification. workspaceQuota:latestNotification/notifications/resetDaily IPC. Scheduler in main.cjs runs every 60s. preload onNotification subscription. Dashboard live notification panel. Sonar clean.

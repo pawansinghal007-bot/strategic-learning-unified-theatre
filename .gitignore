@@ -29,3 +29,16 @@ report-task.txt
 *.env
 .env*
 .scannerwork/
+playwright-report/
+test-results/
+electron-ui/*.bundled.cjs
+electron-ui/src-loader.cjs
+*.tar.gz
+key-files.txt
+source-files.txt
+src-structure.txt
+tsconfigs.txt
+vite-config.txt
+playwright-config.txt
+root-package.txt
+architecture-review.txt
