@@ -1,0 +1,45 @@
+  SPRINT 44 — T1 COMPLETE
+
+  FILES:
+    src/security/ (new folder)
+    src/security/secrets/ (new folder)
+    src/security/secrets/schema.ts (created)
+    src/security/secrets/baseline.ts (created)
+    src/security/secrets/suppressions.ts (created)
+    src/security/secrets/gitleaks-runner.ts (created)
+    src/security/secrets/index.ts (created)
+
+  STATUS:
+    SecretFinding, SecretsScanSummary, SecretsScanResult,
+      SecretsSuppressionEntry, SecretSeverity interfaces defined
+    loadBaselineFingerprints() reads Gitleaks JSON report as baseline
+    loadSuppressions() reads suppression list from JSON file
+    matchSuppression() matches by fingerprint or file+ruleId
+    normalizeFinding() handles PascalCase and camelCase Gitleaks fields
+    mapSeverity() classifies by ruleId/description keywords
+    mapCategory() maps ruleId to credential/token/private_key/generic/unknown
+    previewSecret() masks secrets leaving 4 chars each side
+    runSecretsScan() spawns gitleaks, reads temp report, applies
+      baseline + suppressions, cleans up temp file
+    Baseline NOT passed via --baseline-path — applied manually in code
+    compile clean
+    sonar clean
+
+  DELIVERABLES:
+    [x] src/security/secrets/ folder structure created
+    [x] SecretFinding interface with all fields
+    [x] SecretsScanResult with ok, engine, command, summary, findings, raw
+    [x] SecretsSuppressionEntry with fingerprint/file/ruleId matching
+    [x] loadBaselineFingerprints() handles both PascalCase and camelCase JSON
+    [x] loadSuppressions() reads suppression list, returns [] on missing file
+    [x] matchSuppression() fingerprint priority, then file+ruleId fallback
+    [x] runSecretsScan() spawns gitleaks detect --no-git --report-format json
+    [x] Temp report file cleaned up in finally block
+    [x] gitleaks exit code 0 or 1 both treated as success
+    [x] audit-log.ts unchanged
+    [x] audit-handlers.cjs unchanged
+    [x] Compilation successful
+    [x] Sonar validation clean
+
+  NEXT:
+    T2 — IPC handler + main.cjs wiring + preload secrets namespace + types

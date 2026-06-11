@@ -60,7 +60,13 @@ function registerKnowledgeHandlers() {
     });
 
     const hits = Array.isArray(result?.results) ? result.results : [];
-    return hits.map(normalizeHit);
+    const normalized = hits.map(normalizeHit);
+
+    if (typeof options?.minScore === "number") {
+      return normalized.filter((hit) => hit.score >= options.minScore);
+    }
+
+    return normalized;
   });
 }
 

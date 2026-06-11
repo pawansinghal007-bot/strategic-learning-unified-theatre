@@ -2,6 +2,58 @@ export {};
 
 declare global {
   interface Window {
+    secrets: {
+      scan: (options: {
+        repoPath: string;
+        baselinePath?: string | null;
+        suppressionsPath?: string | null;
+        configPath?: string | null;
+        redact?: boolean;
+      }) => Promise<{
+        ok: true;
+        engine: "gitleaks";
+        command: string[];
+        summary: {
+          scannedPath: string;
+          findings: number;
+          unsuppressed: number;
+          suppressed: number;
+          baselineMatched: number;
+          bySeverity: {
+            low: number;
+            medium: number;
+            high: number;
+            critical: number;
+          };
+          byRule: Record<string, number>;
+          completedAt: number;
+        };
+        findings: Array<{
+          id: string;
+          ruleId: string;
+          description: string;
+          severity: "low" | "medium" | "high" | "critical";
+          category: "credential" | "token" | "private_key" | "generic" | "unknown";
+          file: string;
+          startLine: number;
+          endLine: number;
+          startColumn: number;
+          endColumn: number;
+          commit?: string | null;
+          author?: string | null;
+          email?: string | null;
+          date?: string | null;
+          fingerprint: string;
+          secretPreview: string | null;
+          match: string | null;
+          tags: string[];
+          baselineMatched: boolean;
+          suppressed: boolean;
+          suppressionReason: string | null;
+        }>;
+        raw?: unknown;
+      }>;
+    };
     providerTelemetry: {
       getStatus: () => Promise<any[]>;
       getUsage: () => Promise<any[]>;

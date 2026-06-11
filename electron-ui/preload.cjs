@@ -271,3 +271,7 @@ contextBridge.exposeInMainWorld("workspaceKnowledge", {
   buildPromptContext: (queryText, options) =>
     ipcRenderer.invoke("knowledge:search", queryText, options),
 });
+
+contextBridge.exposeInMainWorld("secrets", {
+  scan: (options) => ipcRenderer.invoke("secrets:scan", options),
+});

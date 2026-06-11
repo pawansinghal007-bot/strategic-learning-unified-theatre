@@ -115,9 +115,8 @@ function buildSummary(
   return {
     scannedPath,
     findings: findings.length,
-    unsuppressed: findings.filter(
-      (f) => !f.suppressed && !f.baselineMatched,
-    ).length,
+    unsuppressed: findings.filter((f) => !f.suppressed && !f.baselineMatched)
+      .length,
     suppressed,
     baselineMatched,
     bySeverity,
