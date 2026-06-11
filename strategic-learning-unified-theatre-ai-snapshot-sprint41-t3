@@ -1,0 +1,15 @@
+  SPRINT 41 — T3 COMPLETE
+
+  FILE: electron-ui/main.cjs (extended)
+
+  STATUS:
+    broadcastQuotaNotification imported from workspace-policy-handlers.cjs
+    quotaService lazy loader added
+    runScheduledQuotaReset function added
+    startQuotaResetScheduler function added — setInterval every 60s
+    stopQuotaResetScheduler function added
+    Scheduler starts on app.whenReady after createWindow
+    Scheduler stops on window-all-closed and before-quit
+    compile clean
+
+  NEXT: T4 — preload extension + types update

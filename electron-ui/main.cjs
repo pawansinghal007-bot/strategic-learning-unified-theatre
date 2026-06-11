@@ -584,7 +584,6 @@ app.whenReady().then(async () => {
     registerWorkspaceRoutingHandlers();
     registerWorkspaceReportHandlers();
     registerAuditHandlers();
-    registerWorkspacePolicyHandlers();
     startQuotaResetScheduler();
     mainLogger.info("ipc.capture.handlers.success", { correlationId: "ipc" });
   } catch (err) {
