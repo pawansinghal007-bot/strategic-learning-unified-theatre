@@ -1,16 +1,16 @@
-import fs from 'node:fs/promises';
-import path from 'node:path';
+import fs from "node:fs/promises";
+import path from "node:path";
 import {
   getMilvusClient,
   KNOWLEDGE_COLLECTION,
   ensureKnowledgeCollection,
-} from './milvus-client.js';
-import { chunkDocument } from './chunking.js';
-import { embedTextBatch } from './embedder.js';
-import type { KnowledgeDocument } from '../schema/documents.js';
-import type { KnowledgeChunk } from '../schema/metadata.js';
+} from "./milvus-client.js";
+import { chunkDocument } from "./chunking.js";
+import { embedTextBatch } from "./embedder.js";
+import type { KnowledgeDocument } from "../schema/documents.js";
+import type { KnowledgeChunk } from "../schema/metadata.js";
 
-const SPRINT_REPORT_EXTENSIONS = new Set(['.md', '.markdown', '.txt']);
+const SPRINT_REPORT_EXTENSIONS = new Set([".md", ".markdown", ".txt"]);
 
 interface IngestOptions {
   baseDir: string;
@@ -52,18 +52,20 @@ async function loadSprintReportDocument(
   filePath: string,
   defaultFeatureArea?: string,
 ): Promise<KnowledgeDocument> {
-  const rawText = await fs.readFile(filePath, 'utf8');
+  const rawText = await fs.readFile(filePath, "utf8");
   const sprint = parseSprintNumberFromFilename(filePath);
-  const title = sprint != null
-    ? `Sprint ${sprint} Implementation Report`
-    : `Sprint Report: ${path.basename(filePath)}`;
-  const docId = sprint != null
-    ? `sprint-${sprint}-report`
-    : `sprint-report:${path.basename(filePath)}`;
+  const title =
+    sprint != null
+      ? `Sprint ${sprint} Implementation Report`
+      : `Sprint Report: ${path.basename(filePath)}`;
+  const docId =
+    sprint != null
+      ? `sprint-${sprint}-report`
+      : `sprint-report:${path.basename(filePath)}`;
 
   return {
     id: docId,
-    sourceType: 'sprint_report',
+    sourceType: "sprint_report",
     title,
     path: filePath,
     sprint,
@@ -78,11 +80,11 @@ function chunkToMilvusEntity(chunk: KnowledgeChunk) {
     doc_id: chunk.docId,
     source_type: chunk.sourceType,
     sprint: chunk.sprint ?? -1,
-    module: chunk.module ?? '',
-    feature_area: chunk.featureArea ?? '',
-    version: chunk.version ?? '',
-    path: chunk.path ?? '',
-    section: chunk.section ?? '',
+    module: chunk.module ?? "",
+    feature_area: chunk.featureArea ?? "",
+    version: chunk.version ?? "",
+    path: chunk.path ?? "",
+    section: chunk.section ?? "",
     importance: chunk.importance,
     hash: chunk.hash,
     created_at: chunk.createdAt,
@@ -90,7 +92,9 @@ function chunkToMilvusEntity(chunk: KnowledgeChunk) {
   };
 }
 
-export async function ingestSprintHistory(options: IngestOptions): Promise<void> {
+export async function ingestSprintHistory(
+  options: IngestOptions,
+): Promise<void> {
   const { baseDir, defaultFeatureArea } = options;
   await ensureKnowledgeCollection();
 
@@ -131,17 +135,18 @@ export async function ingestSprintHistory(options: IngestOptions): Promise<void>
       data: entities,
     });
 
-    console.log(`[knowledge] Inserted ${entities.length} chunk(s) for ${doc.id}`);
+    console.log(
+      `[knowledge] Inserted ${entities.length} chunk(s) for ${doc.id}`,
+    );
   }
 
-  console.log('[knowledge] Sprint history ingestion complete.');
+  console.log("[knowledge] Sprint history ingestion complete.");
 }
 
-if (process.argv[1] && process.argv[1].includes('ingest-sprint-history')) {
-  const baseDir = process.argv[2] ?? './docs/sprints';
+if (process.argv[1] && process.argv[1].includes("ingest-sprint-history")) {
+  const baseDir = process.argv[2] ?? "./docs/sprints";
   ingestSprintHistory({ baseDir }).catch((err) => {
-    console.error('[knowledge] Ingestion failed:', err);
+    console.error("[knowledge] Ingestion failed:", err);
     process.exitCode = 1;
   });
 }
-

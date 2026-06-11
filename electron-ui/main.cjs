@@ -24,6 +24,7 @@ const {
   registerWorkspaceReportHandlers,
 } = require("./ipc/workspace-report-handlers.cjs");
 const { registerAuditHandlers } = require("./ipc/audit-handlers.cjs");
+const { registerKnowledgeHandlers } = require("./ipc/knowledge-handlers.cjs");
 const {
   registerWorkspacePolicyHandlers,
   broadcastQuotaNotification,
@@ -584,6 +585,7 @@ app.whenReady().then(async () => {
     registerWorkspaceRoutingHandlers();
     registerWorkspaceReportHandlers();
     registerAuditHandlers();
+    registerKnowledgeHandlers();
     startQuotaResetScheduler();
     mainLogger.info("ipc.capture.handlers.success", { correlationId: "ipc" });
   } catch (err) {

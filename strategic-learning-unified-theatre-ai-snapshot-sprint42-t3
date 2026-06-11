@@ -1,0 +1,17 @@
+  SPRINT 42 — T3 COMPLETE
+
+  FILES:
+    src/knowledge/ingest/ingest-sprint-history.ts (created)
+    src/knowledge/index.ts (created)
+
+  STATUS:
+    discoverSprintReportFiles() scans by extension
+    parseSprintNumberFromFilename() parses sprint number from filename
+    loadSprintReportDocument() builds KnowledgeDocument
+    chunkToMilvusEntity() maps chunk to Milvus insert shape
+    ingestSprintHistory() full pipeline: chunk → embed → insert
+    CLI entry point when run directly
+    Barrel export in src/knowledge/index.ts
+    compile clean
+
+  NEXT: T4 — IPC handler for knowledge queries
