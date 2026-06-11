@@ -249,7 +249,15 @@ contextBridge.exposeInMainWorld("workspaceQuota", {
   clearUsage: (workspaceId) =>
     ipcRenderer.invoke("workspaceQuota:clearUsage", workspaceId),
   rollup: (now) => ipcRenderer.invoke("workspaceQuota:rollup", now),
+  latestNotification: (workspaceId) =>
+    ipcRenderer.invoke("workspaceQuota:latestNotification", workspaceId),
   notifications: (workspaceId) =>
     ipcRenderer.invoke("workspaceQuota:notifications", workspaceId),
   resetDaily: (now) => ipcRenderer.invoke("workspaceQuota:resetDaily", now),
+  onNotification(handler) {
+    if (typeof handler !== "function") return () => {};
+    const wrapped = (_event, payload) => handler(payload);
+    ipcRenderer.on("workspaceQuota:notification", wrapped);
+    return () => ipcRenderer.removeListener("workspaceQuota:notification", wrapped);
+  },
 });

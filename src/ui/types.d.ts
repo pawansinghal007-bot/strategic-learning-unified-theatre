@@ -194,16 +194,39 @@ declare global {
           exceeded: boolean;
         }>
       >;
+      latestNotification: (workspaceId?: string) => Promise<{
+        workspaceId: string;
+        type: "threshold" | "exceeded" | "dailyReset";
+        timestamp: number;
+        dayCount: number;
+        weekCount: number;
+        source: "usage" | "scheduler" | "manual";
+      } | null>;
       notifications: (workspaceId?: string) => Promise<
         Array<{
           workspaceId: string;
-          type: "threshold" | "exceeded";
+          type: "threshold" | "exceeded" | "dailyReset";
           timestamp: number;
           dayCount: number;
           weekCount: number;
+          source: "usage" | "scheduler" | "manual";
         }>
       >;
-      resetDaily: (now?: number) => Promise<{ ok: true; resetAt: number }>;
+      resetDaily: (now?: number) => Promise<{
+        ok: true;
+        resetAt: number;
+        prunedCount: number;
+      }>;
+      onNotification: (
+        handler: (payload: {
+          workspaceId: string;
+          type: "threshold" | "exceeded" | "dailyReset";
+          timestamp: number;
+          dayCount: number;
+          weekCount: number;
+          source: "usage" | "scheduler" | "manual";
+        }) => void,
+      ) => () => void;
     };
     workspaceContext: {
       get: (workspaceId: string) => Promise<any | null>;
