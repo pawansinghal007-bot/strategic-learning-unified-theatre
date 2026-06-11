@@ -268,6 +268,21 @@
     </div>
 
     <div class="panel">
+      <h3>Knowledge Layer</h3>
+      <input
+        id="knowledge-base-dir"
+        placeholder="Path to sprint reports dir"
+      />
+      <button id="knowledge-ingest">Ingest sprint history</button>
+      <input
+        id="knowledge-query"
+        placeholder="Ask about the codebase..."
+      />
+      <button id="knowledge-search">Search knowledge base</button>
+      <pre id="knowledge-results-output">—</pre>
+    </div>
+
+    <div class="panel">
       <h3>Resolved Policy</h3>
       <pre id="policy-output">—</pre>
     </div>
@@ -424,6 +439,11 @@
       );
       const workspaceQuotaAlert = document.getElementById(
         "workspace-quota-alert",
+      );
+      const knowledgeBaseDir = document.getElementById("knowledge-base-dir");
+      const knowledgeQuery = document.getElementById("knowledge-query");
+      const knowledgeResultsOutput = document.getElementById(
+        "knowledge-results-output",
       );
 
       function wsId() {
@@ -990,6 +1010,31 @@
         });
 
       document
+        .getElementById("knowledge-ingest")
+        .addEventListener("click", async () => {
+          const result = await window.workspaceKnowledge.ingest(
+            knowledgeBaseDir?.value.trim() || undefined,
+            undefined,
+          );
+          if (knowledgeResultsOutput) {
+            knowledgeResultsOutput.textContent = JSON.stringify(result, null, 2);
+          }
+        });
+
+      document
+        .getElementById("knowledge-search")
+        .addEventListener("click", async () => {
+          const query = knowledgeQuery?.value.trim();
+          if (!query) return;
+          const result = await window.workspaceKnowledge.search(query, {
+            limit: 5,
+          });
+          if (knowledgeResultsOutput) {
+            knowledgeResultsOutput.textContent = JSON.stringify(result, null, 2);
+          }
+        });
+
+      document
         .getElementById("reset-workspace-quota-daily")
         .addEventListener("click", async () => {
           const result = await window.workspaceQuota.resetDaily();
@@ -1109,6 +1154,11 @@
       // window.workspaceQuota.rollup
       // window.workspaceQuota.notifications
       // window.workspaceQuota.resetDaily
+      // Knowledge
+      // knowledge-ingest
+      // knowledge-search
+      // window.workspaceKnowledge.ingest
+      // window.workspaceKnowledge.search
     </script>
   </body>
 </html>

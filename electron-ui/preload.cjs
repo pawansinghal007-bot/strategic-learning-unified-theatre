@@ -262,3 +262,10 @@ contextBridge.exposeInMainWorld("workspaceQuota", {
       ipcRenderer.removeListener("workspaceQuota:notification", wrapped);
   },
 });
+
+contextBridge.exposeInMainWorld("workspaceKnowledge", {
+  ingest: (baseDir, featureArea) =>
+    ipcRenderer.invoke("knowledge:ingest", baseDir, featureArea),
+  search: (queryText, options) =>
+    ipcRenderer.invoke("knowledge:search", queryText, options),
+});

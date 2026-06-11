@@ -1,29 +1,29 @@
-# Sprint 41 Patch Integration
+# Sprint 42 Patch Integration
 
 ## Prerequisites
+Sprints 18–41 must already be integrated.
+Milvus must be running locally on localhost:19530.
 
-Sprints 18–40 must already be integrated.
+## New files
+- src/knowledge/schema/documents.ts
+- src/knowledge/schema/metadata.ts
+- src/knowledge/ingest/milvus-client.ts
+- src/knowledge/ingest/chunking.ts
+- src/knowledge/ingest/embedder.ts
+- src/knowledge/ingest/ingest-sprint-history.ts
+- src/knowledge/index.ts
+- electron-ui/ipc/knowledge-handlers.cjs
 
-## Files extended
-
-- src/governance/workspace-quotas.ts
-- electron-ui/ipc/workspace-policy-handlers.cjs
-- electron-ui/main.cjs
-- electron-ui/preload.cjs
-- src/ui/types.d.ts
-- src/ui/provider-dashboard.html
+## Extended files
+- electron-ui/main.cjs (registerKnowledgeHandlers)
+- electron-ui/preload.cjs (workspaceKnowledge block)
+- src/ui/types.d.ts (workspaceKnowledge interface)
+- src/ui/provider-dashboard.html (Knowledge panel)
 
 ## New IPC channels
+knowledge:ingest
+knowledge:search
 
-workspaceQuota:latestNotification
-workspaceQuota:notifications
-workspaceQuota:resetDaily
-
-## New IPC event (broadcast from main to renderer)
-
-workspaceQuota:notification
-
-## Architecture notes
-
-Scheduler in main.cjs runs every 60s, resets once per calendar day.
-broadcastQuotaNotification() sends to all BrowserWindow instances.
+## Runtime requirements
+MILVUS_ADDRESS env var (default: localhost:19530)
+First ingest downloads BGE-M3 model (~1GB) via @xenova/transformers

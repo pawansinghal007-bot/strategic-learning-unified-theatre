@@ -1,0 +1,13 @@
+  SPRINT 42 — T4 COMPLETE
+
+  FILES:
+    electron-ui/ipc/knowledge-handlers.cjs (created)
+    electron-ui/main.cjs (extended)
+
+  STATUS:
+    knowledge:ingest IPC channel — triggers ingestSprintHistory
+    knowledge:search IPC channel — embeds query + Milvus search
+    registerKnowledgeHandlers wired into main.cjs
+    compile clean
+
+  NEXT: T5 — preload + types + dashboard panel
