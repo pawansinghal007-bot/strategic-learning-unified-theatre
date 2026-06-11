@@ -1,0 +1,37 @@
+  SPRINT 44 — T2 COMPLETE
+
+  FILES:
+    electron-ui/ipc/secrets-handlers.cjs (created)
+    electron-ui/main.cjs (extended)
+    electron-ui/preload.cjs (extended)
+    electron-ui/ipc/knowledge-handlers.cjs (extended)
+    src/ui/types.d.ts (replaced)
+
+  STATUS:
+    secrets:scan IPC channel registered
+    registerSecretsHandlers() wired into main.cjs before startQuotaResetScheduler
+    window.secrets.scan exposed to renderer
+    knowledge:search now passes filter and minScore to Milvus search
+    types.d.ts secrets interface declared
+    types.d.ts workspaceKnowledge filter/minScore typed
+    Sprint 43 normalizeHit/toScoreNumber untouched
+    Sprint 43 knowledge:ingest untouched
+    all other preload namespaces untouched
+    compile clean
+    sonar clean
+
+  DELIVERABLES:
+    [x] secrets-handlers.cjs created with secrets:scan channel
+    [x] main.cjs require and registration added
+    [x] preload secrets namespace appended
+    [x] knowledge:search filter passthrough to Milvus
+    [x] knowledge:search minScore client-side filter applied
+    [x] types.d.ts Window.secrets fully typed
+    [x] types.d.ts workspaceKnowledge.search options include filter/minScore
+    [x] audit-log.ts unchanged
+    [x] audit-handlers.cjs unchanged
+    [x] Compilation successful
+    [x] Sonar validation clean
+
+  NEXT:
+    T3 — dashboard panels + smoke tests + sprint closure

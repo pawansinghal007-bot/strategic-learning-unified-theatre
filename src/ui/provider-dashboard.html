@@ -269,11 +269,93 @@
 
     <div class="panel">
       <h3>Knowledge Layer</h3>
-      <input id="knowledge-base-dir" placeholder="Path to sprint reports dir" />
-      <button id="knowledge-ingest">Ingest sprint history</button>
-      <input id="knowledge-query" placeholder="Ask about the codebase..." />
-      <button id="knowledge-search">Search knowledge base</button>
-      <pre id="knowledge-results-output">—</pre>
+      <div class="row">
+        <button id="knowledge-ingest-btn">Ingest sprint history</button>
+        <input id="knowledge-query" placeholder="Search knowledge base" />
+        <input id="knowledge-filter" placeholder='feature_area == "quota"' />
+        <button id="knowledge-search-btn">Search knowledge base</button>
+      </div>
+      <pre id="knowledge-output">Knowledge layer idle.</pre>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Score</th>
+              <th>Sprint</th>
+              <th>Feature area</th>
+              <th>Section</th>
+              <th>Path</th>
+            </tr>
+          </thead>
+          <tbody id="knowledge-results-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Secrets Scanning</h3>
+      <div class="row">
+        <label>
+          Repo path
+          <input id="secrets-repo-path" value="." />
+        </label>
+        <label>
+          Baseline JSON
+          <input
+            id="secrets-baseline-path"
+            placeholder="./reports/gitleaks-baseline.json"
+          />
+        </label>
+        <label>
+          Suppressions JSON
+          <input
+            id="secrets-suppressions-path"
+            placeholder="./config/secrets-suppressions.json"
+          />
+        </label>
+        <label>
+          Config TOML
+          <input id="secrets-config-path" placeholder="./.gitleaks.toml" />
+        </label>
+      </div>
+      <div class="row">
+        <button id="secrets-scan-btn">Run secrets scan</button>
+      </div>
+      <div class="metrics">
+        <div class="metric">
+          <div class="label">Findings</div>
+          <div id="secrets-findings" class="value">0</div>
+        </div>
+        <div class="metric">
+          <div class="label">Unsuppressed</div>
+          <div id="secrets-unsuppressed" class="value">0</div>
+        </div>
+        <div class="metric">
+          <div class="label">Suppressed</div>
+          <div id="secrets-suppressed" class="value">0</div>
+        </div>
+        <div class="metric">
+          <div class="label">Baseline matched</div>
+          <div id="secrets-baseline-matched" class="value">0</div>
+        </div>
+      </div>
+      <pre id="secrets-summary-output">Secrets scan status: idle</pre>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Severity</th>
+              <th>Rule</th>
+              <th>File</th>
+              <th>Line</th>
+              <th>Preview</th>
+              <th>Baseline</th>
+              <th>Suppressed</th>
+            </tr>
+          </thead>
+          <tbody id="secrets-findings-body"></tbody>
+        </table>
+      </div>
     </div>
 
     <div class="panel">
@@ -436,9 +518,7 @@
       );
       const knowledgeBaseDir = document.getElementById("knowledge-base-dir");
       const knowledgeQuery = document.getElementById("knowledge-query");
-      const knowledgeResultsOutput = document.getElementById(
-        "knowledge-results-output",
-      );
+      const knowledgeOutput = document.getElementById("knowledge-output");
 
       function wsId() {
         return workspaceIdInput.value.trim();
@@ -1004,37 +1084,105 @@
         });
 
       document
-        .getElementById("knowledge-ingest")
-        .addEventListener("click", async () => {
+        .getElementById("knowledge-ingest-btn")
+        ?.addEventListener("click", async () => {
           const result = await window.workspaceKnowledge.ingest(
             knowledgeBaseDir?.value.trim() || undefined,
             undefined,
           );
-          if (knowledgeResultsOutput) {
-            knowledgeResultsOutput.textContent = JSON.stringify(
-              result,
-              null,
-              2,
-            );
+          if (knowledgeOutput) {
+            knowledgeOutput.textContent = JSON.stringify(result, null, 2);
           }
         });
 
-      document
-        .getElementById("knowledge-search")
-        .addEventListener("click", async () => {
-          const query = knowledgeQuery?.value.trim();
-          if (!query) return;
-          const result = await window.workspaceKnowledge.search(query, {
-            limit: 5,
-          });
-          if (knowledgeResultsOutput) {
-            knowledgeResultsOutput.textContent = JSON.stringify(
-              result,
-              null,
-              2,
-            );
-          }
+      async function runSecretsScan() {
+        const repoPath = document
+          .getElementById("secrets-repo-path")
+          .value.trim();
+        const baselinePath =
+          document.getElementById("secrets-baseline-path").value.trim() || null;
+        const suppressionsPath =
+          document.getElementById("secrets-suppressions-path").value.trim() ||
+          null;
+        const configPath =
+          document.getElementById("secrets-config-path").value.trim() || null;
+
+        const result = await window.secrets.scan({
+          repoPath,
+          baselinePath,
+          suppressionsPath,
+          configPath,
+          redact: true,
         });
+
+        document.getElementById("secrets-findings").textContent = String(
+          result.summary.findings,
+        );
+        document.getElementById("secrets-unsuppressed").textContent = String(
+          result.summary.unsuppressed,
+        );
+        document.getElementById("secrets-suppressed").textContent = String(
+          result.summary.suppressed,
+        );
+        document.getElementById("secrets-baseline-matched").textContent =
+          String(result.summary.baselineMatched);
+        document.getElementById("secrets-summary-output").textContent =
+          JSON.stringify(result.summary, null, 2);
+
+        const body = document.getElementById("secrets-findings-body");
+        body.innerHTML = "";
+        for (const row of result.findings) {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${row.severity}</td>
+            <td>${row.ruleId}</td>
+            <td>${row.file}</td>
+            <td>${row.startLine}</td>
+            <td>${row.secretPreview ?? ""}</td>
+            <td>${row.baselineMatched ? "yes" : "no"}</td>
+            <td>${row.suppressed ? row.suppressionReason || "yes" : "no"}</td>
+          `;
+          body.appendChild(tr);
+        }
+      }
+
+      async function runKnowledgeSearch() {
+        const queryText = document
+          .getElementById("knowledge-query")
+          .value.trim();
+        const filter =
+          document.getElementById("knowledge-filter").value.trim() || undefined;
+
+        const results = await window.workspaceKnowledge.search(queryText, {
+          limit: 8,
+          minScore: 0.4,
+          filter,
+        });
+
+        document.getElementById("knowledge-output").textContent =
+          JSON.stringify(results, null, 2);
+
+        const body = document.getElementById("knowledge-results-body");
+        body.innerHTML = "";
+        for (const row of results) {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${typeof row.score === "number" ? row.score.toFixed(3) : ""}</td>
+            <td>${row.sprint ?? ""}</td>
+            <td>${row.feature_area ?? ""}</td>
+            <td>${row.section ?? ""}</td>
+            <td>${row.path ?? ""}</td>
+          `;
+          body.appendChild(tr);
+        }
+      }
+
+      document
+        .getElementById("secrets-scan-btn")
+        ?.addEventListener("click", runSecretsScan);
+      document
+        .getElementById("knowledge-search-btn")
+        ?.addEventListener("click", runKnowledgeSearch);
 
       document
         .getElementById("reset-workspace-quota-daily")
@@ -1160,6 +1308,16 @@
       // knowledge-ingest
       // knowledge-search
       // window.workspaceKnowledge.ingest
+      // window.workspaceKnowledge.search
+      // Secrets Scanning
+      // secrets-scan-btn
+      // secrets-findings-body
+      // secrets-summary-output
+      // knowledge-filter
+      // knowledge-results-body
+      // Score (column header)
+      // row.score.toFixed(3)
+      // window.secrets.scan
       // window.workspaceKnowledge.search
     </script>
   </body>

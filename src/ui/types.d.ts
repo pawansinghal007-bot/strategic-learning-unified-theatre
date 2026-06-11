@@ -33,7 +33,12 @@ declare global {
           ruleId: string;
           description: string;
           severity: "low" | "medium" | "high" | "critical";
-          category: "credential" | "token" | "private_key" | "generic" | "unknown";
+          category:
+            | "credential"
+            | "token"
+            | "private_key"
+            | "generic"
+            | "unknown";
           file: string;
           startLine: number;
           endLine: number;
