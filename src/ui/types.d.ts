@@ -1,7 +1,58 @@
 export {};
 
 declare global {
+  interface RiskFinding {
+    id: string;
+    scanner: "dependency-check" | "trivy" | "unknown";
+    ruleId?: string;
+    title?: string;
+    description?: string;
+    file?: string | null;
+    package?: string | null;
+    version?: string | null;
+    severity: "critical" | "high" | "medium" | "low" | "info" | "unknown";
+    fingerprint?: string;
+    evidence?: any;
+    createdAt: number;
+    raw?: any;
+  }
+
   interface Window {
+    workspaceRisks: {
+      scanDependency: (
+        basePath: string,
+        options?: {
+          baselinePath?: string;
+          suppressionsPath?: string;
+        },
+      ) => Promise<{
+        ok: boolean;
+        engine: "dependency-check";
+        result?: {
+          ok: boolean;
+          engine: "dependency-check";
+          findings: RiskFinding[];
+          raw?: unknown;
+          error?: string;
+        };
+        error?: string;
+      }>;
+      scanImage: (
+        imageRef: string,
+        options?: Record<string, unknown>,
+      ) => Promise<{
+        ok: boolean;
+        engine: "trivy";
+        result?: {
+          ok: boolean;
+          engine: "trivy";
+          findings: RiskFinding[];
+          raw?: unknown;
+          error?: string;
+        };
+        error?: string;
+      }>;
+    };
     secrets: {
       scan: (options: {
         repoPath: string;

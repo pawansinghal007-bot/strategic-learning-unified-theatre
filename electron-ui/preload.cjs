@@ -275,3 +275,10 @@ contextBridge.exposeInMainWorld("workspaceKnowledge", {
 contextBridge.exposeInMainWorld("secrets", {
   scan: (options) => ipcRenderer.invoke("secrets:scan", options),
 });
+
+contextBridge.exposeInMainWorld("workspaceRisks", {
+  scanDependency: (basePath, options) =>
+    ipcRenderer.invoke("risks:scan:dependency", basePath, options),
+  scanImage: (imageRef, options) =>
+    ipcRenderer.invoke("risks:scan:image", imageRef, options),
+});

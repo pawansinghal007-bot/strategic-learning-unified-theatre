@@ -5,9 +5,7 @@ import path from "node:path";
 import type { RiskFinding } from "./schema.js";
 import { normalizeTrivyFinding } from "./parsers.js";
 
-export async function runTrivyImage(
-  imageRef: string,
-): Promise<{
+export async function runTrivyImage(imageRef: string): Promise<{
   ok: boolean;
   engine: "trivy";
   findings: RiskFinding[];
@@ -20,15 +18,7 @@ export async function runTrivyImage(
   );
 
   try {
-    const args = [
-      "image",
-      "--format",
-      "json",
-      "--quiet",
-      "-o",
-      tmp,
-      imageRef,
-    ];
+    const args = ["image", "--format", "json", "--quiet", "-o", tmp, imageRef];
 
     spawnSync("trivy", args, { encoding: "utf8" });
 

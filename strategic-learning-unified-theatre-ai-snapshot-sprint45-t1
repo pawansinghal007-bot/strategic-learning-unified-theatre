@@ -1,0 +1,45 @@
+  SPRINT 45 — T1 COMPLETE
+
+  FILES:
+    src/security/risks/ (new folder)
+    src/security/risks/schema.ts (created)
+    src/security/risks/baseline.ts (created)
+    src/security/risks/suppressions.ts (created)
+    src/security/risks/parsers.ts (created)
+    src/security/risks/dependency-check-runner.ts (created)
+    src/security/risks/trivy-runner.ts (created)
+    src/security/risks/index.ts (created)
+
+  STATUS:
+    RiskFinding, RiskScanner, RiskSuppression interfaces defined
+    loadRiskBaseline() reads fingerprints from baseline JSON
+    loadRiskSuppressions() reads suppression list, returns [] on missing file
+    isSuppressed() matches by fingerprint or file+ruleId
+    mapSeverityFromCvss() maps CVSS score to severity string
+    normalizeDependencyCheckFinding() normalises Dependency-Check vuln objects
+    normalizeTrivyFinding() normalises Trivy vuln objects with target path
+    runDependencyCheck() spawns dependency-check CLI, parses JSON report
+    runTrivyImage() spawns trivy image CLI, parses JSON output
+    Both runners: spawnSync, temp file/dir cleanup in finally, errors as {ok:false}
+    src/security/secrets/ Sprint 44 files untouched
+    compile clean
+    sonar clean
+
+  DELIVERABLES:
+    [x] src/security/risks/ folder created
+    [x] RiskFinding schema with id/scanner/severity/fingerprint/package/version
+    [x] loadRiskBaseline() handles array and findings-wrapper JSON
+    [x] loadRiskSuppressions() returns [] on missing file, no throw
+    [x] isSuppressed() fingerprint priority, then file+ruleId fallback
+    [x] normalizeDependencyCheckFinding() handles vulnerabilities + dependencies
+    [x] normalizeTrivyFinding() handles Results[].Vulnerabilities array
+    [x] runDependencyCheck() spawnSync, outDir cleanup, ok/error shape
+    [x] runTrivyImage() spawnSync, tmp file cleanup, ok/error shape
+    [x] Barrel index exports all public API
+    [x] audit-log.ts unchanged
+    [x] audit-handlers.cjs unchanged
+    [x] Compilation successful
+    [x] Sonar validation clean
+
+  NEXT:
+    T2 — IPC handler + main.cjs wiring + preload workspaceRisks namespace + types

@@ -25,8 +25,7 @@ export function normalizeDependencyCheckFinding(vuln: any): RiskFinding {
     id: `depchk:${fingerprint}`,
     scanner: "dependency-check",
     ruleId: vuln?.name ?? vuln?.cve ?? undefined,
-    title:
-      vuln?.title ?? vuln?.name ?? vuln?.cve ?? "Dependency vulnerability",
+    title: vuln?.title ?? vuln?.name ?? vuln?.cve ?? "Dependency vulnerability",
     description: vuln?.description ?? vuln?.details ?? "",
     file: vuln?.filePath ?? null,
     package: pkg,
@@ -39,10 +38,7 @@ export function normalizeDependencyCheckFinding(vuln: any): RiskFinding {
   };
 }
 
-export function normalizeTrivyFinding(
-  vuln: any,
-  target?: string,
-): RiskFinding {
+export function normalizeTrivyFinding(vuln: any, target?: string): RiskFinding {
   const fingerprint =
     (vuln?.VulnerabilityID ?? "") +
     "|" +
@@ -50,9 +46,7 @@ export function normalizeTrivyFinding(
     "|" +
     (vuln?.InstalledVersion ?? "");
   const cvss =
-    vuln?.CVSS?.nvd?.V3Score ??
-    vuln?.CVSS?.nvd?.V2Score ??
-    undefined;
+    vuln?.CVSS?.nvd?.V3Score ?? vuln?.CVSS?.nvd?.V2Score ?? undefined;
   const rawSeverity =
     typeof vuln?.Severity === "string"
       ? (vuln.Severity.toLowerCase() as RiskFinding["severity"])

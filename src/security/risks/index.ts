@@ -2,10 +2,7 @@ export { runDependencyCheck } from "./dependency-check-runner.js";
 export type { RunDependencyCheckOptions } from "./dependency-check-runner.js";
 export { runTrivyImage } from "./trivy-runner.js";
 export { loadRiskBaseline } from "./baseline.js";
-export {
-  loadRiskSuppressions,
-  isSuppressed,
-} from "./suppressions.js";
+export { loadRiskSuppressions, isSuppressed } from "./suppressions.js";
 export type { RiskSuppression } from "./suppressions.js";
 export {
   mapSeverityFromCvss,

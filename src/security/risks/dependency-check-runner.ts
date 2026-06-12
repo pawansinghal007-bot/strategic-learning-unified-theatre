@@ -57,10 +57,7 @@ export async function runDependencyCheck(
       for (const v of parsed.vulnerabilities) {
         findings.push(normalizeDependencyCheckFinding(v));
       }
-    } else if (
-      parsed?.dependencies &&
-      Array.isArray(parsed.dependencies)
-    ) {
+    } else if (parsed?.dependencies && Array.isArray(parsed.dependencies)) {
       for (const dep of parsed.dependencies) {
         if (!dep.vulnerabilities) continue;
         for (const v of dep.vulnerabilities) {

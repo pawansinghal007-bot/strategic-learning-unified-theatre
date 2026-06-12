@@ -27,12 +27,7 @@ export function isSuppressed(
     if (s.fingerprint && f.fingerprint && s.fingerprint === f.fingerprint) {
       return true;
     }
-    if (
-      s.file &&
-      s.ruleId &&
-      s.file === f.file &&
-      s.ruleId === f.ruleId
-    ) {
+    if (s.file && s.ruleId && s.file === f.file && s.ruleId === f.ruleId) {
       return true;
     }
   }
