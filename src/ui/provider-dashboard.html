@@ -294,53 +294,72 @@
 
     <div class="panel" id="security-overview-panel">
       <h3>Security Overview</h3>
-      <div class="row">
-        <label>
-          Baseline JSON
-          <input
-            id="security-baseline-path"
-            placeholder="./reports/security-baseline.json"
-          />
-        </label>
-        <label>
-          Suppressions JSON
-          <input
-            id="security-suppressions-path"
-            placeholder="./config/security-suppressions.json"
-          />
-        </label>
-      </div>
-      <div class="row">
-        <button id="security-load-overview">Load security overview</button>
-        <button id="security-save-baseline">Save baseline</button>
-      </div>
-      <div class="metrics">
+      <div class="row-3">
         <div class="metric">
           <div class="label">Total</div>
-          <div id="security-total" class="value">0</div>
+          <div class="value" id="security-total">0</div>
         </div>
         <div class="metric">
           <div class="label">Critical</div>
-          <div id="security-critical" class="value">0</div>
+          <div class="value" id="security-critical">0</div>
         </div>
         <div class="metric">
           <div class="label">High</div>
-          <div id="security-high" class="value">0</div>
+          <div class="value" id="security-high">0</div>
         </div>
+      </div>
+      <div class="row-3" style="margin-top:12px">
         <div class="metric">
           <div class="label">Secrets</div>
-          <div id="security-secrets" class="value">0</div>
+          <div class="value" id="security-secrets">0</div>
         </div>
         <div class="metric">
           <div class="label">Risks</div>
-          <div id="security-risks" class="value">0</div>
+          <div class="value" id="security-risks">0</div>
         </div>
         <div class="metric">
           <div class="label">Suppressed</div>
-          <div id="security-suppressed" class="value">0</div>
+          <div class="value" id="security-suppressed">0</div>
         </div>
       </div>
-      <pre id="security-overview-output">Security overview status: idle</pre>
+      <div class="row-3" style="margin-top:12px">
+        <div class="metric">
+          <div class="label">Open</div>
+          <div class="value" id="security-open">0</div>
+        </div>
+        <div class="metric">
+          <div class="label">Accepted</div>
+          <div class="value" id="security-accepted">0</div>
+        </div>
+        <div class="metric">
+          <div class="label">Resolved</div>
+          <div class="value" id="security-resolved">0</div>
+        </div>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button id="security-load-overview">Refresh Overview</button>
+        <button id="security-save-baseline">Save Baseline</button>
+      </div>
+      <div class="row-3" style="margin-top:12px">
+        <input id="security-baseline-path" placeholder="Baseline file path" />
+        <input id="security-suppressions-path" placeholder="Suppressions file path" />
+        <input id="security-triage-path" placeholder="Triage file path" />
+      </div>
+      <div class="row-3" style="margin-top:12px">
+        <input id="security-triage-fingerprint" placeholder="Finding fingerprint" />
+        <select id="security-triage-status">
+          <option value="open">open</option>
+          <option value="accepted">accepted</option>
+          <option value="false_positive">false_positive</option>
+          <option value="resolved">resolved</option>
+        </select>
+        <input id="security-triage-reason" placeholder="Reason" />
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button id="security-set-triage">Apply Triage State</button>
+        <button id="security-load-triage">Load Triage</button>
+      </div>
+      <pre id="security-overview-output"></pre>
     </div>
 
     <div class="panel">
@@ -1192,52 +1211,52 @@
           }
         });
 
+      function updateSecurityMetrics(snapshot) {
+        const ids = [
+          ["security-total", "total"],
+          ["security-critical", "critical"],
+          ["security-high", "high"],
+          ["security-secrets", "secrets"],
+          ["security-risks", "risks"],
+          ["security-suppressed", "suppressed"],
+          ["security-open", "open"],
+          ["security-accepted", "accepted"],
+          ["security-resolved", "resolved"],
+        ];
+        for (const [id, key] of ids) {
+          const el = document.getElementById(id);
+          if (el) el.textContent = String(snapshot?.[key] ?? 0);
+        }
+      }
+
       async function loadSecurityOverview() {
-        const baselinePath =
-          document.getElementById("security-baseline-path").value.trim() ||
-          undefined;
-        const suppressionsPath =
-          document.getElementById("security-suppressions-path").value.trim() ||
-          undefined;
-        const result = await window.workspaceSecurity.summarize({
+        const payload = {
           secrets: [],
           risks: [],
-          baselinePath,
-          suppressionsPath,
-        });
-        if (securityOverviewOutput) {
-          securityOverviewOutput.textContent = JSON.stringify(result, null, 2);
-        }
-        if (result?.snapshot) {
-          document.getElementById("security-total").textContent = String(
-            result.snapshot.total ?? 0,
-          );
-          document.getElementById("security-critical").textContent = String(
-            result.snapshot.critical ?? 0,
-          );
-          document.getElementById("security-high").textContent = String(
-            result.snapshot.high ?? 0,
-          );
-          document.getElementById("security-secrets").textContent = String(
-            result.snapshot.secrets ?? 0,
-          );
-          document.getElementById("security-risks").textContent = String(
-            result.snapshot.risks ?? 0,
-          );
-          document.getElementById("security-suppressed").textContent = String(
-            result.snapshot.suppressed ?? 0,
-          );
-        }
+          baselinePath:
+            document.getElementById("security-baseline-path")?.value?.trim() ||
+            "",
+          suppressionsPath:
+            document.getElementById("security-suppressions-path")?.value?.trim() ||
+            "",
+          triagePath:
+            document.getElementById("security-triage-path")?.value?.trim() ||
+            "",
+        };
+        const res = await window.workspaceSecurity.summarize(payload);
+        updateSecurityMetrics(res?.snapshot);
+        const out = document.getElementById("security-overview-output");
+        if (out) out.textContent = JSON.stringify(res, null, 2);
       }
 
       async function saveSecurityBaseline() {
         const baselinePath = document
           .getElementById("security-baseline-path")
-          .value.trim();
+          ?.value?.trim();
         if (!baselinePath) {
-          if (securityOverviewOutput)
-            securityOverviewOutput.textContent =
-              "Enter a baseline output path.";
+          if (securityOverviewOutput) {
+            securityOverviewOutput.textContent = "Enter a baseline output path.";
+          }
           return;
         }
         const result = await window.workspaceSecurity.saveBaseline(
@@ -1247,6 +1266,37 @@
         if (securityOverviewOutput) {
           securityOverviewOutput.textContent = JSON.stringify(result, null, 2);
         }
+      }
+
+      async function loadSecurityTriage() {
+        const triagePath =
+          document.getElementById("security-triage-path")?.value?.trim() || "";
+        if (!triagePath) return;
+        const result = await window.workspaceSecurity.loadTriage(triagePath);
+        const out = document.getElementById("security-overview-output");
+        if (out) out.textContent = JSON.stringify(result, null, 2);
+      }
+
+      async function applySecurityTriage() {
+        const triagePath =
+          document.getElementById("security-triage-path")?.value?.trim() || "";
+        const fingerprint =
+          document.getElementById("security-triage-fingerprint")?.value?.trim() ||
+          "";
+        const status =
+          document.getElementById("security-triage-status")?.value || "open";
+        const reason =
+          document.getElementById("security-triage-reason")?.value?.trim() || "";
+        if (!triagePath || !fingerprint) return;
+        const result = await window.workspaceSecurity.setTriage(
+          triagePath,
+          fingerprint,
+          status,
+          reason,
+          "dashboard",
+        );
+        const out = document.getElementById("security-overview-output");
+        if (out) out.textContent = JSON.stringify(result, null, 2);
       }
 
       async function runSecretsScan() {
@@ -1384,6 +1434,12 @@
       document
         .getElementById("security-save-baseline")
         ?.addEventListener("click", saveSecurityBaseline);
+      document
+        .getElementById("security-set-triage")
+        ?.addEventListener("click", applySecurityTriage);
+      document
+        .getElementById("security-load-triage")
+        ?.addEventListener("click", loadSecurityTriage);
       document
         .getElementById("secrets-scan-btn")
         ?.addEventListener("click", runSecretsScan);
@@ -1574,8 +1630,19 @@
       // security-overview-panel
       // security-load-overview
       // security-save-baseline
+      // security-triage-path
+      // security-triage-fingerprint
+      // security-triage-status
+      // security-triage-reason
+      // security-set-triage
+      // security-load-triage
+      // security-open
+      // security-accepted
+      // security-resolved
       // window.workspaceSecurity.summarize
       // window.workspaceSecurity.saveBaseline
+      // window.workspaceSecurity.setTriage
+      // window.workspaceSecurity.loadTriage
       // Dependency & Image Risks
       // risks-panel
       // risks-scan-deps

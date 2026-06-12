@@ -52,7 +52,5 @@ export function getSecurityTriageStatus(
   entries: SecurityTriageEntry[],
 ): SecurityTriageStatus {
   if (!fingerprint) return "open";
-  return (
-    entries.find((e) => e.fingerprint === fingerprint)?.status ?? "open"
-  );
+  return entries.find((e) => e.fingerprint === fingerprint)?.status ?? "open";
 }

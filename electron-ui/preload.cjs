@@ -300,4 +300,15 @@ contextBridge.exposeInMainWorld("workspaceSecurity", {
       suppressionsPath,
       suppressions,
     ),
+  loadTriage: (triagePath) =>
+    ipcRenderer.invoke("security-overview:load-triage", triagePath),
+  setTriage: (triagePath, fingerprint, status, reason, updatedBy) =>
+    ipcRenderer.invoke(
+      "security-overview:set-triage",
+      triagePath,
+      fingerprint,
+      status,
+      reason,
+      updatedBy,
+    ),
 });

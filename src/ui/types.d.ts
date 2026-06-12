@@ -1,6 +1,59 @@
 export {};
 
 declare global {
+  type SecurityTriageStatus =
+    | "open"
+    | "suppressed"
+    | "accepted"
+    | "false_positive"
+    | "resolved";
+
+  interface SecurityTriageEntry {
+    fingerprint: string;
+    status: SecurityTriageStatus;
+    reason?: string;
+    updatedAt: number;
+    updatedBy?: string;
+  }
+
+  interface SecuritySummarySnapshot {
+    total: number;
+    critical: number;
+    high: number;
+    medium: number;
+    low: number;
+    info: number;
+    unknown: number;
+    secrets: number;
+    risks: number;
+    suppressed: number;
+    baselineMatched: number;
+    open: number;
+    accepted: number;
+    falsePositive: number;
+    resolved: number;
+    latestAt: number | null;
+  }
+
+  interface SecurityFindingSummary {
+    kind: "secret" | "risk";
+    scanner: string;
+    id: string;
+    ruleId?: string;
+    title?: string;
+    description?: string;
+    severity: "critical" | "high" | "medium" | "low" | "info" | "unknown";
+    file?: string | null;
+    package?: string | null;
+    version?: string | null;
+    fingerprint?: string;
+    suppressed?: boolean;
+    baselineMatched?: boolean;
+    triageStatus?: SecurityTriageStatus;
+    createdAt: number;
+    raw?: any;
+  }
+
   interface RiskFinding {
     id: string;
     scanner: "dependency-check" | "trivy" | "unknown";
@@ -59,37 +112,11 @@ declare global {
         risks?: any[];
         baselinePath?: string;
         suppressionsPath?: string;
+        triagePath?: string;
       }) => Promise<{
         ok: true;
-        findings: Array<{
-          kind: "secret" | "risk";
-          scanner: string;
-          id: string;
-          ruleId?: string;
-          title?: string;
-          severity: "critical" | "high" | "medium" | "low" | "info" | "unknown";
-          file?: string | null;
-          package?: string | null;
-          version?: string | null;
-          fingerprint?: string;
-          suppressed: boolean;
-          baselineMatched: boolean;
-          createdAt: number;
-        }>;
-        snapshot: {
-          total: number;
-          critical: number;
-          high: number;
-          medium: number;
-          low: number;
-          info: number;
-          unknown: number;
-          secrets: number;
-          risks: number;
-          suppressed: number;
-          baselineMatched: number;
-          latestAt: number | null;
-        };
+        findings: SecurityFindingSummary[];
+        snapshot: SecuritySummarySnapshot;
       }>;
       saveBaseline: (
         baselinePath: string,
@@ -115,6 +142,17 @@ declare global {
           ruleId?: string;
           reason?: string;
         }>,
+      ) => Promise<{ ok: true; filePath: string; count: number }>;
+      loadTriage: (triagePath: string) => Promise<{
+        ok: true;
+        entries: SecurityTriageEntry[];
+      }>;
+      setTriage: (
+        triagePath: string,
+        fingerprint: string,
+        status: SecurityTriageStatus,
+        reason?: string,
+        updatedBy?: string,
       ) => Promise<{ ok: true; filePath: string; count: number }>;
     };
     secrets: {

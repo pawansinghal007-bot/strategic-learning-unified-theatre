@@ -42,7 +42,9 @@ function registerSecurityOverviewHandlers() {
         ...f,
         suppressed,
         baselineMatched:
-          typeof f.fingerprint === "string" ? baseline.has(f.fingerprint) : false,
+          typeof f.fingerprint === "string"
+            ? baseline.has(f.fingerprint)
+            : false,
         triageStatus,
       };
     });
@@ -90,9 +92,9 @@ function registerSecurityOverviewHandlers() {
   ipcMain.handle(
     "security-overview:load-triage",
     async (_event, triagePath) => {
-      const { loadSecurityTriage } = require(
-        "../../src/security/security-overview/triage",
-      );
+      const {
+        loadSecurityTriage,
+      } = require("../../src/security/security-overview/triage");
       return {
         ok: true,
         entries: loadSecurityTriage(triagePath || ""),

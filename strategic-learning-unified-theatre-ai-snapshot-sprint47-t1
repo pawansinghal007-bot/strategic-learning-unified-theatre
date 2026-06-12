@@ -1,0 +1,43 @@
+  SPRINT 47 — T1 COMPLETE
+
+  FILES:
+    src/security/security-overview/triage.ts (created)
+    src/security/security-overview/schema.ts (replaced)
+    src/security/security-overview/index.ts (replaced)
+    electron-ui/ipc/security-overview-handlers.cjs (replaced)
+
+  STATUS:
+    SecurityTriageStatus type: open/suppressed/accepted/false_positive/resolved
+    SecurityTriageEntry interface with fingerprint/status/reason/updatedAt/updatedBy
+    loadSecurityTriage() returns [] on missing file, no throw
+    saveSecurityTriage() writes JSON, returns {ok, filePath, count}
+    upsertSecurityTriageEntry() updates in place or appends
+    getSecurityTriageStatus() returns "open" when not found
+    SecurityOverviewSnapshot extended: open/accepted/falsePositive/resolved counts
+    SecurityFindingSummary extended: optional triageStatus field
+    summarize handler now loads triage from payload.triagePath and enriches findings
+    security-overview:load-triage IPC channel added
+    security-overview:set-triage IPC channel added
+    All Sprint 46 channels preserved
+    main.cjs unchanged (registerSecurityOverviewHandlers already wired)
+    compile clean
+    sonar clean
+
+  DELIVERABLES:
+    [x] triage.ts created with all 4 exports
+    [x] SecurityTriageStatus type in schema.ts
+    [x] SecurityOverviewSnapshot has open/accepted/falsePositive/resolved
+    [x] SecurityFindingSummary has optional triageStatus
+    [x] index.ts exports triage
+    [x] summarize handler enriches findings with triageStatus
+    [x] buildSecurityOverviewSnapshot counts triage states
+    [x] security-overview:load-triage IPC registered
+    [x] security-overview:set-triage IPC registered
+    [x] All Sprint 46 IPC channels preserved
+    [x] audit-log.ts unchanged
+    [x] audit-handlers.cjs unchanged
+    [x] Compilation successful
+    [x] Sonar validation clean
+
+  NEXT:
+    T2 — preload triage methods + types.d.ts + dashboard triage controls
