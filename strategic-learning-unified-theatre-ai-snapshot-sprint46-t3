@@ -1,0 +1,21 @@
+  SPRINT 46 — T3 COMPLETE
+
+  FILES:
+    electron-ui/preload.cjs (extended)
+    src/ui/types.d.ts (extended)
+    src/ui/provider-dashboard.html (updated)
+    docs/sprint-46-scope.md
+    docs/sprint-46-checklist.md
+    docs/INTEGRATION.md
+
+  STATUS:
+    workspaceSecurity preload namespace appended
+    workspaceSecurity inside existing Window interface (no duplicate block)
+    Dashboard Security Overview panel above Secrets panel
+    6 metrics: total/critical/high/secrets/risks/suppressed
+    Sprint 44/45 panels and all compatibility strings preserved
+    docs committed
+    compile clean
+    sonar clean
+
+  NEXT: T4 — smoke tests + sprint closure

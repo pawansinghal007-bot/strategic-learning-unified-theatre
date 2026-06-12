@@ -13,7 +13,9 @@
 - [x] Git tagged and pushed
 
 ## Suggested next sprint
+
 Sprint 47 candidates:
+
 - Suppression management UI (add/remove rows from dashboard)
 - Auto-scan on app start or tray trigger
 - Compliance benchmark mapping (OWASP Top 10, CIS)

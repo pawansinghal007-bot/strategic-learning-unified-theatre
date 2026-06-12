@@ -95,9 +95,7 @@ declare global {
         baselinePath: string,
         fingerprints: string[],
       ) => Promise<{ ok: true; filePath: string; count: number }>;
-      loadSuppressions: (
-        suppressionsPath: string,
-      ) => Promise<{
+      loadSuppressions: (suppressionsPath: string) => Promise<{
         ok: true;
         suppressions: Array<{
           fingerprint?: string;
