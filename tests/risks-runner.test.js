@@ -134,9 +134,9 @@ describe("Sprint 45 risks — baseline and suppressions", () => {
 
   it("isSuppressed returns false when no match", () => {
     const finding = { fingerprint: "fp-none", file: "c.js", ruleId: "r3" };
-    expect(
-      isSuppressed(finding, [{ fingerprint: "other", reason: "x" }]),
-    ).toBe(false);
+    expect(isSuppressed(finding, [{ fingerprint: "other", reason: "x" }])).toBe(
+      false,
+    );
   });
 });
 

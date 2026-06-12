@@ -1,0 +1,98 @@
+  SPRINT 45 COMPLETE: DEPENDENCY & IMAGE RISK SCANNING (DEPENDENCY-CHECK + TRIVY)
+
+  SPRINT SUMMARY:
+    T1  risks backend              src/security/risks/ — schema, baseline,
+                                   suppressions, parsers, dependency-check-runner,
+                                   trivy-runner, index barrel
+    T2  IPC + main + preload +     risks-handlers.cjs, main.cjs extended,
+        types                      preload workspaceRisks namespace, types.d.ts
+    T3  dashboard + smoke tests    Dependency & Image Risks panel added,
+                                   risks-runner.test.js, sprint45-smoke.test.js
+
+  STATUS:
+    vitest pass — 102+ files / 950+ tests
+    typecheck clean
+    sonar clean
+    tagged sprint-45-complete
+
+  DELIVERABLES:
+    [x] RiskFinding, RiskScanner, RiskSuppression interfaces
+    [x] loadRiskBaseline() — array and findings-wrapper JSON
+    [x] loadRiskSuppressions() — returns [] on missing file, no throw
+    [x] isSuppressed() — fingerprint priority, then file+ruleId fallback
+    [x] mapSeverityFromCvss() — critical/high/medium/low/info/unknown
+    [x] normalizeDependencyCheckFinding() — vulnerabilities + dependencies shapes
+    [x] normalizeTrivyFinding() — Results[].Vulnerabilities with target path
+    [x] runDependencyCheck() — spawnSync, outDir cleanup, ok/error shape
+    [x] runTrivyImage() — spawnSync, tmp cleanup, ok/error shape
+    [x] risks:scan:dependency IPC channel
+    [x] risks:scan:image IPC channel
+    [x] Both IPC handlers wrap errors as {ok:false, error} — no throws
+    [x] registerRisksHandlers() wired into main.cjs
+    [x] window.workspaceRisks.scanDependency exposed
+    [x] window.workspaceRisks.scanImage exposed
+    [x] types.d.ts RiskFinding interface declared
+    [x] types.d.ts workspaceRisks Window interface declared
+    [x] Dashboard Dependency & Image Risks panel — 3 metrics + table + output
+    [x] severityOrder() filter helper in dashboard script
+    [x] renderRisks() populates table with severity filter
+    [x] Sprint 44 Secrets Scanning panel preserved
+    [x] Sprint 44 Knowledge panel preserved
+    [x] All earlier compatibility strings preserved
+    [x] Smoke tests passing
+    [x] Architecture sync completed — new baseline generated
+
+  ARCHITECTURE CHANGES THIS SPRINT:
+  New folders:
+    - src/security/risks/
+  New files:
+    - src/security/risks/schema.ts
+    - src/security/risks/baseline.ts
+    - src/security/risks/suppressions.ts
+    - src/security/risks/parsers.ts
+    - src/security/risks/dependency-check-runner.ts
+    - src/security/risks/trivy-runner.ts
+    - src/security/risks/index.ts
+    - electron-ui/ipc/risks-handlers.cjs
+    - tests/risks-runner.test.js
+    - tests/sprint45-smoke.test.js
+  Extended:
+    - electron-ui/main.cjs
+    - electron-ui/preload.cjs
+    - src/ui/provider-dashboard.html
+  Replaced:
+    - src/ui/types.d.ts
+  Unchanged:
+    - src/audit/audit-log.ts
+    - electron-ui/ipc/audit-handlers.cjs
+    - src/security/secrets/* (all Sprint 44 secrets files)
+    - src/knowledge/* (all Sprint 42/43 knowledge files)
+    - electron-ui/ipc/handlers.cjs
+
+  RISK SCANNING DESIGN NOTES:
+    dependency scanner: dependency-check CLI (must be in PATH)
+    invocation:         --project project --scan <path> --format JSON --out <tmpdir>
+    image scanner:      trivy CLI (must be in PATH)
+    invocation:         image --format json --quiet -o <tmpfile> <imageRef>
+    both runners:       spawnSync, temp file/dir cleanup in finally
+    error shape:        { ok: false, engine, error: string } — never throws
+    suppression match:  fingerprint first, then file+ruleId pair
+    severity mapping:   CVSS-based (mapSeverityFromCvss) or string normalisation
+
+  IPC SURFACE ADDED (sprint 45):
+    risks:scan:dependency  — triggers runDependencyCheck()
+    risks:scan:image       — triggers runTrivyImage()
+
+  PRELOAD SURFACE ADDED (sprint 45):
+    window.workspaceRisks.scanDependency(basePath, options?)
+    window.workspaceRisks.scanImage(imageRef, options?)
+
+  NEXT:
+    Sprint 46 candidates:
+    - Suppression management UI (add/remove risk suppressions from dashboard)
+    - Baseline management (save current scan results as new baseline)
+    - Re-ingestion trigger on sprint completion (auto-ingest after git tag)
+    - Secrets scan scheduling (run on app start or tray trigger)
+    - Combined security summary panel (secrets + risks aggregated view)
+
+  ARCHITECTURE SYNC STATUS: [UPDATED]

@@ -250,3 +250,6 @@ RAG ask-flow delivered. buildKnowledgePromptBlock() in knowledge index. normaliz
 
 ## Sprint 44 Complete
 Secrets scanning with Gitleaks delivered. src/security/secrets/ new domain. SecretFinding/SecretsScanResult/SecretsSuppressionEntry schemas. loadBaselineFingerprints(), matchSuppression(), runSecretsScan() via spawn. Baseline applied manually not via --baseline-path. secrets:scan IPC. window.secrets.scan preload. knowledge:search filter+minScore added. Dashboard Secrets Scanning panel + enriched Knowledge panel. Architecture baseline refreshed. Sonar clean.
+
+## Sprint 45 Complete
+Dependency & image risk scanning delivered. src/security/risks/ new domain. RiskFinding/RiskScanner schemas. mapSeverityFromCvss, normalizeDependencyCheckFinding, normalizeTrivyFinding parsers. runDependencyCheck() via dependency-check CLI spawn. runTrivyImage() via trivy CLI spawn. Both runners: spawnSync, temp cleanup, ok/error shape. risks:scan:dependency and risks:scan:image IPC. window.workspaceRisks preload. Dashboard Dependency & Image Risks panel. Architecture baseline refreshed. Sonar clean.

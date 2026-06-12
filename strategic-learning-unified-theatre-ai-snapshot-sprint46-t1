@@ -1,0 +1,26 @@
+  SPRINT 46 — T1 COMPLETE
+
+  FILES:
+    src/security/security-overview/schema.ts (created)
+    src/security/security-overview/baseline.ts (created)
+    src/security/security-overview/suppressions.ts (created)
+    src/security/security-overview/normalizer.ts (created)
+    src/security/security-overview/index.ts (created)
+
+  STATUS:
+    SecurityFindingSummary interface defined
+    SecurityOverviewSnapshot interface defined
+    emptySecurityOverviewSnapshot() helper
+    buildSecurityOverviewSnapshot() aggregates severity/kind counts
+    loadSecurityBaseline() reads array or findings-wrapper JSON
+    saveSecurityBaseline() writes generatedAt + findings array
+    loadSecuritySuppressions() returns [] on missing file
+    saveSecuritySuppressions() writes suppression list
+    isSecuritySuppressed() matches fingerprint priority then file+ruleId
+    flattenFindings() normalises secrets and risks into SecurityFindingSummary
+    normalizeSeverity() maps raw string to SecuritySeverity
+    src/security/secrets/ untouched
+    src/security/risks/ untouched
+    compile clean
+
+  NEXT: T2 — IPC handler + main.cjs wiring

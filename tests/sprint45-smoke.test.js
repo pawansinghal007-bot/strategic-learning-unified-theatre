@@ -20,7 +20,9 @@ describe("Sprint 45 smoke tests — file surface", () => {
       "src/security/risks/index.ts",
     ];
     for (const f of files) {
-      expect(fs.existsSync(path.join(root, f)), `expected ${f} to exist`).toBe(true);
+      expect(fs.existsSync(path.join(root, f)), `expected ${f} to exist`).toBe(
+        true,
+      );
     }
   });
 
@@ -31,7 +33,9 @@ describe("Sprint 45 smoke tests — file surface", () => {
       "src/security/secrets/index.ts",
     ];
     for (const f of files) {
-      expect(fs.existsSync(path.join(root, f)), `expected ${f} to exist`).toBe(true);
+      expect(fs.existsSync(path.join(root, f)), `expected ${f} to exist`).toBe(
+        true,
+      );
     }
   });
 
