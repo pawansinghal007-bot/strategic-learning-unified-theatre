@@ -54,6 +54,35 @@ declare global {
     raw?: any;
   }
 
+  interface SeverityCounts {
+    critical: number;
+    high: number;
+    medium: number;
+    low: number;
+    info: number;
+    unknown: number;
+  }
+
+  interface SecurityOverviewDriftResult {
+    ok: true;
+    baselineLoaded: boolean;
+    counts: {
+      current: number;
+      baseline: number;
+      introduced: number;
+      persistent: number;
+      resolved: number;
+    };
+    bySeverity: {
+      introduced: SeverityCounts;
+      persistent: SeverityCounts;
+      resolved: SeverityCounts;
+    };
+    introduced: Array<Record<string, unknown>>;
+    persistent: Array<Record<string, unknown>>;
+    resolved: Array<Record<string, unknown>>;
+  }
+
   interface RiskFinding {
     id: string;
     scanner: "dependency-check" | "trivy" | "unknown";
@@ -154,6 +183,10 @@ declare global {
         reason?: string,
         updatedBy?: string,
       ) => Promise<{ ok: true; filePath: string; count: number }>;
+      compareBaseline: (
+        currentSnapshot: any,
+        baselinePath?: string | null,
+      ) => Promise<SecurityOverviewDriftResult>;
     };
     secrets: {
       scan: (options: {

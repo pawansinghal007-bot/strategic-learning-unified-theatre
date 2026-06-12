@@ -1,0 +1,19 @@
+  SPRINT 48 — T2 COMPLETE
+
+  FILE: electron-ui/ipc/security-overview-handlers.cjs (extended)
+
+  STATUS:
+    security-overview:compare-baseline IPC channel added
+    loadSecurityBaselineSnapshot lazy-required from drift.js
+    compareSecurityOverviewWithBaseline lazy-required from drift.js
+    All Sprint 46/47 channels preserved:
+      security-overview:summarize
+      security-overview:save-baseline
+      security-overview:load-suppressions
+      security-overview:save-suppressions
+      security-overview:load-triage
+      security-overview:set-triage
+    main.cjs unchanged (handler already wired)
+    compile clean
+
+  NEXT: T3 — preload extension + types + dashboard drift panel + docs

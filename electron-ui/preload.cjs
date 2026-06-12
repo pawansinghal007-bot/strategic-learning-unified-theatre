@@ -311,4 +311,10 @@ contextBridge.exposeInMainWorld("workspaceSecurity", {
       reason,
       updatedBy,
     ),
+  compareBaseline: (currentSnapshot, baselinePath) =>
+    ipcRenderer.invoke(
+      "security-overview:compare-baseline",
+      currentSnapshot,
+      baselinePath,
+    ),
 });

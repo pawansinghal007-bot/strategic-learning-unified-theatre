@@ -368,6 +368,46 @@
       <pre id="security-overview-output"></pre>
     </div>
 
+    <div class="panel" id="security-drift-panel">
+      <h3>Security Drift</h3>
+      <div class="row" style="margin-top: 12px">
+        <input
+          id="security-drift-baseline-path"
+          placeholder="Baseline JSON path"
+        />
+        <button id="security-drift-compare-btn">Compare With Baseline</button>
+      </div>
+      <div class="row-3" style="margin-top: 12px">
+        <div class="metric">
+          <div class="label">Current</div>
+          <div class="value" id="security-drift-current">0</div>
+        </div>
+        <div class="metric">
+          <div class="label">Baseline</div>
+          <div class="value" id="security-drift-baseline">0</div>
+        </div>
+        <div class="metric">
+          <div class="label">Introduced</div>
+          <div class="value" id="security-drift-introduced">0</div>
+        </div>
+      </div>
+      <div class="row-3" style="margin-top: 12px">
+        <div class="metric">
+          <div class="label">Persistent</div>
+          <div class="value" id="security-drift-persistent">0</div>
+        </div>
+        <div class="metric">
+          <div class="label">Resolved</div>
+          <div class="value" id="security-drift-resolved">0</div>
+        </div>
+        <div class="metric">
+          <div class="label">Baseline loaded</div>
+          <div class="value" id="security-drift-loaded">no</div>
+        </div>
+      </div>
+      <pre id="security-drift-output">Security drift idle.</pre>
+    </div>
+
     <div class="panel">
       <h3>Secrets Scanning</h3>
       <div class="row">
@@ -1276,6 +1316,54 @@
         }
       }
 
+      async function compareSecurityBaseline() {
+        const raw =
+          document.getElementById("security-overview-output")?.textContent ||
+          "";
+        const baselinePath = document
+          .getElementById("security-drift-baseline-path")
+          ?.value?.trim();
+
+        try {
+          const snapshot = JSON.parse(raw);
+          const result = await window.workspaceSecurity.compareBaseline(
+            snapshot,
+            baselinePath || null,
+          );
+
+          const currentEl = document.getElementById("security-drift-current");
+          const baselineEl = document.getElementById("security-drift-baseline");
+          const introducedEl = document.getElementById(
+            "security-drift-introduced",
+          );
+          const persistentEl = document.getElementById(
+            "security-drift-persistent",
+          );
+          const resolvedEl = document.getElementById("security-drift-resolved");
+          const loadedEl = document.getElementById("security-drift-loaded");
+          const outputEl = document.getElementById("security-drift-output");
+
+          if (currentEl)
+            currentEl.textContent = String(result?.counts?.current ?? 0);
+          if (baselineEl)
+            baselineEl.textContent = String(result?.counts?.baseline ?? 0);
+          if (introducedEl)
+            introducedEl.textContent = String(result?.counts?.introduced ?? 0);
+          if (persistentEl)
+            persistentEl.textContent = String(result?.counts?.persistent ?? 0);
+          if (resolvedEl)
+            resolvedEl.textContent = String(result?.counts?.resolved ?? 0);
+          if (loadedEl)
+            loadedEl.textContent = result?.baselineLoaded ? "yes" : "no";
+          if (outputEl) outputEl.textContent = JSON.stringify(result, null, 2);
+        } catch (_err) {
+          const outputEl = document.getElementById("security-drift-output");
+          if (outputEl) {
+            outputEl.textContent = "Run Security Overview summarize first.";
+          }
+        }
+      }
+
       async function loadSecurityTriage() {
         const triagePath =
           document.getElementById("security-triage-path")?.value?.trim() || "";
@@ -1441,6 +1529,9 @@
       document
         .getElementById("security-load-overview")
         ?.addEventListener("click", loadSecurityOverview);
+      document
+        .getElementById("security-drift-compare-btn")
+        ?.addEventListener("click", compareSecurityBaseline);
       document
         .getElementById("security-save-baseline")
         ?.addEventListener("click", saveSecurityBaseline);
@@ -1641,6 +1732,18 @@
       // security-load-overview
       // security-save-baseline
       // security-triage-path
+      // Security Drift
+      // security-drift-panel
+      // security-drift-baseline-path
+      // security-drift-compare-btn
+      // security-drift-current
+      // security-drift-baseline
+      // security-drift-introduced
+      // security-drift-persistent
+      // security-drift-resolved
+      // security-drift-loaded
+      // security-drift-output
+      // window.workspaceSecurity.compareBaseline
       // security-triage-fingerprint
       // security-triage-status
       // security-triage-reason
