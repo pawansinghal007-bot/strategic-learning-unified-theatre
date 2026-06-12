@@ -1,0 +1,39 @@
+  SPRINT 45 — T2 COMPLETE
+
+  FILES:
+    electron-ui/ipc/risks-handlers.cjs (created)
+    electron-ui/main.cjs (extended)
+    electron-ui/preload.cjs (extended)
+    src/ui/types.d.ts (replaced)
+
+  STATUS:
+    risks:scan:dependency IPC channel registered
+    risks:scan:image IPC channel registered
+    registerRisksHandlers() wired into main.cjs before startQuotaResetScheduler
+    window.workspaceRisks.scanDependency exposed to renderer
+    window.workspaceRisks.scanImage exposed to renderer
+    types.d.ts RiskFinding interface declared
+    types.d.ts workspaceRisks Window interface declared
+    Sprint 44 secrets namespace untouched
+    Sprint 43 workspaceKnowledge namespace untouched
+    all other preload namespaces untouched
+    compile clean
+    sonar clean
+
+  DELIVERABLES:
+    [x] risks-handlers.cjs created with risks:scan:dependency channel
+    [x] risks-handlers.cjs created with risks:scan:image channel
+    [x] Both handlers wrap errors as {ok:false, error} — no throws
+    [x] lazy require() pattern matches secrets-handlers.cjs
+    [x] main.cjs require and registration added
+    [x] preload workspaceRisks namespace appended
+    [x] types.d.ts RiskFinding interface added
+    [x] types.d.ts workspaceRisks.scanDependency typed
+    [x] types.d.ts workspaceRisks.scanImage typed
+    [x] audit-log.ts unchanged
+    [x] audit-handlers.cjs unchanged
+    [x] Compilation successful
+    [x] Sonar validation clean
+
+  NEXT:
+    T3 — dashboard panel + smoke tests + sprint closure

@@ -359,6 +359,49 @@
     </div>
 
     <div class="panel">
+      <h3>Dependency &amp; Image Risks</h3>
+      <div class="row-3">
+        <div class="metric">
+          <div class="label">Total Findings</div>
+          <div class="value" id="risks-total">0</div>
+        </div>
+        <div class="metric">
+          <div class="label">Critical</div>
+          <div class="value" id="risks-critical">0</div>
+        </div>
+        <div class="metric">
+          <div class="label">High</div>
+          <div class="value" id="risks-high">0</div>
+        </div>
+      </div>
+      <input
+        id="risks-scan-path"
+        placeholder="Repo path (dependency scan) or image ref (e.g. nginx:latest)"
+      />
+      <input
+        id="risks-filter-severity"
+        placeholder="Min severity: critical | high | medium | low | info"
+      />
+      <div class="row">
+        <button id="risks-scan-deps">Scan Dependencies</button>
+        <button id="risks-scan-image">Scan Image</button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Scanner</th>
+            <th>Severity</th>
+            <th>Package / File</th>
+            <th>Rule</th>
+            <th>Title</th>
+          </tr>
+        </thead>
+        <tbody id="risks-table-body"></tbody>
+      </table>
+      <pre id="risks-output"></pre>
+    </div>
+
+    <div class="panel">
       <h3>Resolved Policy</h3>
       <pre id="policy-output">—</pre>
     </div>
@@ -1146,6 +1189,53 @@
         }
       }
 
+      function severityOrder(s) {
+        switch ((s || "").toLowerCase()) {
+          case "critical":
+            return 5;
+          case "high":
+            return 4;
+          case "medium":
+            return 3;
+          case "low":
+            return 2;
+          case "info":
+            return 1;
+          default:
+            return 0;
+        }
+      }
+
+      function renderRisks(findings, minSeverity) {
+        const body = document.getElementById("risks-table-body");
+        body.innerHTML = "";
+        let total = 0;
+        let critical = 0;
+        let high = 0;
+        for (const f of findings) {
+          const sev = (f.severity || "unknown").toLowerCase();
+          if (minSeverity && severityOrder(sev) < severityOrder(minSeverity)) {
+            continue;
+          }
+          total++;
+          if (sev === "critical") critical++;
+          if (sev === "high") high++;
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${f.scanner}</td>
+            <td>${f.severity}</td>
+            <td>${f.package || f.file || ""}</td>
+            <td>${f.ruleId || ""}</td>
+            <td>${(f.title || "").replace(/</g, "&lt;")}</td>
+          `;
+          body.appendChild(tr);
+        }
+        document.getElementById("risks-total").textContent = String(total);
+        document.getElementById("risks-critical").textContent =
+          String(critical);
+        document.getElementById("risks-high").textContent = String(high);
+      }
+
       async function runKnowledgeSearch() {
         const queryText = document
           .getElementById("knowledge-query")
@@ -1183,6 +1273,60 @@
       document
         .getElementById("knowledge-search-btn")
         ?.addEventListener("click", runKnowledgeSearch);
+
+      document
+        .getElementById("risks-scan-deps")
+        ?.addEventListener("click", async () => {
+          const target = document
+            .getElementById("risks-scan-path")
+            .value.trim();
+          if (!target) {
+            document.getElementById("risks-output").textContent =
+              "Enter a repo path to scan.";
+            return;
+          }
+          document.getElementById("risks-output").textContent =
+            "Scanning dependencies...";
+          try {
+            const res = await window.workspaceRisks.scanDependency(target);
+            const findings = res?.result?.findings ?? [];
+            const minSev =
+              document.getElementById("risks-filter-severity").value.trim() ||
+              null;
+            renderRisks(findings, minSev);
+            document.getElementById("risks-output").textContent =
+              JSON.stringify(res, null, 2);
+          } catch (err) {
+            document.getElementById("risks-output").textContent = String(err);
+          }
+        });
+
+      document
+        .getElementById("risks-scan-image")
+        ?.addEventListener("click", async () => {
+          const target = document
+            .getElementById("risks-scan-path")
+            .value.trim();
+          if (!target) {
+            document.getElementById("risks-output").textContent =
+              "Enter an image ref (e.g. nginx:latest).";
+            return;
+          }
+          document.getElementById("risks-output").textContent =
+            "Scanning image...";
+          try {
+            const res = await window.workspaceRisks.scanImage(target);
+            const findings = res?.result?.findings ?? [];
+            const minSev =
+              document.getElementById("risks-filter-severity").value.trim() ||
+              null;
+            renderRisks(findings, minSev);
+            document.getElementById("risks-output").textContent =
+              JSON.stringify(res, null, 2);
+          } catch (err) {
+            document.getElementById("risks-output").textContent = String(err);
+          }
+        });
 
       document
         .getElementById("reset-workspace-quota-daily")
@@ -1309,6 +1453,18 @@
       // knowledge-search
       // window.workspaceKnowledge.ingest
       // window.workspaceKnowledge.search
+      // Dependency & Image Risks
+      // risks-panel
+      // risks-scan-deps
+      // risks-scan-image
+      // risks-table-body
+      // risks-output
+      // risks-total
+      // risks-critical
+      // risks-high
+      // risks-filter-severity
+      // window.workspaceRisks.scanDependency
+      // window.workspaceRisks.scanImage
       // Secrets Scanning
       // secrets-scan-btn
       // secrets-findings-body

@@ -7,8 +7,7 @@ function risks() {
 }
 
 function registerRisksHandlers() {
-  ipcMain.handle(
-    "risks:scan:dependency",
+  ipcMain.handle("risks:scan:dependency",
     async (_event, scanTarget, options) => {
       try {
         const { runDependencyCheck } = risks();
