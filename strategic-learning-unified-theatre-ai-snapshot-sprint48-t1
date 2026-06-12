@@ -1,0 +1,18 @@
+  SPRINT 48 — T1 COMPLETE
+
+  FILES:
+    src/security/security-overview/drift.ts (created)
+    src/security/security-overview/schema.ts (extended)
+    src/security/security-overview/index.ts (extended)
+
+  STATUS:
+    SeverityCounts and SecurityOverviewDriftResult appended to schema.ts
+    loadSecurityBaselineSnapshot() — returns null for missing/empty path
+    buildFindingFingerprintSet() — collects fingerprints from findings array
+    compareSecurityOverviewWithBaseline() — classifies introduced/persistent/resolved
+    summarizeBySeverity() — counts findings per severity bucket
+    index.ts exports ./drift
+    Sprint 47 triage.ts, schema.ts SecurityTriageStatus, index.ts exports untouched
+    compile clean
+
+  NEXT: T2 — IPC handler extension + main.cjs (no change needed)

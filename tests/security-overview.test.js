@@ -178,7 +178,9 @@ import {
 
 describe("Sprint 47 security overview — triage", () => {
   it("returns empty array for missing triage file", () => {
-    const rows = loadSecurityTriage(path.join(os.tmpdir(), "missing-triage.json"));
+    const rows = loadSecurityTriage(
+      path.join(os.tmpdir(), "missing-triage.json"),
+    );
     expect(Array.isArray(rows)).toBe(true);
     expect(rows.length).toBe(0);
   });
@@ -229,7 +231,9 @@ describe("Sprint 47 security overview — triage", () => {
       updatedAt: 2,
     });
     expect(updated.length).toBe(2);
-    expect(updated.find((e) => e.fingerprint === "fp-1").status).toBe("resolved");
+    expect(updated.find((e) => e.fingerprint === "fp-1").status).toBe(
+      "resolved",
+    );
   });
 
   it("upsertSecurityTriageEntry appends new entry", () => {

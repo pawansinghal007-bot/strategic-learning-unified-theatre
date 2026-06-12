@@ -100,3 +100,32 @@ export function buildSecurityOverviewSnapshot(
   }
   return snap;
 }
+
+export interface SeverityCounts {
+  critical: number;
+  high: number;
+  medium: number;
+  low: number;
+  info: number;
+  unknown: number;
+}
+
+export interface SecurityOverviewDriftResult {
+  ok: true;
+  baselineLoaded: boolean;
+  counts: {
+    current: number;
+    baseline: number;
+    introduced: number;
+    persistent: number;
+    resolved: number;
+  };
+  bySeverity: {
+    introduced: SeverityCounts;
+    persistent: SeverityCounts;
+    resolved: SeverityCounts;
+  };
+  introduced: Array<Record<string, unknown>>;
+  persistent: Array<Record<string, unknown>>;
+  resolved: Array<Record<string, unknown>>;
+}

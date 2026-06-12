@@ -11,7 +11,9 @@ function read(rel) {
 describe("Sprint 47 smoke tests — file surface", () => {
   it("triage.ts exists in security-overview", () => {
     expect(
-      fs.existsSync(path.join(root, "src/security/security-overview/triage.ts")),
+      fs.existsSync(
+        path.join(root, "src/security/security-overview/triage.ts"),
+      ),
     ).toBe(true);
   });
 

@@ -256,3 +256,6 @@ Dependency & image risk scanning delivered. src/security/risks/ new domain. Risk
 
 ## Sprint 46 Complete
 Unified security overview, baseline and suppression management delivered. src/security/security-overview/ new subfolder. SecurityFindingSummary, buildSecurityOverviewSnapshot, flattenFindings, isSecuritySuppressed. security-overview:summarize/save-baseline/load-suppressions/save-suppressions IPC. workspaceSecurity preload. Dashboard Security Overview panel. Sonar clean.
+
+## Sprint 47 Complete
+Interactive triage workflow delivered. triage.ts with loadSecurityTriage, saveSecurityTriage, upsertSecurityTriageEntry, getSecurityTriageStatus. SecurityTriageStatus type: open/suppressed/accepted/false_positive/resolved. SecurityOverviewSnapshot extended with triage counts. summarize handler enriches findings with triageStatus. security-overview:load-triage and :set-triage IPC. preload loadTriage/setTriage. Dashboard 9-card metric grid + triage controls. Architecture sync done. Sonar clean.

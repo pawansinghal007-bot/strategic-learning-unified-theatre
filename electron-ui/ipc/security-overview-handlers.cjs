@@ -121,6 +121,23 @@ function registerSecurityOverviewHandlers() {
       return saveSecurityTriage(triagePath, next);
     },
   );
+
+  ipcMain.handle(
+    "security-overview:compare-baseline",
+    async (_event, currentSnapshot, baselinePath) => {
+      const {
+        loadSecurityBaselineSnapshot,
+        compareSecurityOverviewWithBaseline,
+      } = require("../../src/security/security-overview/drift.js");
+      const baselineSnapshot = loadSecurityBaselineSnapshot(
+        baselinePath ?? null,
+      );
+      return compareSecurityOverviewWithBaseline(
+        currentSnapshot,
+        baselineSnapshot,
+      );
+    },
+  );
 }
 
 module.exports = { registerSecurityOverviewHandlers };

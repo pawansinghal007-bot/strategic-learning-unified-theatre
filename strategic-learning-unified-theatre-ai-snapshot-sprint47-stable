@@ -1,0 +1,110 @@
+  SPRINT 47 COMPLETE: INTERACTIVE TRIAGE WORKFLOW AND FINDING STATE PERSISTENCE
+
+  SPRINT SUMMARY:
+    T1  triage backend + schema    triage.ts created, schema.ts and index.ts
+                                   replaced, security-overview-handlers.cjs
+                                   replaced with triage channels
+    T2  preload + types +          preload workspaceSecurity extended with
+        dashboard                  loadTriage/setTriage; types.d.ts replaced;
+                                   dashboard Security Overview panel extended
+                                   with 9 metric cards + triage controls
+    T3  smoke tests + closure      security-overview.test.js replaced
+                                   (Sprint 46 tests preserved + 9 new triage
+                                   tests); sprint47-smoke.test.js created
+
+  STATUS:
+    vitest pass — 106+ files / 1000+ tests
+    typecheck clean
+    sonar clean
+    tagged sprint-47-complete
+
+  DELIVERABLES:
+    [x] SecurityTriageStatus type: open/suppressed/accepted/false_positive/resolved
+    [x] SecurityTriageEntry interface with fingerprint/status/reason/updatedAt/updatedBy
+    [x] loadSecurityTriage() — returns [] on missing file or empty path
+    [x] saveSecurityTriage() — returns {ok, filePath, count}
+    [x] upsertSecurityTriageEntry() — updates in-place or appends
+    [x] getSecurityTriageStatus() — returns "open" when not found or undefined
+    [x] SecurityOverviewSnapshot extended with open/accepted/falsePositive/resolved
+    [x] SecurityFindingSummary extended with optional triageStatus field
+    [x] summarize handler enriches each finding with triageStatus from triage file
+    [x] buildSecurityOverviewSnapshot counts triage states
+    [x] security-overview:load-triage IPC channel
+    [x] security-overview:set-triage IPC channel
+    [x] All Sprint 46 IPC channels preserved (summarize/save-baseline/
+        load-suppressions/save-suppressions)
+    [x] preload loadTriage method exposed
+    [x] preload setTriage method exposed
+    [x] Sprint 46 preload methods untouched
+    [x] types.d.ts SecurityTriageStatus/Entry declared
+    [x] types.d.ts SecuritySummarySnapshot with triage counts
+    [x] types.d.ts workspaceSecurity.loadTriage/setTriage typed
+    [x] Dashboard 9 metric cards (row 3: Open/Accepted/Resolved)
+    [x] Dashboard triage path/fingerprint/status/reason inputs
+    [x] Dashboard Apply Triage State button
+    [x] Dashboard Load Triage button
+    [x] Sprint 46 Security Overview panel strings preserved
+    [x] Sprint 44/45 scanner panels preserved
+    [x] All earlier compatibility strings preserved
+    [x] Smoke tests passing (16 assertions)
+    [x] Architecture sync completed
+
+  ARCHITECTURE CHANGES THIS SPRINT:
+  New files:
+    - src/security/security-overview/triage.ts
+    - tests/sprint47-smoke.test.js
+  Replaced:
+    - src/security/security-overview/schema.ts
+    - src/security/security-overview/index.ts
+    - electron-ui/ipc/security-overview-handlers.cjs
+    - src/ui/types.d.ts
+    - src/ui/provider-dashboard.html
+    - tests/security-overview.test.js
+  Extended:
+    - electron-ui/preload.cjs
+  Unchanged:
+    - src/audit/audit-log.ts
+    - electron-ui/main.cjs
+    - electron-ui/ipc/audit-handlers.cjs
+    - src/security/secrets/*
+    - src/security/risks/*
+    - src/security/security-overview/baseline.ts
+    - src/security/security-overview/suppressions.ts
+    - src/security/security-overview/normalizer.ts
+
+  TRIAGE STATE MODEL:
+    open          — default state for all new findings
+    suppressed    — set automatically when isSecuritySuppressed() matches
+    accepted      — user-confirmed known/acceptable risk
+    false_positive — user-confirmed incorrect detection
+    resolved      — finding has been remediated
+
+  IPC SURFACE ADDED (sprint 47):
+    security-overview:load-triage — loads triage entries from JSON file
+    security-overview:set-triage  — upserts one triage entry, saves file
+
+  PRELOAD SURFACE ADDED (sprint 47):
+    window.workspaceSecurity.loadTriage(triagePath)
+    window.workspaceSecurity.setTriage(triagePath, fingerprint, status,
+      reason?, updatedBy?)
+
+  CUMULATIVE SECURITY IPC SURFACE (sprints 44-47):
+    secrets:scan
+    risks:scan:dependency
+    risks:scan:image
+    security-overview:summarize
+    security-overview:save-baseline
+    security-overview:load-suppressions
+    security-overview:save-suppressions
+    security-overview:load-triage        ← sprint 47
+    security-overview:set-triage         ← sprint 47
+
+  NEXT:
+    Sprint 48 candidates:
+    - Baseline drift view (new vs persistent vs resolved findings)
+    - Triage bulk actions (accept/suppress multiple findings at once)
+    - Auto-scan trigger on app start or tray menu
+    - AI-assisted finding explanation (pipe findings into llm:ask RAG flow)
+    - Compliance mapping overlay (OWASP Top 10, CIS benchmark)
+
+  ARCHITECTURE SYNC STATUS: [UPDATED]
