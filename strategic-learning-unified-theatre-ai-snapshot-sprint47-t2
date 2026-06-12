@@ -1,0 +1,45 @@
+  SPRINT 47 — T2 COMPLETE
+
+  FILES:
+    electron-ui/preload.cjs (extended)
+    src/ui/types.d.ts (replaced)
+    src/ui/provider-dashboard.html (replaced)
+
+  STATUS:
+    preload workspaceSecurity now has 6 methods
+    loadTriage exposed to renderer
+    setTriage exposed to renderer
+    Sprint 46 summarize/saveBaseline/loadSuppressions/saveSuppressions intact
+    types.d.ts SecurityTriageStatus, SecurityTriageEntry declared
+    types.d.ts SecuritySummarySnapshot with triage count fields
+    types.d.ts workspaceSecurity.loadTriage and .setTriage typed
+    Dashboard Security Overview panel has 9 metric cards (3 rows of 3)
+    Dashboard triage controls: path input, fingerprint, status select,
+      reason, Apply Triage State button, Load Triage button
+    Sprint 46 compatibility strings preserved and extended
+    compile clean
+    sonar clean
+
+  DELIVERABLES:
+    [x] preload loadTriage method added
+    [x] preload setTriage method added
+    [x] Sprint 46 preload methods untouched
+    [x] types.d.ts SecurityTriageStatus type
+    [x] types.d.ts SecurityTriageEntry interface
+    [x] types.d.ts SecuritySummarySnapshot with open/accepted/falsePositive/resolved
+    [x] types.d.ts workspaceSecurity.loadTriage typed
+    [x] types.d.ts workspaceSecurity.setTriage typed
+    [x] Dashboard 9-card metric grid (row 3: Open/Accepted/Resolved)
+    [x] Dashboard triage file path input
+    [x] Dashboard fingerprint input
+    [x] Dashboard triage status select
+    [x] Dashboard reason input
+    [x] Dashboard Apply Triage State button
+    [x] Dashboard Load Triage button
+    [x] audit-log.ts unchanged
+    [x] audit-handlers.cjs unchanged
+    [x] Compilation successful
+    [x] Sonar validation clean
+
+  NEXT:
+    T3 — smoke tests + sprint closure

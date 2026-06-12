@@ -308,7 +308,7 @@
           <div class="value" id="security-high">0</div>
         </div>
       </div>
-      <div class="row-3" style="margin-top:12px">
+      <div class="row-3" style="margin-top: 12px">
         <div class="metric">
           <div class="label">Secrets</div>
           <div class="value" id="security-secrets">0</div>
@@ -322,7 +322,7 @@
           <div class="value" id="security-suppressed">0</div>
         </div>
       </div>
-      <div class="row-3" style="margin-top:12px">
+      <div class="row-3" style="margin-top: 12px">
         <div class="metric">
           <div class="label">Open</div>
           <div class="value" id="security-open">0</div>
@@ -336,17 +336,23 @@
           <div class="value" id="security-resolved">0</div>
         </div>
       </div>
-      <div class="row" style="margin-top:12px">
+      <div class="row" style="margin-top: 12px">
         <button id="security-load-overview">Refresh Overview</button>
         <button id="security-save-baseline">Save Baseline</button>
       </div>
-      <div class="row-3" style="margin-top:12px">
+      <div class="row-3" style="margin-top: 12px">
         <input id="security-baseline-path" placeholder="Baseline file path" />
-        <input id="security-suppressions-path" placeholder="Suppressions file path" />
+        <input
+          id="security-suppressions-path"
+          placeholder="Suppressions file path"
+        />
         <input id="security-triage-path" placeholder="Triage file path" />
       </div>
-      <div class="row-3" style="margin-top:12px">
-        <input id="security-triage-fingerprint" placeholder="Finding fingerprint" />
+      <div class="row-3" style="margin-top: 12px">
+        <input
+          id="security-triage-fingerprint"
+          placeholder="Finding fingerprint"
+        />
         <select id="security-triage-status">
           <option value="open">open</option>
           <option value="accepted">accepted</option>
@@ -355,7 +361,7 @@
         </select>
         <input id="security-triage-reason" placeholder="Reason" />
       </div>
-      <div class="row" style="margin-top:12px">
+      <div class="row" style="margin-top: 12px">
         <button id="security-set-triage">Apply Triage State</button>
         <button id="security-load-triage">Load Triage</button>
       </div>
@@ -1237,8 +1243,9 @@
             document.getElementById("security-baseline-path")?.value?.trim() ||
             "",
           suppressionsPath:
-            document.getElementById("security-suppressions-path")?.value?.trim() ||
-            "",
+            document
+              .getElementById("security-suppressions-path")
+              ?.value?.trim() || "",
           triagePath:
             document.getElementById("security-triage-path")?.value?.trim() ||
             "",
@@ -1255,7 +1262,8 @@
           ?.value?.trim();
         if (!baselinePath) {
           if (securityOverviewOutput) {
-            securityOverviewOutput.textContent = "Enter a baseline output path.";
+            securityOverviewOutput.textContent =
+              "Enter a baseline output path.";
           }
           return;
         }
@@ -1281,12 +1289,14 @@
         const triagePath =
           document.getElementById("security-triage-path")?.value?.trim() || "";
         const fingerprint =
-          document.getElementById("security-triage-fingerprint")?.value?.trim() ||
-          "";
+          document
+            .getElementById("security-triage-fingerprint")
+            ?.value?.trim() || "";
         const status =
           document.getElementById("security-triage-status")?.value || "open";
         const reason =
-          document.getElementById("security-triage-reason")?.value?.trim() || "";
+          document.getElementById("security-triage-reason")?.value?.trim() ||
+          "";
         if (!triagePath || !fingerprint) return;
         const result = await window.workspaceSecurity.setTriage(
           triagePath,

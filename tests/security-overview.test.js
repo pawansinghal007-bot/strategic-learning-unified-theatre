@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
 
-describe("Sprint 46 — security overview backend", () => {
+describe("Sprint 46/47 security overview — backend", () => {
   it("loadSecurityBaseline reads findings-wrapper JSON", async () => {
     const { loadSecurityBaseline } =
       await import("../src/security/security-overview/baseline.js");
@@ -166,5 +166,97 @@ describe("Sprint 46 — security overview backend", () => {
       await import("../src/security/security-overview/normalizer.js");
     expect(flattenFindings([], "risk")).toEqual([]);
     expect(flattenFindings(null, "risk")).toEqual([]);
+  });
+});
+
+import {
+  loadSecurityTriage,
+  saveSecurityTriage,
+  upsertSecurityTriageEntry,
+  getSecurityTriageStatus,
+} from "../src/security/security-overview/triage.js";
+
+describe("Sprint 47 security overview — triage", () => {
+  it("returns empty array for missing triage file", () => {
+    const rows = loadSecurityTriage(path.join(os.tmpdir(), "missing-triage.json"));
+    expect(Array.isArray(rows)).toBe(true);
+    expect(rows.length).toBe(0);
+  });
+
+  it("returns empty array for empty path", () => {
+    const rows = loadSecurityTriage("");
+    expect(Array.isArray(rows)).toBe(true);
+    expect(rows.length).toBe(0);
+  });
+
+  it("saves and reloads triage entries", () => {
+    const file = path.join(os.tmpdir(), `sec-triage-${Date.now()}.json`);
+    saveSecurityTriage(file, [
+      {
+        fingerprint: "fp-t1",
+        status: "accepted",
+        updatedAt: Date.now(),
+        reason: "known false positive",
+      },
+    ]);
+    const rows = loadSecurityTriage(file);
+    expect(rows.length).toBe(1);
+    expect(rows[0].status).toBe("accepted");
+    expect(rows[0].fingerprint).toBe("fp-t1");
+    fs.unlinkSync(file);
+  });
+
+  it("saveSecurityTriage returns ok, filePath, count", () => {
+    const file = path.join(os.tmpdir(), `sec-triage-ret-${Date.now()}.json`);
+    const result = saveSecurityTriage(file, [
+      { fingerprint: "fp-r1", status: "resolved", updatedAt: Date.now() },
+      { fingerprint: "fp-r2", status: "open", updatedAt: Date.now() },
+    ]);
+    expect(result.ok).toBe(true);
+    expect(result.count).toBe(2);
+    expect(result.filePath).toBe(file);
+    fs.unlinkSync(file);
+  });
+
+  it("upsertSecurityTriageEntry updates existing entry in place", () => {
+    const entries = [
+      { fingerprint: "fp-1", status: "open", updatedAt: 1 },
+      { fingerprint: "fp-2", status: "open", updatedAt: 1 },
+    ];
+    const updated = upsertSecurityTriageEntry(entries, {
+      fingerprint: "fp-1",
+      status: "resolved",
+      updatedAt: 2,
+    });
+    expect(updated.length).toBe(2);
+    expect(updated.find((e) => e.fingerprint === "fp-1").status).toBe("resolved");
+  });
+
+  it("upsertSecurityTriageEntry appends new entry", () => {
+    const entries = [{ fingerprint: "fp-1", status: "open", updatedAt: 1 }];
+    const updated = upsertSecurityTriageEntry(entries, {
+      fingerprint: "fp-new",
+      status: "accepted",
+      updatedAt: 2,
+    });
+    expect(updated.length).toBe(2);
+    expect(updated[1].fingerprint).toBe("fp-new");
+  });
+
+  it("getSecurityTriageStatus returns open when not found", () => {
+    expect(getSecurityTriageStatus("missing-fp", [])).toBe("open");
+  });
+
+  it("getSecurityTriageStatus returns open for undefined fingerprint", () => {
+    expect(getSecurityTriageStatus(undefined, [])).toBe("open");
+  });
+
+  it("getSecurityTriageStatus returns correct status when found", () => {
+    const entries = [
+      { fingerprint: "fp-1", status: "accepted", updatedAt: Date.now() },
+      { fingerprint: "fp-2", status: "false_positive", updatedAt: Date.now() },
+    ];
+    expect(getSecurityTriageStatus("fp-1", entries)).toBe("accepted");
+    expect(getSecurityTriageStatus("fp-2", entries)).toBe("false_positive");
   });
 });
