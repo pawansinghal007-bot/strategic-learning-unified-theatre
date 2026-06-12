@@ -2,6 +2,13 @@
 
 const { ipcMain } = require("electron");
 
+const {
+  loadSecurityTriage,
+  saveSecurityTriage,
+  upsertSecurityTriageEntry,
+  getSecurityTriageStatus,
+} = require("../../src/security/security-overview/triage");
+
 function securityOverview() {
   return require("../../src/security/security-overview/index.js");
 }
@@ -20,16 +27,25 @@ function registerSecurityOverviewHandlers() {
     const suppressions = loadSecuritySuppressions(
       payload?.suppressionsPath ?? "",
     );
+    const triageEntries = loadSecurityTriage(payload?.triagePath ?? "");
 
     const secretFindings = flattenFindings(payload?.secrets ?? [], "secret");
     const riskFindings = flattenFindings(payload?.risks ?? [], "risk");
 
-    const findings = [...secretFindings, ...riskFindings].map((f) => ({
-      ...f,
-      suppressed: isSecuritySuppressed(f, suppressions),
-      baselineMatched:
-        typeof f.fingerprint === "string" ? baseline.has(f.fingerprint) : false,
-    }));
+    const findings = [...secretFindings, ...riskFindings].map((f) => {
+      const suppressed = isSecuritySuppressed(f, suppressions);
+      const triageStatus = suppressed
+        ? "suppressed"
+        : getSecurityTriageStatus(f.fingerprint, triageEntries);
+
+      return {
+        ...f,
+        suppressed,
+        baselineMatched:
+          typeof f.fingerprint === "string" ? baseline.has(f.fingerprint) : false,
+        triageStatus,
+      };
+    });
 
     return {
       ok: true,
@@ -68,6 +84,39 @@ function registerSecurityOverviewHandlers() {
         suppressionsPath,
         Array.isArray(suppressions) ? suppressions : [],
       );
+    },
+  );
+
+  ipcMain.handle(
+    "security-overview:load-triage",
+    async (_event, triagePath) => {
+      const { loadSecurityTriage } = require(
+        "../../src/security/security-overview/triage",
+      );
+      return {
+        ok: true,
+        entries: loadSecurityTriage(triagePath || ""),
+      };
+    },
+  );
+
+  ipcMain.handle(
+    "security-overview:set-triage",
+    async (_event, triagePath, fingerprint, status, reason, updatedBy) => {
+      const {
+        loadSecurityTriage,
+        saveSecurityTriage,
+        upsertSecurityTriageEntry,
+      } = require("../../src/security/security-overview/triage");
+      const entries = loadSecurityTriage(triagePath || "");
+      const next = upsertSecurityTriageEntry(entries, {
+        fingerprint: String(fingerprint),
+        status,
+        reason: reason ?? undefined,
+        updatedAt: Date.now(),
+        updatedBy: updatedBy ?? undefined,
+      });
+      return saveSecurityTriage(triagePath, next);
     },
   );
 }

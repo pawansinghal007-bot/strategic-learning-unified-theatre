@@ -1,0 +1,51 @@
+  SPRINT 46 COMPLETE: UNIFIED SECURITY OVERVIEW, BASELINE & SUPPRESSION MANAGEMENT
+
+  SPRINT SUMMARY:
+    T1  security-overview backend  schema, baseline, suppressions, normalizer, index
+    T2  IPC + main.cjs             security-overview-handlers.cjs, main.cjs extended
+    T3  preload + types + dash     workspaceSecurity preload, types, dashboard panel, docs
+    T4  smoke tests + closure      security-overview.test.js, sprint46-smoke.test.js
+
+  STATUS:
+    vitest pass
+    typecheck clean
+    sonar clean
+    tagged sprint-46-complete
+
+  DELIVERABLES:
+    [x] SecurityFindingSummary and SecurityOverviewSnapshot schemas
+    [x] loadSecurityBaseline() — array and findings-wrapper JSON
+    [x] saveSecurityBaseline() — writes generatedAt + findings
+    [x] loadSecuritySuppressions() — returns [] on missing file
+    [x] saveSecuritySuppressions() — writes list
+    [x] isSecuritySuppressed() — fingerprint priority then file+ruleId
+    [x] flattenFindings() — normalises secrets/risks into common shape
+    [x] buildSecurityOverviewSnapshot() — aggregates severity/kind counts
+    [x] security-overview:summarize/save-baseline/load-suppressions/save-suppressions IPC
+    [x] workspaceSecurity preload namespace (4 methods)
+    [x] types.d.ts workspaceSecurity inside Window (no duplicate block)
+    [x] Dashboard Security Overview panel above Secrets panel
+    [x] Sprint 44/45 scanner surfaces preserved
+    [x] Smoke tests passing
+    [x] Architecture sync completed
+
+  ARCHITECTURE CHANGES THIS SPRINT:
+  New folder: src/security/security-overview/
+  New files:  schema.ts, baseline.ts, suppressions.ts, normalizer.ts, index.ts
+              electron-ui/ipc/security-overview-handlers.cjs
+  Extended:   electron-ui/main.cjs
+              electron-ui/preload.cjs
+              src/ui/types.d.ts
+              src/ui/provider-dashboard.html
+  Unchanged:  src/security/secrets/*
+              src/security/risks/*
+              src/audit/audit-log.ts
+
+  NEXT:
+    Sprint 47 candidates:
+    - Suppression management UI (add/remove from dashboard table)
+    - Auto-scan trigger on app start or tray action
+    - Compliance benchmark mapping (OWASP Top 10, CIS)
+    - Baseline drift alert (new findings since last baseline)
+
+  ARCHITECTURE SYNC STATUS: [UPDATED | UNCHANGED]

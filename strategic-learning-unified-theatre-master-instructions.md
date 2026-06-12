@@ -253,3 +253,6 @@ Secrets scanning with Gitleaks delivered. src/security/secrets/ new domain. Secr
 
 ## Sprint 45 Complete
 Dependency & image risk scanning delivered. src/security/risks/ new domain. RiskFinding/RiskScanner schemas. mapSeverityFromCvss, normalizeDependencyCheckFinding, normalizeTrivyFinding parsers. runDependencyCheck() via dependency-check CLI spawn. runTrivyImage() via trivy CLI spawn. Both runners: spawnSync, temp cleanup, ok/error shape. risks:scan:dependency and risks:scan:image IPC. window.workspaceRisks preload. Dashboard Dependency & Image Risks panel. Architecture baseline refreshed. Sonar clean.
+
+## Sprint 46 Complete
+Unified security overview, baseline and suppression management delivered. src/security/security-overview/ new subfolder. SecurityFindingSummary, buildSecurityOverviewSnapshot, flattenFindings, isSecuritySuppressed. security-overview:summarize/save-baseline/load-suppressions/save-suppressions IPC. workspaceSecurity preload. Dashboard Security Overview panel. Sonar clean.

@@ -8,6 +8,13 @@ export type SecuritySeverity =
   | "info"
   | "unknown";
 
+export type SecurityTriageStatus =
+  | "open"
+  | "suppressed"
+  | "accepted"
+  | "false_positive"
+  | "resolved";
+
 export interface SecurityFindingSummary {
   kind: SecurityFindingKind;
   scanner: string;
@@ -20,9 +27,11 @@ export interface SecurityFindingSummary {
   package?: string | null;
   version?: string | null;
   fingerprint?: string;
-  suppressed: boolean;
-  baselineMatched: boolean;
+  suppressed?: boolean;
+  baselineMatched?: boolean;
+  triageStatus?: SecurityTriageStatus;
   createdAt: number;
+  raw?: any;
 }
 
 export interface SecurityOverviewSnapshot {
@@ -37,6 +46,10 @@ export interface SecurityOverviewSnapshot {
   risks: number;
   suppressed: number;
   baselineMatched: number;
+  open: number;
+  accepted: number;
+  falsePositive: number;
+  resolved: number;
   latestAt: number | null;
 }
 
@@ -53,6 +66,10 @@ export function emptySecurityOverviewSnapshot(): SecurityOverviewSnapshot {
     risks: 0,
     suppressed: 0,
     baselineMatched: 0,
+    open: 0,
+    accepted: 0,
+    falsePositive: 0,
+    resolved: 0,
     latestAt: null,
   };
 }
@@ -69,6 +86,11 @@ export function buildSecurityOverviewSnapshot(
     if (sev in snap) (snap as Record<string, number>)[sev]++;
     if (f.suppressed) snap.suppressed++;
     if (f.baselineMatched) snap.baselineMatched++;
+    const triageStatus = f.triageStatus ?? "open";
+    if (triageStatus === "accepted") snap.accepted++;
+    else if (triageStatus === "false_positive") snap.falsePositive++;
+    else if (triageStatus === "resolved") snap.resolved++;
+    else snap.open++;
     if (
       snap.latestAt === null ||
       (f.createdAt && f.createdAt > snap.latestAt)
