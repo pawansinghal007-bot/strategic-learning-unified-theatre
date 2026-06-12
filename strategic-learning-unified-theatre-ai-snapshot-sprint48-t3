@@ -1,0 +1,25 @@
+  SPRINT 48 — T3 COMPLETE
+
+  FILES:
+    electron-ui/preload.cjs (extended)
+    src/ui/types.d.ts (extended)
+    src/ui/provider-dashboard.html (updated)
+    docs/sprint-48-scope.md
+    docs/sprint-48-checklist.md
+    docs/INTEGRATION.md
+
+  STATUS:
+    workspaceSecurity.compareBaseline exposed to renderer
+    Sprint 47 loadTriage/setTriage methods untouched
+    SeverityCounts interface added to global declare block
+    SecurityOverviewDriftResult interface added to global declare block
+    compareBaseline typed inside existing workspaceSecurity property in Window
+    interface Window appears exactly once
+    Security Drift panel after Security Overview panel
+    6 metric tiles: current/baseline/introduced/persistent/resolved/loaded
+    Sprint 25–47 compatibility strings preserved
+    docs committed
+    compile clean
+    sonar clean
+
+  NEXT: T4 — smoke tests + sprint closure
