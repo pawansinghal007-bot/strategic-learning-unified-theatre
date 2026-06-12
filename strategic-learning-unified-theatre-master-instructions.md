@@ -247,3 +247,6 @@ Knowledge layer RAG ingestion delivered. src/knowledge/ new domain. KnowledgeDoc
 
 ## Sprint 43 Complete
 RAG ask-flow delivered. buildKnowledgePromptBlock() in knowledge index. normalizeHit() + toScoreNumber() in knowledge-handlers.cjs. llm:ask augmented with Milvus retrieval, score threshold 0.4, top-6 context block. try/catch guard keeps ask non-fatal when Milvus unavailable. buildPromptContext preload alias. types.d.ts extended. Architecture sync done. Sonar clean.
+
+## Sprint 44 Complete
+Secrets scanning with Gitleaks delivered. src/security/secrets/ new domain. SecretFinding/SecretsScanResult/SecretsSuppressionEntry schemas. loadBaselineFingerprints(), matchSuppression(), runSecretsScan() via spawn. Baseline applied manually not via --baseline-path. secrets:scan IPC. window.secrets.scan preload. knowledge:search filter+minScore added. Dashboard Secrets Scanning panel + enriched Knowledge panel. Architecture baseline refreshed. Sonar clean.

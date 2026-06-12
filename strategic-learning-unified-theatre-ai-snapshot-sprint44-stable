@@ -1,0 +1,99 @@
+  SPRINT 44 COMPLETE: SECRETS SCANNING WITH GITLEAKS + KNOWLEDGE FILTERS & SCORES
+
+  SPRINT SUMMARY:
+    T1  secrets backend            src/security/secrets/ — schema, baseline,
+                                   suppressions, gitleaks-runner, index barrel
+    T2  IPC + main + preload +     secrets-handlers.cjs, main.cjs extended,
+        types + knowledge filter   preload secrets namespace, types.d.ts,
+                                   knowledge:search filter/minScore support
+    T3  dashboard + smoke tests    Knowledge panel enriched (score col + filter),
+                                   Secrets Scanning panel, secrets-runner.test.js,
+                                   sprint44-smoke.test.js
+
+  STATUS:
+    vitest pass — 100+ files / 930+ tests
+    typecheck clean
+    sonar clean
+    tagged sprint-44-complete
+
+  DELIVERABLES:
+    [x] SecretFinding, SecretsScanResult, SecretsSuppressionEntry interfaces
+    [x] loadBaselineFingerprints() — handles PascalCase/camelCase, findings wrapper
+    [x] loadSuppressions() — returns [] on missing file, no throw
+    [x] matchSuppression() — fingerprint priority, file+ruleId fallback
+    [x] normalizeFinding() — handles all Gitleaks PascalCase/camelCase fields
+    [x] mapSeverity() — critical/high/medium/low by ruleId keywords
+    [x] mapCategory() — credential/token/private_key/generic/unknown
+    [x] previewSecret() — masks leaving 4 chars each side
+    [x] runSecretsScan() — spawns gitleaks detect --no-git --report-format json
+    [x] Temp report file cleaned up in finally block
+    [x] gitleaks exit code 0 or 1 both treated as success
+    [x] Baseline applied manually — NOT via --baseline-path flag
+    [x] secrets:scan IPC channel registered
+    [x] registerSecretsHandlers() wired into main.cjs
+    [x] window.secrets.scan exposed to renderer
+    [x] knowledge:search filter passthrough to Milvus
+    [x] knowledge:search minScore client-side filter
+    [x] types.d.ts Window.secrets fully typed
+    [x] types.d.ts workspaceKnowledge filter/minScore typed
+    [x] Dashboard Secrets Scanning panel — 4 stat cards + findings table
+    [x] Dashboard Knowledge panel — score column + filter input
+    [x] Sprint 43 compatibility strings preserved
+    [x] Smoke tests passing
+    [x] Architecture sync completed — new baseline generated
+
+  ARCHITECTURE CHANGES THIS SPRINT:
+  New folders:
+    - src/security/
+    - src/security/secrets/
+  New files:
+    - src/security/secrets/schema.ts
+    - src/security/secrets/baseline.ts
+    - src/security/secrets/suppressions.ts
+    - src/security/secrets/gitleaks-runner.ts
+    - src/security/secrets/index.ts
+    - electron-ui/ipc/secrets-handlers.cjs
+    - tests/secrets-runner.test.js
+    - tests/sprint44-smoke.test.js
+  Extended:
+    - electron-ui/main.cjs
+    - electron-ui/preload.cjs
+    - electron-ui/ipc/knowledge-handlers.cjs
+    - src/ui/provider-dashboard.html
+  Replaced:
+    - src/ui/types.d.ts
+  Unchanged:
+    - src/audit/audit-log.ts
+    - electron-ui/ipc/audit-handlers.cjs
+    - src/knowledge/* (all Sprint 42/43 knowledge files)
+    - electron-ui/ipc/handlers.cjs
+
+  SECRETS SCANNING DESIGN NOTES:
+    engine:            gitleaks (must be in PATH)
+    invocation:        detect --source <path> --no-git --report-format json
+                       --report-path <tmpfile> [--redact] [--config <toml>]
+    baseline strategy: manual fingerprint comparison (NOT --baseline-path)
+                       to avoid --redact edge cases
+    exit codes:        0 = clean, 1 = findings found — both treated as success
+    temp file:         written to os.tmpdir(), deleted in finally block
+    suppression match: fingerprint first, then file+ruleId pair
+
+  IPC SURFACE ADDED (sprint 44):
+    secrets:scan   — triggers runSecretsScan(), returns SecretsScanResult
+
+  PRELOAD SURFACE ADDED (sprint 44):
+    window.secrets.scan(options)
+
+  KNOWLEDGE SEARCH UPDATES (sprint 44):
+    filter   — Milvus filter expression (e.g. 'feature_area == "quota"')
+    minScore — client-side threshold applied after Milvus returns results
+
+  NEXT:
+    Sprint 45 candidates:
+    - Re-ingestion trigger on new sprint completion (auto-ingest after git tag)
+    - Secrets scan scheduling (run on app start or on-demand from tray)
+    - Suppression management UI (add/remove suppressions from dashboard)
+    - Baseline management (generate baseline from current scan results)
+    - Quota reset schedule automation (cron calling resetWorkspaceQuotaDaily)
+
+  ARCHITECTURE SYNC STATUS: [UPDATED]
