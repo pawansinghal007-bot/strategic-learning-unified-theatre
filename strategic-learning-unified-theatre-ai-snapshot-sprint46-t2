@@ -1,0 +1,16 @@
+  SPRINT 46 — T2 COMPLETE
+
+  FILES:
+    electron-ui/ipc/security-overview-handlers.cjs (created)
+    electron-ui/main.cjs (extended)
+
+  STATUS:
+    security-overview:summarize IPC — flattens + suppresses + baselines findings
+    security-overview:save-baseline IPC — writes fingerprints JSON
+    security-overview:load-suppressions IPC — reads suppressions list
+    security-overview:save-suppressions IPC — writes suppressions list
+    registerSecurityOverviewHandlers() wired into main.cjs
+    All Sprint 45 channels preserved
+    compile clean
+
+  NEXT: T3 — preload + types + dashboard

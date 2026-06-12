@@ -282,3 +282,22 @@ contextBridge.exposeInMainWorld("workspaceRisks", {
   scanImage: (imageRef, options) =>
     ipcRenderer.invoke("risks:scan:image", imageRef, options),
 });
+
+contextBridge.exposeInMainWorld("workspaceSecurity", {
+  summarize: (payload) =>
+    ipcRenderer.invoke("security-overview:summarize", payload),
+  saveBaseline: (baselinePath, fingerprints) =>
+    ipcRenderer.invoke(
+      "security-overview:save-baseline",
+      baselinePath,
+      fingerprints,
+    ),
+  loadSuppressions: (suppressionsPath) =>
+    ipcRenderer.invoke("security-overview:load-suppressions", suppressionsPath),
+  saveSuppressions: (suppressionsPath, suppressions) =>
+    ipcRenderer.invoke(
+      "security-overview:save-suppressions",
+      suppressionsPath,
+      suppressions,
+    ),
+});

@@ -53,6 +53,72 @@ declare global {
         error?: string;
       }>;
     };
+    workspaceSecurity: {
+      summarize: (payload: {
+        secrets?: any[];
+        risks?: any[];
+        baselinePath?: string;
+        suppressionsPath?: string;
+      }) => Promise<{
+        ok: true;
+        findings: Array<{
+          kind: "secret" | "risk";
+          scanner: string;
+          id: string;
+          ruleId?: string;
+          title?: string;
+          severity: "critical" | "high" | "medium" | "low" | "info" | "unknown";
+          file?: string | null;
+          package?: string | null;
+          version?: string | null;
+          fingerprint?: string;
+          suppressed: boolean;
+          baselineMatched: boolean;
+          createdAt: number;
+        }>;
+        snapshot: {
+          total: number;
+          critical: number;
+          high: number;
+          medium: number;
+          low: number;
+          info: number;
+          unknown: number;
+          secrets: number;
+          risks: number;
+          suppressed: number;
+          baselineMatched: number;
+          latestAt: number | null;
+        };
+      }>;
+      saveBaseline: (
+        baselinePath: string,
+        fingerprints: string[],
+      ) => Promise<{ ok: true; filePath: string; count: number }>;
+      loadSuppressions: (
+        suppressionsPath: string,
+      ) => Promise<{
+        ok: true;
+        suppressions: Array<{
+          fingerprint?: string;
+          kind?: "secret" | "risk" | "any";
+          file?: string;
+          ruleId?: string;
+          reason?: string;
+          createdAt?: number;
+        }>;
+      }>;
+      saveSuppressions: (
+        suppressionsPath: string,
+        suppressions: Array<{
+          fingerprint?: string;
+          kind?: "secret" | "risk" | "any";
+          file?: string;
+          ruleId?: string;
+          reason?: string;
+        }>,
+      ) => Promise<{ ok: true; filePath: string; count: number }>;
+    };
     secrets: {
       scan: (options: {
         repoPath: string;

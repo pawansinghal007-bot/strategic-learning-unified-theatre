@@ -292,6 +292,39 @@
       </div>
     </div>
 
+    <div class="panel" id="security-overview-panel">
+      <h3>Security Overview</h3>
+      <div class="row">
+        <label>
+          Baseline JSON
+          <input
+            id="security-baseline-path"
+            placeholder="./reports/security-baseline.json"
+          />
+        </label>
+        <label>
+          Suppressions JSON
+          <input
+            id="security-suppressions-path"
+            placeholder="./config/security-suppressions.json"
+          />
+        </label>
+      </div>
+      <div class="row">
+        <button id="security-load-overview">Load security overview</button>
+        <button id="security-save-baseline">Save baseline</button>
+      </div>
+      <div class="metrics">
+        <div class="metric"><div class="label">Total</div><div id="security-total" class="value">0</div></div>
+        <div class="metric"><div class="label">Critical</div><div id="security-critical" class="value">0</div></div>
+        <div class="metric"><div class="label">High</div><div id="security-high" class="value">0</div></div>
+        <div class="metric"><div class="label">Secrets</div><div id="security-secrets" class="value">0</div></div>
+        <div class="metric"><div class="label">Risks</div><div id="security-risks" class="value">0</div></div>
+        <div class="metric"><div class="label">Suppressed</div><div id="security-suppressed" class="value">0</div></div>
+      </div>
+      <pre id="security-overview-output">Security overview status: idle</pre>
+    </div>
+
     <div class="panel">
       <h3>Secrets Scanning</h3>
       <div class="row">
@@ -562,6 +595,7 @@
       const knowledgeBaseDir = document.getElementById("knowledge-base-dir");
       const knowledgeQuery = document.getElementById("knowledge-query");
       const knowledgeOutput = document.getElementById("knowledge-output");
+      const securityOverviewOutput = document.getElementById("security-overview-output");
 
       function wsId() {
         return workspaceIdInput.value.trim();
@@ -1138,6 +1172,40 @@
           }
         });
 
+      async function loadSecurityOverview() {
+        const baselinePath = document.getElementById("security-baseline-path").value.trim() || undefined;
+        const suppressionsPath = document.getElementById("security-suppressions-path").value.trim() || undefined;
+        const result = await window.workspaceSecurity.summarize({
+          secrets: [],
+          risks: [],
+          baselinePath,
+          suppressionsPath,
+        });
+        if (securityOverviewOutput) {
+          securityOverviewOutput.textContent = JSON.stringify(result, null, 2);
+        }
+        if (result?.snapshot) {
+          document.getElementById("security-total").textContent = String(result.snapshot.total ?? 0);
+          document.getElementById("security-critical").textContent = String(result.snapshot.critical ?? 0);
+          document.getElementById("security-high").textContent = String(result.snapshot.high ?? 0);
+          document.getElementById("security-secrets").textContent = String(result.snapshot.secrets ?? 0);
+          document.getElementById("security-risks").textContent = String(result.snapshot.risks ?? 0);
+          document.getElementById("security-suppressed").textContent = String(result.snapshot.suppressed ?? 0);
+        }
+      }
+
+      async function saveSecurityBaseline() {
+        const baselinePath = document.getElementById("security-baseline-path").value.trim();
+        if (!baselinePath) {
+          if (securityOverviewOutput) securityOverviewOutput.textContent = "Enter a baseline output path.";
+          return;
+        }
+        const result = await window.workspaceSecurity.saveBaseline(baselinePath, []);
+        if (securityOverviewOutput) {
+          securityOverviewOutput.textContent = JSON.stringify(result, null, 2);
+        }
+      }
+
       async function runSecretsScan() {
         const repoPath = document
           .getElementById("secrets-repo-path")
@@ -1267,6 +1335,12 @@
         }
       }
 
+      document
+        .getElementById("security-load-overview")
+        ?.addEventListener("click", loadSecurityOverview);
+      document
+        .getElementById("security-save-baseline")
+        ?.addEventListener("click", saveSecurityBaseline);
       document
         .getElementById("secrets-scan-btn")
         ?.addEventListener("click", runSecretsScan);
@@ -1453,6 +1527,12 @@
       // knowledge-search
       // window.workspaceKnowledge.ingest
       // window.workspaceKnowledge.search
+      // Security Overview
+      // security-overview-panel
+      // security-load-overview
+      // security-save-baseline
+      // window.workspaceSecurity.summarize
+      // window.workspaceSecurity.saveBaseline
       // Dependency & Image Risks
       // risks-panel
       // risks-scan-deps

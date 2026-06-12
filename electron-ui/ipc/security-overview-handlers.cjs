@@ -1,13 +1,13 @@
-'use strict';
+"use strict";
 
-const { ipcMain } = require('electron');
+const { ipcMain } = require("electron");
 
 function securityOverview() {
-  return require('../../src/security/security-overview/index.js');
+  return require("../../src/security/security-overview/index.js");
 }
 
 function registerSecurityOverviewHandlers() {
-  ipcMain.handle('security-overview:summarize', async (_event, payload) => {
+  ipcMain.handle("security-overview:summarize", async (_event, payload) => {
     const {
       flattenFindings,
       loadSecurityBaseline,
@@ -16,19 +16,19 @@ function registerSecurityOverviewHandlers() {
       buildSecurityOverviewSnapshot,
     } = securityOverview();
 
-    const baseline = loadSecurityBaseline(payload?.baselinePath ?? '');
+    const baseline = loadSecurityBaseline(payload?.baselinePath ?? "");
     const suppressions = loadSecuritySuppressions(
-      payload?.suppressionsPath ?? '',
+      payload?.suppressionsPath ?? "",
     );
 
-    const secretFindings = flattenFindings(payload?.secrets ?? [], 'secret');
-    const riskFindings = flattenFindings(payload?.risks ?? [], 'risk');
+    const secretFindings = flattenFindings(payload?.secrets ?? [], "secret");
+    const riskFindings = flattenFindings(payload?.risks ?? [], "risk");
 
     const findings = [...secretFindings, ...riskFindings].map((f) => ({
       ...f,
       suppressed: isSecuritySuppressed(f, suppressions),
       baselineMatched:
-        typeof f.fingerprint === 'string' ? baseline.has(f.fingerprint) : false,
+        typeof f.fingerprint === "string" ? baseline.has(f.fingerprint) : false,
     }));
 
     return {
@@ -39,7 +39,7 @@ function registerSecurityOverviewHandlers() {
   });
 
   ipcMain.handle(
-    'security-overview:save-baseline',
+    "security-overview:save-baseline",
     async (_event, baselinePath, fingerprints) => {
       const { saveSecurityBaseline } = securityOverview();
       return saveSecurityBaseline(
@@ -50,18 +50,18 @@ function registerSecurityOverviewHandlers() {
   );
 
   ipcMain.handle(
-    'security-overview:load-suppressions',
+    "security-overview:load-suppressions",
     async (_event, suppressionsPath) => {
       const { loadSecuritySuppressions } = securityOverview();
       return {
         ok: true,
-        suppressions: loadSecuritySuppressions(suppressionsPath ?? ''),
+        suppressions: loadSecuritySuppressions(suppressionsPath ?? ""),
       };
     },
   );
 
   ipcMain.handle(
-    'security-overview:save-suppressions',
+    "security-overview:save-suppressions",
     async (_event, suppressionsPath, suppressions) => {
       const { saveSecuritySuppressions } = securityOverview();
       return saveSecuritySuppressions(

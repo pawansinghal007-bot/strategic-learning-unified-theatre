@@ -1,34 +1,24 @@
-# Sprint 42 Patch Integration
+# Sprint 46 Patch Integration
 
 ## Prerequisites
-
-Sprints 18–41 must already be integrated.
-Milvus must be running locally on localhost:19530.
+Sprints 18–45 must already be integrated.
 
 ## New files
-
-- src/knowledge/schema/documents.ts
-- src/knowledge/schema/metadata.ts
-- src/knowledge/ingest/milvus-client.ts
-- src/knowledge/ingest/chunking.ts
-- src/knowledge/ingest/embedder.ts
-- src/knowledge/ingest/ingest-sprint-history.ts
-- src/knowledge/index.ts
-- electron-ui/ipc/knowledge-handlers.cjs
+- src/security/security-overview/schema.ts
+- src/security/security-overview/baseline.ts
+- src/security/security-overview/suppressions.ts
+- src/security/security-overview/normalizer.ts
+- src/security/security-overview/index.ts
+- electron-ui/ipc/security-overview-handlers.cjs
 
 ## Extended files
-
-- electron-ui/main.cjs (registerKnowledgeHandlers)
-- electron-ui/preload.cjs (workspaceKnowledge block)
-- src/ui/types.d.ts (workspaceKnowledge interface)
-- src/ui/provider-dashboard.html (Knowledge panel)
+- electron-ui/main.cjs
+- electron-ui/preload.cjs
+- src/ui/types.d.ts
+- src/ui/provider-dashboard.html
 
 ## New IPC channels
-
-knowledge:ingest
-knowledge:search
-
-## Runtime requirements
-
-MILVUS_ADDRESS env var (default: localhost:19530)
-First ingest downloads BGE-M3 model (~1GB) via @xenova/transformers
+security-overview:summarize
+security-overview:save-baseline
+security-overview:load-suppressions
+security-overview:save-suppressions
