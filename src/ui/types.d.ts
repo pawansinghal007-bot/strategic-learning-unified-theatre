@@ -115,6 +115,24 @@ declare global {
     error?: string;
   }
 
+  interface DriftHistoryEntry {
+    id: string;
+    createdAt: number;
+    workspaceId?: string | null;
+    baselinePath?: string | null;
+    snapshotPath?: string | null;
+    historyPath?: string | null;
+    classification: "clean" | "regressed" | "improved" | "mixed" | "unknown";
+    counts?: {
+      current?: number;
+      baseline?: number;
+      introduced?: number;
+      persistent?: number;
+      resolved?: number;
+    };
+    note?: string;
+  }
+
   interface RiskFinding {
     id: string;
     scanner: "dependency-check" | "trivy" | "unknown";
@@ -250,6 +268,35 @@ declare global {
           }
         | { ok: false; error: string }
       >;
+      autoScan(payload: {
+        workspaceId?: string;
+        repoPath: string;
+        imageRef?: string | null;
+        baselinePath?: string | null;
+        suppressionsPath?: string | null;
+        triagePath?: string | null;
+        driftHistoryPath?: string | null;
+      }): Promise<{
+        ok: boolean;
+        workspaceId?: string;
+        secretsResult?: unknown;
+        risksDependencyResult?: unknown;
+        risksImageResult?: unknown;
+        summary?: {
+          findings: Record<string, unknown>[];
+          snapshot: Record<string, unknown>;
+        };
+        drift?: SecurityOverviewDriftResult | null;
+        driftHistoryAppend?: { filePath: string; count: number } | null;
+        error?: string;
+      }>;
+      listDriftHistory(
+        historyPath: string,
+      ): Promise<{
+        ok: boolean;
+        entries: DriftHistoryEntry[];
+        error?: string;
+      }>;
     };
     secrets: {
       scan: (options: {

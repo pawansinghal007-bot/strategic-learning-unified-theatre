@@ -80,9 +80,10 @@ describe("Sprint 53 smoke tests — test harness regression", () => {
     }
   });
 
-  it("CURRENT_ACTIVE_SNAPSHOT.md points to sprint52-stable before this sprint updates it", () => {
+  it("CURRENT_ACTIVE_SNAPSHOT.md points to sprint52-stable or later", () => {
     const text = read("CURRENT_ACTIVE_SNAPSHOT.md").trim();
-    expect(text.includes("sprint52") || text.includes("sprint53")).toBe(true);
+    const sprintNum = parseInt(text.match(/sprint(\d+)/)?.[1] ?? "0", 10);
+    expect(sprintNum).toBeGreaterThanOrEqual(52);
   });
 
   it("master_timeline_sprints_1_54.md exists and lists Sprint 52", () => {

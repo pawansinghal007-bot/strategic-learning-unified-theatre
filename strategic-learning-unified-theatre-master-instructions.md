@@ -323,3 +323,6 @@ Security overview stabilization and timeline reconciliation delivered. Regressio
 ## Sprint 52 Complete
 
 Bulk triage actions delivered. applyBulkTriage() appended to triage.ts — skips null/empty fingerprints, normalizes status, returns new array, idempotent. security-overview:set-triage-bulk IPC. workspaceSecurity.setTriageBulk preload (10th method). types.d.ts updated. Dashboard unchanged. Architecture sync done. Sonar clean.
+
+## Sprint 53 Complete
+Cross-surface regression hardening delivered. Tests-only sprint — no architecture changes. sprint53-cross-surface.test.js verifies all 10 security-overview IPC channels, all 10 workspaceSecurity preload methods, types.d.ts structure, dashboard panels, and knowledge layer wiring. sprint53-smoke.test.js verifies Sprint 44-52 test harness integrity, backend folder structure, and timeline files. master_timeline_sprints_1_54.md updated. Sonar clean.

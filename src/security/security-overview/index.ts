@@ -5,3 +5,5 @@ export * from "./normalizer.js";
 export * from "./triage.js";
 export * from "./drift.js";
 export * from "./ai-explain.js";
+export * from "./drift-history.js";
+export * from "./auto-scan.js";

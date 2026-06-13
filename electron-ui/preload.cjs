@@ -330,4 +330,8 @@ contextBridge.exposeInMainWorld("workspaceSecurity", {
     ipcRenderer.invoke("security-overview:explain-introduced", payload),
   getDriftClassification: (payload) =>
     ipcRenderer.invoke("security-overview:get-drift-classification", payload),
+  autoScan: (payload) =>
+    ipcRenderer.invoke("security-overview:auto-scan", payload),
+  listDriftHistory: (historyPath) =>
+    ipcRenderer.invoke("security-overview:list-drift-history", historyPath),
 });

@@ -6,6 +6,7 @@
 - Sprint 51 (Security overview stabilization and timeline reconciliation) is complete.
 - Sprint 52 (Bulk triage actions / auto-scan trigger) is complete.
 - Sprint 53 (Cross-surface regression hardening) is complete.
+- Sprint 54 (Final stabilization and release readiness) is complete.
 
 | Sprint | Focus                                                          | Status   |
 | ------ | -------------------------------------------------------------- | -------- |
@@ -29,9 +30,9 @@
 
 ## Active
 
-| Sprint | Focus                                     | Status  |
-| ------ | ----------------------------------------- | ------- |
-| 54     | Final stabilization and release readiness | Planned |
+| Sprint | Focus                                     | Status |
+| ------ | ----------------------------------------- | ------ |
+| 54     | Final stabilization and release readiness | Active |
 
 ## Remaining
 
