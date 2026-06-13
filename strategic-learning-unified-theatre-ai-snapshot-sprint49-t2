@@ -1,0 +1,40 @@
+  SPRINT 49 — T2 COMPLETE
+
+  FILES:
+    electron-ui/ipc/security-overview-handlers.cjs (extended)
+    electron-ui/preload.cjs (extended)
+    src/ui/types.d.ts (replaced)
+
+  STATUS:
+    security-overview:explain-introduced IPC channel registered
+    IPC handler wraps explainIntroducedFindings in outer try/catch
+    IPC handler normalises payload fields defensively
+    preload workspaceSecurity now has 8 methods
+    explainIntroduced exposed to renderer
+    Sprint 46-48 workspaceSecurity methods untouched (summarize/saveBaseline/
+      loadSuppressions/saveSuppressions/loadTriage/setTriage/compareBaseline)
+    types.d.ts FindingExplanationItem interface declared globally
+    types.d.ts ExplainIntroducedFindingsResult interface declared globally
+    types.d.ts workspaceSecurity.explainIntroduced typed
+    all Sprint 48 and earlier interfaces preserved
+    compile clean
+    sonar clean
+
+  DELIVERABLES:
+    [x] security-overview:explain-introduced IPC channel appended
+    [x] Outer try/catch in handler — never throws to renderer
+    [x] Payload normalised defensively (typeof checks)
+    [x] Lazy require() via index.js matches existing handler style
+    [x] preload explainIntroduced method added
+    [x] Sprint 46-48 preload methods untouched
+    [x] types.d.ts FindingExplanationItem declared
+    [x] types.d.ts ExplainIntroducedFindingsResult declared
+    [x] types.d.ts workspaceSecurity.explainIntroduced typed
+    [x] audit-log.ts unchanged
+    [x] audit-handlers.cjs unchanged
+    [x] main.cjs unchanged
+    [x] Compilation successful
+    [x] Sonar validation clean
+
+  NEXT:
+    T3 — dashboard AI Finding Explanation panel + smoke tests + sprint closure

@@ -408,6 +408,49 @@
       <pre id="security-drift-output">Security drift idle.</pre>
     </div>
 
+    <div class="panel" id="security-ai-panel">
+      <h3>AI Finding Explanation</h3>
+      <div class="row">
+        <input
+          id="security-ai-workspace-id"
+          placeholder="Workspace ID (optional)"
+        />
+        <input id="security-ai-model" placeholder="Model override (optional)" />
+      </div>
+      <div class="row">
+        <input
+          id="security-ai-knowledge-query"
+          placeholder="Knowledge query override (optional)"
+        />
+        <input
+          id="security-ai-max-findings"
+          type="number"
+          value="10"
+          placeholder="Max findings (default 10)"
+        />
+      </div>
+      <div class="row">
+        <button id="security-ai-explain-btn">
+          Explain Introduced Findings
+        </button>
+      </div>
+      <pre id="security-ai-output">
+AI explanation idle. Run baseline comparison first.</pre
+      >
+      <table>
+        <thead>
+          <tr>
+            <th>Severity</th>
+            <th>Title</th>
+            <th>File</th>
+            <th>Explanation</th>
+            <th>Recommendation</th>
+          </tr>
+        </thead>
+        <tbody id="security-ai-body"></tbody>
+      </table>
+    </div>
+
     <div class="panel">
       <h3>Secrets Scanning</h3>
       <div class="row">
@@ -681,6 +724,7 @@
       const securityOverviewOutput = document.getElementById(
         "security-overview-output",
       );
+      let latestSecurityDriftResult = null;
 
       function wsId() {
         return workspaceIdInput.value.trim();
@@ -1330,6 +1374,7 @@
             snapshot,
             baselinePath || null,
           );
+          latestSecurityDriftResult = result;
 
           const currentEl = document.getElementById("security-drift-current");
           const baselineEl = document.getElementById("security-drift-baseline");
@@ -1361,6 +1406,66 @@
           if (outputEl) {
             outputEl.textContent = "Run Security Overview summarize first.";
           }
+        }
+      }
+
+      async function explainIntroducedFindings() {
+        const output = document.getElementById("security-ai-output");
+        const body = document.getElementById("security-ai-body");
+
+        if (!latestSecurityDriftResult) {
+          if (output) {
+            output.textContent =
+              "No drift result available. Run baseline comparison first.";
+          }
+          return;
+        }
+
+        if (output) output.textContent = "Explaining introduced findings...";
+        if (body) body.innerHTML = "";
+
+        const workspaceId =
+          document.getElementById("security-ai-workspace-id")?.value?.trim() ||
+          undefined;
+        const model =
+          document.getElementById("security-ai-model")?.value?.trim() ||
+          undefined;
+        const knowledgeQuery =
+          document
+            .getElementById("security-ai-knowledge-query")
+            ?.value?.trim() || undefined;
+        const maxFindingsRaw =
+          document.getElementById("security-ai-max-findings")?.value || "10";
+        const maxFindings = Number(maxFindingsRaw);
+
+        try {
+          const result = await window.workspaceSecurity.explainIntroduced({
+            drift: latestSecurityDriftResult,
+            workspaceId,
+            model,
+            knowledgeQuery,
+            maxFindings: Number.isFinite(maxFindings) ? maxFindings : 10,
+            includeKnowledge: true,
+            minScore: 0.35,
+          });
+          if (output) {
+            output.textContent = JSON.stringify(result, null, 2);
+          }
+          if (body) {
+            for (const item of result?.items || []) {
+              const tr = document.createElement("tr");
+              tr.innerHTML = `
+                <td>${item.severity || ""}</td>
+                <td>${item.title || ""}</td>
+                <td>${item.file || ""}</td>
+                <td>${item.explanation || ""}</td>
+                <td>${item.recommendation || ""}</td>
+              `;
+              body.appendChild(tr);
+            }
+          }
+        } catch (err) {
+          if (output) output.textContent = String(err);
         }
       }
 
@@ -1532,6 +1637,9 @@
       document
         .getElementById("security-drift-compare-btn")
         ?.addEventListener("click", compareSecurityBaseline);
+      document
+        .getElementById("security-ai-explain-btn")
+        ?.addEventListener("click", explainIntroducedFindings);
       document
         .getElementById("security-save-baseline")
         ?.addEventListener("click", saveSecurityBaseline);
@@ -1744,6 +1852,17 @@
       // security-drift-loaded
       // security-drift-output
       // window.workspaceSecurity.compareBaseline
+      // AI Finding Explanation
+      // security-ai-panel
+      // security-ai-explain-btn
+      // security-ai-output
+      // security-ai-body
+      // security-ai-workspace-id
+      // security-ai-model
+      // security-ai-knowledge-query
+      // security-ai-max-findings
+      // latestSecurityDriftResult
+      // window.workspaceSecurity.explainIntroduced
       // security-triage-fingerprint
       // security-triage-status
       // security-triage-reason
