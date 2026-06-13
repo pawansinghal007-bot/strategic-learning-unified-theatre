@@ -311,6 +311,15 @@ contextBridge.exposeInMainWorld("workspaceSecurity", {
       reason,
       updatedBy,
     ),
+  setTriageBulk: (triagePath, fingerprints, status, reason, updatedBy) =>
+    ipcRenderer.invoke(
+      "security-overview:set-triage-bulk",
+      triagePath,
+      fingerprints,
+      status,
+      reason,
+      updatedBy,
+    ),
   compareBaseline: (currentSnapshot, baselinePath) =>
     ipcRenderer.invoke(
       "security-overview:compare-baseline",

@@ -1,0 +1,13 @@
+  SPRINT 52 — T1 COMPLETE
+
+  FILE: src/security/security-overview/triage.ts (extended)
+
+  STATUS:
+    applyBulkTriage() appended — skips null/undefined/empty fingerprints
+    Normalizes status through existing normalizeTriageStatus
+    Returns new array — does not mutate input
+    Uses existing upsertSecurityTriageEntry internally
+    All existing exports unchanged
+    compile clean
+
+  NEXT: T2 — IPC handler extension + preload extension + types update

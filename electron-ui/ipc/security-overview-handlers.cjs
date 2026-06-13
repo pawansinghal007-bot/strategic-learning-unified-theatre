@@ -127,6 +127,42 @@ function registerSecurityOverviewHandlers() {
   );
 
   ipcMain.handle(
+    "security-overview:set-triage-bulk",
+    async (_event, triagePath, fingerprints, status, reason, updatedBy) => {
+      try {
+        const {
+          loadSecurityTriage,
+          saveSecurityTriage,
+          applyBulkTriage,
+        } = require("../../src/security/security-overview/triage.js");
+        const { normalizeTriageStatus } = require(
+          "../../src/security/security-overview/index.js",
+        );
+
+        const entries = loadSecurityTriage(triagePath ?? "");
+        const normalizedStatus = normalizeTriageStatus(status);
+        const safeFingerprints = Array.isArray(fingerprints)
+          ? fingerprints
+          : [];
+        const now = Date.now();
+
+        const next = applyBulkTriage(
+          entries,
+          safeFingerprints,
+          normalizedStatus,
+          reason ?? undefined,
+          updatedBy ?? undefined,
+          now,
+        );
+
+        return saveSecurityTriage(triagePath, next);
+      } catch (err) {
+        return { ok: false, error: String(err?.message ?? err) };
+      }
+    },
+  );
+
+  ipcMain.handle(
     "security-overview:compare-baseline",
     async (_event, currentSnapshot, baselinePath) => {
       if (currentSnapshot == null || typeof currentSnapshot !== "object") {

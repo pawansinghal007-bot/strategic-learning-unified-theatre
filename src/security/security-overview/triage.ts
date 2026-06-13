@@ -67,3 +67,38 @@ export function getSecurityTriageStatus(
 export function isTriageStatusFinal(status: TriageStatus): boolean {
   return status === "fixed" || status === "resolved" || status === "suppressed";
 }
+
+/**
+ * Sprint 52 — apply the same triage status to multiple fingerprints at once.
+ * Skips null, undefined, and empty-string fingerprints.
+ * Returns a new entries array; does not mutate the input.
+ */
+export function applyBulkTriage(
+  entries: SecurityTriageEntry[],
+  fingerprints: Array<string | null | undefined>,
+  status: SecurityTriageStatus,
+  reason?: string,
+  updatedBy?: string,
+  now: number = Date.now(),
+): SecurityTriageEntry[] {
+  if (!Array.isArray(fingerprints) || fingerprints.length === 0) {
+    return entries;
+  }
+
+  const normalizedStatus = normalizeTriageStatus(
+    status,
+  ) as SecurityTriageStatus;
+
+  return fingerprints.reduce<SecurityTriageEntry[]>((acc, fp) => {
+    if (fp == null || fp === "") return acc;
+    const fingerprint = String(fp).trim();
+    if (!fingerprint) return acc;
+    return upsertSecurityTriageEntry(acc, {
+      fingerprint,
+      status: normalizedStatus,
+      reason: reason ?? undefined,
+      updatedAt: now,
+      updatedBy: updatedBy ?? undefined,
+    });
+  }, entries);
+}

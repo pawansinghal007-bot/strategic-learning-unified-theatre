@@ -215,6 +215,13 @@ declare global {
         reason?: string,
         updatedBy?: string,
       ) => Promise<{ ok: true; filePath: string; count: number }>;
+      setTriageBulk: (
+        triagePath: string,
+        fingerprints: string[],
+        status: SecurityTriageStatus,
+        reason?: string,
+        updatedBy?: string,
+      ) => Promise<{ ok: true; filePath: string; count: number }>;
       compareBaseline: (
         currentSnapshot: any,
         baselinePath?: string | null,
