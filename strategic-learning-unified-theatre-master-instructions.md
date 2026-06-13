@@ -50,7 +50,8 @@ node ./src/cli.js ai snapshot
 - S2004 sprint complete: 16 items fixed across LOW and MED; no HIGH items remained in the active lock snapshot.
 
 ## Sprint 4 complete — S7744 = 0
-- Fix: ...(x || {}) → ...x  (spreading undefined = {} in JS)
+
+- Fix: ...(x || {}) → ...x (spreading undefined = {} in JS)
 - Always check test failures are regression not pre-existing
 - llm.test.js had a test that never made its chunk fail — fixed
 - ARROW_CONVERT -> place `const` at the top of the parent function to preserve scope closure.
@@ -69,40 +70,41 @@ Total fixed: 9 — all LOW risk, 0 deferred, 0 blocked
 
 Fix patterns confirmed:
 
-  REMOVE-CLEAN:
-    • awaited expression returns plain value
-    • no other awaits in function
-    • no callers depend on async
-    • fix: remove await + remove async from signature
+REMOVE-CLEAN:
+• awaited expression returns plain value
+• no other awaits in function
+• no callers depend on async
+• fix: remove await + remove async from signature
 
-  REMOVE-AWAIT:
-    • awaited expression returns plain value
-    • other awaits exist in function — async must stay
-    • fix: remove await keyword only
-      do NOT touch async on signature
-      do NOT touch other lines in function
+REMOVE-AWAIT:
+• awaited expression returns plain value
+• other awaits exist in function — async must stay
+• fix: remove await keyword only
+do NOT touch async on signature
+do NOT touch other lines in function
 
 Triage process confirmed (4 read-only sessions before any fix):
-  4A-1: extract raw list from CSV
-  4A-2: trace return types — read source files only
-  4A-3: grep callers — check async removability
-  4A-4: apply labels + risk ratings — pure classification
-  4A-5: apply fixes — one file at a time, commit per file
+4A-1: extract raw list from CSV
+4A-2: trace return types — read source files only
+4A-3: grep callers — check async removability
+4A-4: apply labels + risk ratings — pure classification
+4A-5: apply fixes — one file at a time, commit per file
 
 Anti-patterns confirmed:
-  never remove await without tracing return type first
-  never remove async without confirming no other awaits remain
-  never remove async without confirming no callers depend on it
-  never batch fixes across files without validating each file first
-  always commit snapshot before session ends —
-    lost snapshot = lost sprint state
+never remove await without tracing return type first
+never remove async without confirming no other awaits remain
+never remove async without confirming no callers depend on it
+never batch fixes across files without validating each file first
+always commit snapshot before session ends —
+lost snapshot = lost sprint state
 
 Snapshot discipline:
-  triage snapshots (4A-1 through 4A-4) must not be deleted
-  until v1.4-stable is written and pushed
-  always commit + push snapshot immediately after writing
+triage snapshots (4A-1 through 4A-4) must not be deleted
+until v1.4-stable is written and pushed
+always commit + push snapshot immediately after writing
 
 ## Prompt 5 final rescan complete
+
 - Total reduction: 436 → 176 (-260 issues, -60%)
 - Critical: 45 → 2 (-43)
 - Major: 111 → 36 (-75)
@@ -121,32 +123,35 @@ Snapshot discipline:
 ## S1128 Unused Import Tooling (added sprint 3B)
 
 Tools available for finding unused imports:
-  - ESLint (installed) — flags unused vars/imports via no-unused-vars rule
-  - Knip (installed) — finds unused exports, imports, files across project
-  - Sonar S1128 — flags unused import declarations
+
+- ESLint (installed) — flags unused vars/imports via no-unused-vars rule
+- Knip (installed) — finds unused exports, imports, files across project
+- Sonar S1128 — flags unused import declarations
 
 Workflow for S1128 fixes:
-  1. Get flagged lines from Sonar API (source of truth for what to fix)
-  2. Before removing any import, verify with one of:
-       grep -n "ImportName" <file>   — quick manual check
-       ESLint — run on file to confirm unused
-       Knip   — project-wide unused import scan
-  3. If import appears in file body → LEAVE (Sonar false positive)
-  4. If import unused → remove line, validate, commit
+
+1. Get flagged lines from Sonar API (source of truth for what to fix)
+2. Before removing any import, verify with one of:
+   grep -n "ImportName" <file> — quick manual check
+   ESLint — run on file to confirm unused
+   Knip — project-wide unused import scan
+3. If import appears in file body → LEAVE (Sonar false positive)
+4. If import unused → remove line, validate, commit
 
 ESLint usage:
-  npx eslint <file> --rule '{"no-unused-vars": "warn"}'
+npx eslint <file> --rule '{"no-unused-vars": "warn"}'
 
 Knip usage (project-wide):
-  npx knip --reporter compact
-  Use output to cross-reference Sonar S1128 list
+npx knip --reporter compact
+Use output to cross-reference Sonar S1128 list
 
 Anti-pattern:
-  Never remove an import solely because Sonar flags it
-  without confirming it is unused — some imports have
-  side effects or are used via dynamic references
+Never remove an import solely because Sonar flags it
+without confirming it is unused — some imports have
+side effects or are used via dynamic references
 
 ## Sprint 3 complete — S3358 + S7778 + S1128 all = 0
+
 - S3358: extract nested ternary to named const or if/else
 - S7778: arr.push(a);arr.push(b) → arr.push(a,b)
 - S1128: remove unused imports — always run vitest to confirm
@@ -154,123 +159,167 @@ Anti-pattern:
 - always run full vitest after every S1128 fix
 
 ## Sprint 3 complete
+
 S3358+S7778+S1128 all = 0
 Token updated: squ_5ec46c588908bbc8d58d416cb29af04cffb7b007
 Sprint 4 started: S7744 (3/10 fixed)
 
 ## Sprint 5 complete
+
 S6582+S6853+S7785 all = 0. 49 fixes.
 
 ## Sprint 6 complete
+
 S7780+S2486+S1874 all = 0. Total: 122→92.
 
 ## Sprint 7 complete
+
 S4624+S7721+S7772+S7773 all = 0
 
 ## Sprint 8 complete
+
 S7735+S6594+S7748+S6535 all = 0
 
 ## Sprint 9 complete
+
 All rules = 0. Total: 53→31. Baseline 436→31 (93% reduction)
 
 ## PROJECT COMPLETE
+
 All 436 Sonar issues resolved. Final total: 0.
 
 ## Sprint 19 Complete
+
 Base gateway delivered. Logger, local adapter, gateway, smoke tests. Sonar clean.
 
 ## Sprint 20 Complete
+
 Provider expansion delivered. Base adapter, 5 providers, streaming, error normalizer. Sonar clean.
 
 ## Sprint 21 Complete
+
 Fallback and health core delivered. Health tracker, health-aware gateway, 11 smoke tests. Sonar clean.
 
 ## Sprint 22 Complete
+
 Provider status CLI delivered. Status helper, llm:health commands, 10 smoke tests. Sonar clean.
 
 ## Sprint 23 Complete
+
 Usage tracking delivered. Provider usage tracker, gateway hooks, llm:usage CLI, 11 smoke tests. Sonar clean.
 
 ## Sprint 24 Complete
+
 Persistent health and usage storage delivered. JSON-backed storage, resetAllProviderTelemetry, 12 smoke tests. Sonar clean.
 
 ## Sprint 25 Complete
+
 Dashboard IPC and provider telemetry panel delivered. IPC bridge, preload, HTML dashboard, 11 smoke tests. Sonar clean.
 
 ## Sprint 26 Complete
+
 Explainable routing and decisions log delivered. Routing history, explainer, gateway hooks, dashboard panel, llm:routing CLI. Sonar clean.
 
 ## Sprint 27 Complete
+
 Policy modes and manual provider controls delivered. Policy engine, gateway filtering, dashboard controls, llm:policy CLI. Sonar clean.
 
 ## Sprint 28 Complete
+
 Policy presets and sensitive task rules delivered. Preset engine, forced local for PII/credentials, dashboard preset controls, llm:policy CLI. Sonar clean.
 
 ## Sprint 29 Complete
+
 Workspace policy overrides and context injection delivered. Per-workspace policy resolution, context prompt injection in gateway, IPC handlers, dashboard workspace panel, llm:workspace CLI. New src/memory/ layer. Architecture baseline refreshed. Sonar clean.
 
 ## Sprint 30 Complete
+
 Workspace control plane consolidated. workspacePolicy:resolve and workspaceContext:prompt IPC channels filled. Dashboard updated. Architecture sync complete. Sonar clean.
 
 ## Sprint 31 Complete
+
 Unified workspace view delivered. Workspace routing history filtering, getWorkspaceRoutingSummary, clearRoutingHistoryForWorkspace, workspaceRouting IPC/preload, dashboard shows resolved policy + context + routing outcomes per workspace. New IPC file. Architecture baseline refreshed. Sonar clean.
 
 ## Sprint 32 Complete
+
 Workspace analytics and explainability delivered. getWorkspaceProviderTrends, getWorkspaceRoutingTimeline, getWorkspaceAnalytics added to routing-history.ts. WorkspaceRoutingSummary extended with successRate/avgLatencyMs/errorRate. IPC channels for trends/timeline/analytics. Dashboard analytics view with metrics tiles, provider trends table, decision timeline. Import path corrected from dist/ to src/. Sonar clean.
 
+## Sprint 53 Complete
+
+Cross-surface regression hardening delivered. Tests-only sprint — no architecture changes. sprint53-cross-surface.test.js verifies all 10 security-overview IPC channels, all 10 workspaceSecurity preload methods, types.d.ts structure, dashboard panels, and knowledge layer wiring. sprint53-smoke.test.js verifies Sprint 44-52 test harness integrity, backend folder structure, and timeline files. master_timeline_sprints_1_54.md updated. Sonar clean.
+
 ## Sprint 33 Complete
+
 Time-bucketed analytics, global workspace analytics, and JSON/CSV export delivered. getWorkspaceTimeBuckets, getGlobalWorkspaceAnalytics, exportWorkspaceAnalyticsJson, exportWorkspaceAnalyticsCsv. IPC/preload/types/dashboard extended. Sonar clean.
 
 ## Sprint 34 Complete
+
 SVG charts, provider comparison, and HTML report artifacts delivered. getProviderComparisonAcrossWorkspaces, getWorkspaceBucketChartSvg, getProviderComparisonChartSvg, exportWorkspaceAnalyticsHtmlReport. 4 new IPC channels. Dashboard Bucket Chart and Provider Comparison panels render inline SVG. No external chart dependencies. HTML escaping in all SVG and report output. Sonar clean.
 
 ## Sprint 35 Complete
+
 Filtered analytics and save-to-disk reports delivered. RoutingHistoryFilter added to all workspace analytics functions. workspaceReport:save IPC with Electron dialog. Dashboard filter controls and save-to-disk buttons. Sonar clean.
 
 ## Sprint 36 Complete
+
 Audit trail hardening delivered. Append-only hash-chained audit log in src/audit/audit-log.ts. SHA-256 hash chaining with tamper detection. Policy change events (setRoutingMode/allow/block/setManualProvider/reset/applyPreset) and report save events recorded. audit:list/verify/latest IPC. Preload audit namespace. Dashboard Audit Trail panel. New src/audit/ folder. Architecture baseline refreshed. Sonar clean.
 
 ## Sprint 37 Complete
+
 Workspace approvals governance delivered. src/governance/workspace-approvals.ts with createWorkspaceApprovalRequest, listWorkspaceApprovalRequests, resolveWorkspaceApprovalRequest. Sensitive policy patches (local-only/manualProvider/blockedProviders) trigger approval requests. workspacePolicy.set/clear write audit events. workspaceApproval:list/resolve IPC channels. workspaceApproval preload namespace. Dashboard Workspace Approvals panel. New src/governance/ folder. Architecture baseline refreshed. Sonar clean.
 
 ## Sprint 38 Complete
+
 Audit log export and verification alerting delivered. exportAuditLogJson and exportAuditLogHtmlReport appended to audit-log.ts. audit:exportJson/exportHtmlReport IPC. Preload audit block updated. Dashboard verification badge/alert on load. Export buttons functional. Sonar clean.
 
 ## Sprint 39 Complete
+
 Workspace quota governance delivered. src/governance/workspace-quotas.ts. setWorkspaceQuotaPolicy/recordWorkspaceQuotaUsage/evaluateWorkspaceQuotaStatus. Audit events: workspaceQuota.set/clear/usageRecorded/exceeded. 8 IPC channels in workspace-policy-handlers.cjs. Preload workspaceQuota namespace. Dashboard Workspace Quotas panel. Sonar clean.
 
 ## Sprint 41 Complete
+
 Quota notifications, threshold alerts, and daily reset scheduler. alertThresholdPct, WorkspaceQuotaNotification, getLatestWorkspaceQuotaNotification, shouldRunWorkspaceQuotaDailyReset. broadcastQuotaNotification. workspaceQuota:latestNotification/notifications/resetDaily IPC. Scheduler in main.cjs runs every 60s. preload onNotification subscription. Dashboard live notification panel. Sonar clean.
 
 ## Sprint 42 Complete
+
 Knowledge layer RAG ingestion delivered. src/knowledge/ new domain. KnowledgeDocument/KnowledgeChunk schemas. Milvus client + HNSW index. Word-window chunker. BGE-M3 embedder. ingestSprintHistory() pipeline. knowledge:ingest and knowledge:search IPC. workspaceKnowledge preload namespace. Dashboard Knowledge panel. Sonar clean.
 
 ## Sprint 43 Complete
+
 RAG ask-flow delivered. buildKnowledgePromptBlock() in knowledge index. normalizeHit() + toScoreNumber() in knowledge-handlers.cjs. llm:ask augmented with Milvus retrieval, score threshold 0.4, top-6 context block. try/catch guard keeps ask non-fatal when Milvus unavailable. buildPromptContext preload alias. types.d.ts extended. Architecture sync done. Sonar clean.
 
 ## Sprint 44 Complete
+
 Secrets scanning with Gitleaks delivered. src/security/secrets/ new domain. SecretFinding/SecretsScanResult/SecretsSuppressionEntry schemas. loadBaselineFingerprints(), matchSuppression(), runSecretsScan() via spawn. Baseline applied manually not via --baseline-path. secrets:scan IPC. window.secrets.scan preload. knowledge:search filter+minScore added. Dashboard Secrets Scanning panel + enriched Knowledge panel. Architecture baseline refreshed. Sonar clean.
 
 ## Sprint 45 Complete
+
 Dependency & image risk scanning delivered. src/security/risks/ new domain. RiskFinding/RiskScanner schemas. mapSeverityFromCvss, normalizeDependencyCheckFinding, normalizeTrivyFinding parsers. runDependencyCheck() via dependency-check CLI spawn. runTrivyImage() via trivy CLI spawn. Both runners: spawnSync, temp cleanup, ok/error shape. risks:scan:dependency and risks:scan:image IPC. window.workspaceRisks preload. Dashboard Dependency & Image Risks panel. Architecture baseline refreshed. Sonar clean.
 
 ## Sprint 46 Complete
+
 Unified security overview, baseline and suppression management delivered. src/security/security-overview/ new subfolder. SecurityFindingSummary, buildSecurityOverviewSnapshot, flattenFindings, isSecuritySuppressed. security-overview:summarize/save-baseline/load-suppressions/save-suppressions IPC. workspaceSecurity preload. Dashboard Security Overview panel. Sonar clean.
 
 ## Sprint 47 Complete
+
 Interactive triage workflow delivered. triage.ts with loadSecurityTriage, saveSecurityTriage, upsertSecurityTriageEntry, getSecurityTriageStatus. SecurityTriageStatus type: open/suppressed/accepted/false_positive/resolved. SecurityOverviewSnapshot extended with triage counts. summarize handler enriches findings with triageStatus. security-overview:load-triage and :set-triage IPC. preload loadTriage/setTriage. Dashboard 9-card metric grid + triage controls. Architecture sync done. Sonar clean.
 
 ## Sprint 48 Complete
+
 Baseline drift and comparison view delivered. drift.ts with compareSecurityOverviewWithBaseline, loadSecurityBaselineSnapshot, buildFindingFingerprintSet. SeverityCounts and SecurityOverviewDriftResult types. security-overview:compare-baseline IPC. workspaceSecurity.compareBaseline preload. Dashboard Security Drift panel. Sprint 47 triage surfaces preserved. Sonar clean.
 
 ## Sprint 49 Complete
+
 AI-assisted finding explanation delivered. ai-explain.ts with buildIntroducedFindingsPrompt, parseExplainIntroducedFindingsAnswer, explainIntroducedFindings. Pure prompt builder and answer parser. Async orchestrator with graceful degradation when window.llm.ask unavailable. Optional workspaceKnowledge grounding. security-overview:explain-introduced IPC. preload explainIntroduced (8th workspaceSecurity method). Dashboard AI Finding Explanation panel with latestSecurityDriftResult cache. Architecture sync done. Sonar clean.
 
 ## Sprint 50 Complete
+
 Security workflow hardening and dashboard unification delivered. TRIAGE_STATUSES, TriageStatus, normalizeTriageStatus(), isTriageStatusFinal(), classifyDriftSeverity(). Fingerprint guard against empty ruleId. Introduced findings default triageStatus: open. Resolved findings default resolvedAt timestamp. security-overview:get-drift-classification IPC. compare-baseline payload guard. set-triage IPC-boundary sanitization. preload getDriftClassification (9th workspaceSecurity method). Dashboard drift classification badge (non-fatal). Architecture sync done. Sonar clean.
 
 ## Sprint 51 Complete
+
 Security overview stabilization and timeline reconciliation delivered. Regression tests for normalizeTriageStatus(), isTriageStatusFinal(), classifyDriftSeverity(), flattenFindings() null safety, and knowledge/security layer non-regression. master_timeline_sprints_1_54.md created reflecting Sprints 1-50 complete. Dashboard Sprint 49/50 surfaces verified intact. Sprint 50 hardening base confirmed stable. Architecture sync done. Sonar clean.
 
 ## Sprint 52 Complete
+
 Bulk triage actions delivered. applyBulkTriage() appended to triage.ts — skips null/empty fingerprints, normalizes status, returns new array, idempotent. security-overview:set-triage-bulk IPC. workspaceSecurity.setTriageBulk preload (10th method). types.d.ts updated. Dashboard unchanged. Architecture sync done. Sonar clean.

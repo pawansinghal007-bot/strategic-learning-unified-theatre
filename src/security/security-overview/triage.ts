@@ -1,8 +1,11 @@
 import fs from "node:fs";
 import { normalizeTriageStatus } from "./normalizer.js";
-import { TRIAGE_STATUSES, type TriageStatus } from "./schema.js";
+import {
+  TRIAGE_STATUSES as SCHEMA_TRIAGE_STATUSES,
+  type TriageStatus,
+} from "./schema.js";
 
-export { TRIAGE_STATUSES };
+export const TRIAGE_STATUSES = SCHEMA_TRIAGE_STATUSES;
 
 export type SecurityTriageStatus =
   | "open"
