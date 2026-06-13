@@ -138,6 +138,50 @@ function registerSecurityOverviewHandlers() {
       );
     },
   );
+
+  ipcMain.handle(
+    "security-overview:explain-introduced",
+    async (_event, payload) => {
+      try {
+        const {
+          explainIntroducedFindings,
+        } = require("../../src/security/security-overview/index.js");
+        const input = payload && typeof payload === "object" ? payload : {};
+
+        return await explainIntroducedFindings({
+          drift:
+            input.drift && typeof input.drift === "object" ? input.drift : {},
+          workspaceId:
+            typeof input.workspaceId === "string"
+              ? input.workspaceId
+              : undefined,
+          maxFindings:
+            typeof input.maxFindings === "number"
+              ? input.maxFindings
+              : undefined,
+          model: typeof input.model === "string" ? input.model : undefined,
+          includeKnowledge: input.includeKnowledge !== false,
+          knowledgeQuery:
+            typeof input.knowledgeQuery === "string"
+              ? input.knowledgeQuery
+              : undefined,
+          minScore:
+            typeof input.minScore === "number" ? input.minScore : undefined,
+        });
+      } catch (err) {
+        return {
+          ok: false,
+          workspaceId: null,
+          analyzedCount: 0,
+          knowledgeUsed: false,
+          prompt: "",
+          answer: "",
+          items: [],
+          error: err?.message || String(err),
+        };
+      }
+    },
+  );
 }
 
 module.exports = { registerSecurityOverviewHandlers };

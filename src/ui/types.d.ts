@@ -83,6 +83,38 @@ declare global {
     resolved: Array<Record<string, unknown>>;
   }
 
+  interface FindingExplanationItem {
+    fingerprint: string | null;
+    title: string;
+    severity: string;
+    file: string | null;
+    explanation: string;
+    recommendation: string;
+  }
+
+  interface ExplainIntroducedFindingsResult {
+    ok: boolean;
+    workspaceId: string | null;
+    analyzedCount: number;
+    knowledgeUsed: boolean;
+    prompt: string;
+    answer: string;
+    items: FindingExplanationItem[];
+    knowledge?: Array<{
+      chunkid?: string;
+      docid?: string;
+      sourcetype?: string;
+      sprint?: number;
+      featurearea?: string;
+      path?: string;
+      section?: string;
+      importance?: number;
+      score?: number;
+      text?: string;
+    }>;
+    error?: string;
+  }
+
   interface RiskFinding {
     id: string;
     scanner: "dependency-check" | "trivy" | "unknown";
@@ -187,6 +219,19 @@ declare global {
         currentSnapshot: any,
         baselinePath?: string | null,
       ) => Promise<SecurityOverviewDriftResult>;
+      explainIntroduced: (payload: {
+        drift: {
+          introduced?: unknown[];
+          persistent?: unknown[];
+          resolved?: unknown[];
+        };
+        workspaceId?: string;
+        maxFindings?: number;
+        model?: string;
+        includeKnowledge?: boolean;
+        knowledgeQuery?: string;
+        minScore?: number;
+      }) => Promise<ExplainIntroducedFindingsResult>;
     };
     secrets: {
       scan: (options: {

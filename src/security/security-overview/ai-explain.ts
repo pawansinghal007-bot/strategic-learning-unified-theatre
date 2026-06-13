@@ -192,10 +192,8 @@ export function parseExplainIntroducedFindingsAnswer(answer: string): {
 
   const items = toArray(parsed.items).map((item) => ({
     fingerprint: item?.fingerprint ?? null,
-    title:
-      typeof item?.title === "string" ? item.title : "Untitled finding",
-    severity:
-      typeof item?.severity === "string" ? item.severity : "unknown",
+    title: typeof item?.title === "string" ? item.title : "Untitled finding",
+    severity: typeof item?.severity === "string" ? item.severity : "unknown",
     file: typeof item?.file === "string" ? item.file : null,
     explanation:
       typeof item?.explanation === "string"
@@ -249,8 +247,7 @@ export async function explainIntroducedFindings(params: {
       if (knowledgeApi?.search) {
         const normalized = introduced.map(normalizeFindingForPrompt);
         const queryText =
-          params.knowledgeQuery?.trim() ||
-          buildKnowledgeQuery(normalized);
+          params.knowledgeQuery?.trim() || buildKnowledgeQuery(normalized);
         knowledge = await knowledgeApi.search(queryText, {
           limit: 6,
           minScore: params.minScore ?? 0.35,

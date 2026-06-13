@@ -317,4 +317,6 @@ contextBridge.exposeInMainWorld("workspaceSecurity", {
       currentSnapshot,
       baselinePath,
     ),
+  explainIntroduced: (payload) =>
+    ipcRenderer.invoke("security-overview:explain-introduced", payload),
 });

@@ -1,0 +1,38 @@
+  SPRINT 49 — T1 COMPLETE
+
+  FILES:
+    src/security/security-overview/ai-explain.ts (created)
+    src/security/security-overview/index.ts (extended)
+
+  STATUS:
+    SecurityOverviewFindingLike interface defined
+    SecurityOverviewDriftLike interface defined
+    FindingExplanationItem interface defined
+    ExplainIntroducedFindingsResult interface defined
+    buildIntroducedFindingsPrompt() — pure function, no I/O
+    parseExplainIntroducedFindingsAnswer() — pure function, handles JSON
+      wrapped in prose via extractJsonObject()
+    explainIntroducedFindings() — async orchestrator, optional window.llm.ask
+      and window.workspaceKnowledge.search bridges, both try/catch guarded
+    Returns {ok:false, error} when window.llm.ask unavailable
+    Returns {ok:true, analyzedCount:0} when no introduced findings
+    index.ts exports ./ai-explain
+    Sprint 48 drift exports intact
+    Sprint 47 triage exports intact
+    compile clean
+    sonar clean
+
+  DELIVERABLES:
+    [x] ai-explain.ts created with all exported interfaces and functions
+    [x] buildIntroducedFindingsPrompt() pure — testable without LLM
+    [x] parseExplainIntroducedFindingsAnswer() pure — testable without LLM
+    [x] extractJsonObject() handles prose-wrapped JSON
+    [x] explainIntroducedFindings() orchestrates with graceful degradation
+    [x] index.ts re-exports ai-explain
+    [x] audit-log.ts unchanged
+    [x] audit-handlers.cjs unchanged
+    [x] Compilation successful
+    [x] Sonar validation clean
+
+  NEXT:
+    T2 — IPC handler extension + preload explainIntroduced method + types
