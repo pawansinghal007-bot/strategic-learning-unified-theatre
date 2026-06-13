@@ -1,0 +1,44 @@
+  SPRINT 50 — T2 COMPLETE
+
+  FILES:
+    electron-ui/ipc/security-overview-handlers.cjs (hardened + extended)
+    electron-ui/preload.cjs (extended)
+    src/ui/types.d.ts (extended)
+    tests/sprint50-t2.test.js (created)
+
+  STATUS:
+    security-overview:get-drift-classification IPC channel registered
+    Handler outer try/catch — never throws to renderer
+    Handler defensively normalizes introduced/resolved/persistent arrays
+    compare-baseline handler guarded against missing/invalid currentSnapshot
+    set-triage handler passes status through normalizeTriageStatus at IPC boundary
+    preload workspaceSecurity now has 9 methods
+    getDriftClassification exposed to renderer
+    Sprint 49 explainIntroduced preload method untouched
+    Sprint 48 compareBaseline preload method untouched
+    Sprint 47 loadTriage/setTriage preload methods untouched
+    Sprint 46 summarize/saveBaseline/loadSuppressions/saveSuppressions untouched
+    workspaceRisks / secrets / providerTelemetry preload surfaces untouched
+    types.d.ts getDriftClassification typed
+    types.d.ts FindingExplanationItem and ExplainIntroducedFindingsResult intact
+    interface Window appears exactly once
+    compile clean
+    sonar clean
+
+  DELIVERABLES:
+    [x] security-overview:get-drift-classification IPC channel
+    [x] Outer try/catch — never throws to renderer
+    [x] Payload array normalization (introduced/resolved/persistent)
+    [x] compare-baseline payload guard added
+    [x] set-triage status sanitized via normalizeTriageStatus at IPC boundary
+    [x] preload getDriftClassification method (9th workspaceSecurity method)
+    [x] Sprint 46-49 preload methods untouched
+    [x] workspaceRisks / secrets surfaces untouched
+    [x] types.d.ts getDriftClassification typed
+    [x] Sprint 49 type declarations preserved
+    [x] sprint50-t2.test.js all assertions passing
+    [x] Compilation successful
+    [x] Sonar validation clean
+
+  NEXT:
+    T3 — dashboard drift classification badge + sprint closure smoke tests

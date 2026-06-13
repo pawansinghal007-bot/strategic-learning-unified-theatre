@@ -320,8 +320,5 @@ contextBridge.exposeInMainWorld("workspaceSecurity", {
   explainIntroduced: (payload) =>
     ipcRenderer.invoke("security-overview:explain-introduced", payload),
   getDriftClassification: (payload) =>
-    ipcRenderer.invoke(
-      "security-overview:get-drift-classification",
-      payload,
-    ),
+    ipcRenderer.invoke("security-overview:get-drift-classification", payload),
 });

@@ -111,9 +111,9 @@ function registerSecurityOverviewHandlers() {
         upsertSecurityTriageEntry,
       } = require("../../src/security/security-overview/triage");
       const entries = loadSecurityTriage(triagePath || "");
-      const { normalizeTriageStatus } = require(
-        "../../src/security/security-overview/index.js",
-      );
+      const {
+        normalizeTriageStatus,
+      } = require("../../src/security/security-overview/index.js");
       status = normalizeTriageStatus(status);
       const next = upsertSecurityTriageEntry(entries, {
         fingerprint: String(fingerprint),
@@ -130,7 +130,10 @@ function registerSecurityOverviewHandlers() {
     "security-overview:compare-baseline",
     async (_event, currentSnapshot, baselinePath) => {
       if (currentSnapshot == null || typeof currentSnapshot !== "object") {
-        return { ok: false, error: "compare-baseline: currentSnapshot missing or invalid" };
+        return {
+          ok: false,
+          error: "compare-baseline: currentSnapshot missing or invalid",
+        };
       }
       const {
         loadSecurityBaselineSnapshot,
@@ -195,11 +198,14 @@ function registerSecurityOverviewHandlers() {
     async (_event, payload) => {
       try {
         if (!payload || typeof payload !== "object") {
-          return { ok: false, error: "get-drift-classification: payload missing" };
+          return {
+            ok: false,
+            error: "get-drift-classification: payload missing",
+          };
         }
-        const { classifyDriftSeverity } = require(
-          "../../src/security/security-overview/index.js",
-        );
+        const {
+          classifyDriftSeverity,
+        } = require("../../src/security/security-overview/index.js");
         const introduced = Array.isArray(payload.introduced)
           ? payload.introduced
           : [];

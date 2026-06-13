@@ -406,6 +406,13 @@
         </div>
       </div>
       <pre id="security-drift-output">Security drift idle.</pre>
+      <!-- sprint-50: drift classification badge -->
+      <div
+        id="driftClassificationBadge"
+        style="display:none; margin-top:8px; font-weight:600;"
+      >
+        Drift classification: <span id="driftClassificationLabel">—</span>
+      </div>
     </div>
 
     <div class="panel" id="security-ai-panel">
@@ -1376,6 +1383,25 @@ AI explanation idle. Run baseline comparison first.</pre
           );
           latestSecurityDriftResult = result;
 
+          // sprint-50: show drift classification
+          (async () => {
+            try {
+              const classResult = await window.workspaceSecurity.getDriftClassification({
+                introduced: latestSecurityDriftResult?.introduced ?? [],
+                resolved: latestSecurityDriftResult?.resolved ?? [],
+                persistent: latestSecurityDriftResult?.persistent ?? [],
+              });
+              if (classResult?.ok && classResult.classification) {
+                document.getElementById("driftClassificationLabel").textContent =
+                  classResult.classification;
+                document.getElementById("driftClassificationBadge").style.display =
+                  "block";
+              }
+            } catch (_e) {
+              // non-fatal — badge stays hidden
+            }
+          })();
+
           const currentEl = document.getElementById("security-drift-current");
           const baselineEl = document.getElementById("security-drift-baseline");
           const introducedEl = document.getElementById(
@@ -1852,6 +1878,10 @@ AI explanation idle. Run baseline comparison first.</pre
       // security-drift-loaded
       // security-drift-output
       // window.workspaceSecurity.compareBaseline
+      // Sprint 50
+      // driftClassificationBadge
+      // driftClassificationLabel
+      // window.workspaceSecurity.getDriftClassification
       // AI Finding Explanation
       // security-ai-panel
       // security-ai-explain-btn

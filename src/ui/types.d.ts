@@ -237,7 +237,10 @@ declare global {
         resolved: unknown[];
         persistent: unknown[];
       }): Promise<
-        | { ok: true; classification: "clean" | "regressed" | "improved" | "mixed" }
+        | {
+            ok: true;
+            classification: "clean" | "regressed" | "improved" | "mixed";
+          }
         | { ok: false; error: string }
       >;
     };
