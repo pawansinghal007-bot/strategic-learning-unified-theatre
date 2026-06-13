@@ -264,60 +264,54 @@ function registerSecurityOverviewHandlers() {
   );
 
   // Sprint 54: auto-scan trigger (backend orchestration)
-  ipcMain.handle(
-    "security-overview:auto-scan",
-    async (_event, payload) => {
-      try {
-        const input = payload && typeof payload === "object" ? payload : {};
-        const {
-          workspaceId,
-          repoPath,
-          imageRef,
-          baselinePath,
-          suppressionsPath,
-          triagePath,
-          driftHistoryPath,
-        } = input;
+  ipcMain.handle("security-overview:auto-scan", async (_event, payload) => {
+    try {
+      const input = payload && typeof payload === "object" ? payload : {};
+      const {
+        workspaceId,
+        repoPath,
+        imageRef,
+        baselinePath,
+        suppressionsPath,
+        triagePath,
+        driftHistoryPath,
+      } = input;
 
-        if (!repoPath || typeof repoPath !== "string") {
-          return { ok: false, error: "auto-scan: repoPath is required" };
-        }
-
-        const { runSecurityAutoScan } = require(
-          "../../src/security/security-overview/auto-scan.js"
-        );
-
-        const result = await runSecurityAutoScan({
-          workspaceId: typeof workspaceId === "string" ? workspaceId : undefined,
-          repoPath,
-          imageRef:
-            typeof imageRef === "string" && imageRef.length > 0
-              ? imageRef
-              : null,
-          baselinePath:
-            typeof baselinePath === "string" ? baselinePath : null,
-          suppressionsPath:
-            typeof suppressionsPath === "string" ? suppressionsPath : null,
-          triagePath: typeof triagePath === "string" ? triagePath : null,
-          driftHistoryPath:
-            typeof driftHistoryPath === "string" ? driftHistoryPath : null,
-        });
-
-        return result;
-      } catch (err) {
-        return { ok: false, error: String(err?.message ?? err) };
+      if (!repoPath || typeof repoPath !== "string") {
+        return { ok: false, error: "auto-scan: repoPath is required" };
       }
-    },
-  );
+
+      const {
+        runSecurityAutoScan,
+      } = require("../../src/security/security-overview/auto-scan.js");
+
+      const result = await runSecurityAutoScan({
+        workspaceId: typeof workspaceId === "string" ? workspaceId : undefined,
+        repoPath,
+        imageRef:
+          typeof imageRef === "string" && imageRef.length > 0 ? imageRef : null,
+        baselinePath: typeof baselinePath === "string" ? baselinePath : null,
+        suppressionsPath:
+          typeof suppressionsPath === "string" ? suppressionsPath : null,
+        triagePath: typeof triagePath === "string" ? triagePath : null,
+        driftHistoryPath:
+          typeof driftHistoryPath === "string" ? driftHistoryPath : null,
+      });
+
+      return result;
+    } catch (err) {
+      return { ok: false, error: String(err?.message ?? err) };
+    }
+  });
 
   // Sprint 54: drift-history storage list API
   ipcMain.handle(
     "security-overview:list-drift-history",
     async (_event, historyPath) => {
       try {
-        const { loadDriftHistory } = require(
-          "../../src/security/security-overview/drift-history.js"
-        );
+        const {
+          loadDriftHistory,
+        } = require("../../src/security/security-overview/drift-history.js");
         const safePath =
           typeof historyPath === "string" && historyPath.length > 0
             ? historyPath

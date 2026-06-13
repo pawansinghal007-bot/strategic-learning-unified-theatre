@@ -290,9 +290,7 @@ declare global {
         driftHistoryAppend?: { filePath: string; count: number } | null;
         error?: string;
       }>;
-      listDriftHistory(
-        historyPath: string,
-      ): Promise<{
+      listDriftHistory(historyPath: string): Promise<{
         ok: boolean;
         entries: DriftHistoryEntry[];
         error?: string;
