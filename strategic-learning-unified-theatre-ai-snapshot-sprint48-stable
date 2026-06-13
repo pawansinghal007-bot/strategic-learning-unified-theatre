@@ -1,0 +1,82 @@
+SPRINT 48 COMPLETE: BASELINE DRIFT AND COMPARISON VIEW
+
+SPRINT SUMMARY:
+T1 drift module + schema drift.ts created, schema.ts extended with
+SeverityCounts and SecurityOverviewDriftResult,
+index.ts extended with ./drift export
+T2 IPC handler security-overview:compare-baseline channel added
+to security-overview-handlers.cjs
+T3 preload + types + dash compareBaseline preload method added to
+workspaceSecurity namespace, types.d.ts extended,
+dashboard Security Drift panel added, docs written
+T4 smoke tests + closure security-overview-drift.test.js (10 tests),
+sprint48-smoke.test.js (13 tests)
+
+STATUS:
+vitest pass — 109 files / 1050 tests
+typecheck clean
+sonar clean
+tagged sprint-48-complete
+
+DELIVERABLES:
+[x] loadSecurityBaselineSnapshot() — returns null for empty/missing path
+[x] buildFindingFingerprintSet() — deduplicates fingerprints from findings
+[x] compareSecurityOverviewWithBaseline() — classifies introduced/persistent/resolved
+[x] summarizeBySeverity() — severity breakdown per finding category
+[x] SeverityCounts interface appended to schema.ts
+[x] SecurityOverviewDriftResult interface appended to schema.ts
+[x] index.ts re-exports ./drift
+[x] security-overview:compare-baseline IPC channel added
+[x] workspaceSecurity.compareBaseline preload method added
+[x] types.d.ts SeverityCounts declared
+[x] types.d.ts SecurityOverviewDriftResult declared
+[x] types.d.ts workspaceSecurity.compareBaseline typed
+[x] Dashboard Security Drift panel — 6 metric tiles (current/baseline/
+introduced/persistent/resolved/loaded)
+[x] Sprint 47 triage surfaces preserved
+[x] Sprint 46 baseline/suppression surfaces preserved
+[x] Smoke tests passing
+[x] Architecture sync completed — new baseline generated
+
+ARCHITECTURE CHANGES THIS SPRINT:
+New files: - src/security/security-overview/drift.ts - tests/security-overview-drift.test.js - tests/sprint48-smoke.test.js - docs/sprint-48-scope.md - docs/sprint-48-checklist.md
+Extended: - src/security/security-overview/schema.ts - src/security/security-overview/index.ts - electron-ui/ipc/security-overview-handlers.cjs - electron-ui/preload.cjs - src/ui/types.d.ts - src/ui/provider-dashboard.html
+Overwritten: - docs/INTEGRATION.md
+Unchanged: - src/security/security-overview/triage.ts - src/security/security-overview/baseline.ts - src/security/security-overview/suppressions.ts - src/security/security-overview/normalizer.ts - electron-ui/main.cjs - src/audit/audit-log.ts - electron-ui/ipc/audit-handlers.cjs
+
+DRIFT MODULE DESIGN NOTES:
+loadSecurityBaselineSnapshot() reads a saved baseline JSON file and
+returns null for missing or empty path — never throws
+buildFindingFingerprintSet() collects all fingerprints from a findings
+array into a Set for O(1) lookup
+compareSecurityOverviewWithBaseline() classifies each finding as:
+introduced — fingerprint not in baseline
+persistent — fingerprint present in baseline
+resolved — fingerprint in baseline but not in current findings
+summarizeBySeverity() counts findings per severity bucket per category
+
+CUMULATIVE SECURITY IPC SURFACE (sprints 44-48):
+secrets:scan
+risks:scan:dependency
+risks:scan:image
+security-overview:summarize
+security-overview:save-baseline
+security-overview:load-suppressions
+security-overview:save-suppressions
+security-overview:load-triage
+security-overview:set-triage
+security-overview:compare-baseline ← sprint 48
+
+ARCHITECTURE SYNC:
+Trigger files: security-overview-handlers.cjs, preload.cjs, types.d.ts
+Structural change: YES — new baseline required (drift.ts is new)
+New baseline: PROJECT_ARCHITECTURE_BASELINE-2026-06-12T19-32-18.md
+PROJECT_ARCHITECTURE_AI_CONTEXT.md updated
+PROJECT_ARCHITECTURE_BASELINE.md refreshed
+
+NEXT:
+Sprint 49: AI-assisted finding explanation — explain newly introduced
+security findings from drift output using llm:ask and optional
+workspaceKnowledge grounding
+
+ARCHITECTURE SYNC STATUS: [UPDATED]

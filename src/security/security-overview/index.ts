@@ -4,3 +4,4 @@ export * from "./suppressions.js";
 export * from "./normalizer.js";
 export * from "./triage.js";
 export * from "./drift.js";
+export * from "./ai-explain.js";

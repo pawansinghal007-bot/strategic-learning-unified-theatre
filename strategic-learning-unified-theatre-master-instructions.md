@@ -259,3 +259,6 @@ Unified security overview, baseline and suppression management delivered. src/se
 
 ## Sprint 47 Complete
 Interactive triage workflow delivered. triage.ts with loadSecurityTriage, saveSecurityTriage, upsertSecurityTriageEntry, getSecurityTriageStatus. SecurityTriageStatus type: open/suppressed/accepted/false_positive/resolved. SecurityOverviewSnapshot extended with triage counts. summarize handler enriches findings with triageStatus. security-overview:load-triage and :set-triage IPC. preload loadTriage/setTriage. Dashboard 9-card metric grid + triage controls. Architecture sync done. Sonar clean.
+
+## Sprint 48 Complete
+Baseline drift and comparison view delivered. drift.ts with compareSecurityOverviewWithBaseline, loadSecurityBaselineSnapshot, buildFindingFingerprintSet. SeverityCounts and SecurityOverviewDriftResult types. security-overview:compare-baseline IPC. workspaceSecurity.compareBaseline preload. Dashboard Security Drift panel. Sprint 47 triage surfaces preserved. Sonar clean.
