@@ -107,14 +107,25 @@ export function compareSecurityOverviewWithBaseline(
   for (const f of currentFindings) {
     const fp = typeof f?.fingerprint === "string" ? f.fingerprint.trim() : "";
     if (!fp) continue;
-    if (baselineSet.has(fp)) persistent.push(f as Record<string, unknown>);
-    else introduced.push(f as Record<string, unknown>);
+    if (baselineSet.has(fp)) {
+      persistent.push(f as Record<string, unknown>);
+    } else {
+      introduced.push(f as Record<string, unknown>);
+      if (!("triageStatus" in f) || f.triageStatus == null) {
+        (f as Record<string, unknown>).triageStatus = "open";
+      }
+    }
   }
 
   for (const f of baselineFindings) {
     const fp = typeof f?.fingerprint === "string" ? f.fingerprint.trim() : "";
     if (!fp) continue;
-    if (!currentSet.has(fp)) resolved.push(f as Record<string, unknown>);
+    if (!currentSet.has(fp)) {
+      resolved.push(f as Record<string, unknown>);
+      if (!("resolvedAt" in f) || f.resolvedAt == null) {
+        (f as Record<string, unknown>).resolvedAt = new Date().toISOString();
+      }
+    }
   }
 
   return {
@@ -136,4 +147,17 @@ export function compareSecurityOverviewWithBaseline(
     persistent,
     resolved,
   };
+}
+
+export function classifyDriftSeverity(drift: {
+  introduced: unknown[];
+  resolved: unknown[];
+  persistent: unknown[];
+}): "clean" | "regressed" | "improved" | "mixed" {
+  const hasIntroduced = drift.introduced.length > 0;
+  const hasResolved = drift.resolved.length > 0;
+  if (!hasIntroduced && !hasResolved) return "clean";
+  if (hasIntroduced && !hasResolved) return "regressed";
+  if (!hasIntroduced && hasResolved) return "improved";
+  return "mixed";
 }

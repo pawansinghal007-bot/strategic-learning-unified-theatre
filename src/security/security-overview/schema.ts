@@ -13,7 +13,8 @@ export type SecurityTriageStatus =
   | "suppressed"
   | "accepted"
   | "false_positive"
-  | "resolved";
+  | "resolved"
+  | "fixed";
 
 export interface SecurityFindingSummary {
   kind: SecurityFindingKind;
@@ -30,6 +31,7 @@ export interface SecurityFindingSummary {
   suppressed?: boolean;
   baselineMatched?: boolean;
   triageStatus?: SecurityTriageStatus;
+  resolvedAt?: string;
   createdAt: number;
   raw?: any;
 }
@@ -129,3 +131,13 @@ export interface SecurityOverviewDriftResult {
   persistent: Array<Record<string, unknown>>;
   resolved: Array<Record<string, unknown>>;
 }
+
+export const TRIAGE_STATUSES = [
+  "open",
+  "suppressed",
+  "accepted",
+  "false_positive",
+  "resolved",
+  "fixed",
+] as const;
+export type TriageStatus = (typeof TRIAGE_STATUSES)[number];

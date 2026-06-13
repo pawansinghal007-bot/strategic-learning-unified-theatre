@@ -1,0 +1,119 @@
+  SPRINT 49 COMPLETE: AI-ASSISTED FINDING EXPLANATION
+
+  SPRINT SUMMARY:
+    T1  ai-explain backend         ai-explain.ts created with pure prompt
+                                   builder, answer parser, and async
+                                   orchestrator; index.ts extended
+    T2  IPC + preload + types      security-overview:explain-introduced channel;
+                                   preload explainIntroduced (8th method);
+                                   FindingExplanationItem and
+                                   ExplainIntroducedFindingsResult types
+    T3  dashboard + smoke tests    AI Finding Explanation panel with
+                                   latestSecurityDriftResult cache and
+                                   explain button; pure logic tests;
+                                   file surface smoke tests
+
+  STATUS:
+    vitest pass — 109+ files / 1050+ tests
+    typecheck clean
+    sonar clean
+    tagged sprint-49-complete
+
+  DELIVERABLES:
+    [x] SecurityOverviewFindingLike, SecurityOverviewDriftLike interfaces
+    [x] FindingExplanationItem interface
+    [x] ExplainIntroducedFindingsResult interface
+    [x] buildIntroducedFindingsPrompt() — pure, testable, no I/O
+    [x] parseExplainIntroducedFindingsAnswer() — pure, handles JSON-in-prose
+    [x] extractJsonObject() — finds JSON object within prose response
+    [x] explainIntroducedFindings() — async orchestrator with graceful
+        degradation when window.llm.ask unavailable
+    [x] Returns {ok:true, analyzedCount:0} for empty introduced list
+    [x] Returns {ok:false, error} when LLM bridge unavailable
+    [x] Optional knowledge grounding via window.workspaceKnowledge.search
+    [x] index.ts exports ai-explain
+    [x] security-overview:explain-introduced IPC channel
+    [x] IPC handler outer try/catch — never throws to renderer
+    [x] Payload normalised defensively in handler
+    [x] preload explainIntroduced method (workspaceSecurity now 8 methods)
+    [x] Sprint 46-48 preload methods untouched
+    [x] types.d.ts FindingExplanationItem and ExplainIntroducedFindingsResult
+        declared globally
+    [x] types.d.ts workspaceSecurity.explainIntroduced typed
+    [x] Dashboard AI Finding Explanation panel
+    [x] latestSecurityDriftResult cache variable bridges compareBaseline
+        output to explain button
+    [x] Dashboard explain button populates items table
+    [x] Sprint 48 Security Drift panel preserved
+    [x] Sprint 47 triage controls preserved
+    [x] Sprint 44-46 scanner panels preserved
+    [x] All earlier compatibility strings preserved
+    [x] Smoke tests passing (18 assertions)
+    [x] Pure logic tests passing (10 assertions)
+    [x] Architecture sync completed
+
+  ARCHITECTURE CHANGES THIS SPRINT:
+  New files:
+    - src/security/security-overview/ai-explain.ts
+    - tests/security-overview-ai-explain.test.js
+    - tests/sprint49-smoke.test.js
+  Extended:
+    - src/security/security-overview/index.ts
+    - electron-ui/ipc/security-overview-handlers.cjs
+    - electron-ui/preload.cjs
+    - src/ui/provider-dashboard.html
+  Replaced:
+    - src/ui/types.d.ts
+  Unchanged:
+    - src/audit/audit-log.ts
+    - electron-ui/main.cjs
+    - electron-ui/ipc/audit-handlers.cjs
+    - src/security/security-overview/drift.ts
+    - src/security/security-overview/triage.ts
+    - src/security/security-overview/baseline.ts
+    - src/security/security-overview/suppressions.ts
+    - src/security/security-overview/normalizer.ts
+    - src/security/security-overview/schema.ts
+
+  AI EXPLAIN DESIGN NOTES:
+    prompt style:     structured text instructing strict JSON output
+    JSON extraction:  extractJsonObject() finds first { to last } in response
+    LLM bridge:       window.llm.ask — optional, try/catch guarded
+    knowledge bridge: window.workspaceKnowledge.search — optional, try/catch
+    knowledge limit:  6 hits, minScore 0.35 default
+    max findings:     10 default (configurable per call)
+    dashboard cache:  latestSecurityDriftResult stores last compareBaseline
+                      result for use by the explain button
+
+  CUMULATIVE SECURITY IPC SURFACE (sprints 44-49):
+    secrets:scan
+    risks:scan:dependency
+    risks:scan:image
+    security-overview:summarize
+    security-overview:save-baseline
+    security-overview:load-suppressions
+    security-overview:save-suppressions
+    security-overview:load-triage
+    security-overview:set-triage
+    security-overview:compare-baseline
+    security-overview:explain-introduced    ← sprint 49
+
+  CUMULATIVE workspaceSecurity PRELOAD SURFACE (sprints 46-49):
+    summarize
+    saveBaseline
+    loadSuppressions
+    saveSuppressions
+    loadTriage
+    setTriage
+    compareBaseline
+    explainIntroduced    ← sprint 49
+
+  NEXT:
+    Sprint 50 candidates:
+    - Remediation workflow (link findings to fix PRs or Jira tickets)
+    - Bulk triage actions (accept/suppress all introduced findings at once)
+    - Drift history across multiple saved baselines
+    - Auto-explain trigger after compareBaseline completes
+    - Compliance mapping overlay (OWASP Top 10, CIS benchmark)
+
+  ARCHITECTURE SYNC STATUS: [UPDATED]

@@ -1,11 +1,14 @@
 import fs from "node:fs";
+import { normalizeTriageStatus } from "./normalizer.js";
+import type { TriageStatus } from "./schema.js";
 
 export type SecurityTriageStatus =
   | "open"
   | "suppressed"
   | "accepted"
   | "false_positive"
-  | "resolved";
+  | "resolved"
+  | "fixed";
 
 export interface SecurityTriageEntry {
   fingerprint: string;
@@ -38,13 +41,17 @@ export function upsertSecurityTriageEntry(
   entries: SecurityTriageEntry[],
   next: SecurityTriageEntry,
 ): SecurityTriageEntry[] {
-  const ix = entries.findIndex((e) => e.fingerprint === next.fingerprint);
+  const normalized = {
+    ...next,
+    status: normalizeTriageStatus(next.status) as SecurityTriageStatus,
+  };
+  const ix = entries.findIndex((e) => e.fingerprint === normalized.fingerprint);
   if (ix >= 0) {
     const updated = [...entries];
-    updated[ix] = next;
+    updated[ix] = normalized;
     return updated;
   }
-  return [...entries, next];
+  return [...entries, normalized];
 }
 
 export function getSecurityTriageStatus(
@@ -52,5 +59,11 @@ export function getSecurityTriageStatus(
   entries: SecurityTriageEntry[],
 ): SecurityTriageStatus {
   if (!fingerprint) return "open";
-  return entries.find((e) => e.fingerprint === fingerprint)?.status ?? "open";
+  return normalizeTriageStatus(
+    entries.find((e) => e.fingerprint === fingerprint)?.status ?? "open",
+  ) as SecurityTriageStatus;
+}
+
+export function isTriageStatusFinal(status: TriageStatus): boolean {
+  return status === "fixed" || status === "resolved" || status === "suppressed";
 }

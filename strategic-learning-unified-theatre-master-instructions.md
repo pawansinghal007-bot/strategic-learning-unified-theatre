@@ -262,3 +262,6 @@ Interactive triage workflow delivered. triage.ts with loadSecurityTriage, saveSe
 
 ## Sprint 48 Complete
 Baseline drift and comparison view delivered. drift.ts with compareSecurityOverviewWithBaseline, loadSecurityBaselineSnapshot, buildFindingFingerprintSet. SeverityCounts and SecurityOverviewDriftResult types. security-overview:compare-baseline IPC. workspaceSecurity.compareBaseline preload. Dashboard Security Drift panel. Sprint 47 triage surfaces preserved. Sonar clean.
+
+## Sprint 49 Complete
+AI-assisted finding explanation delivered. ai-explain.ts with buildIntroducedFindingsPrompt, parseExplainIntroducedFindingsAnswer, explainIntroducedFindings. Pure prompt builder and answer parser. Async orchestrator with graceful degradation when window.llm.ask unavailable. Optional workspaceKnowledge grounding. security-overview:explain-introduced IPC. preload explainIntroduced (8th workspaceSecurity method). Dashboard AI Finding Explanation panel with latestSecurityDriftResult cache. Architecture sync done. Sonar clean.
