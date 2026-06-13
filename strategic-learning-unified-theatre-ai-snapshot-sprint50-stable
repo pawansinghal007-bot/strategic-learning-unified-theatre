@@ -1,0 +1,97 @@
+  SPRINT 50 COMPLETE: SECURITY WORKFLOW HARDENING AND DASHBOARD UNIFICATION
+
+  SPRINT SUMMARY:
+    T1  backend + schema hardening     TRIAGE_STATUSES, TriageStatus, normalizeTriageStatus(),
+                                       isTriageStatusFinal(), classifyDriftSeverity(),
+                                       fingerprint guard, triageStatus default on introduced,
+                                       resolvedAt default on resolved
+    T2  IPC hardening + preload        security-overview:get-drift-classification channel,
+                                       compare-baseline payload guard, set-triage IPC-boundary
+                                       sanitization, getDriftClassification preload (9th method),
+                                       types.d.ts updated
+    T3  dashboard + smoke + closure    drift classification badge (non-fatal), stale label
+                                       cleanup, consolidated sprint50-smoke.test.js, tag
+
+  STATUS:
+    vitest pass — 111+ files / 1082+ tests
+    typecheck clean
+    sonar clean
+    tagged sprint-50-complete
+
+  DELIVERABLES:
+    [x] TRIAGE_STATUSES and TriageStatus exported from schema
+    [x] triageStatus / fingerprint / resolvedAt optional fields on finding shape
+    [x] normalizeTriageStatus() — pure, coerces any input to valid TriageStatus
+    [x] fingerprint guard against empty ruleId in normalizer
+    [x] isTriageStatusFinal() — returns true for fixed/suppressed
+    [x] triage write/read path sanitized via normalizeTriageStatus
+    [x] introduced findings stamped with triageStatus: open if missing
+    [x] resolved findings stamped with resolvedAt timestamp if missing
+    [x] classifyDriftSeverity() — pure, returns clean/regressed/improved/mixed
+    [x] index.ts exports all 7 modules
+    [x] security-overview:get-drift-classification IPC channel
+    [x] compare-baseline payload guard (never throws to renderer)
+    [x] set-triage status sanitized at IPC boundary
+    [x] preload getDriftClassification method (workspaceSecurity now 9 methods)
+    [x] Sprint 46-49 preload methods untouched
+    [x] workspaceRisks / secrets / providerTelemetry surfaces untouched
+    [x] types.d.ts getDriftClassification typed
+    [x] Sprint 49 type declarations preserved
+    [x] Dashboard drift classification badge (non-fatal try/catch)
+    [x] Sprint 49 AI Explanation panel and latestSecurityDriftResult cache intact
+    [x] Sprint 48 Security Drift panel and compareBaseline button intact
+    [x] Sprint 44-47 panels intact
+    [x] sprint50-smoke.test.js all assertions passing
+    [x] Architecture sync completed
+
+  ARCHITECTURE CHANGES THIS SPRINT:
+  Extended:
+    - src/security/security-overview/schema.ts
+    - src/security/security-overview/normalizer.ts
+    - src/security/security-overview/triage.ts
+    - src/security/security-overview/drift.ts
+    - src/security/security-overview/index.ts (verified)
+    - electron-ui/ipc/security-overview-handlers.cjs
+    - electron-ui/preload.cjs
+    - src/ui/provider-dashboard.html
+    - src/ui/types.d.ts
+  New files:
+    - tests/sprint50-t1.test.js
+    - tests/sprint50-t2.test.js
+    - tests/sprint50-smoke.test.js
+  Unchanged:
+    - src/security/security-overview/ai-explain.ts
+    - src/security/security-overview/baseline.ts
+    - src/security/security-overview/suppressions.ts
+    - src/audit/audit-log.ts
+    - electron-ui/main.cjs
+    - electron-ui/ipc/audit-handlers.cjs
+    - electron-ui/ipc/secrets-handlers.cjs
+    - electron-ui/ipc/risks-handlers.cjs
+
+  CUMULATIVE SECURITY IPC SURFACE (sprints 44-50):
+    secrets:scan
+    risks:scan:dependency
+    risks:scan:image
+    security-overview:summarize
+    security-overview:save-baseline
+    security-overview:load-suppressions
+    security-overview:save-suppressions
+    security-overview:load-triage
+    security-overview:set-triage
+    security-overview:compare-baseline           ← sprint 48
+    security-overview:explain-introduced         ← sprint 49
+    security-overview:get-drift-classification   ← sprint 50
+
+  CUMULATIVE workspaceSecurity PRELOAD SURFACE (sprints 46-50):
+    summarize
+    saveBaseline
+    loadSuppressions
+    saveSuppressions
+    loadTriage
+    setTriage
+    compareBaseline         ← sprint 48
+    explainIntroduced       ← sprint 49
+    getDriftClassification  ← sprint 50
+
+  ARCHITECTURE SYNC STATUS: [UPDATED]

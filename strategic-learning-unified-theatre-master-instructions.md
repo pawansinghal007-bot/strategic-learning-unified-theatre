@@ -265,3 +265,9 @@ Baseline drift and comparison view delivered. drift.ts with compareSecurityOverv
 
 ## Sprint 49 Complete
 AI-assisted finding explanation delivered. ai-explain.ts with buildIntroducedFindingsPrompt, parseExplainIntroducedFindingsAnswer, explainIntroducedFindings. Pure prompt builder and answer parser. Async orchestrator with graceful degradation when window.llm.ask unavailable. Optional workspaceKnowledge grounding. security-overview:explain-introduced IPC. preload explainIntroduced (8th workspaceSecurity method). Dashboard AI Finding Explanation panel with latestSecurityDriftResult cache. Architecture sync done. Sonar clean.
+
+## Sprint 50 Complete
+Security workflow hardening and dashboard unification delivered. TRIAGE_STATUSES, TriageStatus, normalizeTriageStatus(), isTriageStatusFinal(), classifyDriftSeverity(). Fingerprint guard against empty ruleId. Introduced findings default triageStatus: open. Resolved findings default resolvedAt timestamp. security-overview:get-drift-classification IPC. compare-baseline payload guard. set-triage IPC-boundary sanitization. preload getDriftClassification (9th workspaceSecurity method). Dashboard drift classification badge (non-fatal). Architecture sync done. Sonar clean.
+
+## Sprint 51 Complete
+Security overview stabilization and timeline reconciliation delivered. Regression tests for normalizeTriageStatus(), isTriageStatusFinal(), classifyDriftSeverity(), flattenFindings() null safety, and knowledge/security layer non-regression. master_timeline_sprints_1_54.md created reflecting Sprints 1-50 complete. Dashboard Sprint 49/50 surfaces verified intact. Sprint 50 hardening base confirmed stable. Architecture sync done. Sonar clean.

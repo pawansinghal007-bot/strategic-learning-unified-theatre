@@ -1,0 +1,19 @@
+  SPRINT 51 — T1 COMPLETE
+
+  FILES:
+    tests/sprint51-security-overview.test.js (created)
+
+  STATUS:
+    normalizeTriageStatus coercion regression covered
+    normalizeTriageStatus valid value passthrough covered
+    isTriageStatusFinal true/false cases covered
+    TRIAGE_STATUSES array exported and checked
+    classifyDriftSeverity function existence verified
+    classifyDriftSeverity clean/regressed/improved cases covered
+    flattenFindings null safety covered
+    buildSecurityOverviewSnapshot empty input covered
+    knowledge/security layer non-regression check included
+    dashboard Sprint 49/50 elements verified present
+    compile clean
+
+  NEXT: T2 — timeline reconciliation + master instructions + sprint closure
