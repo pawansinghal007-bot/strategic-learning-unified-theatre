@@ -232,6 +232,14 @@ declare global {
         knowledgeQuery?: string;
         minScore?: number;
       }) => Promise<ExplainIntroducedFindingsResult>;
+      getDriftClassification(payload: {
+        introduced: unknown[];
+        resolved: unknown[];
+        persistent: unknown[];
+      }): Promise<
+        | { ok: true; classification: "clean" | "regressed" | "improved" | "mixed" }
+        | { ok: false; error: string }
+      >;
     };
     secrets: {
       scan: (options: {

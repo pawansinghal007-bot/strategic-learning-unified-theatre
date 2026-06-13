@@ -111,6 +111,10 @@ function registerSecurityOverviewHandlers() {
         upsertSecurityTriageEntry,
       } = require("../../src/security/security-overview/triage");
       const entries = loadSecurityTriage(triagePath || "");
+      const { normalizeTriageStatus } = require(
+        "../../src/security/security-overview/index.js",
+      );
+      status = normalizeTriageStatus(status);
       const next = upsertSecurityTriageEntry(entries, {
         fingerprint: String(fingerprint),
         status,
@@ -125,6 +129,9 @@ function registerSecurityOverviewHandlers() {
   ipcMain.handle(
     "security-overview:compare-baseline",
     async (_event, currentSnapshot, baselinePath) => {
+      if (currentSnapshot == null || typeof currentSnapshot !== "object") {
+        return { ok: false, error: "compare-baseline: currentSnapshot missing or invalid" };
+      }
       const {
         loadSecurityBaselineSnapshot,
         compareSecurityOverviewWithBaseline,
@@ -179,6 +186,37 @@ function registerSecurityOverviewHandlers() {
           items: [],
           error: err?.message || String(err),
         };
+      }
+    },
+  );
+
+  ipcMain.handle(
+    "security-overview:get-drift-classification",
+    async (_event, payload) => {
+      try {
+        if (!payload || typeof payload !== "object") {
+          return { ok: false, error: "get-drift-classification: payload missing" };
+        }
+        const { classifyDriftSeverity } = require(
+          "../../src/security/security-overview/index.js",
+        );
+        const introduced = Array.isArray(payload.introduced)
+          ? payload.introduced
+          : [];
+        const resolved = Array.isArray(payload.resolved)
+          ? payload.resolved
+          : [];
+        const persistent = Array.isArray(payload.persistent)
+          ? payload.persistent
+          : [];
+        const classification = classifyDriftSeverity({
+          introduced,
+          resolved,
+          persistent,
+        });
+        return { ok: true, classification };
+      } catch (err) {
+        return { ok: false, error: String(err?.message ?? err) };
       }
     },
   );

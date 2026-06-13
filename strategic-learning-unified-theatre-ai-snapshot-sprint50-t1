@@ -1,0 +1,42 @@
+  SPRINT 50 — T1 COMPLETE
+
+  FILES:
+    src/security/security-overview/schema.ts (extended)
+    src/security/security-overview/normalizer.ts (extended)
+    src/security/security-overview/triage.ts (extended)
+    src/security/security-overview/drift.ts (extended)
+    src/security/security-overview/index.ts (verified)
+    tests/sprint50-t1.test.js (created)
+
+  STATUS:
+    TRIAGE_STATUSES const and TriageStatus type exported from schema
+    triageStatus / fingerprint / resolvedAt optional fields on finding shape
+    normalizeTriageStatus() — pure, coerces any input to valid TriageStatus
+    fingerprint guard against empty ruleId in normalizer
+    isTriageStatusFinal() — pure, returns true for fixed/suppressed
+    triage write path passes status through normalizeTriageStatus
+    triage read path returns normalizeTriageStatus result
+    introduced findings stamped with triageStatus: open if missing
+    resolved findings stamped with resolvedAt timestamp if missing
+    classifyDriftSeverity() — pure, returns clean/regressed/improved/mixed
+    index.ts exports all 7 modules
+    Sprint 49 ai-explain exports intact
+    Sprint 48 drift exports intact
+    Sprint 47 triage exports intact
+    compile clean
+    sonar clean
+
+  DELIVERABLES:
+    [x] TRIAGE_STATUSES and TriageStatus exported from schema
+    [x] normalizeTriageStatus() pure and tested
+    [x] isTriageStatusFinal() pure and tested
+    [x] classifyDriftSeverity() pure and tested
+    [x] fingerprint guard against empty ruleId
+    [x] introduced findings default triageStatus: open
+    [x] resolved findings default resolvedAt timestamp
+    [x] sprint50-t1.test.js all assertions passing
+    [x] Compilation successful
+    [x] Sonar validation clean
+
+  NEXT:
+    T2 — IPC handler hardening + preload contract extension + types update
