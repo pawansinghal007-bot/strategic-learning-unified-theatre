@@ -3,7 +3,8 @@
 +## Completed (Sprints 1–51)
 
 - Sprint 50 (Security workflow hardening and dashboard unification) is complete.
-  Sprint 51 (Security overview stabilization and timeline reconciliation) is complete.
+- Sprint 51 (Security overview stabilization and timeline reconciliation) is complete.
+- Sprint 52 (Bulk triage actions / auto-scan trigger) is complete.
 
 | Sprint | Focus                                                          | Status   |
 | ------ | -------------------------------------------------------------- | -------- |
@@ -22,19 +23,20 @@
 | 49     | AI-assisted finding explanation                                | Complete |
 | 50     | Security workflow hardening and dashboard unification          | Complete |
 | 51     | Security overview stabilization and timeline reconciliation    | Complete |
+| 52     | Bulk triage actions / auto-scan trigger                        | Active   |
 
 ## Active
 
-| Sprint | Focus                                   | Status |
-| ------ | --------------------------------------- | ------ |
-| 52     | Bulk triage actions / auto-scan trigger | Active |
+| Sprint | Focus                              | Status |
+| ------ | ---------------------------------- | ------ |
+| 53     | Cross-surface regression hardening | Active |
 
 ## Remaining
 
-| Sprint | Focus                                     | Status  |
-| ------ | ----------------------------------------- | ------- |
-| 53     | Cross-surface regression hardening        | Planned |
-| 54     | Final stabilization and release readiness | Planned |
+| Sprint | Focus | Status |
+| ------ | ----- | ------ |
+
+| 54 | Final stabilization and release readiness | Planned |
 
 ## Standing Architecture Rules (all future sprints)
 

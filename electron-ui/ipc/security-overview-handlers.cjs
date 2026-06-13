@@ -135,9 +135,9 @@ function registerSecurityOverviewHandlers() {
           saveSecurityTriage,
           applyBulkTriage,
         } = require("../../src/security/security-overview/triage.js");
-        const { normalizeTriageStatus } = require(
-          "../../src/security/security-overview/index.js",
-        );
+        const {
+          normalizeTriageStatus,
+        } = require("../../src/security/security-overview/index.js");
 
         const entries = loadSecurityTriage(triagePath ?? "");
         const normalizedStatus = normalizeTriageStatus(status);

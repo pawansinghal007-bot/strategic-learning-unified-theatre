@@ -1,0 +1,19 @@
+  SPRINT 52 — T2 COMPLETE
+
+  FILES:
+    electron-ui/ipc/security-overview-handlers.cjs (extended)
+    electron-ui/preload.cjs (extended)
+    src/ui/types.d.ts (extended)
+
+  STATUS:
+    security-overview:set-triage-bulk IPC channel registered
+    Handler lazy-requires triage.js and index.js
+    Handler outer try/catch — never throws to renderer
+    preload setTriageBulk method added (workspaceSecurity now 10 methods)
+    Sprint 46-51 preload methods untouched
+    types.d.ts setTriageBulk signature added inside Window.workspaceSecurity
+    interface Window appears exactly once
+    All Sprint 44-51 IPC channels preserved
+    compile clean
+
+  NEXT: T3 — smoke tests + sprint closure

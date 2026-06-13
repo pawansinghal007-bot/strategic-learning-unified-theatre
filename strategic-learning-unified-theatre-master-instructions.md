@@ -271,3 +271,6 @@ Security workflow hardening and dashboard unification delivered. TRIAGE_STATUSES
 
 ## Sprint 51 Complete
 Security overview stabilization and timeline reconciliation delivered. Regression tests for normalizeTriageStatus(), isTriageStatusFinal(), classifyDriftSeverity(), flattenFindings() null safety, and knowledge/security layer non-regression. master_timeline_sprints_1_54.md created reflecting Sprints 1-50 complete. Dashboard Sprint 49/50 surfaces verified intact. Sprint 50 hardening base confirmed stable. Architecture sync done. Sonar clean.
+
+## Sprint 52 Complete
+Bulk triage actions delivered. applyBulkTriage() appended to triage.ts — skips null/empty fingerprints, normalizes status, returns new array, idempotent. security-overview:set-triage-bulk IPC. workspaceSecurity.setTriageBulk preload (10th method). types.d.ts updated. Dashboard unchanged. Architecture sync done. Sonar clean.

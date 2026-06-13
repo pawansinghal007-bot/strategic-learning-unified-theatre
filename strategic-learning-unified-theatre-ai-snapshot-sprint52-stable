@@ -1,0 +1,79 @@
+  SPRINT 52 COMPLETE: BULK TRIAGE ACTIONS
+
+  SPRINT SUMMARY:
+    T1  triage backend           applyBulkTriage() appended to triage.ts
+    T2  IPC + preload + types    security-overview:set-triage-bulk IPC channel,
+                                 setTriageBulk preload method (10th),
+                                 setTriageBulk types.d.ts signature
+    T3  tests + closure          sprint52-bulk-triage.test.js (8 unit tests),
+                                 sprint52-smoke.test.js (10 surface checks),
+                                 master timeline updated
+
+  STATUS:
+    vitest pass
+    typecheck clean
+    sonar clean
+    tagged sprint-52-complete
+
+  DELIVERABLES:
+    [x] applyBulkTriage() — skips null/undefined/empty fingerprints
+    [x] applyBulkTriage() — normalizes status through normalizeTriageStatus
+    [x] applyBulkTriage() — returns new array, does not mutate input
+    [x] applyBulkTriage() — idempotent for same fingerprint+status
+    [x] security-overview:set-triage-bulk IPC channel (lazy require, try/catch)
+    [x] workspaceSecurity.setTriageBulk preload method (10th method)
+    [x] types.d.ts setTriageBulk signature inside Window.workspaceSecurity
+    [x] interface Window appears exactly once
+    [x] All Sprint 46-51 IPC channels preserved (9 existing + 1 new)
+    [x] All Sprint 46-51 preload methods untouched (9 existing + 1 new)
+    [x] Dashboard unchanged — Sprint 44-51 surfaces verified intact
+    [x] master_timeline_sprints_1_54.md updated (Sprint 51 complete, 52 active)
+    [x] Architecture sync completed
+
+  ARCHITECTURE CHANGES THIS SPRINT:
+  Extended:
+    - src/security/security-overview/triage.ts
+    - electron-ui/ipc/security-overview-handlers.cjs
+    - electron-ui/preload.cjs
+    - src/ui/types.d.ts
+    - master_timeline_sprints_1_54.md
+  New files:
+    - tests/sprint52-bulk-triage.test.js
+    - tests/sprint52-smoke.test.js
+  Unchanged:
+    - src/ui/provider-dashboard.html
+    - src/security/security-overview/schema.ts
+    - src/security/security-overview/drift.ts
+    - src/security/security-overview/ai-explain.ts
+    - electron-ui/main.cjs
+    - src/audit/audit-log.ts
+
+  CUMULATIVE SECURITY IPC SURFACE (sprints 44-52):
+    secrets:scan
+    risks:scan:dependency
+    risks:scan:image
+    security-overview:summarize
+    security-overview:save-baseline
+    security-overview:load-suppressions
+    security-overview:save-suppressions
+    security-overview:load-triage
+    security-overview:set-triage
+    security-overview:compare-baseline
+    security-overview:explain-introduced
+    security-overview:get-drift-classification
+    security-overview:set-triage-bulk    ← sprint 52
+
+  CUMULATIVE workspaceSecurity PRELOAD SURFACE (sprints 46-52):
+    summarize / saveBaseline / loadSuppressions / saveSuppressions
+    loadTriage / setTriage
+    compareBaseline / explainIntroduced / getDriftClassification
+    setTriageBulk    ← sprint 52
+
+  NEXT:
+    Sprint 53 candidates:
+    - Cross-surface regression hardening
+    - Auto-scan trigger on app start or tray menu
+    - Drift history across multiple saved baselines
+    - Compliance benchmark mapping (OWASP Top 10, CIS)
+
+  ARCHITECTURE SYNC STATUS: [UPDATED | UNCHANGED]

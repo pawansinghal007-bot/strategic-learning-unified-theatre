@@ -1,6 +1,8 @@
 import fs from "node:fs";
 import { normalizeTriageStatus } from "./normalizer.js";
-import type { TriageStatus } from "./schema.js";
+import { TRIAGE_STATUSES, type TriageStatus } from "./schema.js";
+
+export { TRIAGE_STATUSES };
 
 export type SecurityTriageStatus =
   | "open"

@@ -1321,3 +1321,14 @@ Trigger files changed:
 - src/ui/types.d.ts
 
 Structural change: YES
+
+
+---
+## Architecture Sync — 2026-06-13T18:05:39.608Z
+
+Trigger files changed:
+- electron-ui/ipc/security-overview-handlers.cjs
+- electron-ui/preload.cjs
+- src/ui/types.d.ts
+
+Structural change: YES
