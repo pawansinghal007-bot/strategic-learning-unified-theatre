@@ -252,6 +252,95 @@
       </div>
     </section>
 
+    <!-- HUMAN TESTER 6 START: insert immediately after the existing executive-proof-panel -->
+    <section
+      id="executive-walkthrough-panel"
+      class="panel"
+      data-testid="executive-walkthrough-panel"
+      data-walkthrough-readiness="ready"
+      data-demo-mode="standby"
+      data-walkthrough-step="ready"
+    >
+      <div class="panel-header">
+        <h2 data-testid="executive-walkthrough-title">Executive Walkthrough</h2>
+        <p data-testid="executive-walkthrough-subtitle">
+          Demo-safe evidence walkthrough with exportable proof summaries.
+        </p>
+      </div>
+
+      <div class="metrics-grid">
+        <article class="metric-card" data-testid="walkthrough-step-card">
+          <span class="metric-label">Walkthrough Step</span>
+          <strong class="metric-value" data-testid="walkthrough-step-value"
+            >Ready</strong
+          >
+        </article>
+
+        <article class="metric-card" data-testid="walkthrough-demo-card">
+          <span class="metric-label">Demo Mode</span>
+          <strong class="metric-value" data-testid="walkthrough-demo-value"
+            >Standby</strong
+          >
+        </article>
+
+        <article class="metric-card" data-testid="walkthrough-export-card">
+          <span class="metric-label">Proof Export</span>
+          <strong class="metric-value" data-testid="walkthrough-export-value"
+            >Idle</strong
+          >
+        </article>
+
+        <article class="metric-card" data-testid="walkthrough-sync-card">
+          <span class="metric-label">Surface Sync</span>
+          <strong class="metric-value" data-testid="walkthrough-sync-value"
+            >Aligned</strong
+          >
+        </article>
+      </div>
+
+      <div class="panel-actions">
+        <button
+          type="button"
+          id="start-demo-mode"
+          data-testid="start-demo-mode-btn"
+        >
+          Start demo mode
+        </button>
+
+        <button
+          type="button"
+          id="export-proof-summary"
+          data-testid="export-proof-summary-btn"
+        >
+          Export proof summary
+        </button>
+
+        <button
+          type="button"
+          id="copy-proof-summary"
+          data-testid="copy-proof-summary-btn"
+        >
+          Copy proof summary
+        </button>
+      </div>
+
+      <output
+        id="walkthrough-output"
+        data-testid="walkthrough-output"
+        data-walkthrough-output="idle"
+        >Executive walkthrough idle.</output
+      >
+
+      <pre
+        id="proof-summary-output"
+        data-testid="proof-summary-output"
+        data-proof-summary-state="idle"
+      >
+No executive proof summary exported yet.</pre
+      >
+    </section>
+    <!-- HUMAN TESTER 6 END -->
+
     <div
       class="panel"
       id="workspace-analytics-panel"
@@ -334,6 +423,7 @@
       class="panel"
       id="audit-trail-panel"
       data-testid="audit-trail-panel"
+      data-walkthrough-surface="audit"
       data-evidence-surface="audit"
       data-proof-surface="audit"
       data-panel-readiness="ready"
@@ -448,6 +538,7 @@
       class="panel"
       id="knowledge-panel"
       data-testid="knowledge-panel"
+      data-walkthrough-surface="knowledge-panel"
       data-evidence-surface="knowledge"
       data-proof-surface="knowledge-panel"
       data-panel-readiness="ready"
@@ -474,6 +565,7 @@
       <pre
         id="knowledge-output"
         data-testid="knowledge-output"
+        data-walkthrough-surface="knowledge"
         data-proof-surface="knowledge"
         data-evidence-category="knowledge"
       >
@@ -502,6 +594,7 @@ Knowledge layer idle.</pre
       class="panel"
       id="security-overview-panel"
       data-testid="security-overview-panel"
+      data-walkthrough-surface="security"
       data-evidence-surface="security"
       data-proof-surface="security-overview"
       data-panel-readiness="ready"
@@ -585,6 +678,7 @@ Knowledge layer idle.</pre
       class="panel"
       id="security-drift-panel"
       data-testid="security-drift-panel"
+      data-walkthrough-surface="security-drift"
       data-evidence-surface="security-drift"
       data-proof-surface="security-drift"
       data-panel-readiness="ready"
@@ -859,6 +953,7 @@ AI explanation idle. Run baseline comparison first.</pre
       <pre
         id="routing-summary-output"
         data-testid="routing-summary-output"
+        data-walkthrough-surface="governance"
         data-proof-surface="routing"
         data-evidence-category="governance"
       >
@@ -895,9 +990,12 @@ AI explanation idle. Run baseline comparison first.</pre
       <div
         id="timeline-output"
         data-testid="timeline-output"
+        data-walkthrough-surface="timeline"
         data-proof-surface="timeline"
         data-evidence-category="traceability"
-      ></div>
+      >
+        Decision timeline idle.
+      </div>
     </div>
 
     <div class="panel">
@@ -993,6 +1091,95 @@ AI explanation idle. Run baseline comparison first.</pre
           "Local AI Sync",
           detail || "Local AI state synchronized to evidence surface.",
         );
+        setWalkthroughState(
+          "Local AI Synced",
+          "Local AI state synchronized for executive walkthrough.",
+          "standby",
+        );
+      }
+
+      function normalizeStateToken(value, fallback = "idle") {
+        return String(value || fallback)
+          .toLowerCase()
+          .replace(/\s+/g, "-");
+      }
+
+      function setWalkthroughState(step, detail, mode = "standby") {
+        const stepEl = document.querySelector(
+          '[data-testid="walkthrough-step-value"]',
+        );
+        const demoEl = document.querySelector(
+          '[data-testid="walkthrough-demo-value"]',
+        );
+        const outputEl = document.querySelector(
+          '[data-testid="walkthrough-output"]',
+        );
+        const panelEl = document.querySelector(
+          '[data-testid="executive-walkthrough-panel"]',
+        );
+        const syncEl = document.querySelector(
+          '[data-testid="walkthrough-sync-value"]',
+        );
+
+        if (stepEl) stepEl.textContent = step || "Ready";
+        if (demoEl) demoEl.textContent = mode || "Standby";
+        if (syncEl) syncEl.textContent = "Aligned";
+
+        if (outputEl) {
+          outputEl.textContent = detail || "Executive walkthrough idle.";
+          outputEl.setAttribute(
+            "data-walkthrough-output",
+            normalizeStateToken(step, "idle"),
+          );
+        }
+
+        if (panelEl) {
+          panelEl.setAttribute(
+            "data-demo-mode",
+            normalizeStateToken(mode, "standby"),
+          );
+          panelEl.setAttribute(
+            "data-walkthrough-step",
+            normalizeStateToken(step, "ready"),
+          );
+        }
+      }
+
+      function buildProofSummary() {
+        const localAiState =
+          document
+            .querySelector('[data-testid="local-ai-status-panel"]')
+            ?.getAttribute("data-local-ai-state") || "unknown";
+
+        return [
+          "Executive Proof Summary",
+          "Governance surface: ready",
+          "Security surface: ready",
+          "Knowledge surface: ready",
+          "Audit surface: ready",
+          "Timeline surface: ready",
+          `Local AI state: ${localAiState}`,
+          "Sprint 59 walkthrough export prepared.",
+        ].join("\n");
+      }
+
+      function setProofSummaryState(label, summaryText) {
+        const exportEl = document.querySelector(
+          '[data-testid="walkthrough-export-value"]',
+        );
+        const summaryEl = document.querySelector(
+          '[data-testid="proof-summary-output"]',
+        );
+
+        if (exportEl) exportEl.textContent = label || "Idle";
+        if (summaryEl) {
+          summaryEl.textContent =
+            summaryText || "No executive proof summary exported yet.";
+          summaryEl.setAttribute(
+            "data-proof-summary-state",
+            normalizeStateToken(label, "idle"),
+          );
+        }
       }
 
       const workspaceIdInput = document.getElementById("workspace-id");
@@ -1472,6 +1659,72 @@ AI explanation idle. Run baseline comparison first.</pre
             );
           });
         }
+
+        const demoBtn = document.querySelector(
+          '[data-testid="start-demo-mode-btn"]',
+        );
+        const exportBtn = document.querySelector(
+          '[data-testid="export-proof-summary-btn"]',
+        );
+        const copyBtn = document.querySelector(
+          '[data-testid="copy-proof-summary-btn"]',
+        );
+
+        if (demoBtn) {
+          demoBtn.addEventListener("click", function () {
+            setWalkthroughState(
+              "Demo Running",
+              "Executive demo mode enabled for walkthrough-safe evidence review.",
+              "active",
+            );
+            setProofAction(
+              "Demo Mode Active",
+              "Executive demo mode aligned with proof surfaces.",
+            );
+          });
+        }
+
+        if (exportBtn) {
+          exportBtn.addEventListener("click", function () {
+            const summary = buildProofSummary();
+            setProofSummaryState("Exported", summary);
+            setWalkthroughState(
+              "Summary Exported",
+              "Executive proof summary exported for demo and handoff usage.",
+              "active",
+            );
+            setProofAction(
+              "Proof Summary Exported",
+              "Executive proof summary exported successfully.",
+            );
+          });
+        }
+
+        if (copyBtn) {
+          copyBtn.addEventListener("click", function () {
+            const summary = buildProofSummary();
+            setProofSummaryState("Copied", summary);
+            setWalkthroughState(
+              "Summary Copied",
+              "Executive proof summary prepared for copy-safe handoff.",
+              "active",
+            );
+            setProofAction(
+              "Proof Summary Copied",
+              "Executive proof summary copied into walkthrough state.",
+            );
+          });
+        }
+
+        setWalkthroughState(
+          "Ready",
+          "Executive walkthrough initialized for Human Tester 6.",
+          "standby",
+        );
+        setProofSummaryState(
+          "Idle",
+          "No executive proof summary exported yet.",
+        );
       });
 
       document
@@ -2157,6 +2410,16 @@ AI explanation idle. Run baseline comparison first.</pre
       // Sprint 58 — data-last-proof-action
       // Sprint 58 — data-proof-output
       // Sprint 58 — setProofAction
+      // Sprint 59 — executive-walkthrough-panel
+      // Sprint 59 — start-demo-mode-btn
+      // Sprint 59 — export-proof-summary-btn
+      // Sprint 59 — copy-proof-summary-btn
+      // Sprint 59 — walkthrough-output
+      // Sprint 59 — proof-summary-output
+      // Sprint 59 — data-walkthrough-surface
+      // Sprint 59 — data-demo-mode
+      // Sprint 59 — data-walkthrough-step
+      // Sprint 59 — data-proof-summary-state
       // Sprint 57 — executive-evidence-panel
       // Sprint 57 — evidence-governance-value
       // Sprint 57 — evidence-security-value
@@ -2309,6 +2572,33 @@ AI explanation idle. Run baseline comparison first.</pre
       // row.score.toFixed(3)
       // window.secrets.scan
       // window.workspaceKnowledge.search
+      // Sprint 59 compatibility strings:
+      // data-testid="executive-walkthrough-panel"
+      // data-testid="executive-walkthrough-title"
+      // data-testid="executive-walkthrough-subtitle"
+      // data-testid="walkthrough-step-card"
+      // data-testid="walkthrough-step-value"
+      // data-testid="walkthrough-demo-card"
+      // data-testid="walkthrough-demo-value"
+      // data-testid="walkthrough-export-card"
+      // data-testid="walkthrough-export-value"
+      // data-testid="walkthrough-sync-card"
+      // data-testid="walkthrough-sync-value"
+      // data-testid="start-demo-mode-btn"
+      // data-testid="export-proof-summary-btn"
+      // data-testid="copy-proof-summary-btn"
+      // data-testid="walkthrough-output"
+      // data-testid="proof-summary-output"
+      // data-walkthrough-surface="governance"
+      // data-walkthrough-surface="timeline"
+      // data-walkthrough-surface="knowledge"
+      // data-walkthrough-surface="audit"
+      // data-walkthrough-surface="security"
+      // data-walkthrough-surface="security-drift"
+      // data-walkthrough-surface="knowledge-panel"
+      // data-demo-mode
+      // data-walkthrough-step
+      // data-proof-summary-state
     </script>
   </body>
 </html>

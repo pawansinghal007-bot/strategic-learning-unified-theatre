@@ -36,8 +36,8 @@ test.describe("Human Tester — analytics and audit", () => {
     await expect(window.getByText("Audit Trail")).toBeVisible({
       timeout: 10000,
     });
-    await expect(window.getByText("Global Analytics")).toBeVisible({
-      timeout: 10000,
-    });
+    await expect(
+      window.getByRole("heading", { name: "Global Analytics" }),
+    ).toBeVisible({ timeout: 10000 });
   });
 });

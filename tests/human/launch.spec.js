@@ -12,8 +12,8 @@ test.afterAll(async () => {
   await closeElectronApp(app);
 });
 
-test.describe("Human Tester 5 launch smoke", () => {
-  test("loads executive evidence and proof surfaces", async () => {
+test.describe("Human Tester 6 launch smoke", () => {
+  test("loads evidence, proof, and walkthrough surfaces", async () => {
     await expect(
       page.locator('[data-testid="executive-evidence-panel"]'),
     ).toBeVisible();
@@ -27,6 +27,9 @@ test.describe("Human Tester 5 launch smoke", () => {
       page.locator('[data-testid="executive-proof-panel"]'),
     ).toBeVisible();
     await expect(
+      page.locator('[data-testid="executive-walkthrough-panel"]'),
+    ).toBeVisible();
+    await expect(
       page.locator('[data-testid="local-ai-status-panel"]'),
     ).toBeVisible();
     await expect(
@@ -35,12 +38,21 @@ test.describe("Human Tester 5 launch smoke", () => {
     await expect(page.locator('[data-testid="knowledge-panel"]')).toBeVisible();
   });
 
-  test("proof flow starts in ready state", async () => {
+  test("walkthrough flow starts in ready state", async () => {
     await expect(
       page.locator('[data-testid="proof-last-action-value"]'),
     ).toBeVisible();
     await expect(
       page.locator('[data-testid="proof-state-output"]'),
     ).toContainText("Executive proof flow initialized");
+    await expect(
+      page.locator('[data-testid="walkthrough-step-value"]'),
+    ).toContainText("Ready");
+    await expect(
+      page.locator('[data-testid="walkthrough-output"]'),
+    ).toContainText("Executive walkthrough initialized");
+    await expect(
+      page.locator('[data-testid="proof-summary-output"]'),
+    ).toContainText("No executive proof summary exported yet.");
   });
 });

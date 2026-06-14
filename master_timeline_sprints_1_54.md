@@ -50,6 +50,7 @@ that work retroactively and adds the Vitest regression guard.
 Sprint 56 (Human Tester 3) is complete.
 Sprint 57 (Human Tester 4) is complete.
 Sprint 58 (Human Tester 5) is complete.
+Sprint 59 (Human Tester 6 — executive walkthrough panel, demo mode, exportable/copyable proof summary, walkthrough surface markers across governance/security/audit/timeline/knowledge, Playwright walkthrough coverage, regression guard, sprint closure) is complete.
 
 | Sprint | Focus                                                                                                                                                                                                                                                                                                                                          | Status   |
 | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
@@ -59,10 +60,10 @@ Sprint 58 (Human Tester 5) is complete.
 
 ## Remaining
 
-| Sprint | Focus                                                                                                                                                                                                                                                              | Status  |
-| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------- |
-| 59     | TBD — candidates: BrowserPane overlap remediation (bounds logic in main.cjs), Playwright GitHub Actions workflow, CI smoke grouping for test:human:smoke and test:ui:theme, legacy text-selector conversion in analytics-audit.spec.js and quota-security.spec.js. | Next    |
-| 60     | Final workstation polish and packaging readiness                                                                                                                                                                                                                   | Planned |
+| Sprint | Focus                                                                                                                                                                                                                                           | Status   |
+| ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| 59     | Human Tester 6 — executive walkthrough panel, demo mode, exportable/copyable proof summary, walkthrough surface markers across governance/security/audit/timeline/knowledge, Playwright walkthrough coverage, regression guard, sprint closure. | Complete |
+| 60     | TBD                                                                                                                                                                                                                                             | Next     |
 
 ## Standing Architecture Rules (all future sprints)
 

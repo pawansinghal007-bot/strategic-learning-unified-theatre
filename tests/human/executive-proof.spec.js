@@ -12,7 +12,7 @@ test.afterAll(async () => {
   await closeElectronApp(app);
 });
 
-test.describe("Human Tester 5 — executive proof interactions", () => {
+test.describe("Human Tester 6 — executive proof interactions", () => {
   test("shows proof panel with readiness markers", async () => {
     await expect(
       page.locator('[data-testid="executive-proof-panel"]'),
@@ -28,6 +28,15 @@ test.describe("Human Tester 5 — executive proof interactions", () => {
     ).toHaveText(/Ready/i);
   });
 
+  test("local AI status sync updates proof flow", async () => {
+    await expect(
+      page.locator('[data-testid="local-ai-status-panel"]'),
+    ).toHaveAttribute("data-local-ai-state", /ready/i);
+    await expect(
+      page.locator('[data-testid="proof-last-action-value"]'),
+    ).toBeVisible();
+  });
+
   test("proof flow starts in initialized state after DOMContentLoaded", async () => {
     await expect(
       page.locator('[data-testid="proof-state-output"]'),
@@ -35,12 +44,6 @@ test.describe("Human Tester 5 — executive proof interactions", () => {
     await expect(
       page.locator('[data-testid="proof-last-action-value"]'),
     ).not.toHaveText("Idle");
-  });
-
-  test("local AI status panel has data-local-ai-state set to ready", async () => {
-    await expect(
-      page.locator('[data-testid="local-ai-status-panel"]'),
-    ).toHaveAttribute("data-local-ai-state", /ready/i);
   });
 
   test("capture proof state button click updates last action and output", async () => {
@@ -51,6 +54,16 @@ test.describe("Human Tester 5 — executive proof interactions", () => {
     await expect(
       page.locator('[data-testid="proof-state-output"]'),
     ).toContainText("Executive proof state captured");
+  });
+
+  test("proof and walkthrough surfaces stay aligned", async () => {
+    await page.locator('[data-testid="start-demo-mode-btn"]').click();
+    await expect(
+      page.locator('[data-testid="proof-last-action-value"]'),
+    ).toContainText("Demo Mode Active");
+    await expect(
+      page.locator('[data-testid="walkthrough-output"]'),
+    ).toContainText("Executive demo mode enabled");
   });
 
   test("governance, security, and knowledge surfaces are screenshot-ready", async () => {

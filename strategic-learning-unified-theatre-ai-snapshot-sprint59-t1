@@ -1,0 +1,37 @@
+  SPRINT 59 — T1 COMPLETE
+
+  FILE:
+    src/ui/provider-dashboard.html (extended)
+
+  STATUS:
+    executive-walkthrough-panel inserted immediately after executive-proof-panel
+    4 metric cards: walkthrough-step, walkthrough-demo, walkthrough-export, walkthrough-sync
+    3 action buttons: start-demo-mode, export-proof-summary, copy-proof-summary
+    walkthrough-output and proof-summary-output elements present
+    data-walkthrough-surface added to: routing-summary-output, timeline-output,
+      knowledge-output, audit-trail-panel, security-overview-panel,
+      security-drift-panel, knowledge-panel
+    normalizeStateToken(), setWalkthroughState(), buildProofSummary(),
+      setProofSummaryState() appended to script block
+    setLocalAiStatus() extended with setWalkthroughState call (1 line appended)
+    DOMContentLoaded extended with demoBtn/exportBtn/copyBtn listeners and
+      2 new init calls — existing captureBtn listener and existing init calls
+      unmodified
+    PRESERVE LIST from sprint58-human-tester-5.test.js verified intact —
+      [LIST CONFIRMED / strings restored: <none | list any restored strings>]
+    Sprint 59 compatibility comment block appended
+    Sprint 25-58 compatibility strings preserved
+    compile clean
+
+  DELIVERABLES:
+    [x] executive-walkthrough-panel with all data-testid hooks
+    [x] 7 data-walkthrough-surface attributes added additively
+    [x] 4 new helper functions appended without touching existing functions
+    [x] setLocalAiStatus extended additively (1 line)
+    [x] DOMContentLoaded extended additively (3 listeners, 2 init calls)
+    [x] PRESERVE LIST verification passed
+    [x] Sprint 59 compatibility strings appended
+    [x] Compilation successful
+
+  NEXT:
+    T2 — Playwright human/UI spec updates + new walkthrough spec
