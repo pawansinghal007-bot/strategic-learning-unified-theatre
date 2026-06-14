@@ -561,4 +561,13 @@ export function enforceWorkspaceQuotaOrThrow(input: {
   return decision;
 }
 
-export const gateway = new Gateway();
+// Lazy singleton — instantiated on first access, not at module load time.
+// This prevents adapter constructors from running during test imports,
+// which would crash without API keys / Ollama before any mock can intercept.
+let _gateway: Gateway | undefined;
+export const gateway = new Proxy({} as Gateway, {
+  get(_target, prop) {
+    if (!_gateway) _gateway = new Gateway();
+    return (_gateway as any)[prop];
+  },
+});

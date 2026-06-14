@@ -9,7 +9,13 @@ export class GroqProviderAdapter extends BaseProviderAdapter {
   readonly name = "groq" as const;
 
   capabilities(): ProviderCapability[] {
-    return ["chat", "streaming", "summarization", "code_generation"];
+    return [
+      "chat",
+      "streaming",
+      "tool_use",
+      "summarization",
+      "code_generation",
+    ];
   }
 
   protected async execute(req: ProviderRequest): Promise<ProviderResponse> {
@@ -20,15 +26,15 @@ export class GroqProviderAdapter extends BaseProviderAdapter {
     return {
       requestId: req.requestId,
       provider: this.name,
-      model: "llama-3.3-70b-versatile",
+      model: "llama3-8b-8192",
       outputText: `[groq stub] ${req.prompt}`,
       finishReason: "stop",
       usage: {
         inputTokens: req.prompt.length,
-        outputTokens: Math.ceil(req.prompt.length * 0.7),
-        totalTokens: req.prompt.length + Math.ceil(req.prompt.length * 0.7),
-        estimatedCostUsd: 0,
-        latencyMs: 40,
+        outputTokens: Math.ceil(req.prompt.length * 0.8),
+        totalTokens: req.prompt.length + Math.ceil(req.prompt.length * 0.8),
+        estimatedCostUsd: 0.0001,
+        latencyMs: 120,
       },
       routingReasons: [
         {

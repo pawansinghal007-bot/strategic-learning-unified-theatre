@@ -119,6 +119,35 @@ function markRollbackRequested() {
   writeHealthState(state);
 }
 
+async function registerMainIpcHandlers() {
+  try {
+    const handlersPath = path.join(__dirname, "ipc", "handlers.bundled.cjs");
+    mainLogger.info("ipc.handlers.load.start", {
+      correlationId: "ipc",
+      handlersPath,
+    });
+    const register = require(handlersPath);
+    if (typeof register === "function") {
+      await register({ ipcMain, dialog, watcher, app });
+      mainLogger.info("ipc.handlers.register.success", {
+        correlationId: "ipc",
+      });
+    } else {
+      mainLogger.error("ipc.handlers.register.failure", {
+        correlationId: "ipc",
+        code: "ROTATOR_IPC_HANDLER_EXPORT_INVALID",
+        error: new Error("IPC handlers module did not export a function"),
+      });
+    }
+  } catch (err) {
+    mainLogger.error("ipc.handlers.register.failure", {
+      correlationId: "ipc",
+      error: err,
+      code: err?.code || "ROTATOR_IPC_REGISTER_FAILED",
+    });
+  }
+}
+
 function runHealthChecks(timeoutMs) {
   return new Promise((resolve) => {
     const timer = setTimeout(() => resolve(false), timeoutMs);
@@ -296,6 +325,8 @@ async function createWindow() {
     width: opts.width,
     height: opts.height,
   });
+
+  await registerMainIpcHandlers();
 
   win.webContents.on(
     "console-message",
@@ -477,34 +508,6 @@ app.whenReady().then(async () => {
       correlationId: "daemon",
       error: err,
       code: err?.code || "ROTATOR_DAEMON_START_FAILED",
-    });
-  }
-
-  // register IPC handlers
-  try {
-    const handlersPath = path.join(__dirname, "ipc", "handlers.bundled.cjs");
-    mainLogger.info("ipc.handlers.load.start", {
-      correlationId: "ipc",
-      handlersPath,
-    });
-    const register = require(handlersPath);
-    if (typeof register === "function") {
-      await register({ ipcMain, dialog, watcher, app });
-      mainLogger.info("ipc.handlers.register.success", {
-        correlationId: "ipc",
-      });
-    } else {
-      mainLogger.error("ipc.handlers.register.failure", {
-        correlationId: "ipc",
-        code: "ROTATOR_IPC_HANDLER_EXPORT_INVALID",
-        error: new Error("IPC handlers module did not export a function"),
-      });
-    }
-  } catch (err) {
-    mainLogger.error("ipc.handlers.register.failure", {
-      correlationId: "ipc",
-      error: err,
-      code: err?.code || "ROTATOR_IPC_REGISTER_FAILED",
     });
   }
 

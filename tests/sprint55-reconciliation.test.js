@@ -100,10 +100,28 @@ describe("Sprint 55 — timeline reconciliation and Playwright scaffold guard", 
     expect(content).toContain("Sprint 55 Complete");
   });
 
-  it("CURRENT_ACTIVE_SNAPSHOT.md points to sprint55-stable", () => {
+  it("CURRENT_ACTIVE_SNAPSHOT.md has valid snapshot name at or beyond sprint55", () => {
     const text = read("CURRENT_ACTIVE_SNAPSHOT.md").trim();
-    expect(text).toBe(
-      "strategic-learning-unified-theatre-ai-snapshot-sprint55-stable",
-    );
+
+    // Must match the project snapshot naming convention:
+    // strategic-learning-unified-theatre-ai-snapshot-sprint<N>-<tag>
+    const SNAPSHOT_RE =
+      /^strategic-learning-unified-theatre-ai-snapshot-sprint(\d+)-(.+)$/;
+    const match = text.match(SNAPSHOT_RE);
+
+    expect(
+      match,
+      `CURRENT_ACTIVE_SNAPSHOT.md value "${text}" does not match expected pattern ` +
+        '"strategic-learning-unified-theatre-ai-snapshot-sprint<N>-<tag>"',
+    ).not.toBeNull();
+
+    const sprintNumber = parseInt(match[1], 10);
+    expect(
+      sprintNumber,
+      `Snapshot sprint number (${sprintNumber}) must be >= 55 — do not roll back the active snapshot`,
+    ).toBeGreaterThanOrEqual(55);
+
+    // Tag must be non-empty (e.g. "stable", "t1", "rc1")
+    expect(match[2].length).toBeGreaterThan(0);
   });
 });

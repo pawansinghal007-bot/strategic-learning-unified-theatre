@@ -136,42 +136,117 @@
     </style>
   </head>
   <body>
-    <div class="panel">
-      <h2>Workspace Analytics &amp; Explainability</h2>
-      <input id="workspace-id" placeholder="Workspace ID" />
-      <div class="row-3">
-        <input id="filter-provider" placeholder="Provider filter" />
-        <input id="filter-start" type="datetime-local" />
-        <input id="filter-end" type="datetime-local" />
+    <div
+      class="panel"
+      id="local-ai-status-panel"
+      data-testid="local-ai-status-panel"
+    >
+      <h3>Local AI Status</h3>
+      <div>
+        <span class="label">Status: </span>
+        <span id="local-ai-status-value" data-testid="local-ai-status-value"
+          >unknown</span
+        >
       </div>
-      <div class="row-3">
-        <button id="load-unified-view">Load full analytics view</button>
-        <button id="refresh-routing-history">Refresh routing data</button>
-        <button id="clear-routing-history">Clear workspace history</button>
-      </div>
-      <div class="row-3">
-        <button id="export-json">Export JSON</button>
-        <button id="export-csv">Export CSV</button>
-        <button id="export-html-report">Export HTML report</button>
-      </div>
-      <div class="row-3">
-        <button id="save-json">Save JSON</button>
-        <button id="save-csv">Save CSV</button>
-        <button id="save-html">Save HTML</button>
-      </div>
-      <div class="row-3">
-        <button id="load-global-analytics">Load global analytics</button>
-        <button id="load-provider-comparison">Load provider comparison</button>
-        <button id="load-bucket-chart">Render bucket chart</button>
+      <div
+        class="small"
+        id="local-ai-status-detail"
+        data-testid="local-ai-status-detail"
+      >
+        Initializing...
       </div>
     </div>
 
-    <div class="panel">
+    <div
+      class="panel"
+      id="workspace-analytics-panel"
+      data-testid="workspace-analytics-panel"
+    >
+      <h2>Workspace Analytics &amp; Explainability</h2>
+      <input
+        id="workspace-id"
+        placeholder="Workspace ID"
+        data-testid="workspace-id-input"
+      />
+      <div class="row-3">
+        <input
+          id="filter-provider"
+          placeholder="Provider filter"
+          data-testid="filter-provider-input"
+        />
+        <input
+          id="filter-start"
+          type="datetime-local"
+          data-testid="filter-start-input"
+        />
+        <input
+          id="filter-end"
+          type="datetime-local"
+          data-testid="filter-end-input"
+        />
+      </div>
+      <div class="row-3">
+        <button id="load-unified-view" data-testid="load-unified-view-btn">
+          Load full analytics view
+        </button>
+        <button
+          id="refresh-routing-history"
+          data-testid="refresh-routing-history-btn"
+        >
+          Refresh routing data
+        </button>
+        <button
+          id="clear-routing-history"
+          data-testid="clear-routing-history-btn"
+        >
+          Clear workspace history
+        </button>
+      </div>
+      <div class="row-3">
+        <button id="export-json" data-testid="export-json-btn">
+          Export JSON
+        </button>
+        <button id="export-csv" data-testid="export-csv-btn">Export CSV</button>
+        <button id="export-html-report" data-testid="export-html-report-btn">
+          Export HTML report
+        </button>
+      </div>
+      <div class="row-3">
+        <button id="save-json" data-testid="save-json-btn">Save JSON</button>
+        <button id="save-csv" data-testid="save-csv-btn">Save CSV</button>
+        <button id="save-html" data-testid="save-html-btn">Save HTML</button>
+      </div>
+      <div class="row-3">
+        <button
+          id="load-global-analytics"
+          data-testid="load-global-analytics-btn"
+        >
+          Load global analytics
+        </button>
+        <button
+          id="load-provider-comparison"
+          data-testid="load-provider-comparison-btn"
+        >
+          Load provider comparison
+        </button>
+        <button id="load-bucket-chart" data-testid="load-bucket-chart-btn">
+          Render bucket chart
+        </button>
+      </div>
+    </div>
+
+    <div class="panel" id="audit-trail-panel" data-testid="audit-trail-panel">
       <h3>Audit Trail</h3>
       <div class="row-3">
-        <button id="load-audit-events">Load audit events</button>
-        <button id="verify-audit-log">Verify audit integrity</button>
-        <button id="load-latest-audit">Load latest event</button>
+        <button id="load-audit-events" data-testid="load-audit-events-btn">
+          Load audit events
+        </button>
+        <button id="verify-audit-log" data-testid="verify-audit-log-btn">
+          Verify audit integrity
+        </button>
+        <button id="load-latest-audit" data-testid="load-latest-audit-btn">
+          Load latest event
+        </button>
       </div>
       <div class="row-3">
         <button id="export-audit-json">Export audit JSON</button>
@@ -267,15 +342,29 @@
       </div>
     </div>
 
-    <div class="panel">
+    <div class="panel" id="knowledge-panel" data-testid="knowledge-panel">
       <h3>Knowledge Layer</h3>
       <div class="row">
-        <button id="knowledge-ingest-btn">Ingest sprint history</button>
-        <input id="knowledge-query" placeholder="Search knowledge base" />
-        <input id="knowledge-filter" placeholder='feature_area == "quota"' />
-        <button id="knowledge-search-btn">Search knowledge base</button>
+        <button id="knowledge-ingest-btn" data-testid="knowledge-ingest-btn">
+          Ingest sprint history
+        </button>
+        <input
+          id="knowledge-query"
+          placeholder="Search knowledge base"
+          data-testid="knowledge-query-input"
+        />
+        <input
+          id="knowledge-filter"
+          placeholder='feature_area == "quota"'
+          data-testid="knowledge-filter-input"
+        />
+        <button id="knowledge-search-btn" data-testid="knowledge-search-btn">
+          Search knowledge base
+        </button>
       </div>
-      <pre id="knowledge-output">Knowledge layer idle.</pre>
+      <pre id="knowledge-output" data-testid="knowledge-output">
+Knowledge layer idle.</pre
+      >
       <div class="table-wrap">
         <table>
           <thead>
@@ -287,12 +376,19 @@
               <th>Path</th>
             </tr>
           </thead>
-          <tbody id="knowledge-results-body"></tbody>
+          <tbody
+            id="knowledge-results-body"
+            data-testid="knowledge-results-body"
+          ></tbody>
         </table>
       </div>
     </div>
 
-    <div class="panel" id="security-overview-panel">
+    <div
+      class="panel"
+      id="security-overview-panel"
+      data-testid="security-overview-panel"
+    >
       <h3>Security Overview</h3>
       <div class="row-3">
         <div class="metric">
@@ -368,14 +464,24 @@
       <pre id="security-overview-output"></pre>
     </div>
 
-    <div class="panel" id="security-drift-panel">
+    <div
+      class="panel"
+      id="security-drift-panel"
+      data-testid="security-drift-panel"
+    >
       <h3>Security Drift</h3>
       <div class="row" style="margin-top: 12px">
         <input
           id="security-drift-baseline-path"
           placeholder="Baseline JSON path"
+          data-testid="security-drift-baseline-path-input"
         />
-        <button id="security-drift-compare-btn">Compare With Baseline</button>
+        <button
+          id="security-drift-compare-btn"
+          data-testid="security-drift-compare-btn"
+        >
+          Compare With Baseline
+        </button>
       </div>
       <div class="row-3" style="margin-top: 12px">
         <div class="metric">
@@ -593,29 +699,53 @@ AI explanation idle. Run baseline comparison first.</pre
       <div class="metrics">
         <div class="metric">
           <div class="label">Total routes</div>
-          <div class="value" id="metric-total">0</div>
+          <div class="value" id="metric-total" data-testid="metric-total">
+            0
+          </div>
         </div>
         <div class="metric">
           <div class="label">Success rate</div>
-          <div class="value" id="metric-success-rate">0%</div>
+          <div
+            class="value"
+            id="metric-success-rate"
+            data-testid="metric-success-rate"
+          >
+            0%
+          </div>
         </div>
         <div class="metric">
           <div class="label">Error rate</div>
-          <div class="value" id="metric-error-rate">0%</div>
+          <div
+            class="value"
+            id="metric-error-rate"
+            data-testid="metric-error-rate"
+          >
+            0%
+          </div>
         </div>
         <div class="metric">
           <div class="label">Avg latency</div>
-          <div class="value" id="metric-latency">0ms</div>
+          <div class="value" id="metric-latency" data-testid="metric-latency">
+            0ms
+          </div>
         </div>
         <div class="metric">
           <div class="label">Latest provider</div>
-          <div class="value" id="metric-latest">—</div>
+          <div class="value" id="metric-latest" data-testid="metric-latest">
+            —
+          </div>
         </div>
       </div>
-      <pre id="routing-summary-output">—</pre>
+      <pre id="routing-summary-output" data-testid="routing-summary-output">
+—</pre
+      >
     </div>
 
-    <div class="panel">
+    <div
+      class="panel"
+      id="provider-trends-panel"
+      data-testid="provider-trends-panel"
+    >
       <h3>Provider Trends</h3>
       <table>
         <thead>
@@ -627,13 +757,17 @@ AI explanation idle. Run baseline comparison first.</pre
             <th>Avg latency</th>
           </tr>
         </thead>
-        <tbody id="trends-table-body"></tbody>
+        <tbody id="trends-table-body" data-testid="trends-table-body"></tbody>
       </table>
     </div>
 
-    <div class="panel">
+    <div
+      class="panel"
+      id="decision-timeline-panel"
+      data-testid="decision-timeline-panel"
+    >
       <h3>Decision Timeline</h3>
-      <div id="timeline-output"></div>
+      <div id="timeline-output" data-testid="timeline-output"></div>
     </div>
 
     <div class="panel">
@@ -673,6 +807,13 @@ AI explanation idle. Run baseline comparison first.</pre
     </div>
 
     <script>
+      function setLocalAiStatus(state, detail) {
+        const valueEl = document.getElementById("local-ai-status-value");
+        const detailEl = document.getElementById("local-ai-status-detail");
+        if (valueEl) valueEl.textContent = state || "unknown";
+        if (detailEl) detailEl.textContent = detail || "";
+      }
+
       const workspaceIdInput = document.getElementById("workspace-id");
       const policyOutput = document.getElementById("policy-output");
       const contextSummary = document.getElementById("context-summary");
@@ -1117,6 +1258,18 @@ AI explanation idle. Run baseline comparison first.</pre
         });
 
       document.addEventListener("DOMContentLoaded", () => {
+        setLocalAiStatus("ready", "Human Tester 3 selector surface loaded.");
+        if (window.rotator?.llm) {
+          window.rotator.llm
+            .status()
+            .then((s) => {
+              setLocalAiStatus(
+                s?.running ? "running" : "offline",
+                JSON.stringify(s ?? {}),
+              );
+            })
+            .catch((e) => setLocalAiStatus("error", String(e?.message ?? e)));
+        }
         verifyAuditIntegrity();
         if (window.workspaceQuota?.onNotification) {
           window.workspaceQuota.onNotification((payload) => {
@@ -1796,6 +1949,15 @@ AI explanation idle. Run baseline comparison first.</pre
         });
 
       // Sprint compatibility block
+      // Sprint 56 data-testid hooks
+      // data-testid="workspace-id-input"
+      // data-testid="load-unified-view-btn"
+      // data-testid="workspace-analytics-panel"
+      // data-testid="security-overview-panel"
+      // data-testid="security-drift-panel"
+      // data-testid="local-ai-status-panel"
+      // data-testid="local-ai-status-value"
+      // setLocalAiStatus
       // Audit Trail
       // Workspace Approvals
       // Unified Workspace View

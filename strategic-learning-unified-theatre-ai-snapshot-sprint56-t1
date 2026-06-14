@@ -1,0 +1,20 @@
+  SPRINT 56 — T1 COMPLETE
+
+  FILE: src/ui/provider-dashboard.html (extended)
+
+  STATUS:
+    data-testid added to workspace-id-input, filter-provider-input,
+    filter-start-input, filter-end-input
+    data-testid added to all major action buttons (~17 buttons)
+    data-testid added to all metric tiles (5 tiles)
+    data-testid added to routing-summary-output, trends-table-body, timeline-output
+    data-testid added to audit action buttons (3 buttons)
+    data-testid added to security-overview-panel, security-drift-panel
+    data-testid added to knowledge panel elements (if present)
+    Panel-level data-testid added to analytics, trends, timeline, audit panels
+    local-ai-status-panel added as first panel in body
+    setLocalAiStatus() helper added to script block
+    All Sprint 25-55 compatibility strings preserved
+    compile clean
+
+  NEXT: T2 — Playwright spec updates + Vitest regression guard
