@@ -335,3 +335,11 @@ Cross-surface regression hardening delivered. Tests-only sprint — no architect
 ## Sprint 54 Complete
 
 Auto-scan trigger and drift-history storage delivered. drift-history.ts with loadDriftHistory, saveDriftHistory, appendDriftHistory. auto-scan.ts with runSecurityAutoScan — lazy imports, enriched findings, drift comparison, drift history append. classifyDriftSeverity called as string-returning function. triage functions imported from triage.js directly. security-overview:auto-scan IPC (repoPath guard). security-overview:list-drift-history IPC. preload autoScan (11th) and listDriftHistory (12th) workspaceSecurity methods. DriftHistoryEntry, autoScan, listDriftHistory typed. Architecture sync done. Sonar clean.
+
+## Sprint 54 Complete
+
+Human Tester E2E scaffold and UI validation suite delivered. playwright.human.config.cjs + playwright.ui.config.cjs. tests/human/: launch.spec.js, analytics-audit.spec.js, quota-security.spec.js with launchHumanTester/safeClickByText/expectDashboardLoaded helpers. tests/ui/: theme-readability, browser-pane-overlap (diagnostic), browser-pane-hide, local-ai-status specs with full helper suite. test:human and test:ui script families in package.json. Vitest suite unchanged. Sonar clean.
+
+## Sprint 55 Complete
+
+Timeline reconciliation and Playwright scaffold guard delivered. Sprint 54 tag collision resolved — Sprint 54 was auto-scan/drift-history, Human Tester Playwright scaffold retroactively assigned to Sprint 55. master_timeline_sprints_1_54.md overwritten with correct sprint reality through Sprint 55. package.json test:human and test:ui scripts verified to reference .cjs Playwright configs. sprint55-reconciliation.test.js Vitest guard covers config file existence, package script .cjs references, Human Tester spec file presence, auto-scan backend file presence, preload autoScan/listDriftHistory, and snapshot pointer. Sonar clean.

@@ -1,109 +1,75 @@
-  SPRINT 54 COMPLETE: AUTO-SCAN TRIGGER AND DRIFT-HISTORY STORAGE
+  SPRINT 54 COMPLETE: HUMAN TESTER E2E SCAFFOLD + UI VALIDATION SUITE
 
   SPRINT SUMMARY:
-    T1  two new backend modules    drift-history.ts — loadDriftHistory, saveDriftHistory,
-                                   appendDriftHistory; auto-scan.ts — runSecurityAutoScan
-                                   orchestrator with lazy imports; index.ts extended
-    T2  IPC + preload + types      security-overview:auto-scan channel with repoPath guard;
-                                   security-overview:list-drift-history channel;
-                                   autoScan (11th) and listDriftHistory (12th) preload
-                                   methods; DriftHistoryEntry, autoScan, listDriftHistory
-                                   typed in types.d.ts
-    T3  tests + closure            sprint54-drift-history.test.js — 7 unit tests;
-                                   sprint54-smoke.test.js — surface regression suite
+    T1  Playwright scaffold        playwright.human.config.cjs, playwright.ui.config.cjs,
+                                   8 new package.json scripts, .gitignore updates
+    T2  Spec files                 3 human tester specs, 4 UI validation specs,
+                                   2 helper modules
+    T3  Sprint closure             timeline updated, master-instructions appended
 
   STATUS:
-    vitest pass — 120+ files / 1231+ tests
+    Vitest pass (unchanged — Playwright specs not in Vitest)
     typecheck clean
     sonar clean
     tagged sprint-54-complete
 
   DELIVERABLES:
-    [x] DriftClassification type and DriftHistoryEntry interface
-    [x] loadDriftHistory() — empty for null/missing/invalid
-    [x] saveDriftHistory() — overwrites, returns count
-    [x] appendDriftHistory() — accumulates entries
-    [x] AutoScanOptions and AutoScanResult interfaces
-    [x] runSecurityAutoScan() — lazy imports, enriched findings, drift comparison,
-        drift history append, all steps in outer try/catch
-    [x] classifyDriftSeverity called as string-returning function (not object)
-    [x] triage functions imported from triage.js directly
-    [x] index.ts exports ./drift-history and ./auto-scan
-    [x] security-overview:auto-scan IPC channel (repoPath guard, outer try/catch)
-    [x] security-overview:list-drift-history IPC channel (empty path guard, outer try/catch)
-    [x] preload autoScan method (11th workspaceSecurity method)
-    [x] preload listDriftHistory method (12th workspaceSecurity method)
-    [x] Sprint 44-53 preload methods untouched (10 methods preserved)
-    [x] workspaceRisks / secrets / providerTelemetry surfaces untouched
-    [x] types.d.ts DriftHistoryEntry declared
-    [x] types.d.ts autoScan and listDriftHistory typed
-    [x] Sprint 49 type declarations preserved
-    [x] interface Window appears exactly once
-    [x] sprint54-drift-history.test.js 7 unit tests passing
-    [x] sprint54-smoke.test.js surface regression passing
+    [x] playwright.human.config.cjs — testDir=tests/human, workers=1
+    [x] playwright.ui.config.cjs — testDir=tests/ui, screenshot=on
+    [x] test:human / test:human:smoke / test:human:headed / test:human:debug scripts
+    [x] test:ui / test:ui:theme / test:ui:layers / test:ui:headed scripts
+    [x] launchHumanTester() / closeHumanTester() / safeClickByText() / expectDashboardLoaded()
+    [x] tests/human/launch.spec.js — app launch + core sections visible
+    [x] tests/human/analytics-audit.spec.js — analytics/audit click flow
+    [x] tests/human/quota-security.spec.js — quota + security overview click flow
+    [x] launchUiValidationApp() / getStyleSnapshot() / isCenterPointClickable()
+    [x] getOverlapAtElementCenter() / callBrowserPaneVisible() / readLocalAiStatus()
+    [x] tests/ui/theme-readability.spec.js — visual baseline capture
+    [x] tests/ui/browser-pane-overlap.spec.js — diagnostic overlap recording
+    [x] tests/ui/browser-pane-hide.spec.js — clickability after hide
+    [x] tests/ui/local-ai-status.spec.js — llm.status() bridge verification
+    [x] playwright-report-human/ and playwright-report-ui/ gitignored
+    [x] master_timeline_sprints_1_54.md updated
     [x] Architecture sync completed
 
   ARCHITECTURE CHANGES THIS SPRINT:
   New files:
-    - src/security/security-overview/drift-history.ts
-    - src/security/security-overview/auto-scan.ts
-    - tests/sprint54-drift-history.test.js
-    - tests/sprint54-smoke.test.js
+    - playwright.human.config.cjs
+    - playwright.ui.config.cjs
+    - tests/human/helpers/electronApp.js
+    - tests/human/launch.spec.js
+    - tests/human/analytics-audit.spec.js
+    - tests/human/quota-security.spec.js
+    - tests/ui/helpers/electronUi.js
+    - tests/ui/theme-readability.spec.js
+    - tests/ui/browser-pane-overlap.spec.js
+    - tests/ui/browser-pane-hide.spec.js
+    - tests/ui/local-ai-status.spec.js
   Extended:
-    - src/security/security-overview/index.ts
-    - electron-ui/ipc/security-overview-handlers.cjs
-    - electron-ui/preload.cjs
-    - src/ui/types.d.ts
+    - package.json (scripts)
+    - .gitignore
+    - master_timeline_sprints_1_54.md
+    - strategic-learning-unified-theatre-master-instructions.md
   Unchanged:
-    - src/security/security-overview/drift.ts
-    - src/security/security-overview/triage.ts
-    - src/security/security-overview/ai-explain.ts
-    - src/security/security-overview/baseline.ts
-    - src/security/security-overview/suppressions.ts
-    - src/security/security-overview/normalizer.ts
-    - src/security/security-overview/schema.ts
-    - src/ui/provider-dashboard.html
-    - electron-ui/main.cjs
-    - src/audit/audit-log.ts
-    - electron-ui/ipc/audit-handlers.cjs
-    - electron-ui/ipc/secrets-handlers.cjs
-    - electron-ui/ipc/risks-handlers.cjs
+    - ALL source files
+    - ALL IPC handlers
+    - preload.cjs
+    - types.d.ts
+    - provider-dashboard.html
 
-  CUMULATIVE SECURITY IPC SURFACE (sprints 44-54):
-    secrets:scan
-    risks:scan:dependency / risks:scan:image
-    security-overview:summarize
-    security-overview:save-baseline
-    security-overview:load-suppressions
-    security-overview:save-suppressions
-    security-overview:load-triage
-    security-overview:set-triage
-    security-overview:set-triage-bulk              ← sprint 52
-    security-overview:compare-baseline             ← sprint 48
-    security-overview:explain-introduced           ← sprint 49
-    security-overview:get-drift-classification     ← sprint 50
-    security-overview:auto-scan                    ← sprint 54
-    security-overview:list-drift-history           ← sprint 54
-
-  CUMULATIVE workspaceSecurity PRELOAD SURFACE (sprints 46-54):
-    summarize
-    saveBaseline
-    loadSuppressions
-    saveSuppressions
-    loadTriage
-    setTriage
-    setTriageBulk           ← sprint 52
-    compareBaseline         ← sprint 48
-    explainIntroduced       ← sprint 49
-    getDriftClassification  ← sprint 50
-    autoScan                ← sprint 54
-    listDriftHistory        ← sprint 54
+  RUN COMMANDS:
+    npm run test:human:smoke         # Quick launch smoke (no build if already built)
+    npm run test:human               # Full human suite
+    npm run test:ui:theme            # Theme readability + screenshot
+    npm run test:ui:layers           # Browser pane overlap + hide tests
+    npm run test:ui                  # Full UI validation suite
 
   NEXT:
     Sprint 55 candidates:
-    - Tray menu wiring for auto-scan trigger (main.cjs + preload event bridge)
-    - Compliance benchmark mapping (OWASP Top 10 / CIS)
-    - Dashboard drift history panel (list and display DriftHistoryEntry records)
-    - Auto-compare on app start if baseline file exists
+    - Add data-testid attributes to dashboard key buttons and panels
+    - Upgrade Playwright tests to use stable data-testid selectors
+    - Add local-AI status indicator to dashboard HTML
+    - BrowserPane overlap remediation (bounds logic fix in main.cjs)
+    - Playwright CI integration (GitHub Actions workflow)
 
-  ARCHITECTURE SYNC STATUS: [UPDATED]
+  ARCHITECTURE SYNC STATUS: [UNCHANGED]
