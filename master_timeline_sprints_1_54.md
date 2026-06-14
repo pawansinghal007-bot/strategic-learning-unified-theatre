@@ -30,9 +30,9 @@
 
 ## Active
 
-| Sprint | Focus                                     | Status |
-| ------ | ----------------------------------------- | ------ |
-| 54     | Final stabilization and release readiness | Active |
+| Sprint | Focus                                           | Status |
+| ------ | ----------------------------------------------- | ------ |
+| 54     | Human Tester E2E scaffold + UI validation suite | Active |
 
 ## Remaining
 

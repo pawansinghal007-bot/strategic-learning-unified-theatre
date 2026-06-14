@@ -1,54 +1,28 @@
   SPRINT 54 — T2 COMPLETE
 
   FILES:
-    electron-ui/ipc/security-overview-handlers.cjs (extended)
-    electron-ui/preload.cjs (extended)
-    src/ui/types.d.ts (extended)
+    tests/human/helpers/electronApp.js (created)
+    tests/human/launch.spec.js (created)
+    tests/human/analytics-audit.spec.js (created)
+    tests/human/quota-security.spec.js (created)
+    tests/ui/helpers/electronUi.js (created)
+    tests/ui/theme-readability.spec.js (created)
+    tests/ui/browser-pane-overlap.spec.js (created)
+    tests/ui/browser-pane-hide.spec.js (created)
+    tests/ui/local-ai-status.spec.js (created)
 
   STATUS:
-    security-overview:auto-scan IPC channel registered
-    auto-scan handler validates repoPath before calling runSecurityAutoScan
-    auto-scan handler outer try/catch — never throws to renderer
-    auto-scan handler normalizes all optional path arguments defensively
-    security-overview:list-drift-history IPC channel registered
-    list-drift-history handler returns {ok:true, entries:[]} for empty path
-    list-drift-history handler outer try/catch — never throws to renderer
-    preload workspaceSecurity now has 12 methods
-    autoScan (11th) and listDriftHistory (12th) exposed to renderer
-    Sprint 53 getDriftClassification (10th) untouched
-    Sprint 52 setTriageBulk (7th) untouched
-    Sprint 49 explainIntroduced untouched
-    Sprint 48 compareBaseline untouched
-    Sprint 47 loadTriage/setTriage untouched
-    Sprint 46 summarize/saveBaseline/loadSuppressions/saveSuppressions untouched
-    workspaceRisks / secrets / providerTelemetry surfaces untouched
-    types.d.ts DriftHistoryEntry interface declared
-    types.d.ts autoScan typed
-    types.d.ts listDriftHistory typed
-    Sprint 49 FindingExplanationItem and ExplainIntroducedFindingsResult intact
-    interface Window appears exactly once
+    launchHumanTester() and closeHumanTester() helpers created
+    safeClickByText() gracefully skips missing buttons
+    expectDashboardLoaded() uses stable heading strings
+    3 human tester specs: launch, analytics-audit, quota-security
+    launchUiValidationApp() and closeUiValidationApp() helpers created
+    getStyleSnapshot(), isCenterPointClickable(), getOverlapAtElementCenter()
+    callBrowserPaneVisible() gracefully skips if browser pane unavailable
+    readLocalAiStatus() via preload llm.status() bridge
+    4 UI validation specs: theme, overlap (diagnostic), hide, local-ai
+    browser-pane-overlap writes diagnostic output, no strict assertion
+    Vitest suite unchanged
     compile clean
-    sonar clean
 
-  DELIVERABLES:
-    [x] security-overview:auto-scan IPC channel
-    [x] repoPath guard — returns {ok:false} if missing
-    [x] auto-scan outer try/catch
-    [x] All optional fields normalized defensively in auto-scan handler
-    [x] security-overview:list-drift-history IPC channel
-    [x] list-drift-history returns {ok:true, entries:[]} for empty path
-    [x] list-drift-history outer try/catch
-    [x] preload autoScan method (11th workspaceSecurity method)
-    [x] preload listDriftHistory method (12th workspaceSecurity method)
-    [x] Sprint 44-53 preload methods untouched
-    [x] workspaceRisks / secrets surfaces untouched
-    [x] types.d.ts DriftHistoryEntry declared
-    [x] types.d.ts autoScan typed
-    [x] types.d.ts listDriftHistory typed
-    [x] Sprint 49 type declarations preserved
-    [x] interface Window appears exactly once
-    [x] Compilation successful
-    [x] Sonar validation clean
-
-  NEXT:
-    T3 — smoke tests + sprint closure
+  NEXT: T3 — sprint closure, timeline, master instructions

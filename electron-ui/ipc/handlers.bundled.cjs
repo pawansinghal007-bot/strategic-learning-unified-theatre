@@ -1,4 +1,4 @@
-const __importMetaUrl = require('url').pathToFileURL(__filename).href;
+const __importMetaUrl = typeof __filename === 'string' ? require('url').pathToFileURL(__filename).href : globalThis.location?.href;
 
 // electron-ui/ipc/handlers.cjs
 var fs = require("node:fs/promises");
@@ -197,7 +197,64 @@ module.exports = async function register({ ipcMain, dialog, watcher, app }) {
     return await setupModel(payload);
   });
   ipcMain.handle("llm:ask", async (e, payload) => {
-    return await askLocalLlm(payload);
+    const userQuery = String(payload?.prompt || payload?.question || "").trim();
+    if (!userQuery) {
+      throw new Error("Prompt is required");
+    }
+    let knowledgeHits = [];
+    try {
+      const knowledge = await import(resolveModule("../../src/knowledge/index.js"));
+      const { getMilvusClient, embedTextBatch } = knowledge;
+      const vectors = await embedTextBatch([userQuery]);
+      const client = getMilvusClient();
+      const result = await client.search({
+        collection_name: "knowledge_chunks",
+        data: vectors,
+        limit: 8,
+        output_fields: [
+          "chunk_id",
+          "doc_id",
+          "source_type",
+          "sprint",
+          "feature_area",
+          "path",
+          "section",
+          "importance",
+          "text"
+        ]
+      });
+      const hits = Array.isArray(result?.results) ? result.results : [];
+      knowledgeHits = hits.map((hit) => ({
+        chunk_id: hit.chunk_id ?? hit.chunkId ?? "",
+        doc_id: hit.doc_id ?? hit.docId ?? "",
+        source_type: hit.source_type ?? hit.sourceType ?? "",
+        sprint: Number(hit.sprint ?? 0),
+        feature_area: hit.feature_area ?? hit.featureArea ?? "",
+        path: hit.path ?? "",
+        section: hit.section ?? "",
+        importance: Number(hit.importance ?? 0),
+        score: Number(hit.score ?? hit.distance ?? hit.similarity ?? 0),
+        text: hit.text ?? ""
+      })).filter((hit) => hit.score >= 0.4).sort((a, b) => b.score - a.score).slice(0, 6);
+    } catch (_err) {
+      knowledgeHits = [];
+    }
+    const contextBlock = knowledgeHits.length ? knowledgeHits.map(
+      (hit, idx) => `[${idx + 1}] sprint=${hit.sprint} area=${hit.feature_area} source=${hit.source_type} score=${hit.score}
+${hit.text}`
+    ).join("\n\n---\n\n") : "";
+    const askPayload = {
+      ...payload,
+      prompt: [
+        "You are answering using project knowledge.",
+        contextBlock ? `PROJECT CONTEXT:
+${contextBlock}` : "",
+        `USER QUESTION:
+${userQuery}`
+      ].filter(Boolean).join("\n\n"),
+      knowledge: knowledgeHits
+    };
+    return await askLocalLlm(askPayload);
   });
   ipcMain.handle("browser:send", async (e, payload) => {
     return await browserBridge.sendPrompt(payload);

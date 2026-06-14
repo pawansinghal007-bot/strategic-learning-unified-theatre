@@ -1,4 +1,4 @@
-const __importMetaUrl = require('url').pathToFileURL(__filename).href;
+const __importMetaUrl = typeof __filename === 'string' ? require('url').pathToFileURL(__filename).href : globalThis.location?.href;
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
@@ -254,6 +254,66 @@ contextBridge.exposeInMainWorld("workspaceQuota", {
   evaluate: (workspaceId, now) => ipcRenderer.invoke("workspaceQuota:evaluate", workspaceId, now),
   clearUsage: (workspaceId) => ipcRenderer.invoke("workspaceQuota:clearUsage", workspaceId),
   rollup: (now) => ipcRenderer.invoke("workspaceQuota:rollup", now),
+  latestNotification: (workspaceId) => ipcRenderer.invoke("workspaceQuota:latestNotification", workspaceId),
   notifications: (workspaceId) => ipcRenderer.invoke("workspaceQuota:notifications", workspaceId),
-  resetDaily: (now) => ipcRenderer.invoke("workspaceQuota:resetDaily", now)
+  resetDaily: (now) => ipcRenderer.invoke("workspaceQuota:resetDaily", now),
+  onNotification(handler) {
+    if (typeof handler !== "function") return () => {
+    };
+    const wrapped = (_event, payload) => handler(payload);
+    ipcRenderer.on("workspaceQuota:notification", wrapped);
+    return () => ipcRenderer.removeListener("workspaceQuota:notification", wrapped);
+  }
+});
+contextBridge.exposeInMainWorld("workspaceKnowledge", {
+  ingest: (baseDir, featureArea) => ipcRenderer.invoke("knowledge:ingest", baseDir, featureArea),
+  search: (queryText, options) => ipcRenderer.invoke("knowledge:search", queryText, options),
+  buildPromptContext: (queryText, options) => ipcRenderer.invoke("knowledge:search", queryText, options)
+});
+contextBridge.exposeInMainWorld("secrets", {
+  scan: (options) => ipcRenderer.invoke("secrets:scan", options)
+});
+contextBridge.exposeInMainWorld("workspaceRisks", {
+  scanDependency: (basePath, options) => ipcRenderer.invoke("risks:scan:dependency", basePath, options),
+  scanImage: (imageRef, options) => ipcRenderer.invoke("risks:scan:image", imageRef, options)
+});
+contextBridge.exposeInMainWorld("workspaceSecurity", {
+  summarize: (payload) => ipcRenderer.invoke("security-overview:summarize", payload),
+  saveBaseline: (baselinePath, fingerprints) => ipcRenderer.invoke(
+    "security-overview:save-baseline",
+    baselinePath,
+    fingerprints
+  ),
+  loadSuppressions: (suppressionsPath) => ipcRenderer.invoke("security-overview:load-suppressions", suppressionsPath),
+  saveSuppressions: (suppressionsPath, suppressions) => ipcRenderer.invoke(
+    "security-overview:save-suppressions",
+    suppressionsPath,
+    suppressions
+  ),
+  loadTriage: (triagePath) => ipcRenderer.invoke("security-overview:load-triage", triagePath),
+  setTriage: (triagePath, fingerprint, status, reason, updatedBy) => ipcRenderer.invoke(
+    "security-overview:set-triage",
+    triagePath,
+    fingerprint,
+    status,
+    reason,
+    updatedBy
+  ),
+  setTriageBulk: (triagePath, fingerprints, status, reason, updatedBy) => ipcRenderer.invoke(
+    "security-overview:set-triage-bulk",
+    triagePath,
+    fingerprints,
+    status,
+    reason,
+    updatedBy
+  ),
+  compareBaseline: (currentSnapshot, baselinePath) => ipcRenderer.invoke(
+    "security-overview:compare-baseline",
+    currentSnapshot,
+    baselinePath
+  ),
+  explainIntroduced: (payload) => ipcRenderer.invoke("security-overview:explain-introduced", payload),
+  getDriftClassification: (payload) => ipcRenderer.invoke("security-overview:get-drift-classification", payload),
+  autoScan: (payload) => ipcRenderer.invoke("security-overview:auto-scan", payload),
+  listDriftHistory: (historyPath) => ipcRenderer.invoke("security-overview:list-drift-history", historyPath)
 });

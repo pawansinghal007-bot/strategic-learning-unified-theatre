@@ -4,7 +4,9 @@ const shared = {
   external: ["electron","electron-updater","electron-store","fsevents","better-sqlite3","keytar","onnxruntime-node","playwright-core","chromium-bidi"],
   loader: { '.node': 'file' },
   define: { 'import.meta.url': '__importMetaUrl' },
-  banner: { js: "const __importMetaUrl = require('url').pathToFileURL(__filename).href;" },
+  banner: {
+    js: "const __importMetaUrl = typeof __filename === 'string' ? require('url').pathToFileURL(__filename).href : globalThis.location?.href;",
+  },
   logLevel: 'info',
 };
 await Promise.all([

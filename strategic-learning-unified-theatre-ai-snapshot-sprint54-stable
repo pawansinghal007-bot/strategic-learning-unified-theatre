@@ -1,0 +1,109 @@
+  SPRINT 54 COMPLETE: AUTO-SCAN TRIGGER AND DRIFT-HISTORY STORAGE
+
+  SPRINT SUMMARY:
+    T1  two new backend modules    drift-history.ts — loadDriftHistory, saveDriftHistory,
+                                   appendDriftHistory; auto-scan.ts — runSecurityAutoScan
+                                   orchestrator with lazy imports; index.ts extended
+    T2  IPC + preload + types      security-overview:auto-scan channel with repoPath guard;
+                                   security-overview:list-drift-history channel;
+                                   autoScan (11th) and listDriftHistory (12th) preload
+                                   methods; DriftHistoryEntry, autoScan, listDriftHistory
+                                   typed in types.d.ts
+    T3  tests + closure            sprint54-drift-history.test.js — 7 unit tests;
+                                   sprint54-smoke.test.js — surface regression suite
+
+  STATUS:
+    vitest pass — 120+ files / 1231+ tests
+    typecheck clean
+    sonar clean
+    tagged sprint-54-complete
+
+  DELIVERABLES:
+    [x] DriftClassification type and DriftHistoryEntry interface
+    [x] loadDriftHistory() — empty for null/missing/invalid
+    [x] saveDriftHistory() — overwrites, returns count
+    [x] appendDriftHistory() — accumulates entries
+    [x] AutoScanOptions and AutoScanResult interfaces
+    [x] runSecurityAutoScan() — lazy imports, enriched findings, drift comparison,
+        drift history append, all steps in outer try/catch
+    [x] classifyDriftSeverity called as string-returning function (not object)
+    [x] triage functions imported from triage.js directly
+    [x] index.ts exports ./drift-history and ./auto-scan
+    [x] security-overview:auto-scan IPC channel (repoPath guard, outer try/catch)
+    [x] security-overview:list-drift-history IPC channel (empty path guard, outer try/catch)
+    [x] preload autoScan method (11th workspaceSecurity method)
+    [x] preload listDriftHistory method (12th workspaceSecurity method)
+    [x] Sprint 44-53 preload methods untouched (10 methods preserved)
+    [x] workspaceRisks / secrets / providerTelemetry surfaces untouched
+    [x] types.d.ts DriftHistoryEntry declared
+    [x] types.d.ts autoScan and listDriftHistory typed
+    [x] Sprint 49 type declarations preserved
+    [x] interface Window appears exactly once
+    [x] sprint54-drift-history.test.js 7 unit tests passing
+    [x] sprint54-smoke.test.js surface regression passing
+    [x] Architecture sync completed
+
+  ARCHITECTURE CHANGES THIS SPRINT:
+  New files:
+    - src/security/security-overview/drift-history.ts
+    - src/security/security-overview/auto-scan.ts
+    - tests/sprint54-drift-history.test.js
+    - tests/sprint54-smoke.test.js
+  Extended:
+    - src/security/security-overview/index.ts
+    - electron-ui/ipc/security-overview-handlers.cjs
+    - electron-ui/preload.cjs
+    - src/ui/types.d.ts
+  Unchanged:
+    - src/security/security-overview/drift.ts
+    - src/security/security-overview/triage.ts
+    - src/security/security-overview/ai-explain.ts
+    - src/security/security-overview/baseline.ts
+    - src/security/security-overview/suppressions.ts
+    - src/security/security-overview/normalizer.ts
+    - src/security/security-overview/schema.ts
+    - src/ui/provider-dashboard.html
+    - electron-ui/main.cjs
+    - src/audit/audit-log.ts
+    - electron-ui/ipc/audit-handlers.cjs
+    - electron-ui/ipc/secrets-handlers.cjs
+    - electron-ui/ipc/risks-handlers.cjs
+
+  CUMULATIVE SECURITY IPC SURFACE (sprints 44-54):
+    secrets:scan
+    risks:scan:dependency / risks:scan:image
+    security-overview:summarize
+    security-overview:save-baseline
+    security-overview:load-suppressions
+    security-overview:save-suppressions
+    security-overview:load-triage
+    security-overview:set-triage
+    security-overview:set-triage-bulk              ← sprint 52
+    security-overview:compare-baseline             ← sprint 48
+    security-overview:explain-introduced           ← sprint 49
+    security-overview:get-drift-classification     ← sprint 50
+    security-overview:auto-scan                    ← sprint 54
+    security-overview:list-drift-history           ← sprint 54
+
+  CUMULATIVE workspaceSecurity PRELOAD SURFACE (sprints 46-54):
+    summarize
+    saveBaseline
+    loadSuppressions
+    saveSuppressions
+    loadTriage
+    setTriage
+    setTriageBulk           ← sprint 52
+    compareBaseline         ← sprint 48
+    explainIntroduced       ← sprint 49
+    getDriftClassification  ← sprint 50
+    autoScan                ← sprint 54
+    listDriftHistory        ← sprint 54
+
+  NEXT:
+    Sprint 55 candidates:
+    - Tray menu wiring for auto-scan trigger (main.cjs + preload event bridge)
+    - Compliance benchmark mapping (OWASP Top 10 / CIS)
+    - Dashboard drift history panel (list and display DriftHistoryEntry records)
+    - Auto-compare on app start if baseline file exists
+
+  ARCHITECTURE SYNC STATUS: [UPDATED]

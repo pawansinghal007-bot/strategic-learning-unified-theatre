@@ -1,13 +1,29 @@
 === GIT STATUS ===
  M CURRENT_ACTIVE_SNAPSHOT.md
+ M dumps/project-status-dump.txt
+ M index_repo.py
  M strategic-learning-unified-theatre-master-instructions.md
-?? dumps/
-?? strategic-learning-unified-theatre-ai-snapshot-sprint48-stable
+ M tests/sprint54-drift-history.test.js
+ M tests/sprint54-smoke.test.js
+?? strategic-learning-unified-theatre-ai-snapshot-sprint54-stable
 
 === GIT BRANCH ===
 main
 
 === RECENT COMMITS ===
+e70cba86 feat(sprint-54): auto-scan trigger, drift-history storage
+9bb8d3b6 feat(sprint-54-t1-t2): drift-history backend, auto-scan orchestrator, IPC, preload, types
+4be1d228 feat(sprint-53): cross-surface regression hardening — tests only
+fd73a7e1 feat(sprint-52): bulk triage actions — applyBulkTriage, set-triage-bulk IPC, preload, tests
+92ea4e7e feat(sprint-52): bulk triage actions — applyBulkTriage, set-triage-bulk IPC, preload, tests
+260178eb feat(sprint-52-t1-t2): applyBulkTriage backend, set-triage-bulk IPC, preload, types
+10b0b003 feat(sprint-51): security overview stabilization, timeline reconciliation, regression tests
+2cab1b9e feat(sprint-50): security workflow hardening and dashboard unification
+f100fcdb feat(sprint-50-t2): drift-classification IPC, preload method, payload guards, triage sanitization
+a4c0bc10 feat(sprint-50-t1): schema fields, triage normalizer, drift classifier
+0e07922b feat(sprint-49): AI-assisted finding explanation
+6ec6ddf2 feat(sprint-49-t2): explain-introduced IPC, preload method, types
+24ed9b7e feat(sprint-49-t1): AI explain backend module, index extension
 365013b9 feat(sprint-48): baseline drift and comparison view
 5d20c314 feat(sprint-48-t3): preload compareBaseline, types, dashboard drift panel, docs
 54901667 feat(sprint-48-t1-t2): drift module, schema extensions, compare-baseline IPC
@@ -15,19 +31,6 @@ d1ebf577 feat(sprint-47): interactive triage workflow and finding state persiste
 62b19d76 feat(sprint-47-t2): preload triage methods, types, dashboard triage controls
 c0e68aaa feat(sprint-47-t1): triage backend, schema extension, handler triage channels
 daea1af7 feat(sprint-46): unified security overview, baseline & suppression management
-63e98895 feat(sprint-46-t3): preload workspaceSecurity, types, dashboard overview panel, docs
-3ef154cd feat(sprint-46-t1-t2): security overview backend, IPC handler, main.cjs wiring
-d5c62bb1 feat(sprint-45): dependency & image risk scanning (Dependency-Check + Trivy)
-798e5a69 feat(sprint-45-t2): risks IPC handler, main wiring, preload workspaceRisks, types
-b91c00d2 feat(sprint-45-t1): dependency & image risk scanning backend schema, parsers, runners
-24572cfc feat(sprint-44): secrets scanning with Gitleaks, knowledge filters & scores
-0ea16098 feat(sprint-44-t2): secrets IPC, main wiring, preload, types, knowledge filter
-fb5202ce feat(sprint-44-t1): secrets scanning schema, baseline, suppressions, gitleaks runner
-cabd96e9 feat(sprint-43): RAG ask-flow, prompt context assembly — sprint 43 complete
-fe7f852b feat(sprint-43-t2): RAG hook in llm:ask, buildPromptContext preload, types
-3ebcf2ce feat(sprint-43-t1): buildKnowledgePromptBlock, hardened knowledge handler
-c3050aaf feat(sprint-42): knowledge layer RAG ingestion — sprint 42 complete
-65ce5478 feat(sprint-42-t5): preload knowledge namespace, types, dashboard panel, docs
 
 === TRACKED FILES ===
 .continue/agents/new-config.yaml
@@ -66,6 +69,11 @@ PROJECT_ARCHITECTURE_BASELINE-2026-06-12T07-27-23.md
 PROJECT_ARCHITECTURE_BASELINE-2026-06-12T07-58-46.md
 PROJECT_ARCHITECTURE_BASELINE-2026-06-12T19-10-05.md
 PROJECT_ARCHITECTURE_BASELINE-2026-06-12T19-32-18.md
+PROJECT_ARCHITECTURE_BASELINE-2026-06-13T10-16-24.md
+PROJECT_ARCHITECTURE_BASELINE-2026-06-13T15-47-41.md
+PROJECT_ARCHITECTURE_BASELINE-2026-06-13T16-07-44.md
+PROJECT_ARCHITECTURE_BASELINE-2026-06-13T18-05-39.md
+PROJECT_ARCHITECTURE_BASELINE-2026-06-13T19-22-30.md
 PROJECT_ARCHITECTURE_BASELINE-20260604-091302.md
 PROJECT_ARCHITECTURE_BASELINE-20260605-071822.md
 PROJECT_ARCHITECTURE_BASELINE.md
@@ -253,6 +261,8 @@ docs/sprint-48-scope.md
 docs/technical/SPRINT-14-S1-ARCHITECTURE.md
 docs/technical/SPRINT-14-S4-INTEGRATION.md
 docs/test-protection-dashboard.md
+dumps/project-status-dump.txt
+dumps/tests/sprint50-t1.test.js
 e2e-design/01a-app-and-users.md
 e2e-design/01b-technical-architecture.md
 e2e-design/02a-sprint-timeline.md
@@ -330,6 +340,7 @@ key-files.txt
 lessons
 load-env.ps1
 main
+master_timeline_sprints_1_54.md
 package-lock.json
 package.json
 playwright-config.txt
@@ -456,6 +467,8 @@ sprint3_S3358.csv
 sprint3_S3358.txt
 sprint3_S7778.csv
 sprint3_S7778.txt
+sprint52-input-files.tar/sprint52-input-files.tar
+sprint52-report.md
 sprint5_S6582.csv
 sprint5_S6853.csv
 sprint5_S7785.csv
@@ -610,7 +623,10 @@ src/security/secrets/gitleaks-runner.ts
 src/security/secrets/index.ts
 src/security/secrets/schema.ts
 src/security/secrets/suppressions.ts
+src/security/security-overview/ai-explain.ts
+src/security/security-overview/auto-scan.ts
 src/security/security-overview/baseline.ts
+src/security/security-overview/drift-history.ts
 src/security/security-overview/drift.ts
 src/security/security-overview/index.ts
 src/security/security-overview/normalizer.ts
@@ -765,9 +781,24 @@ strategic-learning-unified-theatre-ai-snapshot-sprint46-t3
 strategic-learning-unified-theatre-ai-snapshot-sprint47-stable
 strategic-learning-unified-theatre-ai-snapshot-sprint47-t1
 strategic-learning-unified-theatre-ai-snapshot-sprint47-t2
+strategic-learning-unified-theatre-ai-snapshot-sprint48-stable
 strategic-learning-unified-theatre-ai-snapshot-sprint48-t1
 strategic-learning-unified-theatre-ai-snapshot-sprint48-t2
 strategic-learning-unified-theatre-ai-snapshot-sprint48-t3
+strategic-learning-unified-theatre-ai-snapshot-sprint49-stable
+strategic-learning-unified-theatre-ai-snapshot-sprint49-t1
+strategic-learning-unified-theatre-ai-snapshot-sprint49-t2
+strategic-learning-unified-theatre-ai-snapshot-sprint50-stable
+strategic-learning-unified-theatre-ai-snapshot-sprint50-t1
+strategic-learning-unified-theatre-ai-snapshot-sprint50-t2
+strategic-learning-unified-theatre-ai-snapshot-sprint51-stable
+strategic-learning-unified-theatre-ai-snapshot-sprint51-t1
+strategic-learning-unified-theatre-ai-snapshot-sprint52-stable
+strategic-learning-unified-theatre-ai-snapshot-sprint52-t1
+strategic-learning-unified-theatre-ai-snapshot-sprint52-t2
+strategic-learning-unified-theatre-ai-snapshot-sprint53-stable
+strategic-learning-unified-theatre-ai-snapshot-sprint54-t1
+strategic-learning-unified-theatre-ai-snapshot-sprint54-t2
 strategic-learning-unified-theatre-ai-snapshot-v1.3-stable
 strategic-learning-unified-theatre-ai-snapshot-v1.3b-active
 strategic-learning-unified-theatre-ai-snapshot-v1.4-stable
@@ -785,6 +816,7 @@ strategic-learning-unified-theatre-ai-snapshot-v2.2-stable
 strategic-learning-unified-theatre-ai-snapshot-v2.3-stable
 strategic-learning-unified-theatre-ai-snapshot-v2.4-stable
 strategic-learning-unified-theatre-master-instructions.md
+strategic-learning-unified-theatre-master-instructions.mdclear
 tailwind.config.js
 test-bc2-diagnostics.js
 test-bc2-integration.js
@@ -886,6 +918,7 @@ tests/run-tests-smoke.test.js
 tests/scorer.test.js
 tests/secret-store.test.js
 tests/secrets-runner.test.js
+tests/security-overview-ai-explain.test.js
 tests/security-overview-drift.test.js
 tests/security-overview.test.js
 tests/session-supervisor.test.js
@@ -922,6 +955,18 @@ tests/sprint45-smoke.test.js
 tests/sprint46-smoke.test.js
 tests/sprint47-smoke.test.js
 tests/sprint48-smoke.test.js
+tests/sprint49-smoke.test.js
+tests/sprint50-smoke.test.js
+tests/sprint50-t1.test.js
+tests/sprint50-t2.test.js
+tests/sprint51-security-overview.test.js
+tests/sprint51-smoke.test.js
+tests/sprint52-bulk-triage.test.js
+tests/sprint52-smoke.test.js
+tests/sprint53-cross-surface.test.js
+tests/sprint53-smoke.test.js
+tests/sprint54-drift-history.test.js
+tests/sprint54-smoke.test.js
 tests/startup-bootstrap.test.js
 tests/startup-plugins.test.js
 tests/storage/collector.test.js
@@ -951,7 +996,56 @@ vscode-extension/extension.js
 vscode-extension/package.json
 
 === MASTER TIMELINE ===
-NOT FOUND: master_timeline_sprints_1_54.md
+FILE: ./master_timeline_sprints_1_54.md
+# Master Timeline: Sprints 1–54
+
++## Completed (Sprints 1–51)
+
+- Sprint 50 (Security workflow hardening and dashboard unification) is complete.
+- Sprint 51 (Security overview stabilization and timeline reconciliation) is complete.
+- Sprint 52 (Bulk triage actions / auto-scan trigger) is complete.
+- Sprint 53 (Cross-surface regression hardening) is complete.
+- Sprint 54 (Final stabilization and release readiness) is complete.
+
+| Sprint | Focus                                                          | Status   |
+| ------ | -------------------------------------------------------------- | -------- |
+| 1–17   | Core platform, routing, analytics, audit, governance, policies | Complete |
+| 18–29  | Provider telemetry, workspace analytics, reporting             | Complete |
+| 30–35  | Workspace control plane, unified view, SVG charts              | Complete |
+| 36–40  | Audit hardening, approvals governance, quota enforcement       | Complete |
+| 41     | Quota notifications, threshold alerts, daily reset scheduler   | Complete |
+| 42     | Knowledge layer — RAG ingestion (Milvus + BGE-M3)              | Complete |
+| 43     | Knowledge search + LLM integration                             | Complete |
+| 44     | Secrets scanning (Gitleaks)                                    | Complete |
+| 45     | Dependency & image risk scanning (Dependency-Check + Trivy)    | Complete |
+| 46     | Unified security overview, baseline & suppression management   | Complete |
+| 47     | Interactive triage workflow and finding state persistence      | Complete |
+| 48     | Baseline drift and comparison view                             | Complete |
+| 49     | AI-assisted finding explanation                                | Complete |
+| 50     | Security workflow hardening and dashboard unification          | Complete |
+| 51     | Security overview stabilization and timeline reconciliation    | Complete |
+| 52     | Bulk triage actions / auto-scan trigger                        | Complete |
+| 53     | Cross-surface regression hardening                             | Complete |
+
+## Active
+
+| Sprint | Focus                                     | Status |
+| ------ | ----------------------------------------- | ------ |
+| 54     | Final stabilization and release readiness | Active |
+
+## Remaining
+
+| Sprint | Focus | Status |
+| ------ | ----- | ------ |
+
+## Standing Architecture Rules (all future sprints)
+
+- Never replace preload.cjs entirely — append/extend only
+- Never add a second interface Window in types.d.ts
+- Never reference dist/ paths in IPC handlers — always src/
+- Tests are plain JavaScript (.test.js) — no TypeScript syntax
+- Dashboard replacements must preserve all prior compatibility strings
+- All IPC handlers use lazy require() inside handler functions
 
 === MASTER TIMELINE 1-60 ===
 NOT FOUND: master_timeline_sprints_1_60.md
@@ -1569,6 +1663,56 @@ declare global {
     resolved: Array<Record<string, unknown>>;
   }
 
+  interface FindingExplanationItem {
+    fingerprint: string | null;
+    title: string;
+    severity: string;
+    file: string | null;
+    explanation: string;
+    recommendation: string;
+  }
+
+  interface ExplainIntroducedFindingsResult {
+    ok: boolean;
+    workspaceId: string | null;
+    analyzedCount: number;
+    knowledgeUsed: boolean;
+    prompt: string;
+    answer: string;
+    items: FindingExplanationItem[];
+    knowledge?: Array<{
+      chunkid?: string;
+      docid?: string;
+      sourcetype?: string;
+      sprint?: number;
+      featurearea?: string;
+      path?: string;
+      section?: string;
+      importance?: number;
+      score?: number;
+      text?: string;
+    }>;
+    error?: string;
+  }
+
+  interface DriftHistoryEntry {
+    id: string;
+    createdAt: number;
+    workspaceId?: string | null;
+    baselinePath?: string | null;
+    snapshotPath?: string | null;
+    historyPath?: string | null;
+    classification: "clean" | "regressed" | "improved" | "mixed" | "unknown";
+    counts?: {
+      current?: number;
+      baseline?: number;
+      introduced?: number;
+      persistent?: number;
+      resolved?: number;
+    };
+    note?: string;
+  }
+
   interface RiskFinding {
     id: string;
     scanner: "dependency-check" | "trivy" | "unknown";
@@ -1669,81 +1813,31 @@ declare global {
         reason?: string,
         updatedBy?: string,
       ) => Promise<{ ok: true; filePath: string; count: number }>;
+      setTriageBulk: (
+        triagePath: string,
+        fingerprints: string[],
+        status: SecurityTriageStatus,
+        reason?: string,
+        updatedBy?: string,
+      ) => Promise<{ ok: true; filePath: string; count: number }>;
       compareBaseline: (
         currentSnapshot: any,
         baselinePath?: string | null,
       ) => Promise<SecurityOverviewDriftResult>;
-    };
-    secrets: {
-      scan: (options: {
-        repoPath: string;
-        baselinePath?: string | null;
-        suppressionsPath?: string | null;
-        configPath?: string | null;
-        redact?: boolean;
-      }) => Promise<{
-        ok: true;
-        engine: "gitleaks";
-        command: string[];
-        summary: {
-          scannedPath: string;
-          findings: number;
-          unsuppressed: number;
-          suppressed: number;
-          baselineMatched: number;
-          bySeverity: {
-            low: number;
-            medium: number;
-            high: number;
-            critical: number;
-          };
-          byRule: Record<string, number>;
-          completedAt: number;
+      explainIntroduced: (payload: {
+        drift: {
+          introduced?: unknown[];
+          persistent?: unknown[];
+          resolved?: unknown[];
         };
-        findings: Array<{
-          id: string;
-          ruleId: string;
-          description: string;
-          severity: "low" | "medium" | "high" | "critical";
-          category:
-            | "credential"
-            | "token"
-            | "private_key"
-            | "generic"
-            | "unknown";
-          file: string;
-          startLine: number;
-          endLine: number;
-          startColumn: number;
-          endColumn: number;
-          commit?: string | null;
-          author?: string | null;
-          email?: string | null;
-          date?: string | null;
-          fingerprint: string;
-          secretPreview: string | null;
-          match: string | null;
-          tags: string[];
-          baselineMatched: boolean;
-          suppressed: boolean;
-          suppressionReason: string | null;
-        }>;
-        raw?: unknown;
-      }>;
-    };
-    providerTelemetry: {
-      getStatus: () => Promise<any[]>;
-      getUsage: () => Promise<any[]>;
-      getRoutingHistory: (limit?: number) => Promise<any[]>;
-      resetHealth: (provider?: string) => Promise<{ ok: true }>;
-      resetUsage: (provider?: string) => Promise<{ ok: true }>;
-      resetAll: (provider?: string) => Promise<{ ok: true }>;
-      resetRoutingHistory: () => Promise<{ ok: true }>;
-    };
-    providerPolicy: {
-      get: () => Promise<any>;
-      listPresets: () => Promise<any[]>;
-      applyPreset: (name: string) => Promise<any>;
+        workspaceId?: string;
+        maxFindings?: number;
+        model?: string;
+        includeKnowledge?: boolean;
+        knowledgeQuery?: string;
+        minScore?: number;
+      }) => Promise<ExplainIntroducedFindingsResult>;
+      getDriftClassification(payload: {
 
 === PROVIDER DASHBOARD ===
 FILE: ./src/ui/provider-dashboard.html
@@ -2183,6 +2277,10 @@ function registerSecurityOverviewHandlers() {
         upsertSecurityTriageEntry,
       } = require("../../src/security/security-overview/triage");
       const entries = loadSecurityTriage(triagePath || "");
+      const {
+        normalizeTriageStatus,
+      } = require("../../src/security/security-overview/index.js");
+      status = normalizeTriageStatus(status);
       const next = upsertSecurityTriageEntry(entries, {
         fingerprint: String(fingerprint),
         status,
@@ -2195,8 +2293,50 @@ function registerSecurityOverviewHandlers() {
   );
 
   ipcMain.handle(
+    "security-overview:set-triage-bulk",
+    async (_event, triagePath, fingerprints, status, reason, updatedBy) => {
+      try {
+        const {
+          loadSecurityTriage,
+          saveSecurityTriage,
+          applyBulkTriage,
+        } = require("../../src/security/security-overview/triage.js");
+        const {
+          normalizeTriageStatus,
+        } = require("../../src/security/security-overview/index.js");
+
+        const entries = loadSecurityTriage(triagePath ?? "");
+        const normalizedStatus = normalizeTriageStatus(status);
+        const safeFingerprints = Array.isArray(fingerprints)
+          ? fingerprints
+          : [];
+        const now = Date.now();
+
+        const next = applyBulkTriage(
+          entries,
+          safeFingerprints,
+          normalizedStatus,
+          reason ?? undefined,
+          updatedBy ?? undefined,
+          now,
+        );
+
+        return saveSecurityTriage(triagePath, next);
+      } catch (err) {
+        return { ok: false, error: String(err?.message ?? err) };
+      }
+    },
+  );
+
+  ipcMain.handle(
     "security-overview:compare-baseline",
     async (_event, currentSnapshot, baselinePath) => {
+      if (currentSnapshot == null || typeof currentSnapshot !== "object") {
+        return {
+          ok: false,
+          error: "compare-baseline: currentSnapshot missing or invalid",
+        };
+      }
       const {
         loadSecurityBaselineSnapshot,
         compareSecurityOverviewWithBaseline,
@@ -2210,9 +2350,80 @@ function registerSecurityOverviewHandlers() {
       );
     },
   );
-}
 
-module.exports = { registerSecurityOverviewHandlers };
+  ipcMain.handle(
+    "security-overview:explain-introduced",
+    async (_event, payload) => {
+      try {
+        const {
+          explainIntroducedFindings,
+        } = require("../../src/security/security-overview/index.js");
+        const input = payload && typeof payload === "object" ? payload : {};
+
+        return await explainIntroducedFindings({
+          drift:
+            input.drift && typeof input.drift === "object" ? input.drift : {},
+          workspaceId:
+            typeof input.workspaceId === "string"
+              ? input.workspaceId
+              : undefined,
+          maxFindings:
+            typeof input.maxFindings === "number"
+              ? input.maxFindings
+              : undefined,
+          model: typeof input.model === "string" ? input.model : undefined,
+          includeKnowledge: input.includeKnowledge !== false,
+          knowledgeQuery:
+            typeof input.knowledgeQuery === "string"
+              ? input.knowledgeQuery
+              : undefined,
+          minScore:
+            typeof input.minScore === "number" ? input.minScore : undefined,
+        });
+      } catch (err) {
+        return {
+          ok: false,
+          workspaceId: null,
+          analyzedCount: 0,
+          knowledgeUsed: false,
+          prompt: "",
+          answer: "",
+          items: [],
+          error: err?.message || String(err),
+        };
+      }
+    },
+  );
+
+  ipcMain.handle(
+    "security-overview:get-drift-classification",
+    async (_event, payload) => {
+      try {
+        if (!payload || typeof payload !== "object") {
+          return {
+            ok: false,
+            error: "get-drift-classification: payload missing",
+          };
+        }
+        const {
+          classifyDriftSeverity,
+        } = require("../../src/security/security-overview/index.js");
+        const introduced = Array.isArray(payload.introduced)
+          ? payload.introduced
+          : [];
+        const resolved = Array.isArray(payload.resolved)
+          ? payload.resolved
+          : [];
+        const persistent = Array.isArray(payload.persistent)
+          ? payload.persistent
+          : [];
+        const classification = classifyDriftSeverity({
+          introduced,
+          resolved,
+          persistent,
+        });
+        return { ok: true, classification };
+      } catch (err) {
 
 === KNOWLEDGE HANDLERS ===
 FILE: ./electron-ui/ipc/knowledge-handlers.cjs
@@ -2364,7 +2575,7 @@ security-overview:compare-baseline
 
 === ACTIVE SNAPSHOT ===
 FILE: ./CURRENT_ACTIVE_SNAPSHOT.md
-strategic-learning-unified-theatre-ai-snapshot-sprint48-stable
+strategic-learning-unified-theatre-ai-snapshot-sprint54-stable
 
 === ALL SMOKE TEST FILES ===
 --- FILE: ./tests/run-tests-smoke.test.js ---
@@ -7661,6 +7872,921 @@ describe("Sprint 48 smoke tests — file surface", () => {
   });
 });
 
+--- FILE: ./tests/sprint49-smoke.test.js ---
+import { describe, it, expect } from "vitest";
+import fs from "node:fs";
+import path from "node:path";
+
+const root = process.cwd();
+
+function read(rel) {
+  return fs.readFileSync(path.join(root, rel), "utf8");
+}
+
+describe("Sprint 49 smoke tests — file surface", () => {
+  it("ai-explain.ts exists in security-overview", () => {
+    expect(
+      fs.existsSync(
+        path.join(root, "src/security/security-overview/ai-explain.ts"),
+      ),
+    ).toBe(true);
+  });
+
+  it("index.ts exports ai-explain", () => {
+    const text = read("src/security/security-overview/index.ts");
+    expect(text).toContain("./ai-explain");
+  });
+
+  it("index.ts still exports drift and triage — no regression", () => {
+    const text = read("src/security/security-overview/index.ts");
+    expect(text).toContain("./drift");
+    expect(text).toContain("./triage");
+  });
+
+  it("ai-explain.ts exports all expected symbols", () => {
+    const text = read("src/security/security-overview/ai-explain.ts");
+    expect(text).toContain("buildIntroducedFindingsPrompt");
+    expect(text).toContain("parseExplainIntroducedFindingsAnswer");
+    expect(text).toContain("explainIntroducedFindings");
+    expect(text).toContain("FindingExplanationItem");
+    expect(text).toContain("ExplainIntroducedFindingsResult");
+  });
+
+  it("ai-explain.ts has graceful degradation when window.llm unavailable", () => {
+    const text = read("src/security/security-overview/ai-explain.ts");
+    expect(text).toContain("window.llm.ask is not available");
+  });
+
+  it("security-overview handler registers explain-introduced channel", () => {
+    const text = read("electron-ui/ipc/security-overview-handlers.cjs");
+    expect(text).toContain('"security-overview:explain-introduced"');
+    expect(text).toContain("explainIntroducedFindings");
+  });
+
+  it("handler wraps explain call in try/catch", () => {
+    const text = read("electron-ui/ipc/security-overview-handlers.cjs");
+    const explainBlock = text.slice(text.indexOf("explain-introduced"));
+    expect(explainBlock).toContain("try");
+    expect(explainBlock).toContain("catch");
+  });
+
+  it("handler still registers all Sprint 46-48 channels — no regression", () => {
+    const text = read("electron-ui/ipc/security-overview-handlers.cjs");
+    expect(text).toContain('"security-overview:summarize"');
+    expect(text).toContain('"security-overview:save-baseline"');
+    expect(text).toContain('"security-overview:load-triage"');
+    expect(text).toContain('"security-overview:set-triage"');
+    expect(text).toContain('"security-overview:compare-baseline"');
+  });
+
+  it("preload exposes explainIntroduced on workspaceSecurity", () => {
+    const text = read("electron-ui/preload.cjs");
+    expect(text).toContain("explainIntroduced");
+    expect(text).toContain('"security-overview:explain-introduced"');
+  });
+
+  it("preload preserves Sprint 46-48 workspaceSecurity methods", () => {
+    const text = read("electron-ui/preload.cjs");
+    expect(text).toContain('"security-overview:summarize"');
+    expect(text).toContain('"security-overview:compare-baseline"');
+    expect(text).toContain('"security-overview:load-triage"');
+  });
+
+  it("types.d.ts declares FindingExplanationItem globally", () => {
+    const text = read("src/ui/types.d.ts");
+    expect(text).toContain("interface FindingExplanationItem");
+    expect(text).toContain("explanation: string");
+    expect(text).toContain("recommendation: string");
+  });
+
+  it("types.d.ts declares ExplainIntroducedFindingsResult globally", () => {
+    const text = read("src/ui/types.d.ts");
+    expect(text).toContain("interface ExplainIntroducedFindingsResult");
+    expect(text).toContain("analyzedCount: number");
+    expect(text).toContain("knowledgeUsed: boolean");
+    expect(text).toContain("items: FindingExplanationItem[]");
+  });
+
+  it("types.d.ts workspaceSecurity has explainIntroduced", () => {
+    const text = read("src/ui/types.d.ts");
+    expect(text).toContain("explainIntroduced:");
+    expect(text).toContain("ExplainIntroducedFindingsResult");
+  });
+
+  it("dashboard has AI Finding Explanation panel", () => {
+    const text = read("src/ui/provider-dashboard.html");
+    expect(text).toContain("AI Finding Explanation");
+    expect(text).toContain("security-ai-panel");
+    expect(text).toContain("security-ai-explain-btn");
+    expect(text).toContain("security-ai-output");
+    expect(text).toContain("security-ai-body");
+  });
+
+  it("dashboard wires explainIntroduced and uses latestSecurityDriftResult", () => {
+    const text = read("src/ui/provider-dashboard.html");
+    expect(text).toContain("window.workspaceSecurity.explainIntroduced");
+    expect(text).toContain("latestSecurityDriftResult");
+  });
+
+  it("dashboard preserves Sprint 48 Security Drift panel", () => {
+    const text = read("src/ui/provider-dashboard.html");
+    expect(text).toContain("Security Drift");
+    expect(text).toContain("window.workspaceSecurity.compareBaseline");
+  });
+
+  it("dashboard preserves Sprint 47 Security Overview triage controls", () => {
+    const text = read("src/ui/provider-dashboard.html");
+    expect(text).toContain("security-set-triage");
+    expect(text).toContain("security-load-triage");
+  });
+
+  it("dashboard preserves Sprint 44-46 scanner panels", () => {
+    const text = read("src/ui/provider-dashboard.html");
+    expect(text).toContain("Secrets Scanning");
+    expect(text).toContain("Dependency & Image Risks");
+    expect(text).toContain("Security Overview");
+  });
+
+  it("dashboard preserves Sprint 43 and earlier compatibility strings", () => {
+    const text = read("src/ui/provider-dashboard.html");
+    expect(text).toContain("Workspace Analytics & Explainability");
+    expect(text).toContain("Audit Trail");
+    expect(text).toContain("metric-success-rate");
+    expect(text).toContain("workspaceRouting.analytics");
+  });
+
+  it("main.cjs still registers all handlers — no regression", () => {
+    const text = read("electron-ui/main.cjs");
+    expect(text).toContain("registerAuditHandlers");
+    expect(text).toContain("registerKnowledgeHandlers");
+    expect(text).toContain("registerSecretsHandlers");
+    expect(text).toContain("registerRisksHandlers");
+    expect(text).toContain("registerSecurityOverviewHandlers");
+  });
+
+  it("audit-handlers.cjs Sprint 38 exports intact — no regression", () => {
+    const text = read("electron-ui/ipc/audit-handlers.cjs");
+    expect(text).toContain("audit:exportJson");
+    expect(text).toContain("audit:exportHtmlReport");
+  });
+});
+
+--- FILE: ./tests/sprint50-smoke.test.js ---
+import { describe, it, expect } from "vitest";
+import { readFileSync } from "fs";
+import { join } from "path";
+
+const root = process.cwd();
+function read(rel) {
+  return readFileSync(join(root, rel), "utf8");
+}
+
+describe("Sprint 50 smoke tests — consolidated T1-T3 surface", () => {
+  describe("backend surface — T1", () => {
+    it("TRIAGE_STATUSES includes all four values", async () => {
+      const { TRIAGE_STATUSES } =
+        await import("../src/security/security-overview/schema.js");
+      expect(TRIAGE_STATUSES).toContain("open");
+      expect(TRIAGE_STATUSES).toContain("suppressed");
+      expect(TRIAGE_STATUSES).toContain("accepted");
+      expect(TRIAGE_STATUSES).toContain("fixed");
+    });
+    it("normalizeTriageStatus returns open for null", async () => {
+      const { normalizeTriageStatus } =
+        await import("../src/security/security-overview/normalizer.js");
+      expect(normalizeTriageStatus(null)).toBe("open");
+    });
+    it("normalizeTriageStatus returns open for garbage", async () => {
+      const { normalizeTriageStatus } =
+        await import("../src/security/security-overview/normalizer.js");
+      expect(normalizeTriageStatus("garbage")).toBe("open");
+    });
+    it("normalizeTriageStatus returns fixed for fixed", async () => {
+      const { normalizeTriageStatus } =
+        await import("../src/security/security-overview/normalizer.js");
+      expect(normalizeTriageStatus("fixed")).toBe("fixed");
+    });
+    it("isTriageStatusFinal returns true for fixed", async () => {
+      const { isTriageStatusFinal } =
+        await import("../src/security/security-overview/triage.js");
+      expect(isTriageStatusFinal("fixed")).toBe(true);
+    });
+    it("isTriageStatusFinal returns false for open", async () => {
+      const { isTriageStatusFinal } =
+        await import("../src/security/security-overview/triage.js");
+      expect(isTriageStatusFinal("open")).toBe(false);
+    });
+    it("classifyDriftSeverity returns clean for empty lists", async () => {
+      const { classifyDriftSeverity } =
+        await import("../src/security/security-overview/drift.js");
+      expect(
+        classifyDriftSeverity({ introduced: [], resolved: [], persistent: [] }),
+      ).toBe("clean");
+    });
+    it("classifyDriftSeverity returns regressed when only introduced", async () => {
+      const { classifyDriftSeverity } =
+        await import("../src/security/security-overview/drift.js");
+      expect(
+        classifyDriftSeverity({
+          introduced: [{}],
+          resolved: [],
+          persistent: [],
+        }),
+      ).toBe("regressed");
+    });
+    it("classifyDriftSeverity returns improved when only resolved", async () => {
+      const { classifyDriftSeverity } =
+        await import("../src/security/security-overview/drift.js");
+      expect(
+        classifyDriftSeverity({
+          introduced: [],
+          resolved: [{}],
+          persistent: [],
+        }),
+      ).toBe("improved");
+    });
+    it("classifyDriftSeverity returns mixed when both non-empty", async () => {
+      const { classifyDriftSeverity } =
+        await import("../src/security/security-overview/drift.js");
+      expect(
+        classifyDriftSeverity({
+          introduced: [{}],
+          resolved: [{}],
+          persistent: [],
+        }),
+      ).toBe("mixed");
+    });
+  });
+
+  describe("IPC surface — T2", () => {
+    it("handlers register get-drift-classification (Sprint 50)", () => {
+      const c = read("electron-ui/ipc/security-overview-handlers.cjs");
+      expect(c).toContain("security-overview:get-drift-classification");
+    });
+    it("handlers preserve explain-introduced (Sprint 49)", () => {
+      const c = read("electron-ui/ipc/security-overview-handlers.cjs");
+      expect(c).toContain("security-overview:explain-introduced");
+    });
+    it("handlers preserve compare-baseline (Sprint 48)", () => {
+      const c = read("electron-ui/ipc/security-overview-handlers.cjs");
+      expect(c).toContain("security-overview:compare-baseline");
+    });
+    it("handlers preserve set-triage (Sprint 47)", () => {
+      const c = read("electron-ui/ipc/security-overview-handlers.cjs");
+      expect(c).toContain("security-overview:set-triage");
+    });
+    it("compare-baseline handler has payload guard", () => {
+      const c = read("electron-ui/ipc/security-overview-handlers.cjs");
+      expect(c).toContain("missing or invalid");
+    });
+    it("set-triage handler references normalizeTriageStatus", () => {
+      const c = read("electron-ui/ipc/security-overview-handlers.cjs");
+      expect(c).toContain("normalizeTriageStatus");
+    });
+  });
+
+  describe("preload surface — T2", () => {
+    it("exposes getDriftClassification (Sprint 50)", () => {
+      const c = read("electron-ui/preload.cjs");
+      expect(c).toContain("getDriftClassification");
+    });
+    it("preserves explainIntroduced (Sprint 49)", () => {
+      const c = read("electron-ui/preload.cjs");
+      expect(c).toContain("explainIntroduced");
+    });
+    it("preserves compareBaseline (Sprint 48)", () => {
+      const c = read("electron-ui/preload.cjs");
+      expect(c).toContain("compareBaseline");
+    });
+    it("preserves loadTriage and setTriage (Sprint 47)", () => {
+      const c = read("electron-ui/preload.cjs");
+      expect(c).toContain("loadTriage");
+      expect(c).toContain("setTriage");
+    });
+    it("preserves workspaceRisks surface", () => {
+      const c = read("electron-ui/preload.cjs");
+      expect(c).toContain("workspaceRisks");
+    });
+  });
+
+  describe("types surface — T2", () => {
+    it("types.d.ts has getDriftClassification", () => {
+      const c = read("src/ui/types.d.ts");
+      expect(c).toContain("getDriftClassification");
+    });
+    it("types.d.ts preserves explainIntroduced (Sprint 49)", () => {
+      const c = read("src/ui/types.d.ts");
+      expect(c).toContain("explainIntroduced");
+    });
+    it("types.d.ts preserves FindingExplanationItem (Sprint 49)", () => {
+      const c = read("src/ui/types.d.ts");
+      expect(c).toContain("FindingExplanationItem");
+    });
+    it("interface Window appears exactly once", () => {
+      const c = read("src/ui/types.d.ts");
+      const count = (c.match(/interface Window/g) ?? []).length;
+      expect(count).toBe(1);
+    });
+  });
+
+  describe("dashboard surface — T3", () => {
+    it("has driftClassificationBadge element", () => {
+      const h = read("src/ui/provider-dashboard.html");
+      expect(h).toContain("driftClassificationBadge");
+    });
+    it("has driftClassificationLabel element", () => {
+      const h = read("src/ui/provider-dashboard.html");
+      expect(h).toContain("driftClassificationLabel");
+    });
+    it("calls getDriftClassification in JS", () => {
+      const h = read("src/ui/provider-dashboard.html");
+      expect(h).toContain("getDriftClassification");
+    });
+    it("badge call is inside try/catch (non-fatal)", () => {
+      const h = read("src/ui/provider-dashboard.html");
+      expect(h).toContain("driftClassificationBadge");
+      expect(h).toContain("catch (_e)");
+    });
+    it("preserves latestSecurityDriftResult cache (Sprint 49)", () => {
+      const h = read("src/ui/provider-dashboard.html");
+      expect(h).toContain("latestSecurityDriftResult");
+    });
+    it("preserves explainIntroduced (Sprint 49)", () => {
+      const h = read("src/ui/provider-dashboard.html");
+      expect(h).toContain("explainIntroduced");
+    });
+    it("preserves security-drift-panel (Sprint 48)", () => {
+      const h = read("src/ui/provider-dashboard.html");
+      expect(h).toContain("security-drift-panel");
+    });
+    it("preserves security-overview-panel (Sprint 46)", () => {
+      const h = read("src/ui/provider-dashboard.html");
+      expect(h).toContain("security-overview-panel");
+    });
+  });
+
+  describe("compatibility regression — Sprint 42-49 surfaces", () => {
+    it("index.ts exports ai-explain (Sprint 49)", () => {
+      const c = read("src/security/security-overview/index.ts");
+      expect(c).toMatch(/\.\/ai-explain/);
+    });
+    it("index.ts exports drift (Sprint 48)", () => {
+      const c = read("src/security/security-overview/index.ts");
+      expect(c).toMatch(/\.\/drift/);
+    });
+    it("index.ts exports triage (Sprint 47)", () => {
+      const c = read("src/security/security-overview/index.ts");
+      expect(c).toMatch(/\.\/triage/);
+    });
+    it("index.ts exports baseline (Sprint 46)", () => {
+      const c = read("src/security/security-overview/index.ts");
+      expect(c).toMatch(/\.\/baseline/);
+    });
+    it("main.cjs still registers security overview handlers", () => {
+      const c = read("electron-ui/main.cjs");
+      expect(c).toContain("registerSecurityOverviewHandlers");
+    });
+  });
+});
+
+--- FILE: ./tests/sprint51-smoke.test.js ---
+import { describe, it, expect } from "vitest";
+import { readFileSync, existsSync } from "node:fs";
+import { join } from "node:path";
+
+const root = process.cwd();
+function read(rel) {
+  return readFileSync(join(root, rel), "utf8");
+}
+
+describe("Sprint 51 smoke tests — timeline and snapshot files", () => {
+  it("strategic-learning-unified-theatre-master-instructions.md mentions Sprint 50 Complete", () => {
+    const text = read(
+      "strategic-learning-unified-theatre-master-instructions.md",
+    );
+    expect(text).toContain("Sprint 50 Complete");
+  });
+
+  it("strategic-learning-unified-theatre-master-instructions.md mentions Sprint 51 Complete", () => {
+    const text = read(
+      "strategic-learning-unified-theatre-master-instructions.md",
+    );
+    expect(text).toContain("Sprint 51 Complete");
+  });
+
+  it("master_timeline_sprints_1_54.md exists and reflects Sprint 50 as complete", () => {
+    const filePath = join(root, "master_timeline_sprints_1_54.md");
+    expect(existsSync(filePath)).toBe(true);
+    const text = readFileSync(filePath, "utf8");
+    expect(text).toContain("Sprint 50");
+    expect(text).toContain("Sprint 51");
+  });
+
+  it("CURRENT_ACTIVE_SNAPSHOT.md points to sprint51-stable or later", () => {
+    const text = read("CURRENT_ACTIVE_SNAPSHOT.md").trim();
+    const sprintNum = parseInt(text.match(/sprint(\d+)/)?.[1] ?? "0", 10);
+    expect(sprintNum).toBeGreaterThanOrEqual(51);
+  });
+
+  it("sprint51-stable snapshot file exists", () => {
+    expect(
+      existsSync(
+        join(
+          root,
+          "strategic-learning-unified-theatre-ai-snapshot-sprint51-stable",
+        ),
+      ),
+    ).toBe(true);
+  });
+});
+
+describe("Sprint 51 smoke tests — security surface regression", () => {
+  it("all 9 security IPC channels present in handler", () => {
+    const content = read("electron-ui/ipc/security-overview-handlers.cjs");
+    const channels = [
+      "security-overview:summarize",
+      "security-overview:save-baseline",
+      "security-overview:load-suppressions",
+      "security-overview:save-suppressions",
+      "security-overview:load-triage",
+      "security-overview:set-triage",
+      "security-overview:compare-baseline",
+      "security-overview:explain-introduced",
+      "security-overview:get-drift-classification",
+    ];
+    for (const ch of channels) {
+      expect(content).toContain(ch);
+    }
+  });
+
+  it("all 9 workspaceSecurity methods present in preload", () => {
+    const content = read("electron-ui/preload.cjs");
+    const methods = [
+      "summarize",
+      "saveBaseline",
+      "loadSuppressions",
+      "saveSuppressions",
+      "loadTriage",
+      "setTriage",
+      "compareBaseline",
+      "explainIntroduced",
+      "getDriftClassification",
+    ];
+    for (const m of methods) {
+      expect(content).toContain(m);
+    }
+  });
+
+  it("types.d.ts has no duplicate Window interface", () => {
+    const content = read("src/ui/types.d.ts");
+    const count = (content.match(/interface Window/g) ?? []).length;
+    expect(count).toBe(1);
+  });
+
+  it("Sprint 44-50 scanner panels still present in dashboard", () => {
+    const html = read("src/ui/provider-dashboard.html");
+    const required = [
+      "security-overview-panel",
+      "security-drift-panel",
+      "Workspace Analytics",
+      "Audit Trail",
+      "Workspace Quotas",
+      "metric-success-rate",
+      "workspaceRouting.analytics",
+    ];
+    for (const s of required) {
+      expect(html).toContain(s);
+    }
+  });
+
+  it("knowledge index still exports ingestSprintHistory", () => {
+    const content = read("src/knowledge/index.ts");
+    expect(content).toContain("ingestSprintHistory");
+  });
+
+  it("security-overview index exports all 7 modules", () => {
+    const content = read("src/security/security-overview/index.ts");
+    const modules = [
+      "./schema",
+      "./baseline",
+      "./suppressions",
+      "./normalizer",
+      "./triage",
+      "./drift",
+      "./ai-explain",
+    ];
+    for (const m of modules) {
+      expect(content).toContain(m);
+    }
+  });
+});
+
+--- FILE: ./tests/sprint52-smoke.test.js ---
+import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+const root = process.cwd();
+function read(rel) {
+  return readFileSync(join(root, rel), 'utf8');
+}
+
+describe('Sprint 52 smoke tests — bulk triage surface', () => {
+  it('triage.ts exports applyBulkTriage', async () => {
+    const mod = await import('../src/security/security-overview/triage.js');
+    expect(typeof mod.applyBulkTriage).toBe('function');
+  });
+
+  it('TRIAGE_STATUSES is exported and contains expected values', async () => {
+    const mod = await import('../src/security/security-overview/triage.js');
+    expect(Array.isArray(mod.TRIAGE_STATUSES)).toBe(true);
+    expect(mod.TRIAGE_STATUSES).toContain('open');
+    expect(mod.TRIAGE_STATUSES).toContain('suppressed');
+    expect(mod.TRIAGE_STATUSES).toContain('accepted');
+    expect(mod.TRIAGE_STATUSES).toContain('resolved');
+  });
+
+  it('IPC handler registers security-overview:set-triage-bulk', () => {
+    const content = read('electron-ui/ipc/security-overview-handlers.cjs');
+    expect(content).toContain('security-overview:set-triage-bulk');
+    expect(content).toContain('applyBulkTriage');
+  });
+
+  it('IPC handler preserves all Sprint 46-51 channels', () => {
+    const content = read('electron-ui/ipc/security-overview-handlers.cjs');
+    const channels = [
+      'security-overview:summarize',
+      'security-overview:save-baseline',
+      'security-overview:load-suppressions',
+      'security-overview:save-suppressions',
+      'security-overview:load-triage',
+      'security-overview:set-triage',
+      'security-overview:compare-baseline',
+      'security-overview:explain-introduced',
+      'security-overview:get-drift-classification',
+    ];
+    for (const ch of channels) {
+      expect(content).toContain(ch);
+    }
+  });
+
+  it('preload exposes setTriageBulk on workspaceSecurity', () => {
+    const content = read('electron-ui/preload.cjs');
+    expect(content).toContain('setTriageBulk');
+    expect(content).toContain('security-overview:set-triage-bulk');
+  });
+
+  it('preload preserves Sprint 46-51 workspaceSecurity methods', () => {
+    const content = read('electron-ui/preload.cjs');
+    const methods = [
+      'summarize', 'saveBaseline', 'loadSuppressions', 'saveSuppressions',
+      'loadTriage', 'setTriage', 'compareBaseline',
+      'explainIntroduced', 'getDriftClassification',
+    ];
+    for (const m of methods) {
+      expect(content).toContain(m);
+    }
+  });
+
+  it('types.d.ts declares setTriageBulk on workspaceSecurity', () => {
+    const content = read('src/ui/types.d.ts');
+    expect(content).toContain('setTriageBulk:');
+  });
+
+  it('types.d.ts has exactly one Window interface', () => {
+    const content = read('src/ui/types.d.ts');
+    const count = (content.match(/interface Window/g) ?? []).length;
+    expect(count).toBe(1);
+  });
+
+  it('master_timeline_sprints_1_54.md reflects Sprint 52 as active', () => {
+    const content = read('master_timeline_sprints_1_54.md');
+    expect(content).toContain('Sprint 52');
+    expect(content).toContain('Sprint 51');
+  });
+
+  it('dashboard is unchanged — Sprint 44-51 surfaces still present', () => {
+    const html = read('src/ui/provider-dashboard.html');
+    expect(html).toContain('security-overview-panel');
+    expect(html).toContain('security-drift-panel');
+    expect(html).toContain('Workspace Analytics');
+    expect(html).toContain('Audit Trail');
+    expect(html).toContain('workspaceRouting.analytics');
+  });
+
+  it('security-overview index.ts still exports all 7 modules', () => {
+    const content = read('src/security/security-overview/index.ts');
+    const modules = [
+      './schema', './baseline', './suppressions',
+      './normalizer', './triage', './drift', './ai-explain',
+    ];
+    for (const m of modules) {
+      expect(content).toContain(m);
+    }
+  });
+});
+
+--- FILE: ./tests/sprint53-smoke.test.js ---
+import { describe, it, expect } from "vitest";
+import fs from "node:fs";
+import path from "node:path";
+
+const root = process.cwd();
+
+function exists(rel) {
+  return fs.existsSync(path.join(root, rel));
+}
+
+function read(rel) {
+  return fs.readFileSync(path.join(root, rel), "utf8");
+}
+
+describe("Sprint 53 smoke tests — test harness regression", () => {
+  it("Sprint 44-45 security test files are present", () => {
+    const files = [
+      "tests/sprint44-smoke.test.js",
+      "tests/secrets-runner.test.js",
+      "tests/sprint45-smoke.test.js",
+      "tests/risks-runner.test.js",
+    ];
+    for (const file of files) {
+      expect(exists(file), `${file} should exist`).toBe(true);
+    }
+  });
+
+  it("Sprint 46-48 security overview test files are present", () => {
+    const files = [
+      "tests/security-overview.test.js",
+      "tests/security-overview-drift.test.js",
+      "tests/sprint46-smoke.test.js",
+      "tests/sprint47-smoke.test.js",
+      "tests/sprint48-smoke.test.js",
+    ];
+    for (const file of files) {
+      expect(exists(file), `${file} should exist`).toBe(true);
+    }
+  });
+
+  it("Sprint 49-52 security test files are present", () => {
+    const files = [
+      "tests/sprint50-t1.test.js",
+      "tests/sprint50-t2.test.js",
+      "tests/sprint50-smoke.test.js",
+      "tests/sprint51-security-overview.test.js",
+      "tests/sprint51-smoke.test.js",
+      "tests/sprint52-bulk-triage.test.js",
+      "tests/sprint52-smoke.test.js",
+    ];
+    for (const file of files) {
+      expect(exists(file), `${file} should exist`).toBe(true);
+    }
+  });
+
+  it("core security backend folders exist with index.ts", () => {
+    const indexes = [
+      "src/security/secrets/index.ts",
+      "src/security/risks/index.ts",
+      "src/security/security-overview/index.ts",
+      "src/knowledge/index.ts",
+    ];
+    for (const file of indexes) {
+      expect(exists(file), `${file} should exist`).toBe(true);
+    }
+  });
+
+  it("security overview has all 7 module files", () => {
+    const modules = [
+      "src/security/security-overview/schema.ts",
+      "src/security/security-overview/baseline.ts",
+      "src/security/security-overview/suppressions.ts",
+      "src/security/security-overview/normalizer.ts",
+      "src/security/security-overview/triage.ts",
+      "src/security/security-overview/drift.ts",
+      "src/security/security-overview/ai-explain.ts",
+    ];
+    for (const file of modules) {
+      expect(exists(file), `${file} should exist`).toBe(true);
+    }
+  });
+
+  it("CURRENT_ACTIVE_SNAPSHOT.md points to sprint52-stable or later", () => {
+    const text = read("CURRENT_ACTIVE_SNAPSHOT.md").trim();
+    const sprintNum = parseInt(text.match(/sprint(\d+)/)?.[1] ?? "0", 10);
+    expect(sprintNum).toBeGreaterThanOrEqual(52);
+  });
+
+  it("master_timeline_sprints_1_54.md exists and lists Sprint 52", () => {
+    expect(exists("master_timeline_sprints_1_54.md")).toBe(true);
+    const content = read("master_timeline_sprints_1_54.md");
+    expect(content).toContain("Sprint 52");
+    expect(content).toContain("Bulk triage");
+    expect(content).toContain("Sprint 53");
+  });
+
+  it("master-instructions mentions Sprint 51 and Sprint 52 Complete", () => {
+    const content = read(
+      "strategic-learning-unified-theatre-master-instructions.md",
+    );
+    expect(content).toContain("Sprint 51 Complete");
+    expect(content).toContain("Sprint 52 Complete");
+  });
+
+  it("architecture baseline files exist from recent sprints", () => {
+    const files = fs.readdirSync(root);
+    const baselines = files.filter((file) =>
+      file.startsWith("PROJECT_ARCHITECTURE_BASELINE-2026"),
+    );
+    expect(baselines.length).toBeGreaterThan(0);
+  });
+});
+
+--- FILE: ./tests/sprint54-smoke.test.js ---
+import { describe, it, expect } from "vitest";
+import { existsSync, readFileSync } from "fs";
+import { join } from "path";
+
+const root = process.cwd();
+function read(rel) {
+  return readFileSync(join(root, rel), "utf8");
+}
+
+describe("Sprint 54 smoke tests — file surface and IPC/preload/types wiring", () => {
+  describe("backend modules — T1", () => {
+    it("drift-history.ts exists", () => {
+      expect(
+        existsSync(
+          join(root, "src/security/security-overview/drift-history.ts"),
+        ),
+      ).toBe(true);
+    });
+    it("drift-history.ts exports loadDriftHistory, saveDriftHistory, appendDriftHistory", () => {
+      const c = read("src/security/security-overview/drift-history.ts");
+      expect(c).toContain("export function loadDriftHistory");
+      expect(c).toContain("export function saveDriftHistory");
+      expect(c).toContain("export function appendDriftHistory");
+    });
+    it("drift-history.ts exports DriftHistoryEntry and DriftClassification", () => {
+      const c = read("src/security/security-overview/drift-history.ts");
+      expect(c).toContain("DriftHistoryEntry");
+      expect(c).toContain("DriftClassification");
+    });
+    it("auto-scan.ts exists", () => {
+      expect(
+        existsSync(join(root, "src/security/security-overview/auto-scan.ts")),
+      ).toBe(true);
+    });
+    it("auto-scan.ts exports runSecurityAutoScan", () => {
+      const c = read("src/security/security-overview/auto-scan.ts");
+      expect(c).toContain("export async function runSecurityAutoScan");
+    });
+    it("auto-scan.ts calls classifyDriftSeverity as a function returning string directly", () => {
+      const c = read("src/security/security-overview/auto-scan.ts");
+      expect(c).not.toContain(
+        "classifyDriftSeverity(driftResult).classification",
+      );
+      expect(c).not.toContain(
+        "classifyDriftSeverity(driftResult)?.classification",
+      );
+      expect(c).toContain("classifyDriftSeverity(");
+    });
+    it("auto-scan.ts imports triage functions from triage.js (not assumed in index.js)", () => {
+      const c = read("src/security/security-overview/auto-scan.ts");
+      expect(c).toContain("./triage.js");
+    });
+    it("index.ts exports drift-history and auto-scan", () => {
+      const c = read("src/security/security-overview/index.ts");
+      expect(c).toContain("./drift-history");
+      expect(c).toContain("./auto-scan");
+    });
+  });
+
+  describe("IPC surface — T2", () => {
+    it("handlers register auto-scan channel (Sprint 54)", () => {
+      const c = read("electron-ui/ipc/security-overview-handlers.cjs");
+      expect(c).toContain("security-overview:auto-scan");
+      expect(c).toContain("runSecurityAutoScan");
+      expect(c).toContain("auto-scan.js");
+    });
+    it("handlers register list-drift-history channel (Sprint 54)", () => {
+      const c = read("electron-ui/ipc/security-overview-handlers.cjs");
+      expect(c).toContain("security-overview:list-drift-history");
+      expect(c).toContain("loadDriftHistory");
+      expect(c).toContain("drift-history.js");
+    });
+    it("auto-scan handler has repoPath guard", () => {
+      const c = read("electron-ui/ipc/security-overview-handlers.cjs");
+      expect(c).toContain("auto-scan: repoPath is required");
+    });
+    it("handlers preserve all 10 Sprint 44-53 channels", () => {
+      const c = read("electron-ui/ipc/security-overview-handlers.cjs");
+      expect(c).toContain("security-overview:summarize");
+      expect(c).toContain("security-overview:save-baseline");
+      expect(c).toContain("security-overview:load-suppressions");
+      expect(c).toContain("security-overview:save-suppressions");
+      expect(c).toContain("security-overview:load-triage");
+      expect(c).toContain("security-overview:set-triage");
+      expect(c).toContain("security-overview:set-triage-bulk");
+      expect(c).toContain("security-overview:compare-baseline");
+      expect(c).toContain("security-overview:explain-introduced");
+      expect(c).toContain("security-overview:get-drift-classification");
+    });
+  });
+
+  describe("preload surface — T2", () => {
+    it("preload exposes autoScan (Sprint 54)", () => {
+      const c = read("electron-ui/preload.cjs");
+      expect(c).toContain("autoScan:");
+      expect(c).toContain("security-overview:auto-scan");
+    });
+    it("preload exposes listDriftHistory (Sprint 54)", () => {
+      const c = read("electron-ui/preload.cjs");
+      expect(c).toContain("listDriftHistory:");
+      expect(c).toContain("security-overview:list-drift-history");
+    });
+    it("preload preserves Sprint 53 getDriftClassification (10th method)", () => {
+      const c = read("electron-ui/preload.cjs");
+      expect(c).toContain("getDriftClassification");
+    });
+    it("preload preserves Sprint 52 setTriageBulk", () => {
+      const c = read("electron-ui/preload.cjs");
+      expect(c).toContain("setTriageBulk");
+    });
+    it("preload preserves Sprint 49 explainIntroduced", () => {
+      const c = read("electron-ui/preload.cjs");
+      expect(c).toContain("explainIntroduced");
+    });
+    it("preload preserves Sprint 48 compareBaseline", () => {
+      const c = read("electron-ui/preload.cjs");
+      expect(c).toContain("compareBaseline");
+    });
+    it("preload preserves Sprint 47 loadTriage and setTriage", () => {
+      const c = read("electron-ui/preload.cjs");
+      expect(c).toContain("loadTriage");
+      expect(c).toContain("setTriage");
+    });
+    it("preload preserves workspaceRisks and secrets surfaces", () => {
+      const c = read("electron-ui/preload.cjs");
+      expect(c).toContain("workspaceRisks");
+      expect(c).toContain("secrets");
+    });
+  });
+
+  describe("types surface — T2", () => {
+    it("types.d.ts declares DriftHistoryEntry", () => {
+      const c = read("src/ui/types.d.ts");
+      expect(c).toContain("interface DriftHistoryEntry");
+    });
+    it("types.d.ts DriftHistoryEntry has classification field", () => {
+      const c = read("src/ui/types.d.ts");
+      expect(c).toContain("classification:");
+      expect(c).toContain("unknown");
+    });
+    it("types.d.ts has autoScan typed", () => {
+      const c = read("src/ui/types.d.ts");
+      expect(c).toContain("autoScan");
+      expect(c).toContain("repoPath");
+    });
+    it("types.d.ts has listDriftHistory typed", () => {
+      const c = read("src/ui/types.d.ts");
+      expect(c).toContain("listDriftHistory");
+    });
+    it("types.d.ts preserves FindingExplanationItem (Sprint 49)", () => {
+      const c = read("src/ui/types.d.ts");
+      expect(c).toContain("FindingExplanationItem");
+    });
+    it("interface Window appears exactly once", () => {
+      const c = read("src/ui/types.d.ts");
+      const count = (c.match(/interface Window/g) ?? []).length;
+      expect(count).toBe(1);
+    });
+  });
+
+  describe("compatibility regression — Sprint 44-53 surfaces", () => {
+    it("index.ts exports all prior modules", () => {
+      const c = read("src/security/security-overview/index.ts");
+      expect(c).toMatch(/\.\/ai-explain/);
+      expect(c).toMatch(/\.\/drift/);
+      expect(c).toMatch(/\.\/triage/);
+      expect(c).toMatch(/\.\/baseline/);
+    });
+    it("main.cjs still registers security overview handlers", () => {
+      const c = read("electron-ui/main.cjs");
+      expect(c).toContain("registerSecurityOverviewHandlers");
+    });
+    it("sprint53 test files still present", () => {
+      expect(
+        existsSync(join(root, "tests/sprint53-cross-surface.test.js")),
+      ).toBe(true);
+      expect(existsSync(join(root, "tests/sprint53-smoke.test.js"))).toBe(true);
+    });
+    it("sprint52 bulk-triage test still present", () => {
+      expect(existsSync(join(root, "tests/sprint52-bulk-triage.test.js"))).toBe(
+        true,
+      );
+    });
+  });
+});
+
 === ALL RUNNER TEST FILES ===
 --- FILE: ./tests/chaos-runner.test.js ---
 import { describe, it, expect } from "vitest";
@@ -8208,7 +9334,6 @@ describe("test-runner scaffold", () => {
 });
 
 === TEST RESULTS ===
-    at runWithTimeout [90m(file:///home/pawan/vscodeagent/Solution/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
     at [90mfile:///home/pawan/vscodeagent/Solution/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
 
  [32m✓[39m tests/startup-bootstrap.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 4[2mms[22m[39m
@@ -8225,18 +9350,19 @@ describe("test-runner scaffold", () => {
     at runWithTimeout [90m(file:///home/pawan/vscodeagent/Solution/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
     at [90mfile:///home/pawan/vscodeagent/Solution/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
 
- [32m✓[39m tests/chaos-workflow.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 4[2mms[22m[39m
- [32m✓[39m tests/updater-config.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
  [32m✓[39m tests/chaos-slo.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
- [32m✓[39m tests/window-security.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
- [32m✓[39m tests/test-runner.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
- [32m✓[39m tests/thread.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m tests/startup-plugins.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/chaos-workflow.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/window-security.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/test-runner.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
  [32m✓[39m tests/chaos-runbook.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m tests/thread.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m tests/updater-config.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
 
-[2m Test Files [22m [1m[32m109 passed[39m[22m[90m (109)[39m
-[2m      Tests [22m [1m[32m1050 passed[39m[22m[90m (1050)[39m
-[2m   Start at [22m 01:45:13
-[2m   Duration [22m 4.69s[2m (transform 6.99s, setup 2.07s, import 10.71s, tests 12.21s, environment 62.02s)[22m
+[2m Test Files [22m [1m[32m122 passed[39m[22m[90m (122)[39m
+[2m      Tests [22m [1m[32m1270 passed[39m[22m[90m (1270)[39m
+[2m   Start at [22m 01:44:43
+[2m   Duration [22m 5.68s[2m (transform 8.38s, setup 2.52s, import 12.51s, tests 13.42s, environment 78.00s)[22m
 
 
 === TYPECHECK ===

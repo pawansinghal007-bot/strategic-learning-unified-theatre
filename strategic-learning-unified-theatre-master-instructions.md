@@ -218,6 +218,10 @@ Dashboard IPC and provider telemetry panel delivered. IPC bridge, preload, HTML 
 
 ## Sprint 26 Complete
 
+## Sprint 54 Complete
+
+Human Tester E2E scaffold and UI validation suite delivered. playwright.human.config.cjs + playwright.ui.config.cjs. tests/human/: launch.spec.js, analytics-audit.spec.js, quota-security.spec.js with launchHumanTester/safeClickByText/expectDashboardLoaded helpers. tests/ui/: theme-readability, browser-pane-overlap (diagnostic), browser-pane-hide, local-ai-status specs with full helper suite. test:human and test:ui script families in package.json. Vitest suite unchanged (1200+ tests). Sonar clean.
+
 Explainable routing and decisions log delivered. Routing history, explainer, gateway hooks, dashboard panel, llm:routing CLI. Sonar clean.
 
 ## Sprint 27 Complete
@@ -325,4 +329,9 @@ Security overview stabilization and timeline reconciliation delivered. Regressio
 Bulk triage actions delivered. applyBulkTriage() appended to triage.ts — skips null/empty fingerprints, normalizes status, returns new array, idempotent. security-overview:set-triage-bulk IPC. workspaceSecurity.setTriageBulk preload (10th method). types.d.ts updated. Dashboard unchanged. Architecture sync done. Sonar clean.
 
 ## Sprint 53 Complete
+
 Cross-surface regression hardening delivered. Tests-only sprint — no architecture changes. sprint53-cross-surface.test.js verifies all 10 security-overview IPC channels, all 10 workspaceSecurity preload methods, types.d.ts structure, dashboard panels, and knowledge layer wiring. sprint53-smoke.test.js verifies Sprint 44-52 test harness integrity, backend folder structure, and timeline files. master_timeline_sprints_1_54.md updated. Sonar clean.
+
+## Sprint 54 Complete
+
+Auto-scan trigger and drift-history storage delivered. drift-history.ts with loadDriftHistory, saveDriftHistory, appendDriftHistory. auto-scan.ts with runSecurityAutoScan — lazy imports, enriched findings, drift comparison, drift history append. classifyDriftSeverity called as string-returning function. triage functions imported from triage.js directly. security-overview:auto-scan IPC (repoPath guard). security-overview:list-drift-history IPC. preload autoScan (11th) and listDriftHistory (12th) workspaceSecurity methods. DriftHistoryEntry, autoScan, listDriftHistory typed. Architecture sync done. Sonar clean.

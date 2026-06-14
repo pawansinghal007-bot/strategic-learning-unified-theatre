@@ -1,38 +1,16 @@
   SPRINT 54 — T1 COMPLETE
 
   FILES:
-    src/security/security-overview/drift-history.ts (created)
-    src/security/security-overview/auto-scan.ts (created)
-    src/security/security-overview/index.ts (extended)
+    package.json (extended — 8 new scripts)
+    playwright.human.config.cjs (created)
+    playwright.ui.config.cjs (created)
+    .gitignore (extended)
 
   STATUS:
-    DriftClassification type exported from drift-history.ts
-    DriftHistoryEntry interface exported from drift-history.ts
-    loadDriftHistory() — returns [] for null/empty/missing path
-    saveDriftHistory() — overwrites file, returns count
-    appendDriftHistory() — loads existing, appends one entry, saves
-    AutoScanOptions interface exported from auto-scan.ts
-    AutoScanResult interface exported from auto-scan.ts
-    runSecurityAutoScan() — async, runs secrets + risks, enriches findings,
-      optionally compares baseline, optionally appends drift history entry
-    classifyDriftSeverity called correctly — returns string, not object
-    triageMod.loadSecurityTriage / getSecurityTriageStatus imported from triage.js
-    All imports lazy (await import) to match codebase conventions
-    index.ts exports ./drift-history and ./auto-scan
-    Sprint 53 exports intact (classifyDriftSeverity, applyBulkTriage, etc.)
-    Sprint 49 ai-explain exports intact
-    Sprint 48 drift exports intact
+    test:human and test:ui script families added
+    Human tester config: testDir=tests/human, workers=1, timeout=120s
+    UI validation config: testDir=tests/ui, screenshot=on, workers=1
+    playwright-report-human/ and playwright-report-ui/ gitignored
     compile clean
 
-  DELIVERABLES:
-    [x] drift-history.ts created with DriftClassification, DriftHistoryEntry,
-        loadDriftHistory(), saveDriftHistory(), appendDriftHistory()
-    [x] auto-scan.ts created with AutoScanOptions, AutoScanResult,
-        runSecurityAutoScan()
-    [x] classifyDriftSeverity called as function returning string directly
-    [x] triage functions imported from triage.js (not assumed in index.js)
-    [x] index.ts exports both new modules
-    [x] Compilation successful
-
-  NEXT:
-    T2 — IPC handler extension + preload extension + types update
+  NEXT: T2 — E2E helper + human tester specs

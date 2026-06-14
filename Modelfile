@@ -1,2 +1,2 @@
-FROM qwen3.6
-PARAMETER num_ctx 8096
+FROM qwen3-coder-next:q4_K_M
+PARAMETER num_gpu 0

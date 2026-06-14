@@ -30,6 +30,8 @@ report-task.txt
 .env*
 .scannerwork/
 playwright-report/
+playwright-report-human/
+playwright-report-ui/
 test-results/
 electron-ui/*.bundled.cjs
 electron-ui/src-loader.cjs

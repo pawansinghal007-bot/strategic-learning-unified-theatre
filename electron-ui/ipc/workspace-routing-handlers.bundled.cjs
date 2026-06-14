@@ -1,4 +1,4 @@
-const __importMetaUrl = require('url').pathToFileURL(__filename).href;
+const __importMetaUrl = typeof __filename === 'string' ? require('url').pathToFileURL(__filename).href : globalThis.location?.href;
 "use strict";
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
