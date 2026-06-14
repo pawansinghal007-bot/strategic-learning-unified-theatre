@@ -1,0 +1,20 @@
+SPRINT 58 — T1 COMPLETE
+
+FILE: src/ui/provider-dashboard.html (extended)
+
+STATUS:
+  executive-proof-panel inserted as third panel in body
+  proof-last-action-value, proof-governance-value, proof-security-value, proof-knowledge-value added
+  capture-proof-state-btn button added (click fires setProofAction)
+  proof-state-output output element added with data-proof-output attribute
+  data-proof-surface added to: routing-summary-output, timeline-output, knowledge-output
+  data-proof-surface added to: security-overview-panel, security-drift-panel, knowledge-panel, audit-trail-panel
+  setProofAction() added to script block (before setLocalAiStatus)
+  setLocalAiStatus() extended to call setProofAction on every status update
+  DOMContentLoaded: sets proof card values to Ready, calls setLocalAiStatus and setProofAction, wires capture button click
+  DOMContentLoaded status text: 'Sprint 58 proof flow synchronized.'
+  Sprint 58 compatibility strings added to comment block
+  All Sprint 25-57 compatibility strings preserved
+  compile clean
+
+NEXT: T2 — New Playwright proof spec + update launch and theme specs

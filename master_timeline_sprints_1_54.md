@@ -49,19 +49,20 @@ that work retroactively and adds the Vitest regression guard.
 
 Sprint 56 (Human Tester 3) is complete.
 Sprint 57 (Human Tester 4) is complete.
+Sprint 58 (Human Tester 5) is complete.
 
-| Sprint | Focus                                                          | Status   |
-| ------ | -------------------------------------------------------------- | -------- |
-| 56     | Selector hardening with data-testid + Playwright stabilization | Complete |
+| Sprint | Focus                                                                                                                                                                                                                                                                                                                                          | Status   |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| 56     | Selector hardening with data-testid + Playwright stabilization                                                                                                                                                                                                                                                                                 | Complete |
 | 57     | Human Tester 4: executive evidence pack — governance, security, knowledge, and local-AI readiness proof via Playwright and Vitest coverage. executive-evidence-panel added. data-evidence-surface and data-evidence-category hooks added. Playwright executive-evidence.spec.js created. Vitest guard sprint57-human-tester-4.test.js passing. | Complete |
+| 58     | Human Tester 5: executive proof panel, interaction-grade evidence flows, capture-proof-state-btn click coverage, data-proof-surface markers across all panels, setProofAction helper, Vitest regression guard sprint58-human-tester-5.test.js passing.                                                                                         | Complete |
 
 ## Remaining
 
-| Sprint | Focus                                              | Status  |
-| ------ | -------------------------------------------------- | ------- |
-| 58     | TBD — candidates: BrowserPane overlap remediation, Playwright GitHub Actions workflow, CI smoke grouping for test:human:smoke and test:ui:theme, remaining legacy text-selector conversion. | Next |
-| 59     | Playwright CI integration and artifact publishing  | Planned |
-| 60     | Final workstation polish and packaging readiness   | Planned |
+| Sprint | Focus                                                                                                                                                                                                                                                              | Status  |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------- |
+| 59     | TBD — candidates: BrowserPane overlap remediation (bounds logic in main.cjs), Playwright GitHub Actions workflow, CI smoke grouping for test:human:smoke and test:ui:theme, legacy text-selector conversion in analytics-audit.spec.js and quota-security.spec.js. | Next    |
+| 60     | Final workstation polish and packaging readiness                                                                                                                                                                                                                   | Planned |
 
 ## Standing Architecture Rules (all future sprints)
 

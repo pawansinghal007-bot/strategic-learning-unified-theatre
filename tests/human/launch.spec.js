@@ -12,11 +12,8 @@ test.afterAll(async () => {
   await closeElectronApp(app);
 });
 
-test.describe("launch smoke — stable executive selectors", () => {
-  test("dashboard root evidence surfaces are locatable", async () => {
-    await expect(
-      page.locator('[data-testid="local-ai-status-panel"]'),
-    ).toBeVisible();
+test.describe("Human Tester 5 launch smoke", () => {
+  test("loads executive evidence and proof surfaces", async () => {
     await expect(
       page.locator('[data-testid="executive-evidence-panel"]'),
     ).toBeVisible();
@@ -27,8 +24,23 @@ test.describe("launch smoke — stable executive selectors", () => {
       page.locator('[data-testid="load-unified-view-btn"]'),
     ).toBeVisible();
     await expect(
+      page.locator('[data-testid="executive-proof-panel"]'),
+    ).toBeVisible();
+    await expect(
+      page.locator('[data-testid="local-ai-status-panel"]'),
+    ).toBeVisible();
+    await expect(
       page.locator('[data-testid="security-overview-panel"]'),
     ).toBeVisible();
     await expect(page.locator('[data-testid="knowledge-panel"]')).toBeVisible();
+  });
+
+  test("proof flow starts in ready state", async () => {
+    await expect(
+      page.locator('[data-testid="proof-last-action-value"]'),
+    ).toBeVisible();
+    await expect(
+      page.locator('[data-testid="proof-state-output"]'),
+    ).toContainText("Executive proof flow initialized");
   });
 });
