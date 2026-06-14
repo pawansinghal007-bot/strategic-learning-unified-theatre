@@ -1,42 +1,34 @@
 import { test, expect } from "@playwright/test";
-import { launchHumanTester, closeHumanTester } from "./helpers/electronApp.js";
+import { launchElectronApp, closeElectronApp } from "../helpers/electronApp.js";
 
-test.describe("Human Tester — launch smoke (Sprint 56 stable selectors)", () => {
-  let app;
-  let window;
+let app;
+let page;
 
-  test.afterEach(async () => {
-    await closeHumanTester(app);
-  });
+test.beforeAll(async () => {
+  ({ app, page } = await launchElectronApp());
+});
 
-  test("local-AI status panel is present on launch", async () => {
-    ({ app, window } = await launchHumanTester());
+test.afterAll(async () => {
+  await closeElectronApp(app);
+});
+
+test.describe("launch smoke — stable executive selectors", () => {
+  test("dashboard root evidence surfaces are locatable", async () => {
     await expect(
-      window.locator('[data-testid="local-ai-status-panel"]'),
-    ).toBeVisible({ timeout: 20000 });
-    await expect(
-      window.locator('[data-testid="local-ai-status-value"]'),
+      page.locator('[data-testid="local-ai-status-panel"]'),
     ).toBeVisible();
-  });
-
-  test("workspace-id input is locatable by data-testid", async () => {
-    ({ app, window } = await launchHumanTester());
     await expect(
-      window.locator('[data-testid="workspace-id-input"]'),
-    ).toBeVisible({ timeout: 15000 });
-  });
-
-  test("load-unified-view button is locatable by data-testid", async () => {
-    ({ app, window } = await launchHumanTester());
+      page.locator('[data-testid="executive-evidence-panel"]'),
+    ).toBeVisible();
     await expect(
-      window.locator('[data-testid="load-unified-view-btn"]'),
-    ).toBeVisible({ timeout: 15000 });
-  });
-
-  test("security overview panel is locatable by data-testid", async () => {
-    ({ app, window } = await launchHumanTester());
+      page.locator('[data-testid="workspace-id-input"]'),
+    ).toBeVisible();
     await expect(
-      window.locator('[data-testid="security-overview-panel"]'),
-    ).toBeVisible({ timeout: 15000 });
+      page.locator('[data-testid="load-unified-view-btn"]'),
+    ).toBeVisible();
+    await expect(
+      page.locator('[data-testid="security-overview-panel"]'),
+    ).toBeVisible();
+    await expect(page.locator('[data-testid="knowledge-panel"]')).toBeVisible();
   });
 });

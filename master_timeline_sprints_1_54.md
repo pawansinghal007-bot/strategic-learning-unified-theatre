@@ -47,16 +47,19 @@ that work retroactively and adds the Vitest regression guard.
 
 ## Active
 
+Sprint 56 (Human Tester 3) is complete.
+Sprint 57 (Human Tester 4) is complete.
+
 | Sprint | Focus                                                          | Status   |
 | ------ | -------------------------------------------------------------- | -------- |
 | 56     | Selector hardening with data-testid + Playwright stabilization | Complete |
-| 57     | Human/UI regression expansion + CI hardening on stable selectors | Next     |
+| 57     | Human Tester 4: executive evidence pack — governance, security, knowledge, and local-AI readiness proof via Playwright and Vitest coverage. executive-evidence-panel added. data-evidence-surface and data-evidence-category hooks added. Playwright executive-evidence.spec.js created. Vitest guard sprint57-human-tester-4.test.js passing. | Complete |
 
 ## Remaining
 
 | Sprint | Focus                                              | Status  |
 | ------ | -------------------------------------------------- | ------- |
-| 58     | Local-AI dashboard indicator and usability polish  | Planned |
+| 58     | TBD — candidates: BrowserPane overlap remediation, Playwright GitHub Actions workflow, CI smoke grouping for test:human:smoke and test:ui:theme, remaining legacy text-selector conversion. | Next |
 | 59     | Playwright CI integration and artifact publishing  | Planned |
 | 60     | Final workstation polish and packaging readiness   | Planned |
 

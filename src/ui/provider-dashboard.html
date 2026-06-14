@@ -157,6 +157,45 @@
       </div>
     </div>
 
+    <section
+      id="executive-evidence-panel"
+      class="panel"
+      data-testid="executive-evidence-panel"
+    >
+      <div class="panel-header">
+        <h2 data-testid="executive-evidence-title">Executive Evidence</h2>
+        <p data-testid="executive-evidence-subtitle">
+          Governance, security, knowledge, and local-AI readiness in one view.
+        </p>
+      </div>
+      <div class="metrics-grid">
+        <article class="metric-card" data-testid="evidence-governance-card">
+          <span class="metric-label">Governance</span>
+          <strong class="metric-value" data-testid="evidence-governance-value"
+            >Ready</strong
+          >
+        </article>
+        <article class="metric-card" data-testid="evidence-security-card">
+          <span class="metric-label">Security</span>
+          <strong class="metric-value" data-testid="evidence-security-value"
+            >Visible</strong
+          >
+        </article>
+        <article class="metric-card" data-testid="evidence-knowledge-card">
+          <span class="metric-label">Knowledge</span>
+          <strong class="metric-value" data-testid="evidence-knowledge-value"
+            >Connected</strong
+          >
+        </article>
+        <article class="metric-card" data-testid="evidence-local-ai-card">
+          <span class="metric-label">Local AI</span>
+          <strong class="metric-value" data-testid="evidence-local-ai-value"
+            >Ready</strong
+          >
+        </article>
+      </div>
+    </section>
+
     <div
       class="panel"
       id="workspace-analytics-panel"
@@ -235,7 +274,13 @@
       </div>
     </div>
 
-    <div class="panel" id="audit-trail-panel" data-testid="audit-trail-panel">
+    <div
+      class="panel"
+      id="audit-trail-panel"
+      data-testid="audit-trail-panel"
+      data-evidence-surface="audit"
+      data-panel-readiness="ready"
+    >
       <h3>Audit Trail</h3>
       <div class="row-3">
         <button id="load-audit-events" data-testid="load-audit-events-btn">
@@ -342,7 +387,13 @@
       </div>
     </div>
 
-    <div class="panel" id="knowledge-panel" data-testid="knowledge-panel">
+    <div
+      class="panel"
+      id="knowledge-panel"
+      data-testid="knowledge-panel"
+      data-evidence-surface="knowledge"
+      data-panel-readiness="ready"
+    >
       <h3>Knowledge Layer</h3>
       <div class="row">
         <button id="knowledge-ingest-btn" data-testid="knowledge-ingest-btn">
@@ -362,7 +413,11 @@
           Search knowledge base
         </button>
       </div>
-      <pre id="knowledge-output" data-testid="knowledge-output">
+      <pre
+        id="knowledge-output"
+        data-testid="knowledge-output"
+        data-evidence-category="knowledge"
+      >
 Knowledge layer idle.</pre
       >
       <div class="table-wrap">
@@ -388,6 +443,8 @@ Knowledge layer idle.</pre
       class="panel"
       id="security-overview-panel"
       data-testid="security-overview-panel"
+      data-evidence-surface="security"
+      data-panel-readiness="ready"
     >
       <h3>Security Overview</h3>
       <div class="row-3">
@@ -468,6 +525,8 @@ Knowledge layer idle.</pre
       class="panel"
       id="security-drift-panel"
       data-testid="security-drift-panel"
+      data-evidence-surface="security-drift"
+      data-panel-readiness="ready"
     >
       <h3>Security Drift</h3>
       <div class="row" style="margin-top: 12px">
@@ -736,7 +795,11 @@ AI explanation idle. Run baseline comparison first.</pre
           </div>
         </div>
       </div>
-      <pre id="routing-summary-output" data-testid="routing-summary-output">
+      <pre
+        id="routing-summary-output"
+        data-testid="routing-summary-output"
+        data-evidence-category="governance"
+      >
 —</pre
       >
     </div>
@@ -767,7 +830,11 @@ AI explanation idle. Run baseline comparison first.</pre
       data-testid="decision-timeline-panel"
     >
       <h3>Decision Timeline</h3>
-      <div id="timeline-output" data-testid="timeline-output"></div>
+      <div
+        id="timeline-output"
+        data-testid="timeline-output"
+        data-evidence-category="traceability"
+      ></div>
     </div>
 
     <div class="panel">
@@ -807,11 +874,27 @@ AI explanation idle. Run baseline comparison first.</pre
     </div>
 
     <script>
-      function setLocalAiStatus(state, detail) {
-        const valueEl = document.getElementById("local-ai-status-value");
-        const detailEl = document.getElementById("local-ai-status-detail");
-        if (valueEl) valueEl.textContent = state || "unknown";
+      function setLocalAiStatus(status, detail) {
+        const valueEl = document.querySelector(
+          '[data-testid="local-ai-status-value"]',
+        );
+        const detailEl = document.querySelector(
+          '[data-testid="local-ai-status-detail"]',
+        );
+        const evidenceEl = document.querySelector(
+          '[data-testid="evidence-local-ai-value"]',
+        );
+        if (valueEl) valueEl.textContent = status || "unknown";
         if (detailEl) detailEl.textContent = detail || "";
+        if (evidenceEl) evidenceEl.textContent = status || "unknown";
+        const panel = document.querySelector(
+          '[data-testid="local-ai-status-panel"]',
+        );
+        if (panel)
+          panel.setAttribute(
+            "data-local-ai-state",
+            String(status).toLowerCase(),
+          );
       }
 
       const workspaceIdInput = document.getElementById("workspace-id");
@@ -1258,7 +1341,7 @@ AI explanation idle. Run baseline comparison first.</pre
         });
 
       document.addEventListener("DOMContentLoaded", () => {
-        setLocalAiStatus("ready", "Human Tester 3 selector surface loaded.");
+        setLocalAiStatus("Ready", "Sprint 57 evidence surface active.");
         if (window.rotator?.llm) {
           window.rotator.llm
             .status()
@@ -1949,6 +2032,15 @@ AI explanation idle. Run baseline comparison first.</pre
         });
 
       // Sprint compatibility block
+      // Sprint 57 — executive-evidence-panel
+      // Sprint 57 — evidence-governance-value
+      // Sprint 57 — evidence-security-value
+      // Sprint 57 — evidence-knowledge-value
+      // Sprint 57 — evidence-local-ai-value
+      // Sprint 57 — data-evidence-category
+      // Sprint 57 — data-evidence-surface
+      // Sprint 57 — data-panel-readiness
+      // Sprint 57 — data-local-ai-state
       // Sprint 56 data-testid hooks
       // data-testid="workspace-id-input"
       // data-testid="load-unified-view-btn"

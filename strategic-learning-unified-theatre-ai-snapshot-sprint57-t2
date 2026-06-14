@@ -1,0 +1,19 @@
+SPRINT 57 — T2 COMPLETE
+
+FILES:
+  tests/human/executive-evidence.spec.js  (created — 5 evidence test cases)
+  tests/human/launch.spec.js              (replaced — executive evidence surface smoke)
+  tests/ui/theme-readability.spec.js      (replaced — evidence panels + readable metrics)
+
+STATUS:
+  executive-evidence.spec.js covers: local-AI readiness, governance/traceability,
+    security posture, knowledge capability, executive metrics
+  launch.spec.js uses: executive-evidence-panel, local-ai-status-panel,
+    workspace-id-input, load-unified-view-btn, security-overview-panel, knowledge-panel
+  theme-readability.spec.js covers: 5 evidence panels + 6 metric/output elements
+  playwright.human.config.cjs includes executive-evidence.spec.js
+  All selectors use locator('[data-testid="..."]') pattern
+  No text-based selectors
+  compile clean
+
+NEXT: T3 — Vitest regression guard + sprint closure
