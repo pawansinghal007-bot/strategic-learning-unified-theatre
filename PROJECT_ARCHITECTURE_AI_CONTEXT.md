@@ -1354,3 +1354,17 @@ Trigger files changed:
 - src/ui/types.d.ts
 
 Structural change: YES
+
+
+---
+## Architecture Sync — 2026-06-14T20:11:27.578Z
+
+Trigger files changed:
+- electron-ui/main.cjs
+- src/llm/gateway.ts
+- src/llm/providers/grok.ts
+- src/llm/providers/groq.ts
+- src/llm/providers/index.ts
+- src/llm/providers/local.ts
+
+Structural change: YES

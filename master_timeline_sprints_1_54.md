@@ -47,18 +47,18 @@ that work retroactively and adds the Vitest regression guard.
 
 ## Active
 
-| Sprint | Focus                                                          | Status |
-| ------ | -------------------------------------------------------------- | ------ |
-| 56     | Selector hardening with data-testid + Playwright stabilization | Next   |
+| Sprint | Focus                                                          | Status   |
+| ------ | -------------------------------------------------------------- | -------- |
+| 56     | Selector hardening with data-testid + Playwright stabilization | Complete |
+| 57     | Human/UI regression expansion + CI hardening on stable selectors | Next     |
 
 ## Remaining
 
-| Sprint | Focus                                                       | Status  |
-| ------ | ----------------------------------------------------------- | ------- |
-| 57     | BrowserPane overlap remediation and click-safety guarantees | Planned |
-| 58     | Local-AI dashboard indicator and usability polish           | Planned |
-| 59     | Playwright CI integration and artifact publishing           | Planned |
-| 60     | Final workstation polish and packaging readiness            | Planned |
+| Sprint | Focus                                              | Status  |
+| ------ | -------------------------------------------------- | ------- |
+| 58     | Local-AI dashboard indicator and usability polish  | Planned |
+| 59     | Playwright CI integration and artifact publishing  | Planned |
+| 60     | Final workstation polish and packaging readiness   | Planned |
 
 ## Standing Architecture Rules (all future sprints)
 
