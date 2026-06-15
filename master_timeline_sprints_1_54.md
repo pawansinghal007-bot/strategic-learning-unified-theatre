@@ -64,7 +64,8 @@ Sprint 59 (Human Tester 6 — executive walkthrough panel, demo mode, exportable
 | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
 | 59     | Human Tester 6 — executive walkthrough panel, demo mode, exportable/copyable proof summary, walkthrough surface markers across governance/security/audit/timeline/knowledge, Playwright walkthrough coverage, regression guard, sprint closure. | Complete |
 | 60     | Human Tester 7 — executive compliance panel, drift-history review, compliance benchmark mapping, persisted demo-state markers, executive-compliance Playwright spec, regression guard, sprint closure.                                          | Complete |
-| 61     | TBD                                                                                                                                                                                                                                             | Next     |
+| 61     | Human Tester 8 — executive review panel, live review evidence assembly from drift/compliance/proof-summary surfaces, review export and persistence verification, executive-review Playwright spec, regression guard, sprint closure.            | Complete |
+| 62     | TBD                                                                                                                                                                                                                                             | Next     |
 
 ## Standing Architecture Rules (all future sprints)
 

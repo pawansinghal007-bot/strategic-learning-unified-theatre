@@ -12,8 +12,8 @@ test.afterAll(async () => {
   await closeElectronApp(app);
 });
 
-test.describe("Human Tester 7 launch smoke", () => {
-  test("loads evidence, proof, walkthrough, and compliance surfaces", async () => {
+test.describe("Human Tester 8 launch smoke", () => {
+  test("loads evidence, proof, walkthrough, compliance, and review surfaces", async () => {
     await expect(
       page.locator('[data-testid="executive-evidence-panel"]'),
     ).toBeVisible();
@@ -31,6 +31,9 @@ test.describe("Human Tester 7 launch smoke", () => {
     ).toBeVisible();
     await expect(
       page.locator('[data-testid="executive-compliance-panel"]'),
+    ).toBeVisible();
+    await expect(
+      page.locator('[data-testid="executive-review-panel"]'),
     ).toBeVisible();
     await expect(
       page.locator('[data-testid="local-ai-status-panel"]'),
@@ -69,5 +72,17 @@ test.describe("Human Tester 7 launch smoke", () => {
     await expect(
       page.locator('[data-testid="drift-history-output"]'),
     ).toContainText("No drift history loaded yet.");
+  });
+
+  test("review flow starts in ready state", async () => {
+    await expect(
+      page.locator('[data-testid="review-drift-source-value"]'),
+    ).toContainText("Ready");
+    await expect(
+      page.locator('[data-testid="review-benchmark-source-value"]'),
+    ).toContainText("Ready");
+    await expect(page.locator('[data-testid="review-output"]')).toContainText(
+      "Executive review initialized",
+    );
   });
 });

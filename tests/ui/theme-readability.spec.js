@@ -18,19 +18,20 @@ test.afterAll(async () => {
   await closeElectronApp(app);
 });
 
-test.describe("Human Tester 7 theme readability", () => {
+test.describe("Human Tester 8 theme readability", () => {
   test("legacy selector strings remain explicit for regression coverage", () => {
     expect(legacySelectors).toContain('data-testid="local-ai-status-panel"');
     expect(legacySelectors).toContain('data-testid="workspace-id-input"');
     expect(legacySelectors).toContain('data-testid="metric-total"');
   });
 
-  test("evidence, proof, walkthrough, and compliance panels remain visible and readable", async () => {
+  test("evidence, proof, walkthrough, compliance, and review panels remain visible and readable", async () => {
     const ids = [
       "executive-evidence-panel",
       "executive-proof-panel",
       "executive-walkthrough-panel",
       "executive-compliance-panel",
+      "executive-review-panel",
       "local-ai-status-panel",
       "security-overview-panel",
       "security-drift-panel",
@@ -41,7 +42,7 @@ test.describe("Human Tester 7 theme readability", () => {
     }
   });
 
-  test("walkthrough, summary, and compliance outputs remain visible", async () => {
+  test("walkthrough, summary, compliance, and review outputs remain visible", async () => {
     const ids = [
       "routing-summary-output",
       "timeline-output",
@@ -51,6 +52,8 @@ test.describe("Human Tester 7 theme readability", () => {
       "proof-summary-output",
       "compliance-output",
       "drift-history-output",
+      "review-output",
+      "review-export-output",
     ];
     for (const id of ids) {
       await expect(page.locator(`[data-testid="${id}"]`)).toBeVisible();

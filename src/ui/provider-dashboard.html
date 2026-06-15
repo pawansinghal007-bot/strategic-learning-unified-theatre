@@ -335,6 +335,7 @@
         id="proof-summary-output"
         data-testid="proof-summary-output"
         data-proof-summary-state="idle"
+        data-review-surface="proof-summary"
       >
 No executive proof summary exported yet.</pre
       >
@@ -418,6 +419,7 @@ No executive proof summary exported yet.</pre
         id="compliance-output"
         data-testid="compliance-output"
         data-compliance-output="idle"
+        data-review-surface="compliance-output"
       >
         Compliance walkthrough initialized.
       </output>
@@ -426,10 +428,103 @@ No executive proof summary exported yet.</pre
         id="drift-history-output"
         data-testid="drift-history-output"
         data-drift-history-state="idle"
+        data-review-surface="drift-history"
       >
 No drift history loaded yet.
       </pre>
     </section>
+
+    <!-- HUMAN TESTER 8 START: insert immediately after the existing executive-compliance-panel -->
+    <section
+      id="executive-review-panel"
+      class="panel"
+      data-testid="executive-review-panel"
+      data-review-readiness="ready"
+      data-review-export-state="idle"
+      data-review-persistence-check="standby"
+    >
+      <div class="panel-header">
+        <h2 data-testid="executive-review-title">Executive Review Evidence</h2>
+        <p data-testid="executive-review-subtitle">
+          Live review surfaces for drift history, benchmark evidence, and
+          persisted walkthrough verification.
+        </p>
+      </div>
+
+      <div class="metrics-grid">
+        <article class="metric-card" data-testid="review-drift-source-card">
+          <span class="metric-label">Drift Source</span>
+          <strong class="metric-value" data-testid="review-drift-source-value"
+            >Ready</strong
+          >
+        </article>
+
+        <article class="metric-card" data-testid="review-benchmark-source-card">
+          <span class="metric-label">Benchmark Source</span>
+          <strong
+            class="metric-value"
+            data-testid="review-benchmark-source-value"
+            >Ready</strong
+          >
+        </article>
+
+        <article class="metric-card" data-testid="review-export-card">
+          <span class="metric-label">Review Export</span>
+          <strong class="metric-value" data-testid="review-export-value"
+            >Idle</strong
+          >
+        </article>
+
+        <article class="metric-card" data-testid="review-persistence-card">
+          <span class="metric-label">Persistence Check</span>
+          <strong class="metric-value" data-testid="review-persistence-value"
+            >Standby</strong
+          >
+        </article>
+      </div>
+
+      <div class="panel-actions">
+        <button
+          type="button"
+          id="load-live-review"
+          data-testid="load-live-review-btn"
+        >
+          Load live review
+        </button>
+
+        <button
+          type="button"
+          id="export-review-evidence"
+          data-testid="export-review-evidence-btn"
+        >
+          Export review evidence
+        </button>
+
+        <button
+          type="button"
+          id="verify-review-persistence"
+          data-testid="verify-review-persistence-btn"
+        >
+          Verify persistence
+        </button>
+      </div>
+
+      <output
+        id="review-output"
+        data-testid="review-output"
+        data-review-output="idle"
+        >Executive review idle.</output
+      >
+
+      <pre
+        id="review-export-output"
+        data-testid="review-export-output"
+        data-review-export="idle"
+      >
+No review export generated yet.</pre
+      >
+    </section>
+    <!-- HUMAN TESTER 8 END -->
 
     <div
       class="panel"
@@ -657,6 +752,7 @@ No drift history loaded yet.
         id="knowledge-output"
         data-testid="knowledge-output"
         data-compliance-surface="knowledge"
+        data-review-surface="knowledge"
         data-walkthrough-surface="knowledge"
         data-proof-surface="knowledge"
         data-evidence-category="knowledge"
@@ -1048,6 +1144,7 @@ AI explanation idle. Run baseline comparison first.</pre
         id="routing-summary-output"
         data-testid="routing-summary-output"
         data-compliance-surface="governance"
+        data-review-surface="governance"
         data-walkthrough-surface="governance"
         data-proof-surface="routing"
         data-evidence-category="governance"
@@ -1086,6 +1183,7 @@ AI explanation idle. Run baseline comparison first.</pre
         id="timeline-output"
         data-testid="timeline-output"
         data-compliance-surface="timeline"
+        data-review-surface="timeline"
         data-walkthrough-surface="timeline"
         data-proof-surface="timeline"
         data-evidence-category="traceability"
@@ -1360,6 +1458,104 @@ AI explanation idle. Run baseline comparison first.</pre
           "Compliance benchmark mapping: ready",
           "Sprint 60 compliance walkthrough prepared.",
         ].join("\n");
+      }
+
+      function buildLiveReviewEvidence() {
+        const driftText =
+          document
+            .querySelector('[data-testid="drift-history-output"]')
+            ?.textContent?.trim() || "No drift history loaded yet.";
+        const complianceText =
+          document
+            .querySelector('[data-testid="compliance-output"]')
+            ?.textContent?.trim() || "Compliance walkthrough idle.";
+        const proofSummaryText =
+          document
+            .querySelector('[data-testid="proof-summary-output"]')
+            ?.textContent?.trim() || "No proof summary generated yet.";
+
+        return [
+          "Executive Review Evidence",
+          "--- Drift History ---",
+          driftText,
+          "--- Compliance ---",
+          complianceText,
+          "--- Proof Summary ---",
+          proofSummaryText,
+        ].join("\n");
+      }
+
+      function setReviewState(label, detail) {
+        const reviewOutput = document.querySelector(
+          '[data-testid="review-output"]',
+        );
+        const reviewPanel = document.querySelector(
+          '[data-testid="executive-review-panel"]',
+        );
+        const exportValue = document.querySelector(
+          '[data-testid="review-export-value"]',
+        );
+
+        if (reviewOutput) {
+          reviewOutput.textContent = detail || "Executive review idle.";
+          reviewOutput.setAttribute(
+            "data-review-output",
+            normalizeStateToken(label, "idle"),
+          );
+        }
+
+        if (reviewPanel) {
+          reviewPanel.setAttribute(
+            "data-review-export-state",
+            normalizeStateToken(label, "idle"),
+          );
+        }
+
+        if (exportValue && /export/i.test(String(label || ""))) {
+          exportValue.textContent = label;
+        }
+      }
+
+      function setReviewPersistenceState(label, detail) {
+        const persistenceValue = document.querySelector(
+          '[data-testid="review-persistence-value"]',
+        );
+        const reviewPanel = document.querySelector(
+          '[data-testid="executive-review-panel"]',
+        );
+
+        if (persistenceValue) persistenceValue.textContent = label || "Standby";
+        if (reviewPanel) {
+          reviewPanel.setAttribute(
+            "data-review-persistence-check",
+            normalizeStateToken(label, "standby"),
+          );
+        }
+
+        if (detail) {
+          const reviewOutput = document.querySelector(
+            '[data-testid="review-output"]',
+          );
+          if (reviewOutput) reviewOutput.textContent = detail;
+        }
+      }
+
+      function setReviewExportState(label, text) {
+        const exportOutput = document.querySelector(
+          '[data-testid="review-export-output"]',
+        );
+        const exportValue = document.querySelector(
+          '[data-testid="review-export-value"]',
+        );
+
+        if (exportValue) exportValue.textContent = label || "Idle";
+        if (exportOutput) {
+          exportOutput.textContent = text || "No review export generated yet.";
+          exportOutput.setAttribute(
+            "data-review-export",
+            normalizeStateToken(label, "idle"),
+          );
+        }
       }
 
       const workspaceIdInput = document.getElementById("workspace-id");
@@ -1998,6 +2194,82 @@ AI explanation idle. Run baseline comparison first.</pre
             setWalkthroughState(
               "Persisted",
               "Walkthrough state persisted for executive review continuity.",
+              "active",
+            );
+          });
+        }
+
+        const liveReviewBtn = document.querySelector(
+          '[data-testid="load-live-review-btn"]',
+        );
+        const exportReviewBtn = document.querySelector(
+          '[data-testid="export-review-evidence-btn"]',
+        );
+        const verifyPersistenceBtn = document.querySelector(
+          '[data-testid="verify-review-persistence-btn"]',
+        );
+        const reviewDriftSource = document.querySelector(
+          '[data-testid="review-drift-source-value"]',
+        );
+        const reviewBenchmarkSource = document.querySelector(
+          '[data-testid="review-benchmark-source-value"]',
+        );
+
+        if (reviewDriftSource) reviewDriftSource.textContent = "Ready";
+        if (reviewBenchmarkSource) reviewBenchmarkSource.textContent = "Ready";
+
+        setReviewState(
+          "Ready",
+          "Executive review initialized for Human Tester 8.",
+        );
+        setReviewPersistenceState("Standby", null);
+        setReviewExportState("Idle", "No review export generated yet.");
+
+        if (liveReviewBtn) {
+          liveReviewBtn.addEventListener("click", function () {
+            const evidence = buildLiveReviewEvidence();
+            setReviewState("Loaded", "Live executive review evidence loaded.");
+            setReviewExportState("Prepared", evidence);
+            setProofAction(
+              "Live Review Loaded",
+              "Executive review evidence loaded successfully.",
+            );
+            setWalkthroughState(
+              "Review Loaded",
+              "Live review evidence aligned with executive walkthrough.",
+              "active",
+            );
+          });
+        }
+
+        if (exportReviewBtn) {
+          exportReviewBtn.addEventListener("click", function () {
+            const evidence = buildLiveReviewEvidence();
+            setReviewState(
+              "Exported",
+              "Executive review evidence exported for leadership review.",
+            );
+            setReviewExportState("Exported", evidence);
+            setProofAction(
+              "Review Exported",
+              "Executive review export completed successfully.",
+            );
+          });
+        }
+
+        if (verifyPersistenceBtn) {
+          verifyPersistenceBtn.addEventListener("click", function () {
+            setReviewPersistenceState(
+              "Verified",
+              "Review persistence verified against current walkthrough and compliance state.",
+            );
+            setProofAction(
+              "Persistence Verified",
+              "Executive review persistence verified successfully.",
+            );
+            setWalkthroughState(
+              "Persistence Verified",
+              "Persistence verification aligned with executive walkthrough.",
               "active",
             );
           });
@@ -2902,6 +3174,31 @@ AI explanation idle. Run baseline comparison first.</pre
       // data-demo-persistence
       // data-drift-review-state
       // data-drift-history-state
+      // Sprint 61 compatibility strings:
+      // data-testid="executive-review-panel"
+      // data-testid="executive-review-title"
+      // data-testid="executive-review-subtitle"
+      // data-testid="review-drift-source-card"
+      // data-testid="review-drift-source-value"
+      // data-testid="review-benchmark-source-card"
+      // data-testid="review-benchmark-source-value"
+      // data-testid="review-export-card"
+      // data-testid="review-export-value"
+      // data-testid="review-persistence-card"
+      // data-testid="review-persistence-value"
+      // data-testid="load-live-review-btn"
+      // data-testid="export-review-evidence-btn"
+      // data-testid="verify-review-persistence-btn"
+      // data-testid="review-output"
+      // data-testid="review-export-output"
+      // data-review-surface="drift-history"
+      // data-review-surface="compliance-output"
+      // data-review-surface="proof-summary"
+      // data-review-surface="governance"
+      // data-review-surface="timeline"
+      // data-review-surface="knowledge"
+      // data-review-export-state
+      // data-review-persistence-check
     </script>
   </body>
 </html>

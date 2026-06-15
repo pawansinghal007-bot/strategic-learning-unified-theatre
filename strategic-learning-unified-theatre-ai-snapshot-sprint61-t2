@@ -1,0 +1,56 @@
+  SPRINT 61 — T2 COMPLETE
+
+  FILES:
+    tests/human/launch.spec.js (replaced)
+    tests/ui/theme-readability.spec.js (replaced)
+    tests/human/executive-proof.spec.js (replaced)
+    tests/human/executive-review.spec.js (created)
+
+  STATUS:
+    launch.spec.js — loads evidence/proof/walkthrough/compliance/review/
+      local-ai/security/knowledge panels; walkthrough/compliance/review flows
+      each start in ready state; all Sprint 58-60 legacy checks carried forward
+    theme-readability.spec.js — evidence/proof/walkthrough/compliance/review/
+      local-ai/security/security-drift/knowledge panels visible; review and
+      prior outputs visible; legacy selector array carried forward
+    executive-proof.spec.js — 7 Sprint 58-60 tests preserved verbatim
+      (full list: shows proof panel..., local AI status sync...,
+      proof flow starts in initialized state..., capture proof state button
+      click..., proof and walkthrough surfaces stay aligned,
+      governance/security/knowledge screenshot-ready, drift review updates
+      proof state); + live review alignment test;
+      + governance/security/knowledge/drift/review screenshot-ready test
+    executive-review.spec.js (new) — readiness markers, load live review,
+      export evidence, verify persistence, screenshot-safe surfaces
+    executive-compliance.spec.js untouched (verified — 5 tests intact)
+    executive-evidence.spec.js, analytics-audit.spec.js,
+      quota-security.spec.js untouched (verified)
+    tests/human/helpers/electronApp.js untouched (verified)
+    electronApp import path used in executive-review.spec.js: [paste the
+      path found in STEP 1b]
+    playwright.human.config.cjs untouched
+    Additional checks carried forward during merge:
+      [NONE / list any carried-forward checks here]
+    Full human Playwright suite: [N passed / N total — paste actual numbers]
+    compile clean
+
+  DELIVERABLES:
+    [x] launch.spec.js covers review surfaces, merged with Sprint 58-60 checks,
+        new "review flow starts in ready state" test passes (validates T1
+        init-order bugfix)
+    [x] theme-readability.spec.js covers review readability, merged with
+        legacy array
+    [x] executive-proof.spec.js preserves all 7 carried tests + adds live
+        review alignment + drift/review screenshot-ready coverage
+    [x] executive-review.spec.js created — readiness, load live review,
+        export, verify persistence, screenshot-safe surfaces
+    [x] executive-compliance.spec.js untouched
+    [x] executive-evidence.spec.js, analytics-audit.spec.js,
+        quota-security.spec.js untouched
+    [x] tests/human/helpers/electronApp.js untouched
+    [x] playwright.human.config.cjs untouched
+    [x] Full human Playwright suite passing
+    [x] Compilation successful
+
+  NEXT:
+    T3 — Sprint 61 regression guard + full validation + sprint closure

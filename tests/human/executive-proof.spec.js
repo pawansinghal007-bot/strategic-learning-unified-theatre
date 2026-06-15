@@ -12,7 +12,7 @@ test.afterAll(async () => {
   await closeElectronApp(app);
 });
 
-test.describe("Human Tester 7 — executive proof interactions", () => {
+test.describe("Human Tester 8 — executive proof interactions", () => {
   test("shows proof panel with readiness markers", async () => {
     await expect(
       page.locator('[data-testid="executive-proof-panel"]'),
@@ -109,5 +109,16 @@ test.describe("Human Tester 7 — executive proof interactions", () => {
       page.locator('[data-testid="knowledge-output"]'),
     ).toBeVisible();
     await expect(page.locator('[data-testid="timeline-output"]')).toBeVisible();
+    await expect(page.locator('[data-testid="review-output"]')).toBeVisible();
+  });
+
+  test("live review updates proof alignment", async () => {
+    await page.locator('[data-testid="load-live-review-btn"]').click();
+    await expect(
+      page.locator('[data-testid="proof-last-action-value"]'),
+    ).toContainText("Live Review Loaded");
+    await expect(
+      page.locator('[data-testid="review-export-output"]'),
+    ).toContainText("Executive Review Evidence");
   });
 });
