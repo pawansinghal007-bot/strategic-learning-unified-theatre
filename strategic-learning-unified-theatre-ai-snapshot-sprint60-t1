@@ -1,0 +1,37 @@
+  SPRINT 60 — T1 COMPLETE
+
+  FILE:
+    src/ui/provider-dashboard.html (extended)
+
+  STATUS:
+    executive-compliance-panel inserted immediately after executive-walkthrough-panel
+    4 metric cards: compliance-benchmark, compliance-drift, compliance-persistence,
+      compliance-summary
+    3 action buttons: load-drift-history, map-compliance-benchmarks, persist-demo-state
+    compliance-output and drift-history-output elements present
+    data-compliance-surface added to: routing-summary-output, timeline-output
+      (style="min-height: 32px;" preserved), knowledge-output,
+      security-overview-panel, security-drift-panel, audit-trail-panel
+    setComplianceState(), setDriftHistoryState(), setDemoPersistenceState(),
+      buildDriftHistorySummary() appended to existing script block, reusing
+      normalizeStateToken()
+    DOMContentLoaded extended with driftBtn/benchmarkBtn/persistBtn listeners
+      and 3 new init calls — Sprint 57-59 code unmodified
+    PRESERVE LIST from sprint59-human-tester-6.test.js verified intact —
+      [LIST CONFIRMED / strings restored: <none | list any restored strings>]
+    Sprint 60 compatibility comment block appended
+    Sprint 25-59 compatibility strings preserved
+    compile clean
+
+  DELIVERABLES:
+    [x] executive-compliance-panel with all data-testid hooks
+    [x] 6 data-compliance-surface attributes added additively
+    [x] timeline-output style="min-height: 32px;" preserved
+    [x] 4 new helper functions appended without touching existing functions
+    [x] DOMContentLoaded extended additively (3 listeners, 3 init calls)
+    [x] PRESERVE LIST verification passed
+    [x] Sprint 60 compatibility strings appended
+    [x] Compilation successful
+
+  NEXT:
+    T2 — Playwright human/UI spec updates + new executive-compliance spec

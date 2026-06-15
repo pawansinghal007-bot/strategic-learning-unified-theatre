@@ -12,8 +12,8 @@ test.afterAll(async () => {
   await closeElectronApp(app);
 });
 
-test.describe("Human Tester 6 launch smoke", () => {
-  test("loads evidence, proof, and walkthrough surfaces", async () => {
+test.describe("Human Tester 7 launch smoke", () => {
+  test("loads evidence, proof, walkthrough, and compliance surfaces", async () => {
     await expect(
       page.locator('[data-testid="executive-evidence-panel"]'),
     ).toBeVisible();
@@ -28,6 +28,9 @@ test.describe("Human Tester 6 launch smoke", () => {
     ).toBeVisible();
     await expect(
       page.locator('[data-testid="executive-walkthrough-panel"]'),
+    ).toBeVisible();
+    await expect(
+      page.locator('[data-testid="executive-compliance-panel"]'),
     ).toBeVisible();
     await expect(
       page.locator('[data-testid="local-ai-status-panel"]'),
@@ -54,5 +57,17 @@ test.describe("Human Tester 6 launch smoke", () => {
     await expect(
       page.locator('[data-testid="proof-summary-output"]'),
     ).toContainText("No executive proof summary exported yet.");
+  });
+
+  test("compliance flow starts in ready state", async () => {
+    await expect(
+      page.locator('[data-testid="compliance-benchmark-value"]'),
+    ).toContainText("Ready");
+    await expect(
+      page.locator('[data-testid="compliance-output"]'),
+    ).toContainText("Compliance walkthrough initialized");
+    await expect(
+      page.locator('[data-testid="drift-history-output"]'),
+    ).toContainText("No drift history loaded yet.");
   });
 });

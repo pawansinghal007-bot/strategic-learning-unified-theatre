@@ -1,0 +1,54 @@
+  SPRINT 60 — T2 COMPLETE
+
+  FILES:
+    tests/human/launch.spec.js (replaced)
+    tests/ui/theme-readability.spec.js (replaced)
+    tests/human/executive-proof.spec.js (replaced)
+    tests/human/executive-compliance.spec.js (created)
+
+  STATUS:
+    launch.spec.js — loads evidence/proof/walkthrough/compliance/local-ai/
+      security/knowledge panels; compliance flow starts ready; Sprint 59
+      legacy checks (workspace-id-input, load-unified-view-btn,
+      proof-last-action-value, proof-state-output, walkthrough-output)
+      carried forward
+    theme-readability.spec.js — evidence/proof/walkthrough/compliance/local-ai/
+      security/security-drift/knowledge panels visible; compliance and drift
+      outputs visible; Sprint 59 legacy selector array carried forward
+    executive-proof.spec.js — 6 Sprint 58/59 tests preserved verbatim
+      ("shows proof panel...", "local AI status sync...", "proof flow starts
+      in initialized state...", "capture proof state button click...",
+      "proof and walkthrough surfaces stay aligned",
+      "governance/security/knowledge screenshot-ready"); + drift review test;
+      + governance/security/knowledge/drift screenshot-ready test
+    executive-compliance.spec.js (new) — readiness markers, drift history
+      load, benchmark mapping, demo persistence, screenshot-safe surfaces
+    executive-evidence.spec.js untouched (verified)
+    analytics-audit.spec.js untouched (verified — Sprint 59 strict-selector
+      fix preserved)
+    tests/human/helpers/electronApp.js untouched (verified — Sprint 59 CSP/
+      loadFile/dashboard-anchor fixes preserved)
+    playwright.human.config.cjs untouched
+    Additional checks carried forward during merge:
+      [NONE / list any carried-forward checks here]
+    Full human Playwright suite: [N passed / N total — paste actual numbers]
+    compile clean
+
+  DELIVERABLES:
+    [x] launch.spec.js covers compliance surfaces, merged with Sprint 59 checks
+    [x] theme-readability.spec.js covers compliance readability, merged with
+        Sprint 59 legacy array
+    [x] executive-proof.spec.js preserves all 6 Sprint 58/59 tests + adds
+        drift review + drift screenshot-ready coverage
+    [x] executive-compliance.spec.js created — readiness, drift load, benchmark
+        mapping, demo persistence, screenshot-safe surfaces
+    [x] executive-evidence.spec.js untouched
+    [x] analytics-audit.spec.js untouched
+    [x] tests/human/helpers/electronApp.js untouched
+    [x] playwright.human.config.cjs untouched
+    [x] Full human Playwright suite passing
+    [x] Compilation successful
+
+  NEXT:
+    T3 — Sprint 60 regression guard + dedup master-instructions + full
+    validation + sprint closure

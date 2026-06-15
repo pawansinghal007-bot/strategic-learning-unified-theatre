@@ -12,7 +12,7 @@ test.afterAll(async () => {
   await closeElectronApp(app);
 });
 
-test.describe("Human Tester 6 — executive proof interactions", () => {
+test.describe("Human Tester 7 — executive proof interactions", () => {
   test("shows proof panel with readiness markers", async () => {
     await expect(
       page.locator('[data-testid="executive-proof-panel"]'),
@@ -83,5 +83,31 @@ test.describe("Human Tester 6 — executive proof interactions", () => {
     await expect(
       page.locator('[data-testid="audit-trail-panel"]'),
     ).toBeVisible();
+  });
+
+  test("drift review updates proof state", async () => {
+    await page.locator('[data-testid="load-drift-history-btn"]').click();
+    await expect(
+      page.locator('[data-testid="proof-last-action-value"]'),
+    ).toContainText("Drift History Loaded");
+    await expect(
+      page.locator('[data-testid="drift-history-output"]'),
+    ).toContainText("Executive Drift Review");
+  });
+
+  test("governance, security, knowledge, and drift surfaces are screenshot-ready", async () => {
+    await expect(
+      page.locator('[data-testid="routing-summary-output"]'),
+    ).toBeVisible();
+    await expect(
+      page.locator('[data-testid="security-overview-panel"]'),
+    ).toBeVisible();
+    await expect(
+      page.locator('[data-testid="security-drift-panel"]'),
+    ).toBeVisible();
+    await expect(
+      page.locator('[data-testid="knowledge-output"]'),
+    ).toBeVisible();
+    await expect(page.locator('[data-testid="timeline-output"]')).toBeVisible();
   });
 });
