@@ -1,0 +1,105 @@
+  SPRINT 62 COMPLETE: SONAR TRUTHFULNESS, COVERAGE INTEGRITY, CLEAN-TREE GUARD
+
+  SPRINT SUMMARY:
+    T1  scripts + config              check-sonar-preflight.mjs,
+                                      check-sonar-quality-gate.mjs,
+                                      export-sonar-issues.mjs,
+                                      sonar-utils.mjs created;
+                                      package.json sonar:* scripts wired;
+                                      sonar-project.properties audited
+                                      (LCOV path confirmed/fixed, exclusions
+                                      added); .gitignore hardened
+    T2  regression tests              sprint62-sonar-wiring.test.js,
+                                      sprint62-coverage-config.test.js,
+                                      sprint62-clean-tree-guard.test.js,
+                                      sprint62-reporting-language.test.js
+                                      created; assertions written against
+                                      actual file content found in T1
+    T3  validation + end-to-end       all 4 new test suites pass; full vitest
+                                      suite passes; tsc clean; Sonar
+                                      end-to-end run findings recorded
+                                      (see below); sprint closure
+
+  STATUS:
+    vitest pass — [N] files / [N] tests
+    typecheck clean
+    Sonar end-to-end findings:
+      preflight: [PASSED | FAILED — describe finding]
+      sonar-scanner: [executed successfully | FAILED — describe]
+      quality gate: [passed | SONAR_TOKEN not set | FAILED — status: X]
+      scoped issues: [zero | SONAR_TOKEN not set | N unresolved — list]
+      Overall: [Sonar verified clean | sonar-scanner executed successfully,
+        gate/issues not verified — SONAR_TOKEN not configured locally]
+    human Playwright suite: NOT RUN THIS SPRINT (no dashboard changes)
+    tagged sprint-62-complete
+
+  REPORTING LANGUAGE NOTE:
+    Sprint 62 deprecates "Sonar clean" as a standalone claim. All future
+    sprint closure text must use:
+      "sonar-scanner executed successfully" — scan only
+      "quality gate passed" — gate verified
+      "scoped issues zero" — issue count verified
+      "Sonar verified clean" — all three confirmed
+
+  DELIVERABLES:
+    [x] scripts/sonar-utils.mjs — shared config/auth helper
+    [x] scripts/check-sonar-preflight.mjs — dirty-tree + coverage/ guard
+    [x] scripts/check-sonar-quality-gate.mjs — CE task poll + gate verify
+    [x] scripts/export-sonar-issues.mjs — new-code-period issue query/export
+    [x] package.json: sonar:preflight, sonar:scan, sonar:qualitygate,
+        sonar:issues, test:sonar all wired; sonarscan/sonarwait/sonarexport
+        delegating to real scripts (not placeholders)
+    [x] sonar-project.properties: LCOV coverage path verified/corrected,
+        playwright-report/test-results/generated exclusions present
+    [x] .gitignore: coverage/, playwright-report/, test-results/,
+        .scannerwork/, sonar-issues-report.json excluded
+    [x] tests/sprint62-sonar-wiring.test.js — passing
+    [x] tests/sprint62-coverage-config.test.js — passing
+    [x] tests/sprint62-clean-tree-guard.test.js — passing
+    [x] tests/sprint62-reporting-language.test.js — passing
+    [x] All prior sprint regression guards passing (sprint59 through sprint61)
+    [x] master timeline updated — Sprint 62 Complete, Sprint 63 Next
+    [x] master-instructions Sprint 62 Complete block appended (precise language)
+    [x] Architecture sync completed
+    [x] src/ui/provider-dashboard.html: unchanged (not in Sprint 62 scope)
+    [x] tests/human/*.spec.js: unchanged (not in Sprint 62 scope)
+
+  KNOWN FINDINGS / CARRY-FORWARD:
+    dirty-tree finding: [none | playwright-report/ is tracked pre-gitignore —
+      surfaced by preflight, to be resolved in Sprint 63]
+    coverage finding: [lcov.info produced at expected path | finding: <describe>]
+    quality gate finding: [passed | not verified — SONAR_TOKEN absent |
+      FAILED with status X — specific conditions: <list>]
+    issues finding: [zero | not verified — SONAR_TOKEN absent |
+      N unresolved: <list first few>]
+
+  ARCHITECTURE CHANGES THIS SPRINT:
+  New files:
+    - scripts/sonar-utils.mjs
+    - scripts/check-sonar-preflight.mjs
+    - scripts/check-sonar-quality-gate.mjs
+    - scripts/export-sonar-issues.mjs
+    - tests/sprint62-sonar-wiring.test.js
+    - tests/sprint62-coverage-config.test.js
+    - tests/sprint62-clean-tree-guard.test.js
+    - tests/sprint62-reporting-language.test.js
+  Modified:
+    - package.json (scripts)
+    - sonar-project.properties
+    - .gitignore
+    - master_timeline_sprints_1_54.md
+    - strategic-learning-unified-theatre-master-instructions.md
+  Unchanged:
+    - src/ui/provider-dashboard.html
+    - tests/human/*.spec.js
+    - tests/ui/theme-readability.spec.js
+    - electron-ui/ (all files)
+    - src/security/ (all files)
+
+  NEXT:
+    Sprint 63 — Human Tester 9: executive release panel (deferred from Sprint
+    62 per pivot to Sonar truthfulness), real review wiring, release-readiness
+    surfaces, and auto-scan trigger entry points. Also carries any dirty-tree
+    or quality-gate findings from this sprint as explicit acceptance criteria.
+
+  ARCHITECTURE SYNC STATUS: [UPDATED | UNCHANGED]

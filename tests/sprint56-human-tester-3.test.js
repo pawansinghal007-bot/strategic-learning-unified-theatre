@@ -1,18 +1,23 @@
 import { describe, it, expect } from "vitest";
+import { loadDashboardSurface } from "./dashboard-loader.js";
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 
 const root = process.cwd();
 function read(rel) {
+  if (rel === "src/ui/provider-dashboard.html") {
+    return loadDashboardSurface();
+  }
   return readFileSync(join(root, rel), "utf8");
 }
+
 function exists(rel) {
   return existsSync(join(root, rel));
 }
 
-describe("Sprint 56 — data-testid regression guard", () => {
-  it("local-AI status panel elements are present in dashboard", () => {
-    const html = read("src/ui/provider-dashboard.html");
+describe("Sprint 56 human tester 3 — regression guard", () => {
+  it("local AI status panel has data-testid attributes", () => {
+    const html = loadDashboardSurface();
     expect(html).toContain('data-testid="local-ai-status-panel"');
     expect(html).toContain('data-testid="local-ai-status-value"');
     expect(html).toContain('data-testid="local-ai-status-detail"');
@@ -20,7 +25,7 @@ describe("Sprint 56 — data-testid regression guard", () => {
   });
 
   it("key input fields have data-testid attributes", () => {
-    const html = read("src/ui/provider-dashboard.html");
+    const html = loadDashboardSurface();
     expect(html).toContain('data-testid="workspace-id-input"');
     expect(html).toContain('data-testid="filter-provider-input"');
     expect(html).toContain('data-testid="filter-start-input"');
@@ -28,7 +33,7 @@ describe("Sprint 56 — data-testid regression guard", () => {
   });
 
   it("primary action buttons have data-testid attributes", () => {
-    const html = read("src/ui/provider-dashboard.html");
+    const html = loadDashboardSurface();
     expect(html).toContain('data-testid="load-unified-view-btn"');
     expect(html).toContain('data-testid="refresh-routing-history-btn"');
     expect(html).toContain('data-testid="clear-routing-history-btn"');
@@ -38,7 +43,7 @@ describe("Sprint 56 — data-testid regression guard", () => {
   });
 
   it("metric tiles have data-testid attributes", () => {
-    const html = read("src/ui/provider-dashboard.html");
+    const html = loadDashboardSurface();
     expect(html).toContain('data-testid="metric-total"');
     expect(html).toContain('data-testid="metric-success-rate"');
     expect(html).toContain('data-testid="metric-error-rate"');
@@ -46,13 +51,13 @@ describe("Sprint 56 — data-testid regression guard", () => {
   });
 
   it("security panels have data-testid attributes", () => {
-    const html = read("src/ui/provider-dashboard.html");
+    const html = loadDashboardSurface();
     expect(html).toContain('data-testid="security-overview-panel"');
     expect(html).toContain('data-testid="security-drift-panel"');
   });
 
   it("all Sprint 25-55 compatibility strings are preserved", () => {
-    const html = read("src/ui/provider-dashboard.html");
+    const html = loadDashboardSurface();
     expect(html).toContain("Workspace Analytics");
     expect(html).toContain("Provider Trends");
     expect(html).toContain("Decision Timeline");

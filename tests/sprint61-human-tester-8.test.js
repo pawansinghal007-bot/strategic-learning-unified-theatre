@@ -1,15 +1,15 @@
 import fs from "node:fs";
 import path from "node:path";
 import { describe, it, expect } from "vitest";
+import { loadDashboardSurface } from './dashboard-loader.js';
 
-const dashboardPath = path.resolve("src/ui/provider-dashboard.html");
 const launchSpecPath = path.resolve("tests/human/launch.spec.js");
 const themeSpecPath = path.resolve("tests/ui/theme-readability.spec.js");
 const proofSpecPath = path.resolve("tests/human/executive-proof.spec.js");
 const reviewSpecPath = path.resolve("tests/human/executive-review.spec.js");
 
 describe("Sprint 61 Human Tester 8 regression guard", () => {
-  const dashboard = fs.readFileSync(dashboardPath, "utf8");
+  const dashboard = loadDashboardSurface();
 
   it("includes executive review panel hooks", () => {
     expect(dashboard).toContain('data-testid="executive-review-panel"');

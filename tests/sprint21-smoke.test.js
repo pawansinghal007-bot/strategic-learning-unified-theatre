@@ -1,3 +1,4 @@
+import { loadDashboardSurface } from "./dashboard-loader.js";
 import {
   markProviderFromError,
   isProviderAvailable,

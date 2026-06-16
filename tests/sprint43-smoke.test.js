@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from "fs";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { join } from "path";
 import { describe, it, expect } from "vitest";
 import { buildKnowledgePromptBlock } from "../src/knowledge/index.js";

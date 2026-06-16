@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from 'fs';
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { join } from 'path';
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
@@ -227,7 +228,7 @@ describe('Sprint 33 smoke tests — IPC and surface files', () => {
   });
 
   it('dashboard contains Time Buckets panel', () => {
-    const html = readFileSync(join(process.cwd(), 'src/ui/provider-dashboard.html'), 'utf-8');
+    const html = loadDashboardSurface()
     expect(html).toContain('Time Buckets');
     expect(html).toContain('Global Analytics');
     expect(html).toContain('workspaceRouting.buckets');
@@ -235,7 +236,7 @@ describe('Sprint 33 smoke tests — IPC and surface files', () => {
   });
 
   it('dashboard preserves Sprint 32 compatibility strings', () => {
-    const html = readFileSync(join(process.cwd(), 'src/ui/provider-dashboard.html'), 'utf-8');
+    const html = loadDashboardSurface()
     expect(html).toContain('Workspace Analytics');
     expect(html).toContain('Provider Trends');
     expect(html).toContain('Decision Timeline');

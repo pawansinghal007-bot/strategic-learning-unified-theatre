@@ -1,4 +1,5 @@
 import { Gateway } from "../src/llm/gateway.js";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { LocalProviderAdapter } from "../src/llm/providers/local.js";
 import { BaseProviderAdapter } from "../src/llm/providers/base.js";
 import { normalizeProviderError } from "../src/shared/errors/provider-map.js";

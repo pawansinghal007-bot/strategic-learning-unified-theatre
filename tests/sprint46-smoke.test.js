@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 
@@ -60,10 +61,7 @@ describe("Sprint 46 smoke tests — file surface", () => {
   });
 
   it("dashboard has Security Overview panel above Secrets panel", () => {
-    const html = readFileSync(
-      join(process.cwd(), "src/ui/provider-dashboard.html"),
-      "utf-8",
-    );
+    const html = loadDashboardSurface();
     expect(html).toContain("security-overview-panel");
     expect(html).toContain("security-load-overview");
     expect(html).toContain("security-save-baseline");
@@ -75,10 +73,7 @@ describe("Sprint 46 smoke tests — file surface", () => {
   });
 
   it("dashboard preserves Sprint 25–45 compatibility strings", () => {
-    const html = readFileSync(
-      join(process.cwd(), "src/ui/provider-dashboard.html"),
-      "utf-8",
-    );
+    const html = loadDashboardSurface();
     expect(html).toContain("Workspace Analytics");
     expect(html).toContain("Audit Trail");
     expect(html).toContain("Workspace Approvals");

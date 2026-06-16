@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -82,7 +83,7 @@ describe('Sprint 52 smoke tests — bulk triage surface', () => {
   });
 
   it('dashboard is unchanged — Sprint 44-51 surfaces still present', () => {
-    const html = read('src/ui/provider-dashboard.html');
+    const html = loadDashboardSurface();
     expect(html).toContain('security-overview-panel');
     expect(html).toContain('security-drift-panel');
     expect(html).toContain('Workspace Analytics');

@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { loadDashboardSurface } from './dashboard-loader.js';
 
 describe("Sprint 51 — triage normalization regression", () => {
   it("normalizeTriageStatus coerces unknown values to open", async () => {

@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 

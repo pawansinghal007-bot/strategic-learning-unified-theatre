@@ -1,4 +1,5 @@
 import { Gateway } from '../src/llm/gateway';
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { LocalProviderAdapter } from '../src/llm/providers/local';
 import { logger } from '../src/shared/logging/logger';
 import { RoutingNoProviderError, ValidationFailedError } from '../src/shared/errors';

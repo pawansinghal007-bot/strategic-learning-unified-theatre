@@ -1,4 +1,5 @@
 import { existsSync } from 'fs';
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { join } from 'path';
 import {
   getProviderPolicy,
@@ -153,7 +154,7 @@ describe('Sprint 27 smoke tests — file existence', () => {
 
   it('dashboard references providerPolicy', () => {
     const { readFileSync } = require('fs');
-    const html = readFileSync(join(process.cwd(), 'src/ui/provider-dashboard.html'), 'utf-8');
+    const html = loadDashboardSurface()
     expect(html).toContain('providerPolicy');
   });
 });

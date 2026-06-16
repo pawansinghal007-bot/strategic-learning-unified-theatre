@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from "fs";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { join } from "path";
 import {
   getProviderHealthSnapshot,
@@ -162,7 +163,13 @@ describe("Sprint 25 — Provider Telemetry IPC and Dashboard", () => {
         process.cwd(),
         "src/ui/provider-dashboard.html",
       );
-      dashboardContent = readFileSync(dashboardPath, "utf8");
+
+      const jsPath = join(process.cwd(), "src/ui/dashboard.js");
+
+      dashboardContent =
+        readFileSync(dashboardPath, "utf8") +
+        "\n" +
+        (existsSync(jsPath) ? readFileSync(jsPath, "utf8") : "");
     });
 
     it("is HTML document", () => {
@@ -355,8 +362,16 @@ describe("Sprint 25 — Provider Telemetry IPC and Dashboard", () => {
         process.cwd(),
         "src/ui/provider-dashboard.html",
       );
-      const dashboardContent = readFileSync(dashboardPath, "utf8");
+
+      const jsPath = join(process.cwd(), "src/ui/dashboard.js");
+
+      const dashboardContent =
+        readFileSync(dashboardPath, "utf8") +
+        "\n" +
+        (existsSync(jsPath) ? readFileSync(jsPath, "utf8") : "");
+
       expect(dashboardContent).toContain("window.providerTelemetry.getStatus");
+
       expect(dashboardContent).toContain(
         "window.providerTelemetry.resetHealth",
       );

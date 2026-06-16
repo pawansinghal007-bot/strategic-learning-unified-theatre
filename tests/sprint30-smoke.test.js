@@ -1,4 +1,5 @@
 import { existsSync } from "fs";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { join } from "path";
 import {
   getWorkspacePolicyOverride,
@@ -147,21 +148,13 @@ describe("Sprint 30 smoke tests — IPC file existence and channel coverage", ()
   });
 
   it("dashboard references workspacePolicy.resolve", () => {
-    const { readFileSync } = require("fs");
-    const html = readFileSync(
-      join(process.cwd(), "src/ui/provider-dashboard.html"),
-      "utf-8",
-    );
+    const html = loadDashboardSurface();
     expect(html).toContain("workspacePolicy");
     expect(html).toContain("resolve");
   });
 
   it("dashboard references workspaceContext.buildPrompt", () => {
-    const { readFileSync } = require("fs");
-    const html = readFileSync(
-      join(process.cwd(), "src/ui/provider-dashboard.html"),
-      "utf-8",
-    );
+    const html = loadDashboardSurface();
     expect(html).toContain("buildPrompt");
   });
 

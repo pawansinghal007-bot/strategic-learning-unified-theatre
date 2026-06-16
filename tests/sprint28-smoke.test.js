@@ -1,4 +1,5 @@
 import { existsSync } from "fs";
+import { loadDashboardSurface } from "./dashboard-loader.js";
 import { join } from "path";
 import {
   listPolicyPresets,
@@ -177,11 +178,7 @@ describe("Sprint 28 smoke tests — file existence", () => {
   });
 
   it("dashboard references listPresets", () => {
-    const { readFileSync } = require("fs");
-    const html = readFileSync(
-      join(process.cwd(), "src/ui/provider-dashboard.html"),
-      "utf-8",
-    );
+    const html = loadDashboardSurface();
     expect(html).toContain("listPresets");
   });
 });

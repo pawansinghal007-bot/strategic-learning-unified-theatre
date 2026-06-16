@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { describe, it, expect } from "vitest";
+import { loadDashboardSurface } from './dashboard-loader.js';
 
 const qualityGatePath = path.resolve("scripts/check-sonar-quality-gate.mjs");
 const issuesPath = path.resolve("scripts/export-sonar-issues.mjs");

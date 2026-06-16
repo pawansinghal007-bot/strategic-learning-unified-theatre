@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 
 import { loadSprint, saveSprint } from "../src/agent-handoff.js";
+import { loadDashboardSurface } from './dashboard-loader.js';
 
 function validSprint(overrides = {}) {
   return {

@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { loadDashboardSurface } from './dashboard-loader.js';
 
 describe("Sprint 50 — T1 backend unit tests", () => {
   describe("schema — TRIAGE_STATUSES", () => {

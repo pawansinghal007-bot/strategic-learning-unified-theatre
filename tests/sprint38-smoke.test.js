@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { existsSync, readFileSync } from "fs";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { join } from "path";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
@@ -210,10 +211,7 @@ describe("Sprint 38 smoke tests — file surface and IPC", () => {
   });
 
   it("dashboard has audit verification badge and alert", () => {
-    const html = readFileSync(
-      join(process.cwd(), "src/ui/provider-dashboard.html"),
-      "utf-8",
-    );
+    const html = loadDashboardSurface();
     expect(html).toContain("audit-verification-badge");
     expect(html).toContain("audit-verification-alert");
     expect(html).toContain("Audit verification failed");
@@ -224,10 +222,7 @@ describe("Sprint 38 smoke tests — file surface and IPC", () => {
   });
 
   it("dashboard preserves Sprint 25–37 compatibility strings", () => {
-    const html = readFileSync(
-      join(process.cwd(), "src/ui/provider-dashboard.html"),
-      "utf-8",
-    );
+    const html = loadDashboardSurface();
     expect(html).toContain("Workspace Analytics");
     expect(html).toContain("Provider Trends");
     expect(html).toContain("Decision Timeline");
@@ -240,10 +235,7 @@ describe("Sprint 38 smoke tests — file surface and IPC", () => {
   });
 
   it("dashboard Sprint 37 approvals surface is preserved", () => {
-    const html = readFileSync(
-      join(process.cwd(), "src/ui/provider-dashboard.html"),
-      "utf-8",
-    );
+    const html = loadDashboardSurface();
     expect(html).toContain("load-workspace-approvals");
     expect(html).toContain("resolve-workspace-approval");
     expect(html).toContain("window.workspaceApproval.list");

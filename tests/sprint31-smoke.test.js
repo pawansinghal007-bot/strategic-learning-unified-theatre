@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from "fs";
+import { loadDashboardSurface } from "./dashboard-loader.js";
 import { join } from "path";
 import {
   recordRoutingDecision,
@@ -143,10 +144,7 @@ describe("Sprint 31 smoke tests — file existence", () => {
   });
 
   it("dashboard contains unified workspace view", () => {
-    const source = readFileSync(
-      join(process.cwd(), "src/ui/provider-dashboard.html"),
-      "utf-8",
-    );
+    const source = loadDashboardSurface();
     expect(source).toContain("Unified Workspace View");
     expect(source).toContain("workspacePolicy.resolve");
     expect(source).toContain("workspaceContext.get");

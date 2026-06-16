@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from "fs";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { join } from "path";
 import {
   recordRoutingDecision,
@@ -179,10 +180,7 @@ describe("Sprint 32 smoke tests — file surface", () => {
   });
 
   it("dashboard includes analytics and explainability sections", () => {
-    const source = readFileSync(
-      join(process.cwd(), "src/ui/provider-dashboard.html"),
-      "utf-8",
-    );
+    const source = loadDashboardSurface();
     expect(source).toContain("Workspace Analytics");
     expect(source).toContain("Provider Trends");
     expect(source).toContain("Decision Timeline");

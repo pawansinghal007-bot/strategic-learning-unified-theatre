@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from "fs";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { join } from "path";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
@@ -281,10 +282,7 @@ describe("Sprint 40 smoke tests — file surface and IPC", () => {
   });
 
   it("dashboard includes Sprint 40 quota rollup, notifications, and reset controls", () => {
-    const html = readFileSync(
-      join(process.cwd(), "src/ui/provider-dashboard.html"),
-      "utf-8",
-    );
+    const html = loadDashboardSurface();
     expect(html).toContain("load-workspace-quota-rollup");
     expect(html).toContain("load-workspace-quota-notifications");
     expect(html).toContain("reset-workspace-quota-daily");
@@ -296,10 +294,7 @@ describe("Sprint 40 smoke tests — file surface and IPC", () => {
   });
 
   it("dashboard preserves Sprint 25-39 compatibility strings", () => {
-    const html = readFileSync(
-      join(process.cwd(), "src/ui/provider-dashboard.html"),
-      "utf-8",
-    );
+    const html = loadDashboardSurface();
     expect(html).toContain("Workspace Analytics & Explainability");
     expect(html).toContain("Workspace Analytics");
     expect(html).toContain("Provider Trends");

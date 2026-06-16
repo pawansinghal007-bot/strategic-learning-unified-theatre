@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 
@@ -71,7 +72,7 @@ describe("Sprint 48 smoke tests — file surface", () => {
   });
 
   it("dashboard has Security Drift panel", () => {
-    const html = read("src/ui/provider-dashboard.html");
+    const html = loadDashboardSurface();
     expect(html).toContain("security-drift-panel");
     expect(html).toContain("security-drift-baseline-path");
     expect(html).toContain("security-drift-compare-btn");
@@ -82,7 +83,7 @@ describe("Sprint 48 smoke tests — file surface", () => {
   });
 
   it("dashboard Security Drift panel appears after Security Overview panel", () => {
-    const html = read("src/ui/provider-dashboard.html");
+    const html = loadDashboardSurface();
     const overviewIdx = html.indexOf("security-overview-panel");
     const driftIdx = html.indexOf("security-drift-panel");
     expect(overviewIdx).toBeGreaterThan(-1);
@@ -90,7 +91,7 @@ describe("Sprint 48 smoke tests — file surface", () => {
   });
 
   it("dashboard preserves Sprint 25–47 compatibility strings", () => {
-    const html = read("src/ui/provider-dashboard.html");
+    const html = loadDashboardSurface();
     expect(html).toContain("Workspace Analytics");
     expect(html).toContain("Audit Trail");
     expect(html).toContain("Workspace Quotas");

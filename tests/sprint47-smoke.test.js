@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import fs from "node:fs";
 import path from "node:path";
 
@@ -86,7 +87,7 @@ describe("Sprint 47 smoke tests — file surface", () => {
   });
 
   it("dashboard has triage controls", () => {
-    const text = read("src/ui/provider-dashboard.html");
+    const text = loadDashboardSurface();
     expect(text).toContain("security-triage-path");
     expect(text).toContain("security-triage-fingerprint");
     expect(text).toContain("security-triage-status");
@@ -96,20 +97,20 @@ describe("Sprint 47 smoke tests — file surface", () => {
   });
 
   it("dashboard has triage metric cards", () => {
-    const text = read("src/ui/provider-dashboard.html");
+    const text = loadDashboardSurface();
     expect(text).toContain("security-open");
     expect(text).toContain("security-accepted");
     expect(text).toContain("security-resolved");
   });
 
   it("dashboard calls workspaceSecurity.setTriage and .loadTriage", () => {
-    const text = read("src/ui/provider-dashboard.html");
+    const text = loadDashboardSurface();
     expect(text).toContain("workspaceSecurity.setTriage");
     expect(text).toContain("workspaceSecurity.loadTriage");
   });
 
   it("dashboard preserves Sprint 46 security overview strings", () => {
-    const text = read("src/ui/provider-dashboard.html");
+    const text = loadDashboardSurface();
     expect(text).toContain("security-overview-panel");
     expect(text).toContain("security-total");
     expect(text).toContain("security-load-overview");
@@ -118,14 +119,14 @@ describe("Sprint 47 smoke tests — file surface", () => {
   });
 
   it("dashboard preserves Sprint 44/45 scanner panels", () => {
-    const text = read("src/ui/provider-dashboard.html");
+    const text = loadDashboardSurface();
     expect(text).toContain("Secrets Scanning");
     expect(text).toContain("Dependency & Image Risks");
     expect(text).toContain("risks-panel");
   });
 
   it("dashboard preserves Sprint 43 and earlier compatibility strings", () => {
-    const text = read("src/ui/provider-dashboard.html");
+    const text = loadDashboardSurface();
     expect(text).toContain("Workspace Analytics & Explainability");
     expect(text).toContain("Audit Trail");
     expect(text).toContain("Workspace Quotas");

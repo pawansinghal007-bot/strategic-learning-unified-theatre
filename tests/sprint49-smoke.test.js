@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import fs from "node:fs";
 import path from "node:path";
 
@@ -99,7 +100,7 @@ describe("Sprint 49 smoke tests — file surface", () => {
   });
 
   it("dashboard has AI Finding Explanation panel", () => {
-    const text = read("src/ui/provider-dashboard.html");
+    const text = loadDashboardSurface();
     expect(text).toContain("AI Finding Explanation");
     expect(text).toContain("security-ai-panel");
     expect(text).toContain("security-ai-explain-btn");
@@ -108,32 +109,32 @@ describe("Sprint 49 smoke tests — file surface", () => {
   });
 
   it("dashboard wires explainIntroduced and uses latestSecurityDriftResult", () => {
-    const text = read("src/ui/provider-dashboard.html");
+    const text = loadDashboardSurface();
     expect(text).toContain("window.workspaceSecurity.explainIntroduced");
     expect(text).toContain("latestSecurityDriftResult");
   });
 
   it("dashboard preserves Sprint 48 Security Drift panel", () => {
-    const text = read("src/ui/provider-dashboard.html");
+    const text = loadDashboardSurface();
     expect(text).toContain("Security Drift");
     expect(text).toContain("window.workspaceSecurity.compareBaseline");
   });
 
   it("dashboard preserves Sprint 47 Security Overview triage controls", () => {
-    const text = read("src/ui/provider-dashboard.html");
+    const text = loadDashboardSurface();
     expect(text).toContain("security-set-triage");
     expect(text).toContain("security-load-triage");
   });
 
   it("dashboard preserves Sprint 44-46 scanner panels", () => {
-    const text = read("src/ui/provider-dashboard.html");
+    const text = loadDashboardSurface();
     expect(text).toContain("Secrets Scanning");
     expect(text).toContain("Dependency & Image Risks");
     expect(text).toContain("Security Overview");
   });
 
   it("dashboard preserves Sprint 43 and earlier compatibility strings", () => {
-    const text = read("src/ui/provider-dashboard.html");
+    const text = loadDashboardSurface();
     expect(text).toContain("Workspace Analytics & Explainability");
     expect(text).toContain("Audit Trail");
     expect(text).toContain("metric-success-rate");

@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import fs from "node:fs";
 import path from "node:path";
 
@@ -76,7 +77,7 @@ describe("Sprint 44 smoke tests — file surface", () => {
   });
 
   it("dashboard includes Secrets Scanning panel", () => {
-    const text = read("src/ui/provider-dashboard.html");
+    const text = loadDashboardSurface();
     expect(text).toContain("Secrets Scanning");
     expect(text).toContain("secrets-scan-btn");
     expect(text).toContain("secrets-findings-body");
@@ -85,7 +86,7 @@ describe("Sprint 44 smoke tests — file surface", () => {
   });
 
   it("dashboard Knowledge panel shows score column and filter input", () => {
-    const text = read("src/ui/provider-dashboard.html");
+    const text = loadDashboardSurface();
     expect(text).toContain("knowledge-filter");
     expect(text).toContain("knowledge-results-body");
     expect(text).toContain("<th>Score</th>");
@@ -93,7 +94,7 @@ describe("Sprint 44 smoke tests — file surface", () => {
   });
 
   it("dashboard preserves Sprint 43 compatibility strings", () => {
-    const text = read("src/ui/provider-dashboard.html");
+    const text = loadDashboardSurface();
     expect(text).toContain("Knowledge Layer");
     expect(text).toContain("knowledge-ingest-btn");
     expect(text).toContain("Workspace Quotas");

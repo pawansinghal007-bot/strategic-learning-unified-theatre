@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { readFileSync } from "fs";
 import { join } from "path";
 
@@ -157,36 +158,36 @@ describe("Sprint 50 smoke tests — consolidated T1-T3 surface", () => {
 
   describe("dashboard surface — T3", () => {
     it("has driftClassificationBadge element", () => {
-      const h = read("src/ui/provider-dashboard.html");
+      const h = loadDashboardSurface();
       expect(h).toContain("driftClassificationBadge");
     });
     it("has driftClassificationLabel element", () => {
-      const h = read("src/ui/provider-dashboard.html");
+      const h = loadDashboardSurface();
       expect(h).toContain("driftClassificationLabel");
     });
     it("calls getDriftClassification in JS", () => {
-      const h = read("src/ui/provider-dashboard.html");
+      const h = loadDashboardSurface();
       expect(h).toContain("getDriftClassification");
     });
     it("badge call is inside try/catch (non-fatal)", () => {
-      const h = read("src/ui/provider-dashboard.html");
+      const h = loadDashboardSurface();
       expect(h).toContain("driftClassificationBadge");
       expect(h).toContain("catch (_e)");
     });
     it("preserves latestSecurityDriftResult cache (Sprint 49)", () => {
-      const h = read("src/ui/provider-dashboard.html");
+      const h = loadDashboardSurface();
       expect(h).toContain("latestSecurityDriftResult");
     });
     it("preserves explainIntroduced (Sprint 49)", () => {
-      const h = read("src/ui/provider-dashboard.html");
+      const h = loadDashboardSurface();
       expect(h).toContain("explainIntroduced");
     });
     it("preserves security-drift-panel (Sprint 48)", () => {
-      const h = read("src/ui/provider-dashboard.html");
+      const h = loadDashboardSurface();
       expect(h).toContain("security-drift-panel");
     });
     it("preserves security-overview-panel (Sprint 46)", () => {
-      const h = read("src/ui/provider-dashboard.html");
+      const h = loadDashboardSurface();
       expect(h).toContain("security-overview-panel");
     });
   });

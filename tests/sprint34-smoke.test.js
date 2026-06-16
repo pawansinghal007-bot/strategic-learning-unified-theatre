@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from "fs";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { join } from "path";
 import {
   recordRoutingDecision,
@@ -193,10 +194,7 @@ describe("Sprint 34 smoke tests — file surface", () => {
   });
 
   it("dashboard contains chart and comparison panels", () => {
-    const source = readFileSync(
-      join(process.cwd(), "src/ui/provider-dashboard.html"),
-      "utf-8",
-    );
+    const source = loadDashboardSurface();
     expect(source).toContain("Bucket Chart");
     expect(source).toContain("Provider Comparison");
     expect(source).toContain("Downloadable Report Artifact");
@@ -206,10 +204,7 @@ describe("Sprint 34 smoke tests — file surface", () => {
   });
 
   it("dashboard preserves required compatibility strings", () => {
-    const source = readFileSync(
-      join(process.cwd(), "src/ui/provider-dashboard.html"),
-      "utf-8",
-    );
+    const source = loadDashboardSurface();
     expect(source).toContain("Workspace Analytics");
     expect(source).toContain("Provider Trends");
     expect(source).toContain("Decision Timeline");

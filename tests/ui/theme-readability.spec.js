@@ -32,6 +32,7 @@ test.describe("Human Tester 8 theme readability", () => {
       "executive-walkthrough-panel",
       "executive-compliance-panel",
       "executive-review-panel",
+      "executive-release-panel",
       "local-ai-status-panel",
       "security-overview-panel",
       "security-drift-panel",
@@ -42,7 +43,7 @@ test.describe("Human Tester 8 theme readability", () => {
     }
   });
 
-  test("walkthrough, summary, compliance, and review outputs remain visible", async () => {
+  test("walkthrough, summary, compliance, review, and release outputs remain visible", async () => {
     const ids = [
       "routing-summary-output",
       "timeline-output",
@@ -54,6 +55,8 @@ test.describe("Human Tester 8 theme readability", () => {
       "drift-history-output",
       "review-output",
       "review-export-output",
+      "release-readiness-output",
+      "release-blockers-output",
     ];
     for (const id of ids) {
       await expect(page.locator(`[data-testid="${id}"]`)).toBeVisible();

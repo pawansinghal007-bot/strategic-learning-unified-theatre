@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from "fs";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { join } from "path";
 import { describe, it, expect, vi } from "vitest";
 
@@ -134,10 +135,7 @@ describe("Sprint 42 smoke tests — file surface", () => {
   });
 
   it("dashboard has knowledge panel elements", () => {
-    const html = readFileSync(
-      join(process.cwd(), "src/ui/provider-dashboard.html"),
-      "utf-8",
-    );
+    const html = loadDashboardSurface();
     expect(html).toContain("knowledge-ingest");
     expect(html).toContain("knowledge-search");
     expect(html).toContain("window.workspaceKnowledge.ingest");
@@ -145,10 +143,7 @@ describe("Sprint 42 smoke tests — file surface", () => {
   });
 
   it("dashboard preserves Sprint 25–41 compatibility strings", () => {
-    const html = readFileSync(
-      join(process.cwd(), "src/ui/provider-dashboard.html"),
-      "utf-8",
-    );
+    const html = loadDashboardSurface();
     expect(html).toContain("Workspace Analytics");
     expect(html).toContain("Audit Trail");
     expect(html).toContain("Workspace Approvals");

@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import fs from "node:fs";
 import path from "node:path";
 
@@ -182,7 +183,7 @@ describe("Sprint 53 — types.d.ts cross-surface regression", () => {
 
 describe("Sprint 53 — dashboard cross-surface regression", () => {
   it("dashboard has security overview and drift panels", () => {
-    const html = read("src/ui/provider-dashboard.html");
+    const html = loadDashboardSurface();
     expect(html).toContain("security-overview-panel");
     expect(html).toContain("security-drift-panel");
     expect(html).toContain("window.workspaceSecurity.summarize");
@@ -190,7 +191,7 @@ describe("Sprint 53 — dashboard cross-surface regression", () => {
   });
 
   it("dashboard has all Sprint 25-50 analytics panels", () => {
-    const html = read("src/ui/provider-dashboard.html");
+    const html = loadDashboardSurface();
     expect(html).toContain("Workspace Analytics");
     expect(html).toContain("Audit Trail");
     expect(html).toContain("Workspace Quotas");
@@ -199,7 +200,7 @@ describe("Sprint 53 — dashboard cross-surface regression", () => {
   });
 
   it("dashboard compatibility comment block contains Sprint 44-52 strings", () => {
-    const html = read("src/ui/provider-dashboard.html");
+    const html = loadDashboardSurface();
     expect(html).toContain("security-overview-panel");
     expect(html).toContain("security-drift-panel");
     expect(html).toContain("window.workspaceSecurity.compareBaseline");

@@ -85,4 +85,13 @@ test.describe("Human Tester 8 launch smoke", () => {
       "Executive review initialized",
     );
   });
+
+  test("release flow starts in ready state", async () => {
+    await expect(
+      page.locator('[data-testid="executive-release-panel"]'),
+    ).toBeVisible();
+    await expect(
+      page.locator('[data-testid="release-readiness-output"]'),
+    ).toContainText("Release is currently blocked");
+  });
 });

@@ -1,7 +1,7 @@
+import { loadDashboardSurface } from "./dashboard-loader.js";
 import fs from "node:fs";
 import path from "node:path";
 
-const dashboardPath = path.resolve("src/ui/provider-dashboard.html");
 const launchSpecPath = path.resolve("tests/human/launch.spec.js");
 const themeSpecPath = path.resolve("tests/ui/theme-readability.spec.js");
 const evidenceSpecPath = path.resolve("tests/human/executive-evidence.spec.js");
@@ -10,7 +10,7 @@ describe("Sprint 57 Human Tester 4 — regression guard", () => {
   let dashboard;
 
   beforeAll(() => {
-    dashboard = fs.readFileSync(dashboardPath, "utf8");
+    dashboard = loadDashboardSurface();
   });
 
   describe("executive evidence panel hooks", () => {

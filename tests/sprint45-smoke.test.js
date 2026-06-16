@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import fs from "node:fs";
 import path from "node:path";
 
@@ -89,7 +90,7 @@ describe("Sprint 45 smoke tests — file surface", () => {
   });
 
   it("dashboard includes Dependency & Image Risks panel", () => {
-    const text = read("src/ui/provider-dashboard.html");
+    const text = loadDashboardSurface();
     expect(text).toContain("Dependency & Image Risks");
     expect(text).toContain("risks-panel");
     expect(text).toContain("risks-scan-deps");
@@ -100,21 +101,21 @@ describe("Sprint 45 smoke tests — file surface", () => {
   });
 
   it("dashboard preserves Sprint 44 Secrets Scanning panel", () => {
-    const text = read("src/ui/provider-dashboard.html");
+    const text = loadDashboardSurface();
     expect(text).toContain("Secrets Scanning");
     expect(text).toContain("secrets-scan-btn");
     expect(text).toContain("window.secrets.scan");
   });
 
   it("dashboard preserves Sprint 44 Knowledge panel compatibility strings", () => {
-    const text = read("src/ui/provider-dashboard.html");
+    const text = loadDashboardSurface();
     expect(text).toContain("Knowledge Layer");
     expect(text).toContain("knowledge-filter");
     expect(text).toContain("knowledge-results-body");
   });
 
   it("dashboard preserves Sprint 43 and earlier compatibility strings", () => {
-    const text = read("src/ui/provider-dashboard.html");
+    const text = loadDashboardSurface();
     expect(text).toContain("Workspace Analytics & Explainability");
     expect(text).toContain("Workspace Quotas");
     expect(text).toContain("Audit Trail");

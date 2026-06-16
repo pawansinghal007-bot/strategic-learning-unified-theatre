@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { describe, it, expect } from "vitest";
+import { loadDashboardSurface } from './dashboard-loader.js';
 
 const propsPath = path.resolve("sonar-project.properties");
 const pkgPath = path.resolve("package.json");

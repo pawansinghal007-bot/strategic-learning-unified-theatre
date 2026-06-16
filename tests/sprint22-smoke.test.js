@@ -1,4 +1,5 @@
 import { getProviderStatus, resetProviderStatus } from "../src/llm/status.js";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import {
   markProviderFromError,
   resetProviderHealth,

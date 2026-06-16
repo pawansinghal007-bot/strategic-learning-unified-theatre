@@ -1,5 +1,6 @@
 import { existsSync } from 'fs';
 import { join } from 'path';
+import { loadDashboardSurface } from './dashboard-loader.js';
 import {
   recordRoutingDecision,
   getRoutingHistory,
@@ -186,8 +187,7 @@ describe('Sprint 26 smoke tests — file existence', () => {
   });
 
   it('dashboard HTML contains getRoutingHistory reference', () => {
-    const { readFileSync } = require('fs');
-    const content = readFileSync(join(process.cwd(), 'src/ui/provider-dashboard.html'), 'utf-8');
+    const content = loadDashboardSurface();
     expect(content).toContain('getRoutingHistory');
   });
 

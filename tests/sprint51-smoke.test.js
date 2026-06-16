@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 
@@ -92,7 +93,7 @@ describe("Sprint 51 smoke tests — security surface regression", () => {
   });
 
   it("Sprint 44-50 scanner panels still present in dashboard", () => {
-    const html = read("src/ui/provider-dashboard.html");
+    const html = loadDashboardSurface();
     const required = [
       "security-overview-panel",
       "security-drift-panel",

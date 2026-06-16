@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from "fs";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { join } from "path";
 
 // Stable wrapper — the mock factory closes over `store`, so
@@ -232,10 +233,7 @@ describe("Sprint 36 smoke tests — file surface", () => {
   });
 
   it("dashboard includes Audit Trail panel", () => {
-    const source = readFileSync(
-      join(process.cwd(), "src/ui/provider-dashboard.html"),
-      "utf-8",
-    );
+    const source = loadDashboardSurface();
     expect(source).toContain("Audit Trail");
     expect(source).toContain("load-audit-events");
     expect(source).toContain("verify-audit-log");
@@ -245,10 +243,7 @@ describe("Sprint 36 smoke tests — file surface", () => {
   });
 
   it("dashboard preserves Sprint 35 compatibility strings", () => {
-    const source = readFileSync(
-      join(process.cwd(), "src/ui/provider-dashboard.html"),
-      "utf-8",
-    );
+    const source = loadDashboardSurface();
     expect(source).toContain("Workspace Analytics");
     expect(source).toContain("Provider Trends");
     expect(source).toContain("Decision Timeline");
