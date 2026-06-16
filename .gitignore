@@ -45,3 +45,54 @@ vite-config.txt
 playwright-config.txt
 root-package.txt
 architecture-review.txt
+# ── AI Snapshots & Baselines ──────────────────────────────
+strategic-learning-unified-theatre-ai-snapshot-*/
+PROJECT_ARCHITECTURE_BASELINE-*.md
+ai-snapshot-sprint*.md
+
+# ── Sprint debug/temp scripts ─────────────────────────────
+diagnose*.cjs
+diagnose*.js
+fix-dashboard*.cjs
+fix-dashboard*.js
+fix-ipc.cjs
+debug-plugin-run.mjs
+dashboard-loader.js
+
+# ── Sonar Artifacts ───────────────────────────────────────
+sonar_*.csv
+sonar_*.json
+sonar_issues.md
+sonar-project.properties
+
+# ── Audit & Session Logs ─────────────────────────────────
+audit-log-ws-*
+audit_chunks/
+project_audit_dump.txt
+git-history.txt
+dumps/
+
+# ── Sprint & Temp Data ────────────────────────────────────
+sprint*.csv
+sprint*.txt
+sprint*-report.md
+remaining_*.txt
+impacted-tests.txt
+test_summary.txt
+tmp-test-*/
+smoke-test-sprint*.js
+
+# ── IDE / Tool Caches ─────────────────────────────────────
+.codex/
+.continue/
+.continuerc.json
+
+# ── Archive Directory ─────────────────────────────────────
+.archive/
+# ── Test backup files ─────────────────────────────────────
+tests/**/*.bak
+*.bak
+
+# ── Windows Zone.Identifier streams ──────────────────────
+*.Identifier
+*:Zone.Identifier
