@@ -1,0 +1,37 @@
+  SPRINT 62 — T2 COMPLETE
+
+  FILES:
+    tests/sprint62-sonar-wiring.test.js (created)
+    tests/sprint62-coverage-config.test.js (created)
+    tests/sprint62-clean-tree-guard.test.js (created)
+    tests/sprint62-reporting-language.test.js (created)
+
+  STATUS:
+    sprint62-sonar-wiring.test.js — asserts no-placeholder sonar:* scripts,
+      script file existence, CE task polling, fail-closed on non-OK status,
+      new-code-period issues query, dirty-tree git check; all assertions
+      written against ACTUAL content found in STEP 1
+    sprint62-coverage-config.test.js — asserts projectKey/host.url set,
+      lcov coverage path present and correct, playwright-report/test-results
+      excluded, vitest config references coverage; actual sonar-project.properties
+      projectKey: [paste actual value], coverage path key: [paste actual key]
+    sprint62-clean-tree-guard.test.js — asserts .gitignore entries for
+      coverage/, playwright-report/, test-results/, .scannerwork/,
+      sonar-issues-report.json; asserts preflight script checks all of them;
+      asserts fail-closed on git status error
+    sprint62-reporting-language.test.js — asserts "Quality gate passed" /
+      "Scoped issues zero" / "FAILED" language in scripts; Sprint 62
+      master-instructions block pre-check (passes until block is written)
+    Existing test files: untouched (verified)
+    compile clean [if run]
+
+  DELIVERABLES:
+    [x] tests/sprint62-sonar-wiring.test.js — no-placeholder assertion suite
+    [x] tests/sprint62-coverage-config.test.js — LCOV/exclusion coverage config suite
+    [x] tests/sprint62-clean-tree-guard.test.js — .gitignore and preflight script suite
+    [x] tests/sprint62-reporting-language.test.js — precision language suite
+    [x] No existing test files touched
+
+  NEXT:
+    T3 — run all new regression tests, full vitest suite, tsc, Sonar scan
+    (best-effort), sprint closure

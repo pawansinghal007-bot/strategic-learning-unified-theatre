@@ -1,0 +1,32 @@
+SPRINT 62 — T1 COMPLETE
+
+FILES:
+package.json (scripts updated)
+sonar-project.properties (updated)
+.gitignore (updated)
+scripts/sonar-utils.mjs (created)
+scripts/check-sonar-preflight.mjs (created)
+scripts/check-sonar-quality-gate.mjs (created)
+scripts/export-sonar-issues.mjs (created)
+
+STATUS:
+package.json: existing "test" script preserved as unchanged; existing "coverage" script preserved as unchanged; added sonar:preflight, sonar:scan (using npx sonar-scanner), sonar:qualitygate, sonar:issues, test:sonar; no legacy sonarscan/sonarwait/sonarexport keys were present in this checkout to update.
+sonar-project.properties: projectKey=strategic-learning-unified-theatre, host.url=http://localhost:9000/, coverage report path=coverage/lcov.info (confirmed to match the Vitest coverage output); added exclusions for playwright-report/**, playwright-report-human/**, playwright-report-ui/**, test-results/**, .scannerwork/**, and added sonar.coverage.exclusions for generated directories.
+.gitignore: added sonar-issues-report.json; existing generated-artifact entries were already present.
+git status --porcelain dirty-artifact finding: none for coverage/, playwright-report/, playwright-report-human/, test-results/, .scannerwork/, or sonar-issues-report.json in this pass; only the working-tree edits for the sprint files themselves are present.
+Sonar token env var used: SONAR_TOKEN.
+node --check passed on all 4 new script files.
+compile clean.
+
+DELIVERABLES:
+[x] scripts/sonar-utils.mjs created — shared config/auth helper
+[x] scripts/check-sonar-preflight.mjs created — fails on dirty generated artifacts or missing coverage/
+[x] scripts/check-sonar-quality-gate.mjs created — polls CE task API, checks project_status, fails closed on any uncertainty
+[x] scripts/export-sonar-issues.mjs created — queries unresolved new-code issues, writes sonar-issues-report.json, fails if total > 0
+[x] package.json sonar:* scripts wired to real commands (no placeholders)
+[x] sonar-project.properties coverage path and exclusions verified/fixed
+[x] .gitignore covers all generated-artifact directories
+[x] Compilation successful
+
+NEXT:
+T2 — Sprint 62 regression tests (sonar wiring, coverage config, clean-tree guard, reporting-language precision)

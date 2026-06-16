@@ -33,6 +33,7 @@ playwright-report/
 playwright-report-human/
 playwright-report-ui/
 test-results/
+sonar-issues-report.json
 electron-ui/*.bundled.cjs
 electron-ui/src-loader.cjs
 *.tar.gz

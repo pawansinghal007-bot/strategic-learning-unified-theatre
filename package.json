@@ -47,9 +47,11 @@
     "sonar:validate-waivers": "node scripts/validate-waivers.mjs",
     "sonar:reconcile": "node scripts/reconcile-hotspot-register.mjs",
     "sonar:check": "node scripts/check-sonar-readiness.mjs",
-    "sonar:scan": "echo 'not implemented'",
-    "sonar:wait": "echo 'not implemented'",
-    "sonar:export": "echo 'not implemented'",
+    "sonar:preflight": "node scripts/check-sonar-preflight.mjs",
+    "sonar:scan": "npx sonar-scanner",
+    "sonar:qualitygate": "node scripts/check-sonar-quality-gate.mjs",
+    "sonar:issues": "node scripts/export-sonar-issues.mjs",
+    "test:sonar": "npm run sonar:preflight && npm run sonar:scan && npm run sonar:qualitygate && npm run sonar:issues",
     "build:electron-main": "node scripts/build-electron-main.mjs"
   },
   "engines": {
