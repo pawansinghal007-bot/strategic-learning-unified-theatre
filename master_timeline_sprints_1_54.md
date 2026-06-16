@@ -66,7 +66,9 @@ Sprint 59 (Human Tester 6 — executive walkthrough panel, demo mode, exportable
 | 60     | Human Tester 7 — executive compliance panel, drift-history review, compliance benchmark mapping, persisted demo-state markers, executive-compliance Playwright spec, regression guard, sprint closure.                                                                                                                                        | Complete |
 | 61     | Human Tester 8 — executive review panel, live review evidence assembly from drift/compliance/proof-summary surfaces, review export and persistence verification, executive-review Playwright spec, regression guard, sprint closure.                                                                                                          | Complete |
 | 62     | Sonar truthfulness and coverage integrity — replaced placeholder Sonar npm scripts with real preflight/qualitygate/issues checks, audited sonar-project.properties LCOV path and exclusions, hardened .gitignore against generated artifacts, added 4 regression test suites for Sonar wiring/config/clean-tree/reporting-language precision. | Complete |
-| 63     | Human Tester 9 — executive release panel (deferred from Sprint 62), real review wiring, and release-readiness surfaces.                                                                                                                                                                                                                       | Next     |
+| 63     | Human Tester 9 — executive release panel (deferred from Sprint 62), real review wiring, and release-readiness surfaces.                                                                                                                                                                                                                       | Complete |
+| 64     | Sonar S7761 dataset migration: setAttribute('data-*') converted to .dataset across all executive panel helper functions (setProofAction, setLocalAiStatus, setWalkthroughState, setProofSummaryState, setComplianceState, setDriftHistoryState, setDemoPersistenceState, setReviewState, setReviewPersistenceState, setReviewExportState, setReleaseBlockersState, setReleaseState). sprint64-dataset-migration.test.js regression guard added. Repo cleanup: Sprint 63 debug artifacts removed, .gitignore hardened. | Complete |
+| 65     | TBD — candidates: remaining Sonar conditions if gate still failing (new_coverage, new_security_hotspots_reviewed), cognitive complexity reduction in provider-dashboard.html, Playwright GitHub Actions workflow, CI smoke grouping.                                                                                                            | Next     |
 
 ## Standing Architecture Rules (all future sprints)
 
@@ -78,3 +80,6 @@ Sprint 59 (Human Tester 6 — executive walkthrough panel, demo mode, exportable
 - All IPC handlers use lazy require() inside handler functions
 - Playwright tests live in tests/human/ and tests/ui/
   and run via playwright.human.config.cjs / playwright.ui.config.cjs
+
+Sprint 63 (Executive Release Truth Panel) is complete.
+Sprint 64 (Sonar Dataset Migration) is complete.

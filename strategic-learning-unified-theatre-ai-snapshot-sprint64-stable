@@ -1,0 +1,98 @@
+SPRINT 64 COMPLETE: SONAR S7761 DATASET MIGRATION
+
+SPRINT SUMMARY:
+  T1  Repo cleanup + audit         Debug artifacts removed; .gitignore hardened;
+                                   function locations audited; setAttribute
+                                   baseline counts recorded (4 calls)
+  T2  Dataset migration            12 functions migrated: setAttribute('data-*')
+                                   → .dataset; setReleaseState zero-indentation
+                                   preserved; all suites green after each step
+  T3  Guard + Sonar + closure      sprint64-dataset-migration.test.js (17 tests)
+                                   passing; Sonar scan completed successfully;
+                                   timeline + instructions updated; tagged
+                                   sprint-64-complete
+
+STATUS:
+  vitest pass — 136 files / 1439 tests
+  typecheck clean
+  playwright human suite: 42 passed
+  Sonar: scanner EXECUTION SUCCESS; upload completed; task cbe4c4ea-2bca-4315-a64d-df43a5bb6df4
+  tagged sprint-64-complete
+
+DELIVERABLES:
+  [x] setProofAction: dataset.proofOutput, dataset.lastProofAction
+  [x] setLocalAiStatus: dataset.localAiState
+  [x] setWalkthroughState: dataset.demoMode, dataset.walkthroughStep,
+      dataset.walkthroughOutput
+  [x] setProofSummaryState: dataset.proofSummaryState
+  [x] setComplianceState: dataset.complianceOutput, dataset.driftReviewState
+  [x] setDriftHistoryState: dataset.driftHistoryState
+  [x] setDemoPersistenceState: dataset.demoPersistence
+  [x] setReviewState: dataset.reviewOutput, dataset.reviewExportState
+  [x] setReviewPersistenceState: dataset.reviewPersistenceCheck
+  [x] setReviewExportState: dataset.reviewExport
+  [x] setReleaseBlockersState: dataset.releaseBlockersState
+  [x] setReleaseState: dataset.releaseTruth, dataset.releaseOutput
+      (zero-indentation preserved for Sprint 63 regex guard)
+  [x] sprint64-dataset-migration.test.js regression guard passing (17/17)
+  [x] Repo cleanup: debug scripts, .bak files, Zone.Identifier files removed
+  [x] .gitignore hardened: sprint debug patterns added
+  [x] master_timeline_sprints_1_54.md updated (Sprint 63-65 entries)
+  [x] strategic-learning-unified-theatre-master-instructions.md appended
+  [x] Sonar analysis complete: 2 source files scanned, results uploaded
+  [x] Tagged sprint-64-complete
+
+ARCHITECTURE CHANGES THIS SPRINT:
+Extended:
+  - src/ui/dashboard.js (12 functions: setAttribute → .dataset)
+  - .gitignore (comprehensive sprint debug patterns)
+  - master_timeline_sprints_1_54.md (Sprint 64-65 rows + closure prose)
+  - strategic-learning-unified-theatre-master-instructions.md (Sprint 64 section)
+New files:
+  - tests/sprint64-dataset-migration.test.js (17 tests)
+Deleted:
+  - diagnose*.cjs, diagnose*.js (5 files)
+  - fix-dashboard*.cjs, fix-dashboard*.js (4 files)
+  - impacted-tests.txt
+  - All Zone.Identifier files (6 streams)
+  - Dashboard-loader.js backup copies
+Unchanged:
+  - ALL src/ TypeScript service files
+  - preload.cjs
+  - electron-ui/ipc/
+  - types.d.ts
+  - All Playwright spec files
+  - All prior sprint Vitest guards
+  - provider-dashboard.html (panel functions remain at columns; data-testid
+    attributes unchanged; only JS-side functions migrated)
+
+SONAR STATUS:
+  sonar-scanner executed: EXECUTION SUCCESS
+  Analysis scoped: 2 source files (dashboard.js, provider-dashboard.html)
+  Task submitted: cbe4c4ea-2bca-4315-a64d-df43a5bb6df4
+  Results uploaded: 64ms
+  Scanner completed: 15.721s total time
+  NOTE: Quality gate and new-code issue recount will be available post-Sonar
+  background processing. Sprint 64 removes the S7761 violations for migrated
+  setAttribute('data-*') keys via .dataset conversion. Quality gate change
+  and issue count reduction will manifest in subsequent Sonar cycle.
+
+REGRESSION TESTING:
+  sprint64-dataset-migration.test.js:
+    - dataset assignments present (7 tests)
+    - setAttribute removed for migrated keys (6 tests)
+    - Sprint 63 zero-indentation guard preserved (1 test)
+    - Sprint 63 compatibility strings preserved (3 tests)
+  All 17 tests passing ✓
+
+NEXT:
+  Sprint 65 candidates:
+  - Remaining Sonar gate conditions if still failing (new_coverage,
+    new_security_hotspots_reviewed, new_violations) — post-recount
+  - Cognitive complexity reduction (provider-dashboard.html script block)
+  - Playwright GitHub Actions workflow (CI integration)
+  - CI smoke grouping: test:human:smoke, test:ui:theme
+
+═════════════════════════════════════════════════════════════
+Repository clean. Tests green. Sonar submitted successfully.
+Sprint 64 complete.

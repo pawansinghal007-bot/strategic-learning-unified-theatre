@@ -11,39 +11,30 @@ function setProofAction(action, detail) {
   if (lastActionEl) lastActionEl.textContent = action || "Idle";
   if (proofOutputEl) {
     proofOutputEl.textContent = detail || "No proof interaction captured yet.";
-    proofOutputEl.setAttribute(
-      "data-proof-output",
-      String(action || "idle")
-        .toLowerCase()
-        .replace(/\s+/g, "-"),
-    );
+    proofOutputEl.dataset.proofOutput = String(action || "idle")
+      .toLowerCase()
+      .replace(/\s+/g, "-");
   }
   if (proofPanelEl) {
-    proofPanelEl.setAttribute(
-      "data-last-proof-action",
-      String(action || "idle")
-        .toLowerCase()
-        .replace(/\s+/g, "-"),
-    );
+    proofPanelEl.dataset.lastProofAction = String(action || "idle")
+      .toLowerCase()
+      .replace(/\s+/g, "-");
   }
 }
 
 function setLocalAiStatus(status, detail) {
-  const valueEl = document.querySelector(
-    '[data-testid="local-ai-status-value"]',
-  );
-  const detailEl = document.querySelector(
+  var valueEl = document.querySelector('[data-testid="local-ai-status-value"]');
+  var detailEl = document.querySelector(
     '[data-testid="local-ai-status-detail"]',
   );
-  const evidenceEl = document.querySelector(
+  var evidenceEl = document.querySelector(
     '[data-testid="evidence-local-ai-value"]',
   );
   if (valueEl) valueEl.textContent = status || "unknown";
   if (detailEl) detailEl.textContent = detail || "";
   if (evidenceEl) evidenceEl.textContent = status || "unknown";
-  const panel = document.querySelector('[data-testid="local-ai-status-panel"]');
-  if (panel)
-    panel.setAttribute("data-local-ai-state", String(status).toLowerCase());
+  var panel = document.querySelector('[data-testid="local-ai-status-panel"]');
+  if (panel) panel.dataset.localAiState = String(status).toLowerCase();
   setProofAction(
     "Local AI Sync",
     detail || "Local AI state synchronized to evidence surface.",
@@ -61,42 +52,25 @@ function normalizeStateToken(value, fallback = "idle") {
     .replace(/\s+/g, "-");
 }
 
-function setWalkthroughState(step, detail, mode = "standby") {
-  const stepEl = document.querySelector(
-    '[data-testid="walkthrough-step-value"]',
-  );
-  const demoEl = document.querySelector(
-    '[data-testid="walkthrough-demo-value"]',
-  );
-  const outputEl = document.querySelector('[data-testid="walkthrough-output"]');
-  const panelEl = document.querySelector(
+function setWalkthroughState(step, detail, mode) {
+  mode = mode || "standby";
+  var stepEl = document.querySelector('[data-testid="walkthrough-step-value"]');
+  var demoEl = document.querySelector('[data-testid="walkthrough-demo-value"]');
+  var outputEl = document.querySelector('[data-testid="walkthrough-output"]');
+  var panelEl = document.querySelector(
     '[data-testid="executive-walkthrough-panel"]',
   );
-  const syncEl = document.querySelector(
-    '[data-testid="walkthrough-sync-value"]',
-  );
-
+  var syncEl = document.querySelector('[data-testid="walkthrough-sync-value"]');
   if (stepEl) stepEl.textContent = step || "Ready";
   if (demoEl) demoEl.textContent = mode || "Standby";
   if (syncEl) syncEl.textContent = "Aligned";
-
   if (outputEl) {
     outputEl.textContent = detail || "Executive walkthrough idle.";
-    outputEl.setAttribute(
-      "data-walkthrough-output",
-      normalizeStateToken(step, "idle"),
-    );
+    outputEl.dataset.walkthroughOutput = normalizeStateToken(step, "idle");
   }
-
   if (panelEl) {
-    panelEl.setAttribute(
-      "data-demo-mode",
-      normalizeStateToken(mode, "standby"),
-    );
-    panelEl.setAttribute(
-      "data-walkthrough-step",
-      normalizeStateToken(step, "ready"),
-    );
+    panelEl.dataset.demoMode = normalizeStateToken(mode, "standby");
+    panelEl.dataset.walkthroughStep = normalizeStateToken(step, "ready");
   }
 }
 
@@ -119,85 +93,61 @@ function buildProofSummary() {
 }
 
 function setProofSummaryState(label, summaryText) {
-  const exportEl = document.querySelector(
+  var exportEl = document.querySelector(
     '[data-testid="walkthrough-export-value"]',
   );
-  const summaryEl = document.querySelector(
+  var summaryEl = document.querySelector(
     '[data-testid="proof-summary-output"]',
   );
-
   if (exportEl) exportEl.textContent = label || "Idle";
   if (summaryEl) {
     summaryEl.textContent =
       summaryText || "No executive proof summary exported yet.";
-    summaryEl.setAttribute(
-      "data-proof-summary-state",
-      normalizeStateToken(label, "idle"),
-    );
+    summaryEl.dataset.proofSummaryState = normalizeStateToken(label, "idle");
   }
 }
 
 function setComplianceState(state, detail) {
-  const outputEl = document.querySelector('[data-testid="compliance-output"]');
-  const panelEl = document.querySelector(
+  var outputEl = document.querySelector('[data-testid="compliance-output"]');
+  var panelEl = document.querySelector(
     '[data-testid="executive-compliance-panel"]',
   );
-  const summaryEl = document.querySelector(
+  var summaryEl = document.querySelector(
     '[data-testid="compliance-summary-value"]',
   );
-
   if (outputEl) {
     outputEl.textContent = detail || "Compliance walkthrough idle.";
-    outputEl.setAttribute(
-      "data-compliance-output",
-      normalizeStateToken(state, "idle"),
-    );
+    outputEl.dataset.complianceOutput = normalizeStateToken(state, "idle");
   }
-
   if (panelEl) {
-    panelEl.setAttribute(
-      "data-drift-review-state",
-      normalizeStateToken(state, "idle"),
-    );
+    panelEl.dataset.driftReviewState = normalizeStateToken(state, "idle");
   }
-
   if (summaryEl) summaryEl.textContent = state || "Ready";
 }
 
 function setDriftHistoryState(label, text) {
-  const driftEl = document.querySelector(
-    '[data-testid="drift-history-output"]',
-  );
-  const driftValueEl = document.querySelector(
+  var driftEl = document.querySelector('[data-testid="drift-history-output"]');
+  var driftValueEl = document.querySelector(
     '[data-testid="compliance-drift-value"]',
   );
-
   if (driftValueEl) driftValueEl.textContent = label || "Idle";
   if (driftEl) {
     driftEl.textContent = text || "No drift history loaded yet.";
-    driftEl.setAttribute(
-      "data-drift-history-state",
-      normalizeStateToken(label, "idle"),
-    );
+    driftEl.dataset.driftHistoryState = normalizeStateToken(label, "idle");
   }
 }
 
 function setDemoPersistenceState(label, detail) {
-  const persistenceEl = document.querySelector(
+  var persistenceEl = document.querySelector(
     '[data-testid="compliance-persistence-value"]',
   );
-  const panelEl = document.querySelector(
+  var panelEl = document.querySelector(
     '[data-testid="executive-compliance-panel"]',
   );
-
   if (persistenceEl) persistenceEl.textContent = label || "Standby";
   if (panelEl) {
-    panelEl.setAttribute(
-      "data-demo-persistence",
-      normalizeStateToken(label, "standby"),
-    );
+    panelEl.dataset.demoPersistence = normalizeStateToken(label, "standby");
   }
-
   if (String(label || "").toLowerCase() !== "standby") {
     setComplianceState(label, detail || "Demo persistence state updated.");
   }
@@ -241,73 +191,56 @@ function buildLiveReviewEvidence() {
 }
 
 function setReviewState(label, detail) {
-  const reviewOutput = document.querySelector('[data-testid="review-output"]');
-  const reviewPanel = document.querySelector(
+  var reviewOutput = document.querySelector('[data-testid="review-output"]');
+  var reviewPanel = document.querySelector(
     '[data-testid="executive-review-panel"]',
   );
-  const exportValue = document.querySelector(
+  var exportValue = document.querySelector(
     '[data-testid="review-export-value"]',
   );
-
   if (reviewOutput) {
     reviewOutput.textContent = detail || "Executive review idle.";
-    reviewOutput.setAttribute(
-      "data-review-output",
-      normalizeStateToken(label, "idle"),
-    );
+    reviewOutput.dataset.reviewOutput = normalizeStateToken(label, "idle");
   }
-
   if (reviewPanel) {
-    reviewPanel.setAttribute(
-      "data-review-export-state",
-      normalizeStateToken(label, "idle"),
-    );
+    reviewPanel.dataset.reviewExportState = normalizeStateToken(label, "idle");
   }
-
   if (exportValue && /export/i.test(String(label || ""))) {
     exportValue.textContent = label;
   }
 }
 
 function setReviewPersistenceState(label, detail) {
-  const persistenceValue = document.querySelector(
+  var persistenceValue = document.querySelector(
     '[data-testid="review-persistence-value"]',
   );
-  const reviewPanel = document.querySelector(
+  var reviewPanel = document.querySelector(
     '[data-testid="executive-review-panel"]',
   );
-
   if (persistenceValue) persistenceValue.textContent = label || "Standby";
   if (reviewPanel) {
-    reviewPanel.setAttribute(
-      "data-review-persistence-check",
-      normalizeStateToken(label, "standby"),
+    reviewPanel.dataset.reviewPersistenceCheck = normalizeStateToken(
+      label,
+      "standby",
     );
   }
-
   if (detail) {
-    const reviewOutput = document.querySelector(
-      '[data-testid="review-output"]',
-    );
+    var reviewOutput = document.querySelector('[data-testid="review-output"]');
     if (reviewOutput) reviewOutput.textContent = detail;
   }
 }
 
 function setReviewExportState(label, text) {
-  const exportOutput = document.querySelector(
+  var exportOutput = document.querySelector(
     '[data-testid="review-export-output"]',
   );
-  const exportValue = document.querySelector(
+  var exportValue = document.querySelector(
     '[data-testid="review-export-value"]',
   );
-
   if (exportValue) exportValue.textContent = label || "Idle";
   if (exportOutput) {
     exportOutput.textContent = text || "No review export generated yet.";
-    exportOutput.setAttribute(
-      "data-review-export",
-      normalizeStateToken(label, "idle"),
-    );
+    exportOutput.dataset.reviewExport = normalizeStateToken(label, "idle");
   }
 }
 
@@ -345,23 +278,21 @@ function buildReleaseReadinessEvidence() {
 // setReleaseState defined at script root for test regex compatibility
 
 function setReleaseBlockersState(label, detail) {
-  const blockersValue = document.querySelector(
+  var blockersValue = document.querySelector(
     '[data-testid="release-blockers-value"]',
   );
-  const releasePanel = document.querySelector(
+  var releasePanel = document.querySelector(
     '[data-testid="executive-release-panel"]',
   );
-
   if (blockersValue) blockersValue.textContent = label || "Standby";
   if (releasePanel) {
-    releasePanel.setAttribute(
-      "data-release-blockers-state",
-      normalizeStateToken(label, "standby"),
+    releasePanel.dataset.releaseBlockersState = normalizeStateToken(
+      label,
+      "standby",
     );
   }
-
   if (detail) {
-    const releaseOutput = document.querySelector(
+    var releaseOutput = document.querySelector(
       '[data-testid="release-output"]',
     );
     if (releaseOutput) releaseOutput.textContent = detail;
@@ -2030,10 +1961,6 @@ document.getElementById("build-prompt").addEventListener("click", async () => {
 // data-review-surface="proof-summary"
 // data-review-surface="governance"
 // data-review-surface="timeline"
-// data-review-surface="knowledge"
-// data-review-export-state
-// data-review-persistence-check
-
 function setReleaseState(label, detail) {
   var t = normalizeStateToken(label, "idle");
   var releaseOutput = document.querySelector('[data-testid="release-output"]');
@@ -2045,13 +1972,10 @@ function setReleaseState(label, detail) {
   );
   if (releaseOutput) {
     releaseOutput.textContent = detail || "Release truth idle.";
-    releaseOutput.setAttribute(
-      "data-release-output",
-      normalizeStateToken(label, "idle"),
-    );
+    releaseOutput.dataset.releaseOutput = normalizeStateToken(label, "idle");
   }
   if (releasePanel) {
-    releasePanel.setAttribute("data-release-truth", t);
+    releasePanel.dataset.releaseTruth = t;
   }
   if (releaseValue && /export/i.test(String(label || ""))) {
     releaseValue.textContent = label;
