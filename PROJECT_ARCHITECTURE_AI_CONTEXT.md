@@ -1368,3 +1368,12 @@ Trigger files changed:
 - src/llm/providers/local.ts
 
 Structural change: YES
+
+
+---
+## Architecture Sync — 2026-06-17T23:57:49.257Z
+
+Trigger files changed:
+- src/llm/gateway.ts
+
+Structural change: YES

@@ -750,23 +750,12 @@ function attachIfExists(selector, handler) {
     "Executive proof flow initialized for Human Tester 5.",
   );
 
-  const captureBtn = document.querySelector(
-    '[data-testid="capture-proof-state-btn"]',
-  );
   attachIfExists('[data-testid="capture-proof-state-btn"]', function () {
     setProofAction(
       "Proof Captured",
       "Executive proof state captured across governance, security, knowledge, and local AI surfaces.",
     );
   });
-
-  const demoBtn = document.querySelector('[data-testid="start-demo-mode-btn"]');
-  const exportBtn = document.querySelector(
-    '[data-testid="export-proof-summary-btn"]',
-  );
-  const copyBtn = document.querySelector(
-    '[data-testid="copy-proof-summary-btn"]',
-  );
 
   attachIfExists('[data-testid="start-demo-mode-btn"]', function () {
     setWalkthroughState(
@@ -815,15 +804,6 @@ function attachIfExists(selector, handler) {
   );
   setProofSummaryState("Idle", "No executive proof summary exported yet.");
 
-  const driftBtn = document.querySelector(
-    '[data-testid="load-drift-history-btn"]',
-  );
-  const benchmarkBtn = document.querySelector(
-    '[data-testid="map-compliance-benchmarks-btn"]',
-  );
-  const persistBtn = document.querySelector(
-    '[data-testid="persist-demo-state-btn"]',
-  );
   const benchmarkValue = document.querySelector(
     '[data-testid="compliance-benchmark-value"]',
   );
@@ -901,15 +881,6 @@ function attachIfExists(selector, handler) {
     );
   });
 
-  const liveReviewBtn = document.querySelector(
-    '[data-testid="load-live-review-btn"]',
-  );
-  const exportReviewBtn = document.querySelector(
-    '[data-testid="export-review-evidence-btn"]',
-  );
-  const verifyPersistenceBtn = document.querySelector(
-    '[data-testid="verify-review-persistence-btn"]',
-  );
   const reviewDriftSource = document.querySelector(
     '[data-testid="review-drift-source-value"]',
   );
@@ -968,16 +939,6 @@ function attachIfExists(selector, handler) {
     );
   });
 
-  const loadReleaseTruthBtn = document.querySelector(
-    '[data-testid="load-release-truth-btn"]',
-  );
-  const exportReleaseTruthBtn = document.querySelector(
-    '[data-testid="export-release-truth-btn"]',
-  );
-  const verifyReleaseBlockersBtn = document.querySelector(
-    '[data-testid="verify-release-blockers-btn"]',
-  );
-
   attachIfExists('[data-testid="load-release-truth-btn"]', function () {
     const evidence = buildReleaseReadinessEvidence();
     setReleaseState("Loaded", "Executive release truth evidence loaded.");
@@ -1028,13 +989,6 @@ function attachIfExists(selector, handler) {
       "active",
     );
   });
-
-  const loadReleaseReadinessBtn = document.querySelector(
-    '[data-testid="load-release-readiness-btn"]',
-  );
-  const refreshSonarTruthBtn = document.querySelector(
-    '[data-testid="refresh-sonar-truth-btn"]',
-  );
 
   attachIfExists('[data-testid="load-release-readiness-btn"]', function () {
     const readinessOutput = document.querySelector(

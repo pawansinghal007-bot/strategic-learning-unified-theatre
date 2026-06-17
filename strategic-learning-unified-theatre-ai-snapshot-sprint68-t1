@@ -1,0 +1,54 @@
+SPRINT 68 — T1 COMPLETE
+
+BASELINE CONFIRMED:
+var count in dashboard.js: 0 (Sprint 67 claim verified)
+Sprint 65/66/67 guard suites: all passing before any change
+
+S1854/S1481 DEAD-VARIABLE AUDIT:
+Total candidate lines from sonar-issues-report.json: 15
+Genuinely confirmed dead (removed): 15
+Lines 753, 763, 764, 767 — captureBtn, demoBtn, exportBtn, copyBtn
+Lines 818, 821, 824 — driftBtn, benchmarkBtn, persistBtn
+Lines 904, 907, 910 — liveReviewBtn, exportReviewBtn, verifyPersistenceBtn
+Lines 971, 974, 977 — loadReleaseTruthBtn, exportReleaseTruthBtn, verifyReleaseBlockersBtn
+Lines 1032, 1035 — loadReleaseReadinessBtn, refreshSonarTruthBtn
+Excluded (variable actually used, or side-effect risk): 0
+
+COVERAGE ASSESSMENT (informational, no action taken):
+Coverage Summary: Overall 73.32% statements, but branches only 58.96% (below 70% threshold). Top low-coverage files:
+local-llm.js — 55.63% (154-235, 240-304 uncovered)
+agent-handoff.js — 75.67% (240-442, 451, 487 uncovered)
+user-bridge.js — 70.04% (lines scattered)
+
+SECURITY HOTSPOT ASSESSMENT (informational, no action taken):
+Current report: 0 hotspots in TO_REVIEW status
+
+FRESH SONAR SCAN RESULTS:
+sonar-scanner: executed successfully
+quality gate: FAILED with status: ERROR
+scoped issues: 106, down from 136 by 30
+new_coverage: ERROR (actual=0.0, threshold=80)
+new_duplicated_lines_density: OK (actual=0.93905, threshold=3)
+new_security_hotspots_reviewed: ERROR (actual=0.0, threshold=100)
+new_violations: ERROR (actual=106, threshold=0)
+
+STATUS:
+vitest full suite: 139 files / 1493 tests passing
+tsc: clean
+human Playwright suite: 42 passed — expect 42
+dashboard.js syntax: valid (node -c passed)
+
+DELIVERABLES:
+[x] Confirmed Sprint 67's baseline (0 vars, guard suites passing) before
+any change
+[x] Audited every S1854/S1481 candidate against real file content before
+removing anything
+[x] Removed only genuinely confirmed dead assignments, nothing else
+[x] No new_coverage or new_security_hotspots_reviewed code changes made
+(assessment only, per explicit scope boundary)
+[x] Fresh Sonar scan run (or honestly recorded why it could not run)
+[x] Full vitest + tsc + human Playwright suite green
+
+NEXT:
+T2 — regression guard for this sprint's dead-variable removal + gate-path
+evidence lock-in

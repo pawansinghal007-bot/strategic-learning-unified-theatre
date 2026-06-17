@@ -1,10 +1,14 @@
 === GIT STATUS ===
  M dumps/project-status-dump.txt
+ M strategic-learning-unified-theatre-ai-snapshot-sprint67-stable
 
 === GIT BRANCH ===
 main
 
 === RECENT COMMITS ===
+eb5ec46e chore(sprint-67): var→let/const S3504 conversion, residual S7761/S7760 fixes in dashboard.js
+76ffff7a chore(sprint-66): Sonar remediation continuation — fresh scan, complexity/TypeScript cleanup where safe, regression guard against Sprint 65 fix reversal
+6037ba5b chore(sprint-65): guard-only regression suite + residual cleanup verification — confirm Sprint 64 dataset migration, lock release-truth wording
 7f7d5d9b feat(sprint-64): Sonar S7761 dataset migration, repo cleanup, sprint closure
 ce6d281c docs(sprint-64-t1): update active snapshot to sprint64-t1 completion
 eb5b97d3 chore(sprint-64-t1): remove debug artifacts, harden .gitignore, pre-migration audit
@@ -22,9 +26,6 @@ c907f94d feat(sprint-58): Human Tester 5 — proof interactions, capture flow, s
 e70cba86 feat(sprint-54): auto-scan trigger, drift-history storage
 9bb8d3b6 feat(sprint-54-t1-t2): drift-history backend, auto-scan orchestrator, IPC, preload, types
 4be1d228 feat(sprint-53): cross-surface regression hardening — tests only
-fd73a7e1 feat(sprint-52): bulk triage actions — applyBulkTriage, set-triage-bulk IPC, preload, tests
-92ea4e7e feat(sprint-52): bulk triage actions — applyBulkTriage, set-triage-bulk IPC, preload, tests
-260178eb feat(sprint-52-t1-t2): applyBulkTriage backend, set-triage-bulk IPC, preload, types
 
 === TRACKED FILES ===
 .continue/agents/new-config.yaml
@@ -76,6 +77,7 @@ PROJECT_ARCHITECTURE_BASELINE-20260605-071822.md
 PROJECT_ARCHITECTURE_BASELINE.md
 Preload
 README.md
+SPRINT_67_SUMMARY.md
 Service
 ai-snapshot-sprint17-local.md
 ai-snapshot-sprint17.md
@@ -798,6 +800,15 @@ strategic-learning-unified-theatre-ai-snapshot-sprint63-t2
 strategic-learning-unified-theatre-ai-snapshot-sprint64-stable
 strategic-learning-unified-theatre-ai-snapshot-sprint64-t1
 strategic-learning-unified-theatre-ai-snapshot-sprint64-t2
+strategic-learning-unified-theatre-ai-snapshot-sprint65-closure
+strategic-learning-unified-theatre-ai-snapshot-sprint65-stable
+strategic-learning-unified-theatre-ai-snapshot-sprint65-t1
+strategic-learning-unified-theatre-ai-snapshot-sprint65-t2
+strategic-learning-unified-theatre-ai-snapshot-sprint66-stable
+strategic-learning-unified-theatre-ai-snapshot-sprint66-t1
+strategic-learning-unified-theatre-ai-snapshot-sprint66-t2
+strategic-learning-unified-theatre-ai-snapshot-sprint67-stable
+strategic-learning-unified-theatre-ai-snapshot-sprint67-t1
 strategic-learning-unified-theatre-ai-snapshot-v1.3-stable
 strategic-learning-unified-theatre-ai-snapshot-v1.3b-active
 strategic-learning-unified-theatre-ai-snapshot-v1.4-stable
@@ -976,6 +987,9 @@ tests/sprint62-reporting-language.test.js
 tests/sprint62-sonar-wiring.test.js
 tests/sprint63-release-readiness.test.js
 tests/sprint64-dataset-migration.test.js
+tests/sprint65-guard-only.test.js
+tests/sprint66-remediation-guard.test.js
+tests/sprint67-measured-cleanup.test.js
 tests/startup-bootstrap.test.js
 tests/startup-plugins.test.js
 tests/storage/collector.test.js
@@ -1073,17 +1087,18 @@ Sprint 59 (Human Tester 6 — executive walkthrough panel, demo mode, exportable
 
 ## Remaining
 
-| Sprint | Focus                                                                                                                                                                                                                                                                                                                                         | Status   |
-| ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| 59     | Human Tester 6 — executive walkthrough panel, demo mode, exportable/copyable proof summary, walkthrough surface markers across governance/security/audit/timeline/knowledge, Playwright walkthrough coverage, regression guard, sprint closure.                                                                                               | Complete |
-| 60     | Human Tester 7 — executive compliance panel, drift-history review, compliance benchmark mapping, persisted demo-state markers, executive-compliance Playwright spec, regression guard, sprint closure.                                                                                                                                        | Complete |
-| 61     | Human Tester 8 — executive review panel, live review evidence assembly from drift/compliance/proof-summary surfaces, review export and persistence verification, executive-review Playwright spec, regression guard, sprint closure.                                                                                                          | Complete |
-| 62     | Sonar truthfulness and coverage integrity — replaced placeholder Sonar npm scripts with real preflight/qualitygate/issues checks, audited sonar-project.properties LCOV path and exclusions, hardened .gitignore against generated artifacts, added 4 regression test suites for Sonar wiring/config/clean-tree/reporting-language precision. | Complete |
-| 63     | Human Tester 9 — executive release panel (deferred from Sprint 62), real review wiring, and release-readiness surfaces.                                                                                                                                                                                                                       | Complete |
-| 64     | Sonar S7761 dataset migration: setAttribute('data-*') converted to .dataset across all executive panel helper functions (setProofAction, setLocalAiStatus, setWalkthroughState, setProofSummaryState, setComplianceState, setDriftHistoryState, setDemoPersistenceState, setReviewState, setReviewPersistenceState, setReviewExportState, setReleaseBlockersState, setReleaseState). sprint64-dataset-migration.test.js regression guard added. Repo cleanup: Sprint 63 debug artifacts removed, .gitignore hardened. | Complete |
-| 65     | TBD — candidates: remaining Sonar conditions if gate still failing (new_coverage, new_security_hotspots_reviewed), cognitive complexity reduction in provider-dashboard.html, Playwright GitHub Actions workflow, CI smoke grouping.                                                                                                            | Next     |
-
-## Standing Architecture Rules (all future sprints)
+| Sprint | Focus                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Status   |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| 59     | Human Tester 6 — executive walkthrough panel, demo mode, exportable/copyable proof summary, walkthrough surface markers across governance/security/audit/timeline/knowledge, Playwright walkthrough coverage, regression guard, sprint closure.                                                                                                                                                                                                                                                                        | Complete |
+| 60     | Human Tester 7 — executive compliance panel, drift-history review, compliance benchmark mapping, persisted demo-state markers, executive-compliance Playwright spec, regression guard, sprint closure.                                                                                                                                                                                                                                                                                                                 | Complete |
+| 61     | Human Tester 8 — executive review panel, live review evidence assembly from drift/compliance/proof-summary surfaces, review export and persistence verification, executive-review Playwright spec, regression guard, sprint closure.                                                                                                                                                                                                                                                                                   | Complete |
+| 62     | Sonar truthfulness and coverage integrity — replaced placeholder Sonar npm scripts with real preflight/qualitygate/issues checks, audited sonar-project.properties LCOV path and exclusions, hardened .gitignore against generated artifacts, added 4 regression test suites for Sonar wiring/config/clean-tree/reporting-language precision.                                                                                                                                                                          | Complete |
+| 63     | Human Tester 9 — executive release panel (deferred from Sprint 62), real review wiring, and release-readiness surfaces.                                                                                                                                                                                                                                                                                                                                                                                                | Complete |
+| 64     | Sonar S7761 dataset migration: setAttribute('data-\*') converted to .dataset across all executive panel helper functions (setProofAction, setLocalAiStatus, setWalkthroughState, setProofSummaryState, setComplianceState, setDriftHistoryState, setDemoPersistenceState, setReviewState, setReviewPersistenceState, setReviewExportState, setReleaseBlockersState, setReleaseState). sprint64-dataset-migration.test.js regression guard added. Repo cleanup: Sprint 63 debug artifacts removed, .gitignore hardened. | Complete |
+| 65     | Architecture verification and residual cleanup audit: confirmed dashboard.js/provider-dashboard.html split, audited remaining setAttribute calls, fixed 3 residual S7761 violations in event handlers (compliance/release-readiness/sonar-refresh), verified no duplicate functions. Guard-only regression suite (27 tests) created: compatibility hooks, dataset-backed state markers, false-clean language prevention, release-truth wording lock. All 1466 tests passing.                                           | Complete |
+| 66     | Sonar remediation continuation: Cognitive complexity reduction (S3776 in preload.cjs), TypeScript migration and cleanup (preload.cjs types.d.ts), remaining dataset migration in utility files. Sonar quality gate: gate FAILED with 151 new_violations. Guard regression suite (30 tests) added for remediation tracking.                                                                                                                                                                                             | Complete |
+| 67     | Measured Sonar cleanup in dashboard.js: S3504 var→let/const conversion (40 declarations across 3 passes), S7760 default parameter fix (setWalkthroughState), S7761 getAttribute residual removal. sprint67-measured-cleanup.test.js guard added (13 tests). No HTML changes, no new features. Dashboard.js var count reduced from 12 to 0. Sonar scan completed; gate status evaluation pending.                                                                                                                       | Complete |
+| 68     | Evaluate Sonar quality gate path after Sprint 67: if new_violations reduced significantly from S3504 conversion, assess remaining blockers (new_coverage 0% vs 80% threshold, new_security_hotspots_reviewed 0% vs 100% threshold). Coverage requires vitest expansion to new-code-period files; hotspots require Sonar acknowledgement/waiver.                                                                                                                                                                        | Next     |
 
 - Never replace preload.cjs entirely — append/extend only
 - Never add a second interface Window in types.d.ts
@@ -1096,6 +1111,13 @@ Sprint 59 (Human Tester 6 — executive walkthrough panel, demo mode, exportable
 
 Sprint 63 (Executive Release Truth Panel) is complete.
 Sprint 64 (Sonar Dataset Migration) is complete.
+Sprint 65 (Architecture Verification + Residual Cleanup Audit + Guard-Only Regression Suite) is complete.
+Sprint 66 (Sonar Remediation Continuation) is complete.
+Sprint 67 (Measured Sonar Cleanup) is complete.
+
+## Next
+
+Sprint 68 — Evaluate Sonar quality gate path after Sprint 67 scan results.
 
 === MASTER TIMELINE 1-60 ===
 NOT FOUND: master_timeline_sprints_1_60.md
@@ -2625,7 +2647,7 @@ security-overview:compare-baseline
 
 === ACTIVE SNAPSHOT ===
 FILE: ./CURRENT_ACTIVE_SNAPSHOT.md
-strategic-learning-unified-theatre-ai-snapshot-sprint64-stable
+strategic-learning-unified-theatre-ai-snapshot-sprint67-stable
 
 === ALL SMOKE TEST FILES ===
 --- FILE: ./tests/run-tests-smoke.test.js ---
@@ -9394,8 +9416,6 @@ describe("test-runner scaffold", () => {
 });
 
 === TEST RESULTS ===
-    at runWithTimeout [90m(file:///home/pawan/vscodeagent/Solution/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
-    at [90mfile:///home/pawan/vscodeagent/Solution/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
 
  [32m✓[39m tests/startup-bootstrap.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 3[2mms[22m[39m
 [90mstderr[2m | Timeout._onTimeout (/home/pawan/vscodeagent/Solution/src/startup-bootstrap.js:40:15)
@@ -9412,17 +9432,19 @@ describe("test-runner scaffold", () => {
     at [90mfile:///home/pawan/vscodeagent/Solution/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
 
  [32m✓[39m tests/chaos-workflow.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 4[2mms[22m[39m
- [32m✓[39m tests/thread.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
  [32m✓[39m tests/chaos-slo.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
- [32m✓[39m tests/window-security.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
- [32m✓[39m tests/chaos-runbook.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/llm/local-provider.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/dashboard.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 3[2mms[22m[39m
  [32m✓[39m tests/test-runner.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
  [32m✓[39m tests/updater-config.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m tests/chaos-runbook.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m tests/window-security.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/thread.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
 
-[2m Test Files [22m [1m[32m136 passed[39m[22m[90m (136)[39m
-[2m      Tests [22m [1m[32m1439 passed[39m[22m[90m (1439)[39m
-[2m   Start at [22m 04:58:12
-[2m   Duration [22m 7.95s[2m (transform 10.82s, setup 5.24s, import 15.76s, tests 14.88s, environment 112.90s)[22m
+[2m Test Files [22m [1m[32m139 passed[39m[22m[90m (139)[39m
+[2m      Tests [22m [1m[32m1493 passed[39m[22m[90m (1493)[39m
+[2m   Start at [22m 00:53:09
+[2m   Duration [22m 5.70s[2m (transform 8.05s, setup 3.87s, import 11.74s, tests 12.30s, environment 77.85s)[22m
 
 
 === TYPECHECK ===
