@@ -862,7 +862,7 @@ document.getElementById("save-html").addEventListener("click", async () => {
       if (benchmark) benchmark.textContent = "Mapped";
       if (output) {
         output.textContent = text;
-        output.setAttribute("data-compliance-output", "mapped");
+        output.dataset.complianceOutput = "mapped";
       }
 
       setProofAction(
@@ -1050,10 +1050,7 @@ document.getElementById("save-html").addEventListener("click", async () => {
       if (readinessOutput) {
         readinessOutput.textContent =
           "Quality gate currently FAILED with 89 open issues. Release is blocked until issues are resolved.";
-        readinessOutput.setAttribute(
-          "data-release-readiness-output",
-          "blocked",
-        );
+        readinessOutput.dataset.releaseReadinessOutput = "blocked";
       }
       setProofAction(
         "Release Readiness Loaded",
@@ -1071,7 +1068,7 @@ document.getElementById("save-html").addEventListener("click", async () => {
         '[data-testid="release-readiness-output"]',
       );
       if (releasePanel) {
-        releasePanel.setAttribute("data-release-readiness", "blocked");
+        releasePanel.dataset.releaseReadiness = "blocked";
       }
       if (readinessOutput) {
         readinessOutput.textContent =

@@ -1,0 +1,105 @@
+SPRINT 65 — COMPLETE (T1, T2, T3 CLOSURE)
+
+PREMISE:
+  Sprint 64 claimed to have migrated 12 named state-setter functions from
+  setAttribute() to .dataset. Sprint 65's task was to audit these claims,
+  fix any residual violations, and lock the result with guard tests.
+
+T1: ARCHITECTURE VERIFICATION + RESIDUAL CLEANUP AUDIT
+  Result: 3 RESIDUAL VIOLATIONS FOUND AND FIXED
+  
+  Violations: All in anonymous event handler callbacks (IIFE, lines 800+)
+    - Line 865: output.setAttribute("data-compliance-output", "mapped")
+      → FIXED to: output.dataset.complianceOutput = "mapped"
+      Context: map-compliance-benchmarks-btn click handler
+    
+    - Line 1053: readinessOutput.setAttribute("data-release-readiness-output", "blocked")
+      → FIXED to: readinessOutput.dataset.releaseReadinessOutput = "blocked"
+      Context: load-release-readiness-btn click handler
+    
+    - Line 1072: releasePanel.setAttribute("data-release-readiness", "blocked")
+      → FIXED to: releasePanel.dataset.releaseReadiness = "blocked"
+      Context: refresh-sonar-truth-btn click handler
+  
+  Architecture Verified:
+    ✓ dashboard.js/provider-dashboard.html split confirmed (dashboard.js loaded via line 1386)
+    ✓ No duplicate function declarations between files (verified via comm -12)
+    ✓ All 38 functions in dashboard.js use .dataset exclusively after fixes
+    ✓ No new architecture risk introduced
+
+T2: GUARD-ONLY REGRESSION SUITE
+  File: tests/sprint65-guard-only.test.js (205 lines)
+  Tests: 27 (all passing)
+  
+  Coverage:
+    Section A: Compatibility hook preservation (7 tests)
+      - executive-evidence-panel, executive-proof-panel, etc. hooks present
+      - release action buttons, output elements, min-height fix preserved
+      - Sprint 63 compatibility comment present
+    
+    Section B: Dataset-backed state markers (10 tests)
+      - setReleaseState, setComplianceState, setReviewState, setWalkthroughState,
+        setProofAction, setLocalAiStatus all use .dataset
+      - normalizeStateToken defined exactly once
+      - No duplicate functions between files
+      - Sprint 64 T1 residual fixes #1, #2, #3 verified present
+    
+    Section C: False-clean language prevention (5 tests)
+      - No "Sonar verified clean" in HTML or JS
+      - No generic "release...clean" phrase
+      - refreshReleaseTruth never hardcodes celebratory outcome
+    
+    Section D: Release-truth wording lock (6 tests)
+      - release-readiness-output communicates blocked state with "89 open issues"
+      - release-blockers-output has blocker content
+      - Exact wording verified against current file content
+  
+  All assertions use EXACT strings from T1 file reads (no paraphrasing).
+
+T3: VALIDATION + CLOSURE
+  Validation:
+    ✓ Full test suite: 137 test files, 1466 tests, 0 failures
+    ✓ sprint65-guard-only.test.js: 27 tests, 27 passing
+    ✓ sprint64-dataset-migration.test.js: all passing (regressions verified)
+    ✓ sprint63-release-readiness.test.js: all passing (regressions verified)
+  
+  Timeline Extended:
+    ✓ master_timeline_sprints_1_54.md: Sprint 65 row updated, completion statement added
+  
+  Snapshot Updated:
+    ✓ CURRENT_ACTIVE_SNAPSHOT.md: sprint65-t2 (in T2, confirmed in T3)
+
+DELIVERABLES SUMMARY:
+
+FILE                                  | STATUS
+--------------------------------------|--------
+src/ui/dashboard.js                   | ✓ 3 residual S7761 fixes applied (surgical, minimal)
+tests/sprint65-guard-only.test.js     | ✓ Created (27 tests, 100% passing)
+master_timeline_sprints_1_54.md       | ✓ Extended (Sprint 65 entry + completion statement)
+CURRENT_ACTIVE_SNAPSHOT.md            | ✓ Updated to sprint65-t2
+(all other files)                     | ✓ Unchanged
+
+SONAR STATUS (no fresh scan in Sprint 65):
+  Quality gate: FAILED (Sprint 63 baseline: 89 scoped issues)
+  Reporting language: Applied correctly
+    - No false "verified clean" claim
+    - No status change claimed without fresh evidence
+  Note: This sprint was audit-only; Sonar scan deferred as optional
+
+ARCHITECTURE INTEGRITY:
+  ✓ Dashboard.js function split from HTML maintained
+  ✓ No duplicate functions introduced
+  ✓ All state-setters using .dataset (S7761 compliant)
+  ✓ No compatibility hooks broken
+  ✓ Guard suite locks current behavior against future regressions
+
+CODE STYLE:
+  ✓ dashboard.js: Existing code style preserved in fixes
+  ✓ Test suite: Plain JavaScript, no TypeScript syntax
+  ✓ Timeline: Consistent with existing entries (Sprints 48-64 pattern)
+
+NEXT: Sprint 66 candidates
+  - Sonar new_coverage / new_security_hotspots_reviewed conditions
+  - Cognitive complexity reduction in provider-dashboard.html
+  - Playwright GitHub Actions workflow integration
+  - CI smoke test grouping

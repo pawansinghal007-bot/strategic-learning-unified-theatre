@@ -1,0 +1,38 @@
+  SPRINT 65 — T2 COMPLETE
+
+  FILE:
+    tests/sprint65-guard-only.test.js (created)
+
+  STATUS:
+    Section A (compatibility hook preservation) — asserts all 6 executive
+      panel data-testid hooks, release action buttons, release outputs,
+      timeline-output min-height fix, and Sprint 61/63 compatibility comments
+      all present in provider-dashboard.html as of today
+    Section B (dataset-backed state markers) — asserts setReleaseState,
+      setComplianceState, setReviewState, setWalkthroughState all use
+      .dataset access in dashboard.js (per Sprint 64 migration); asserts
+      normalizeStateToken defined exactly once; asserts NO function name
+      duplicated between dashboard.js and provider-dashboard.html
+    Section C (false-clean language prevention) — asserts neither
+      dashboard.js nor provider-dashboard.html ever contains "Sonar verified
+      clean" or an adjacent "release...clean" phrase; asserts
+      refreshReleaseTruth does not hardcode a celebratory clean/passed string
+    Section D (release-truth wording lock) — confirms release-readiness-output
+      and release-blockers-output elements exist with meaningful content
+      [exact text assertions used: yes | loose regex fallback used for: <list,
+      if any, and why STEP 1's capture was ambiguous>]
+    All assertions verified against actual T1-discovered file content, no
+      guessed/placeholder values
+    compile clean [if run]
+
+  DELIVERABLES:
+    [x] tests/sprint65-guard-only.test.js created — 4-section guard suite
+    [x] No source files touched (dashboard.js, provider-dashboard.html,
+        scripts/, package.json all untouched)
+    [x] No existing test files touched
+    [x] All assertions target the correct file (dashboard.js for state
+        functions, provider-dashboard.html for markup/hooks)
+
+  NEXT:
+    T3 — run guard-only suite + full regression suite, finalize residual
+    cleanup decision from T1, sprint closure

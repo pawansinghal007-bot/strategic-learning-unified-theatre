@@ -1,20 +1,15 @@
 === GIT STATUS ===
- M .gitignore
- M CURRENT_ACTIVE_SNAPSHOT.md
  M dumps/project-status-dump.txt
- M package.json
- M sonar-project.properties
-?? scripts/check-sonar-preflight.mjs
-?? scripts/check-sonar-quality-gate.mjs
-?? scripts/export-sonar-issues.mjs
-?? scripts/sonar-utils.mjs
-?? strategic-learning-unified-theatre-ai-snapshot-sprint61-stable
-?? strategic-learning-unified-theatre-ai-snapshot-sprint62-t1
 
 === GIT BRANCH ===
 main
 
 === RECENT COMMITS ===
+7f7d5d9b feat(sprint-64): Sonar S7761 dataset migration, repo cleanup, sprint closure
+ce6d281c docs(sprint-64-t1): update active snapshot to sprint64-t1 completion
+eb5b97d3 chore(sprint-64-t1): remove debug artifacts, harden .gitignore, pre-migration audit
+a74386ca feat(sprint-63): executive release truth panel — honest scanner/quality-gate/issues/coverage surface, no false-clean claims
+b6885fe9 feat(sprint-62): Sonar truthfulness — real preflight/qualitygate/issues scripts, coverage config audit, clean-tree guard, reporting language precision
 743f8b8e feat(sprint-61): executive review panel, live review evidence, export and persistence verification — Human Tester 8
 b61ac653 feat(sprint-60): executive compliance panel, drift review, benchmark mapping, demo persistence — Human Tester 7
 e9ddb7f2 feat(sprint-59): executive walkthrough panel, demo mode, proof export — Human Tester 6
@@ -30,11 +25,6 @@ e70cba86 feat(sprint-54): auto-scan trigger, drift-history storage
 fd73a7e1 feat(sprint-52): bulk triage actions — applyBulkTriage, set-triage-bulk IPC, preload, tests
 92ea4e7e feat(sprint-52): bulk triage actions — applyBulkTriage, set-triage-bulk IPC, preload, tests
 260178eb feat(sprint-52-t1-t2): applyBulkTriage backend, set-triage-bulk IPC, preload, types
-10b0b003 feat(sprint-51): security overview stabilization, timeline reconciliation, regression tests
-2cab1b9e feat(sprint-50): security workflow hardening and dashboard unification
-f100fcdb feat(sprint-50-t2): drift-classification IPC, preload method, payload guards, triage sanitization
-a4c0bc10 feat(sprint-50-t1): schema fields, triage normalizer, drift classifier
-0e07922b feat(sprint-49): AI-assisted finding explanation
 
 === TRACKED FILES ===
 .continue/agents/new-config.yaml
@@ -42,6 +32,7 @@ a4c0bc10 feat(sprint-50-t1): schema fields, triage normalizer, drift classifier
 .continue/mcpServers/new-mcp-server.yaml
 .continuerc.json
 .github/instructions/sonarqube_mcp.instructions.md
+.github/prompts/plan-cleanupAndCoveragePlan.prompt.md
 .github/workflows/chaos.yml
 .github/workflows/release.yml
 .github/workflows/sonar-governance.yml
@@ -170,7 +161,6 @@ config/ci-runtime.json
 config/security-governance.json
 config/update.README.md
 config/update.json
-debug-plugin-run.mjs
 docs/ACHIEVEMENTS_SPRINT_14_through_16.md
 docs/ACHIEVEMENTS_THROUGH_SPRINT_14.md
 docs/ARCHITECTURE_INDEX.md
@@ -339,7 +329,6 @@ electron-ui/preload.bundled.cjs
 electron-ui/preload.cjs
 electron-ui/sharp-linux-x64-DQNVFNDI.node
 electron-ui/src-loader.cjs
-fix-ipc.cjs
 git-history.txt
 hello.py
 index_repo.py
@@ -411,13 +400,17 @@ scripts/chaos/scenarios/corrupt-config.js
 scripts/chaos/scenarios/kill-daemon.js
 scripts/chaos/slo.js
 scripts/chaos/utils.js
+scripts/check-sonar-preflight.mjs
+scripts/check-sonar-quality-gate.mjs
 scripts/check-sonar-readiness.mjs
 scripts/export-repo.ps1
+scripts/export-sonar-issues.mjs
 scripts/generate-icons.js
 scripts/install.js
 scripts/one-time-capture.mjs
 scripts/plugin_test_runner.mjs
 scripts/reconcile-hotspot-register.mjs
+scripts/sonar-utils.mjs
 scripts/update-architecture-baseline.sh
 scripts/validate-governance-config.mjs
 scripts/validate-waivers.mjs
@@ -489,7 +482,6 @@ src/browser-adapters/claude.js
 src/browser-adapters/gemini.js
 src/browser-adapters/perplexity.js
 src/browser-bridge.js
-src/browser-bridge.js:Zone (2).Identifier
 src/browser-bridge.jsy
 src/browser-pane.js
 src/browser-selectors.js
@@ -632,6 +624,7 @@ src/storage/storageStatus.js
 src/storage/vscode-learn-utils.js
 src/system/systemHealth.js
 src/test-runner.js
+src/ui/dashboard.js
 src/ui/provider-dashboard.html
 src/ui/types.d.ts
 src/utils/redactor.js
@@ -794,8 +787,17 @@ strategic-learning-unified-theatre-ai-snapshot-sprint59-t2
 strategic-learning-unified-theatre-ai-snapshot-sprint60-stable
 strategic-learning-unified-theatre-ai-snapshot-sprint60-t1
 strategic-learning-unified-theatre-ai-snapshot-sprint60-t2
+strategic-learning-unified-theatre-ai-snapshot-sprint61-stable
 strategic-learning-unified-theatre-ai-snapshot-sprint61-t1
 strategic-learning-unified-theatre-ai-snapshot-sprint61-t2
+strategic-learning-unified-theatre-ai-snapshot-sprint62-stable
+strategic-learning-unified-theatre-ai-snapshot-sprint62-t1
+strategic-learning-unified-theatre-ai-snapshot-sprint62-t2
+strategic-learning-unified-theatre-ai-snapshot-sprint63-stable
+strategic-learning-unified-theatre-ai-snapshot-sprint63-t2
+strategic-learning-unified-theatre-ai-snapshot-sprint64-stable
+strategic-learning-unified-theatre-ai-snapshot-sprint64-t1
+strategic-learning-unified-theatre-ai-snapshot-sprint64-t2
 strategic-learning-unified-theatre-ai-snapshot-v1.3-stable
 strategic-learning-unified-theatre-ai-snapshot-v1.3b-active
 strategic-learning-unified-theatre-ai-snapshot-v1.4-stable
@@ -822,6 +824,7 @@ test-llama.mjs
 test-results/.last-run.json
 test/agent-handoff.test.js
 test_gpu.py
+test_output.txt
 test_summary.txt
 tests/agent-handoff-quarantine.test.js
 tests/agent-handoff.test.js
@@ -843,6 +846,7 @@ tests/cli-validation.test.js
 tests/config-policy.test.js
 tests/config-validation.test.js
 tests/coverage-gate.test.js
+tests/dashboard-loader.js
 tests/dashboard.test.js
 tests/domain-error.test.js
 tests/e2e/enhance-schedule.test.js
@@ -861,6 +865,7 @@ tests/human/analytics-audit.spec.js
 tests/human/executive-compliance.spec.js
 tests/human/executive-evidence.spec.js
 tests/human/executive-proof.spec.js
+tests/human/executive-release.spec.js
 tests/human/executive-review.spec.js
 tests/human/executive-walkthrough.spec.js
 tests/human/helpers/electronApp.js
@@ -908,29 +913,44 @@ tests/sprint22-smoke.test.js
 tests/sprint23-smoke.test.js
 tests/sprint24-smoke.test.js
 tests/sprint25-smoke.test.js
+tests/sprint25-smoke.test.js.bak
 tests/sprint26-smoke.test.js
 tests/sprint27-smoke.test.js
 tests/sprint28-smoke.test.js
 tests/sprint29-smoke.test.js
 tests/sprint30-smoke.test.js
 tests/sprint31-smoke.test.js
+tests/sprint31-smoke.test.js.bak
 tests/sprint32-smoke.test.js
+tests/sprint32-smoke.test.js.bak
 tests/sprint33-smoke.test.js
+tests/sprint33-smoke.test.js.bak
 tests/sprint34-smoke.test.js
+tests/sprint34-smoke.test.js.bak
 tests/sprint35-smoke.test.js
+tests/sprint35-smoke.test.js.bak
 tests/sprint36-smoke.test.js
+tests/sprint36-smoke.test.js.bak
 tests/sprint37-smoke.test.js
+tests/sprint37-smoke.test.js.bak
 tests/sprint38-smoke.test.js
+tests/sprint38-smoke.test.js.bak
 tests/sprint39-smoke.test.js
+tests/sprint39-smoke.test.js.bak
 tests/sprint40-smoke.test.js
+tests/sprint40-smoke.test.js.bak
 tests/sprint41-smoke.test.js
+tests/sprint41-smoke.test.js.bak
 tests/sprint42-smoke.test.js
+tests/sprint42-smoke.test.js.bak
 tests/sprint43-smoke.test.js
 tests/sprint44-smoke.test.js
 tests/sprint45-smoke.test.js
 tests/sprint46-smoke.test.js
+tests/sprint46-smoke.test.js.bak
 tests/sprint47-smoke.test.js
 tests/sprint48-smoke.test.js
+tests/sprint48-smoke.test.js.bak
 tests/sprint49-smoke.test.js
 tests/sprint50-smoke.test.js
 tests/sprint50-t1.test.js
@@ -950,6 +970,12 @@ tests/sprint58-human-tester-5.test.js
 tests/sprint59-human-tester-6.test.js
 tests/sprint60-human-tester-7.test.js
 tests/sprint61-human-tester-8.test.js
+tests/sprint62-clean-tree-guard.test.js
+tests/sprint62-coverage-config.test.js
+tests/sprint62-reporting-language.test.js
+tests/sprint62-sonar-wiring.test.js
+tests/sprint63-release-readiness.test.js
+tests/sprint64-dataset-migration.test.js
 tests/startup-bootstrap.test.js
 tests/startup-plugins.test.js
 tests/storage/collector.test.js
@@ -1047,12 +1073,15 @@ Sprint 59 (Human Tester 6 — executive walkthrough panel, demo mode, exportable
 
 ## Remaining
 
-| Sprint | Focus                                                                                                                                                                                                                                           | Status   |
-| ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| 59     | Human Tester 6 — executive walkthrough panel, demo mode, exportable/copyable proof summary, walkthrough surface markers across governance/security/audit/timeline/knowledge, Playwright walkthrough coverage, regression guard, sprint closure. | Complete |
-| 60     | Human Tester 7 — executive compliance panel, drift-history review, compliance benchmark mapping, persisted demo-state markers, executive-compliance Playwright spec, regression guard, sprint closure.                                          | Complete |
-| 61     | Human Tester 8 — executive review panel, live review evidence assembly from drift/compliance/proof-summary surfaces, review export and persistence verification, executive-review Playwright spec, regression guard, sprint closure.            | Complete |
-| 62     | TBD                                                                                                                                                                                                                                             | Next     |
+| Sprint | Focus                                                                                                                                                                                                                                                                                                                                         | Status   |
+| ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| 59     | Human Tester 6 — executive walkthrough panel, demo mode, exportable/copyable proof summary, walkthrough surface markers across governance/security/audit/timeline/knowledge, Playwright walkthrough coverage, regression guard, sprint closure.                                                                                               | Complete |
+| 60     | Human Tester 7 — executive compliance panel, drift-history review, compliance benchmark mapping, persisted demo-state markers, executive-compliance Playwright spec, regression guard, sprint closure.                                                                                                                                        | Complete |
+| 61     | Human Tester 8 — executive review panel, live review evidence assembly from drift/compliance/proof-summary surfaces, review export and persistence verification, executive-review Playwright spec, regression guard, sprint closure.                                                                                                          | Complete |
+| 62     | Sonar truthfulness and coverage integrity — replaced placeholder Sonar npm scripts with real preflight/qualitygate/issues checks, audited sonar-project.properties LCOV path and exclusions, hardened .gitignore against generated artifacts, added 4 regression test suites for Sonar wiring/config/clean-tree/reporting-language precision. | Complete |
+| 63     | Human Tester 9 — executive release panel (deferred from Sprint 62), real review wiring, and release-readiness surfaces.                                                                                                                                                                                                                       | Complete |
+| 64     | Sonar S7761 dataset migration: setAttribute('data-*') converted to .dataset across all executive panel helper functions (setProofAction, setLocalAiStatus, setWalkthroughState, setProofSummaryState, setComplianceState, setDriftHistoryState, setDemoPersistenceState, setReviewState, setReviewPersistenceState, setReviewExportState, setReleaseBlockersState, setReleaseState). sprint64-dataset-migration.test.js regression guard added. Repo cleanup: Sprint 63 debug artifacts removed, .gitignore hardened. | Complete |
+| 65     | TBD — candidates: remaining Sonar conditions if gate still failing (new_coverage, new_security_hotspots_reviewed), cognitive complexity reduction in provider-dashboard.html, Playwright GitHub Actions workflow, CI smoke grouping.                                                                                                            | Next     |
 
 ## Standing Architecture Rules (all future sprints)
 
@@ -1064,6 +1093,9 @@ Sprint 59 (Human Tester 6 — executive walkthrough panel, demo mode, exportable
 - All IPC handlers use lazy require() inside handler functions
 - Playwright tests live in tests/human/ and tests/ui/
   and run via playwright.human.config.cjs / playwright.ui.config.cjs
+
+Sprint 63 (Executive Release Truth Panel) is complete.
+Sprint 64 (Sonar Dataset Migration) is complete.
 
 === MASTER TIMELINE 1-60 ===
 NOT FOUND: master_timeline_sprints_1_60.md
@@ -2593,7 +2625,7 @@ security-overview:compare-baseline
 
 === ACTIVE SNAPSHOT ===
 FILE: ./CURRENT_ACTIVE_SNAPSHOT.md
-strategic-learning-unified-theatre-ai-snapshot-sprint62-t1
+strategic-learning-unified-theatre-ai-snapshot-sprint64-stable
 
 === ALL SMOKE TEST FILES ===
 --- FILE: ./tests/run-tests-smoke.test.js ---
@@ -2627,6 +2659,7 @@ test("run-tests script rejects disallowed binary via TEST_RUNNER_BIN", () => {
 });
 
 --- FILE: ./tests/sprint18-smoke.test.js ---
+import { loadDashboardSurface } from "./dashboard-loader.js";
 import {
   providerRequestSchema,
   providerResponseSchema,
@@ -2708,6 +2741,7 @@ describe("Sprint 18 smoke tests", () => {
 
 --- FILE: ./tests/sprint19-smoke.test.js ---
 import { Gateway } from '../src/llm/gateway';
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { LocalProviderAdapter } from '../src/llm/providers/local';
 import { logger } from '../src/shared/logging/logger';
 import { RoutingNoProviderError, ValidationFailedError } from '../src/shared/errors';
@@ -2779,6 +2813,7 @@ describe('Sprint 19 smoke tests', () => {
 
 --- FILE: ./tests/sprint20-smoke.test.js ---
 import { Gateway } from "../src/llm/gateway.js";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { LocalProviderAdapter } from "../src/llm/providers/local.js";
 import { BaseProviderAdapter } from "../src/llm/providers/base.js";
 import { normalizeProviderError } from "../src/shared/errors/provider-map.js";
@@ -2889,6 +2924,7 @@ describe("Sprint 20 smoke tests", () => {
 });
 
 --- FILE: ./tests/sprint21-smoke.test.js ---
+import { loadDashboardSurface } from "./dashboard-loader.js";
 import {
   markProviderFromError,
   isProviderAvailable,
@@ -2992,6 +3028,7 @@ describe("Sprint 21 smoke tests — gateway health-aware fallback", () => {
 
 --- FILE: ./tests/sprint22-smoke.test.js ---
 import { getProviderStatus, resetProviderStatus } from "../src/llm/status.js";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import {
   markProviderFromError,
   resetProviderHealth,
@@ -3090,136 +3127,153 @@ describe("Sprint 22 smoke tests — provider status", () => {
 });
 
 --- FILE: ./tests/sprint23-smoke.test.js ---
+import { loadDashboardSurface } from "./dashboard-loader.js";
 import {
   recordProviderSuccess,
   recordProviderFailure,
   getProviderUsage,
   resetProviderUsage,
-} from '../src/llm/provider-usage.js';
-import { Gateway } from '../src/llm/gateway.js';
-import {
-  resetProviderHealth,
-} from '../src/llm/provider-health.js';
+} from "../src/llm/provider-usage.js";
+import { Gateway } from "../src/llm/gateway.js";
+import { resetProviderHealth } from "../src/llm/provider-health.js";
 
-describe('Sprint 23 smoke tests — provider usage tracker', () => {
+describe("Sprint 23 smoke tests — provider usage tracker", () => {
   beforeEach(() => {
     resetProviderUsage();
     resetProviderHealth();
   });
 
-  it('getProviderUsage returns a row for each known provider', () => {
+  it("getProviderUsage returns a row for each known provider", () => {
     const rows = getProviderUsage();
     expect(rows.length).toBe(5);
     const names = rows.map((r) => r.provider);
-    expect(names).toContain('groq');
-    expect(names).toContain('gemini');
-    expect(names).toContain('openai');
-    expect(names).toContain('perplexity');
-    expect(names).toContain('local');
+    expect(names).toContain("groq");
+    expect(names).toContain("gemini");
+    expect(names).toContain("openai");
+    expect(names).toContain("perplexity");
+    expect(names).toContain("local");
   });
 
-  it('recordProviderSuccess increments requestCount and successCount', () => {
-    recordProviderSuccess('local', {
-      usage: { inputTokens: 10, outputTokens: 20, totalTokens: 30, estimatedCostUsd: 0 },
+  it("recordProviderSuccess increments requestCount and successCount", () => {
+    recordProviderSuccess("local", {
+      usage: {
+        inputTokens: 10,
+        outputTokens: 20,
+        totalTokens: 30,
+        estimatedCostUsd: 0,
+      },
     });
     const rows = getProviderUsage();
-    const local = rows.find((r) => r.provider === 'local');
+    const local = rows.find((r) => r.provider === "local");
     expect(local.requestCount).toBe(1);
     expect(local.successCount).toBe(1);
     expect(local.failureCount).toBe(0);
   });
 
-  it('recordProviderSuccess accumulates token totals', () => {
-    recordProviderSuccess('local', {
-      usage: { inputTokens: 10, outputTokens: 20, totalTokens: 30, estimatedCostUsd: 0.001 },
+  it("recordProviderSuccess accumulates token totals", () => {
+    recordProviderSuccess("local", {
+      usage: {
+        inputTokens: 10,
+        outputTokens: 20,
+        totalTokens: 30,
+        estimatedCostUsd: 0.001,
+      },
     });
-    recordProviderSuccess('local', {
-      usage: { inputTokens: 5, outputTokens: 10, totalTokens: 15, estimatedCostUsd: 0.0005 },
+    recordProviderSuccess("local", {
+      usage: {
+        inputTokens: 5,
+        outputTokens: 10,
+        totalTokens: 15,
+        estimatedCostUsd: 0.0005,
+      },
     });
     const rows = getProviderUsage();
-    const local = rows.find((r) => r.provider === 'local');
+    const local = rows.find((r) => r.provider === "local");
     expect(local.totalTokens).toBe(45);
     expect(local.successCount).toBe(2);
   });
 
-  it('recordProviderFailure increments requestCount and failureCount', () => {
-    recordProviderFailure('groq');
+  it("recordProviderFailure increments requestCount and failureCount", () => {
+    recordProviderFailure("groq");
     const rows = getProviderUsage();
-    const groq = rows.find((r) => r.provider === 'groq');
+    const groq = rows.find((r) => r.provider === "groq");
     expect(groq.requestCount).toBe(1);
     expect(groq.failureCount).toBe(1);
     expect(groq.successCount).toBe(0);
   });
 
-  it('resetProviderUsage clears all usage state', () => {
-    recordProviderSuccess('local', { usage: { totalTokens: 10 } });
-    recordProviderFailure('groq');
+  it("resetProviderUsage clears all usage state", () => {
+    recordProviderSuccess("local", { usage: { totalTokens: 10 } });
+    recordProviderFailure("groq");
     resetProviderUsage();
     const rows = getProviderUsage();
-    const local = rows.find((r) => r.provider === 'local');
-    const groq = rows.find((r) => r.provider === 'groq');
+    const local = rows.find((r) => r.provider === "local");
+    const groq = rows.find((r) => r.provider === "groq");
     expect(local.requestCount).toBe(0);
     expect(groq.requestCount).toBe(0);
   });
 
-  it('resetProviderUsage clears single provider only', () => {
-    recordProviderSuccess('local', { usage: { totalTokens: 10 } });
-    recordProviderFailure('groq');
-    resetProviderUsage('groq');
+  it("resetProviderUsage clears single provider only", () => {
+    recordProviderSuccess("local", { usage: { totalTokens: 10 } });
+    recordProviderFailure("groq");
+    resetProviderUsage("groq");
     const rows = getProviderUsage();
-    const local = rows.find((r) => r.provider === 'local');
-    const groq = rows.find((r) => r.provider === 'groq');
+    const local = rows.find((r) => r.provider === "local");
+    const groq = rows.find((r) => r.provider === "groq");
     expect(local.requestCount).toBe(1);
     expect(groq.requestCount).toBe(0);
   });
 });
 
-describe('Sprint 23 smoke tests — gateway usage hooks', () => {
+describe("Sprint 23 smoke tests — gateway usage hooks", () => {
   beforeEach(() => {
     resetProviderUsage();
     resetProviderHealth();
   });
 
-  it('gateway.ask() records success usage for local provider', async () => {
-    const gateway = new Gateway({ defaultOrder: ['local'] });
-    await gateway.ask({ requestId: 'smoke-23-1', prompt: 'usage test' });
+  it("gateway.ask() records success usage for local provider", async () => {
+    const gateway = new Gateway({ defaultOrder: ["local"] });
+    await gateway.ask({ requestId: "smoke-23-1", prompt: "usage test" });
     const rows = getProviderUsage();
-    const local = rows.find((r) => r.provider === 'local');
+    const local = rows.find((r) => r.provider === "local");
     expect(local.successCount).toBe(1);
     expect(local.requestCount).toBe(1);
   });
 
-  it('gateway.ask() records failure when provider throws', async () => {
+  it("gateway.ask() records failure when provider throws", async () => {
     const gateway = new Gateway({
-      defaultOrder: ['local'],
+      defaultOrder: ["local"],
       providers: {
         local: {
-          name: 'local',
+          name: "local",
           capabilities: () => [],
-          ask: async () => { throw new Error('forced failure'); },
+          ask: async () => {
+            throw new Error("forced failure");
+          },
         },
       },
     });
     await expect(
-      gateway.ask({ requestId: 'smoke-23-2', prompt: 'fail test' })
+      gateway.ask({ requestId: "smoke-23-2", prompt: "fail test" }),
     ).rejects.toThrow();
     const rows = getProviderUsage();
-    const local = rows.find((r) => r.provider === 'local');
+    const local = rows.find((r) => r.provider === "local");
     expect(local.failureCount).toBe(1);
   });
 
-  it('gateway.ask() accumulates token totals across multiple calls', async () => {
-    const gateway = new Gateway({ defaultOrder: ['local'] });
-    await gateway.ask({ requestId: 'smoke-23-3a', prompt: 'first' });
-    await gateway.ask({ requestId: 'smoke-23-3b', prompt: 'second' });
+  it("gateway.ask() accumulates token totals across multiple calls", async () => {
+    const gateway = new Gateway({ defaultOrder: ["local"] });
+    await gateway.ask({ requestId: "smoke-23-3a", prompt: "first" });
+    await gateway.ask({ requestId: "smoke-23-3b", prompt: "second" });
     const rows = getProviderUsage();
-    const local = rows.find((r) => r.provider === 'local');
+    const local = rows.find((r) => r.provider === "local");
     expect(local.successCount).toBe(2);
     expect(local.totalTokens).toBeGreaterThan(0);
   });
 });
 
 --- FILE: ./tests/sprint24-smoke.test.js ---
+import { loadDashboardSurface } from "./dashboard-loader.js";
 import {
   markProviderFromError,
   isProviderAvailable,
@@ -3363,6 +3417,7 @@ describe("Sprint 24 smoke tests — resetAllProviderTelemetry", () => {
 
 --- FILE: ./tests/sprint25-smoke.test.js ---
 import { existsSync, readFileSync } from "fs";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { join } from "path";
 import {
   getProviderHealthSnapshot,
@@ -3526,7 +3581,13 @@ describe("Sprint 25 — Provider Telemetry IPC and Dashboard", () => {
         process.cwd(),
         "src/ui/provider-dashboard.html",
       );
-      dashboardContent = readFileSync(dashboardPath, "utf8");
+
+      const jsPath = join(process.cwd(), "src/ui/dashboard.js");
+
+      dashboardContent =
+        readFileSync(dashboardPath, "utf8") +
+        "\n" +
+        (existsSync(jsPath) ? readFileSync(jsPath, "utf8") : "");
     });
 
     it("is HTML document", () => {
@@ -3575,17 +3636,11 @@ describe("Sprint 25 — Provider Telemetry IPC and Dashboard", () => {
       expect(mainContent).toContain(
         'require("./ipc/provider-telemetry-handlers.cjs")',
       );
-    });
-
-    it("destructures registerProviderTelemetryHandlers", () => {
-      expect(mainContent).toContain("registerProviderTelemetryHandlers");
-    });
-
-    it("calls registerProviderTelemetryHandlers()", () => {
 
 --- FILE: ./tests/sprint26-smoke.test.js ---
 import { existsSync } from 'fs';
 import { join } from 'path';
+import { loadDashboardSurface } from './dashboard-loader.js';
 import {
   recordRoutingDecision,
   getRoutingHistory,
@@ -3772,8 +3827,7 @@ describe('Sprint 26 smoke tests — file existence', () => {
   });
 
   it('dashboard HTML contains getRoutingHistory reference', () => {
-    const { readFileSync } = require('fs');
-    const content = readFileSync(join(process.cwd(), 'src/ui/provider-dashboard.html'), 'utf-8');
+    const content = loadDashboardSurface();
     expect(content).toContain('getRoutingHistory');
   });
 
@@ -3784,6 +3838,7 @@ describe('Sprint 26 smoke tests — file existence', () => {
 
 --- FILE: ./tests/sprint27-smoke.test.js ---
 import { existsSync } from 'fs';
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { join } from 'path';
 import {
   getProviderPolicy,
@@ -3938,13 +3993,14 @@ describe('Sprint 27 smoke tests — file existence', () => {
 
   it('dashboard references providerPolicy', () => {
     const { readFileSync } = require('fs');
-    const html = readFileSync(join(process.cwd(), 'src/ui/provider-dashboard.html'), 'utf-8');
+    const html = loadDashboardSurface()
     expect(html).toContain('providerPolicy');
   });
 });
 
 --- FILE: ./tests/sprint28-smoke.test.js ---
 import { existsSync } from "fs";
+import { loadDashboardSurface } from "./dashboard-loader.js";
 import { join } from "path";
 import {
   listPolicyPresets,
@@ -4123,17 +4179,14 @@ describe("Sprint 28 smoke tests — file existence", () => {
   });
 
   it("dashboard references listPresets", () => {
-    const { readFileSync } = require("fs");
-    const html = readFileSync(
-      join(process.cwd(), "src/ui/provider-dashboard.html"),
-      "utf-8",
-    );
+    const html = loadDashboardSurface();
     expect(html).toContain("listPresets");
   });
 });
 
 --- FILE: ./tests/sprint29-smoke.test.js ---
 import { existsSync } from "fs";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { join } from "path";
 import {
   getWorkspacePolicyOverride,
@@ -4349,13 +4402,13 @@ describe("Sprint 29 smoke tests — file existence", () => {
   });
 
   it("dashboard references workspacePolicy", () => {
-    const { readFileSync } = require("fs");
-    const html = readFileSync(
-      join(process.cwd(), "src/ui/provider-dashboard.html"),
-      "utf-8",
+    const html = loadDashboardSurface();
+    expect(html).toContain("workspacePolicy");
+  });
 
 --- FILE: ./tests/sprint30-smoke.test.js ---
 import { existsSync } from "fs";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { join } from "path";
 import {
   getWorkspacePolicyOverride,
@@ -4504,21 +4557,13 @@ describe("Sprint 30 smoke tests — IPC file existence and channel coverage", ()
   });
 
   it("dashboard references workspacePolicy.resolve", () => {
-    const { readFileSync } = require("fs");
-    const html = readFileSync(
-      join(process.cwd(), "src/ui/provider-dashboard.html"),
-      "utf-8",
-    );
+    const html = loadDashboardSurface();
     expect(html).toContain("workspacePolicy");
     expect(html).toContain("resolve");
   });
 
   it("dashboard references workspaceContext.buildPrompt", () => {
-    const { readFileSync } = require("fs");
-    const html = readFileSync(
-      join(process.cwd(), "src/ui/provider-dashboard.html"),
-      "utf-8",
-    );
+    const html = loadDashboardSurface();
     expect(html).toContain("buildPrompt");
   });
 
@@ -4531,6 +4576,7 @@ describe("Sprint 30 smoke tests — IPC file existence and channel coverage", ()
 
 --- FILE: ./tests/sprint31-smoke.test.js ---
 import { existsSync, readFileSync } from "fs";
+import { loadDashboardSurface } from "./dashboard-loader.js";
 import { join } from "path";
 import {
   recordRoutingDecision,
@@ -4675,10 +4721,7 @@ describe("Sprint 31 smoke tests — file existence", () => {
   });
 
   it("dashboard contains unified workspace view", () => {
-    const source = readFileSync(
-      join(process.cwd(), "src/ui/provider-dashboard.html"),
-      "utf-8",
-    );
+    const source = loadDashboardSurface();
     expect(source).toContain("Unified Workspace View");
     expect(source).toContain("workspacePolicy.resolve");
     expect(source).toContain("workspaceContext.get");
@@ -4697,6 +4740,7 @@ describe("Sprint 31 smoke tests — file existence", () => {
 
 --- FILE: ./tests/sprint32-smoke.test.js ---
 import { existsSync, readFileSync } from "fs";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { join } from "path";
 import {
   recordRoutingDecision,
@@ -4877,10 +4921,7 @@ describe("Sprint 32 smoke tests — file surface", () => {
   });
 
   it("dashboard includes analytics and explainability sections", () => {
-    const source = readFileSync(
-      join(process.cwd(), "src/ui/provider-dashboard.html"),
-      "utf-8",
-    );
+    const source = loadDashboardSurface();
     expect(source).toContain("Workspace Analytics");
     expect(source).toContain("Provider Trends");
     expect(source).toContain("Decision Timeline");
@@ -4906,6 +4947,7 @@ describe("Sprint 32 smoke tests — file surface", () => {
 
 --- FILE: ./tests/sprint33-smoke.test.js ---
 import { existsSync, readFileSync } from 'fs';
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { join } from 'path';
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
@@ -5125,9 +5167,9 @@ describe('Sprint 33 smoke tests — IPC and surface files', () => {
     expect(content).toContain('workspaceRouting:exportCsv');
   });
 
-
 --- FILE: ./tests/sprint34-smoke.test.js ---
 import { existsSync, readFileSync } from "fs";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { join } from "path";
 import {
   recordRoutingDecision,
@@ -5322,10 +5364,7 @@ describe("Sprint 34 smoke tests — file surface", () => {
   });
 
   it("dashboard contains chart and comparison panels", () => {
-    const source = readFileSync(
-      join(process.cwd(), "src/ui/provider-dashboard.html"),
-      "utf-8",
-    );
+    const source = loadDashboardSurface();
     expect(source).toContain("Bucket Chart");
     expect(source).toContain("Provider Comparison");
     expect(source).toContain("Downloadable Report Artifact");
@@ -5335,10 +5374,7 @@ describe("Sprint 34 smoke tests — file surface", () => {
   });
 
   it("dashboard preserves required compatibility strings", () => {
-    const source = readFileSync(
-      join(process.cwd(), "src/ui/provider-dashboard.html"),
-      "utf-8",
-    );
+    const source = loadDashboardSurface();
     expect(source).toContain("Workspace Analytics");
     expect(source).toContain("Provider Trends");
     expect(source).toContain("Decision Timeline");
@@ -5348,9 +5384,15 @@ describe("Sprint 34 smoke tests — file surface", () => {
     expect(source).toContain("workspaceRouting.analytics");
   });
 
+  it("types.d.ts declares all new Sprint 34 operations", () => {
+    const source = readFileSync(
+      join(process.cwd(), "src/ui/types.d.ts"),
+      "utf-8",
+
 --- FILE: ./tests/sprint35-smoke.test.js ---
-import { existsSync, readFileSync } from 'fs';
-import { join } from 'path';
+import { existsSync, readFileSync } from "fs";
+import { loadDashboardSurface } from "./dashboard-loader.js";
+import { join } from "path";
 import {
   recordRoutingDecision,
   resetRoutingHistory,
@@ -5361,100 +5403,100 @@ import {
   getProviderComparisonAcrossWorkspaces,
   exportWorkspaceAnalyticsJson,
   exportWorkspaceAnalyticsCsv,
-} from '../src/llm/routing-history.js';
+} from "../src/llm/routing-history.js";
 
-const WS = 'sprint35-ws';
+const WS = "sprint35-ws";
 
 function req(id, provider, workspaceId) {
-  return { requestId: id, workspaceId: workspaceId || WS, prompt: 'test' };
+  return { requestId: id, workspaceId: workspaceId || WS, prompt: "test" };
 }
 
-describe('Sprint 35 smoke tests — filter by provider', () => {
+describe("Sprint 35 smoke tests — filter by provider", () => {
   beforeEach(() => {
     resetRoutingHistory();
   });
 
-  it('listRoutingHistoryForWorkspace filters by provider', () => {
+  it("listRoutingHistoryForWorkspace filters by provider", () => {
     recordRoutingDecision({
-      request: req('r1', 'openai'),
-      provider: 'openai',
-      model: 'm',
+      request: req("r1", "openai"),
+      provider: "openai",
+      model: "m",
       success: true,
-      reason: 'ok',
+      reason: "ok",
       latencyMs: 100,
     });
     recordRoutingDecision({
-      request: req('r2', 'groq'),
-      provider: 'groq',
-      model: 'm',
+      request: req("r2", "groq"),
+      provider: "groq",
+      model: "m",
       success: true,
-      reason: 'fast',
+      reason: "fast",
       latencyMs: 50,
     });
 
     const openaiOnly = listRoutingHistoryForWorkspace(WS, 50, {
-      provider: 'openai',
+      provider: "openai",
     });
     expect(openaiOnly).toHaveLength(1);
-    expect(openaiOnly[0].provider).toBe('openai');
+    expect(openaiOnly[0].provider).toBe("openai");
   });
 
-  it('getWorkspaceRoutingSummary filters by provider', () => {
+  it("getWorkspaceRoutingSummary filters by provider", () => {
     recordRoutingDecision({
-      request: req('r3', 'openai'),
-      provider: 'openai',
-      model: 'm',
+      request: req("r3", "openai"),
+      provider: "openai",
+      model: "m",
       success: true,
-      reason: 'ok',
+      reason: "ok",
     });
     recordRoutingDecision({
-      request: req('r4', 'groq'),
-      provider: 'groq',
-      model: 'm',
+      request: req("r4", "groq"),
+      provider: "groq",
+      model: "m",
       success: false,
-      reason: 'fail',
+      reason: "fail",
     });
 
-    const summary = getWorkspaceRoutingSummary(WS, { provider: 'openai' });
+    const summary = getWorkspaceRoutingSummary(WS, { provider: "openai" });
     expect(summary.total).toBe(1);
     expect(summary.providerCounts.openai).toBe(1);
   });
 
-  it('getWorkspaceProviderTrends filters by provider', () => {
+  it("getWorkspaceProviderTrends filters by provider", () => {
     recordRoutingDecision({
-      request: req('r5', 'local'),
-      provider: 'local',
-      model: 'm',
+      request: req("r5", "local"),
+      provider: "local",
+      model: "m",
       success: true,
-      reason: 'private',
+      reason: "private",
     });
     recordRoutingDecision({
-      request: req('r6', 'openai'),
-      provider: 'openai',
-      model: 'm',
+      request: req("r6", "openai"),
+      provider: "openai",
+      model: "m",
       success: true,
-      reason: 'ok',
+      reason: "ok",
     });
 
-    const trends = getWorkspaceProviderTrends(WS, { provider: 'local' });
+    const trends = getWorkspaceProviderTrends(WS, { provider: "local" });
     expect(trends).toHaveLength(1);
-    expect(trends[0].provider).toBe('local');
+    expect(trends[0].provider).toBe("local");
   });
 });
 
-describe('Sprint 35 smoke tests — filter by time range', () => {
+describe("Sprint 35 smoke tests — filter by time range", () => {
   beforeEach(() => {
     resetRoutingHistory();
   });
 
-  it('listRoutingHistoryForWorkspace filters by startTime', () => {
+  it("listRoutingHistoryForWorkspace filters by startTime", () => {
     const now = Date.now();
     recordRoutingDecision({
-      request: req('t1', 'local'),
-      provider: 'local',
-      model: 'm',
+      request: req("t1", "local"),
+      provider: "local",
+      model: "m",
       success: true,
-      reason: 'ok',
+      reason: "ok",
     });
 
     const after = listRoutingHistoryForWorkspace(WS, 50, {
@@ -5468,14 +5510,14 @@ describe('Sprint 35 smoke tests — filter by time range', () => {
     expect(before).toHaveLength(1);
   });
 
-  it('listRoutingHistoryForWorkspace filters by endTime', () => {
+  it("listRoutingHistoryForWorkspace filters by endTime", () => {
     const now = Date.now();
     recordRoutingDecision({
-      request: req('t2', 'local'),
-      provider: 'local',
-      model: 'm',
+      request: req("t2", "local"),
+      provider: "local",
+      model: "m",
       success: true,
-      reason: 'ok',
+      reason: "ok",
     });
 
     const before = listRoutingHistoryForWorkspace(WS, 50, {
@@ -5490,88 +5532,88 @@ describe('Sprint 35 smoke tests — filter by time range', () => {
   });
 });
 
-describe('Sprint 35 smoke tests — global and comparison with filter', () => {
+describe("Sprint 35 smoke tests — global and comparison with filter", () => {
   beforeEach(() => {
     resetRoutingHistory();
   });
 
-  it('getGlobalWorkspaceAnalytics filters by provider', () => {
+  it("getGlobalWorkspaceAnalytics filters by provider", () => {
     recordRoutingDecision({
-      request: req('g1', 'openai', 'ws-a'),
-      provider: 'openai',
-      model: 'm',
+      request: req("g1", "openai", "ws-a"),
+      provider: "openai",
+      model: "m",
       success: true,
-      reason: 'ok',
+      reason: "ok",
     });
     recordRoutingDecision({
-      request: req('g2', 'groq', 'ws-b'),
-      provider: 'groq',
-      model: 'm',
+      request: req("g2", "groq", "ws-b"),
+      provider: "groq",
+      model: "m",
       success: true,
-      reason: 'fast',
+      reason: "fast",
     });
 
-    const rows = getGlobalWorkspaceAnalytics({ provider: 'openai' });
+    const rows = getGlobalWorkspaceAnalytics({ provider: "openai" });
     const ids = rows.map((r) => r.workspaceId);
-    expect(ids).toContain('ws-a');
-    expect(ids).not.toContain('ws-b');
+    expect(ids).toContain("ws-a");
+    expect(ids).not.toContain("ws-b");
   });
 
-  it('getProviderComparisonAcrossWorkspaces filters by provider', () => {
+  it("getProviderComparisonAcrossWorkspaces filters by provider", () => {
     recordRoutingDecision({
-      request: req('c1', 'openai', 'ws-x'),
-      provider: 'openai',
-      model: 'm',
+      request: req("c1", "openai", "ws-x"),
+      provider: "openai",
+      model: "m",
       success: true,
-      reason: 'ok',
+      reason: "ok",
     });
     recordRoutingDecision({
-      request: req('c2', 'gemini', 'ws-y'),
-      provider: 'gemini',
-      model: 'm',
+      request: req("c2", "gemini", "ws-y"),
+      provider: "gemini",
+      model: "m",
       success: true,
-      reason: 'ok',
+      reason: "ok",
     });
 
-    const rows = getProviderComparisonAcrossWorkspaces({ provider: 'openai' });
+    const rows = getProviderComparisonAcrossWorkspaces({ provider: "openai" });
     expect(rows).toHaveLength(1);
-    expect(rows[0].provider).toBe('openai');
+    expect(rows[0].provider).toBe("openai");
   });
 });
 
-describe('Sprint 35 smoke tests — export with filter', () => {
+describe("Sprint 35 smoke tests — export with filter", () => {
   beforeEach(() => {
     resetRoutingHistory();
   });
 
-  it('exportWorkspaceAnalyticsJson includes filter in output', () => {
+  it("exportWorkspaceAnalyticsJson includes filter in output", () => {
     recordRoutingDecision({
-      request: req('e1', 'local'),
-      provider: 'local',
-      model: 'm',
+      request: req("e1", "local"),
+      provider: "local",
+      model: "m",
       success: true,
-      reason: 'private',
+      reason: "private",
     });
 
-    const text = exportWorkspaceAnalyticsJson(WS, { provider: 'local' });
+    const text = exportWorkspaceAnalyticsJson(WS, { provider: "local" });
     const parsed = JSON.parse(text);
-    expect(parsed.filter.provider).toBe('local');
+    expect(parsed.filter.provider).toBe("local");
     expect(parsed.analytics.summary.total).toBe(1);
   });
 
-  it('exportWorkspaceAnalyticsCsv returns header for filtered empty result', () => {
-    const text = exportWorkspaceAnalyticsCsv(WS, { provider: 'nonexistent' });
-    const lines = text.trim().split('\n');
-    expect(lines[0]).toContain('bucket');
+  it("exportWorkspaceAnalyticsCsv returns header for filtered empty result", () => {
+    const text = exportWorkspaceAnalyticsCsv(WS, { provider: "nonexistent" });
+    const lines = text.trim().split("\n");
+    expect(lines[0]).toContain("bucket");
     expect(lines).toHaveLength(1);
   });
 });
 
-describe('Sprint 35 smoke tests — file existence and surface', () => {
-  it('workspace-report-handlers.cjs exists', () => {
+describe("Sprint 35 smoke tests — file existence and surface", () => {
 
 --- FILE: ./tests/sprint36-smoke.test.js ---
 import { existsSync, readFileSync } from "fs";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { join } from "path";
 
 // Stable wrapper — the mock factory closes over `store`, so
@@ -5790,10 +5832,10 @@ describe("Sprint 36 smoke tests — file surface", () => {
       join(process.cwd(), "electron-ui/main.cjs"),
       "utf-8",
     );
-    expect(source).toContain("registerAuditHandlers");
 
 --- FILE: ./tests/sprint37-smoke.test.js ---
 import { existsSync, readFileSync } from "fs";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { join } from "path";
 import { describe, it, expect, beforeAll, beforeEach, vi } from "vitest";
 
@@ -6012,11 +6054,11 @@ describe("Sprint 37 smoke tests — file surface", () => {
       "utf-8",
     );
     expect(source).toContain("workspaceApproval:");
-    expect(source).toMatch(
 
 --- FILE: ./tests/sprint38-smoke.test.js ---
 // @vitest-environment node
 import { existsSync, readFileSync } from "fs";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { join } from "path";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
@@ -6227,17 +6269,17 @@ describe("Sprint 38 smoke tests — file surface and IPC", () => {
   });
 
   it("dashboard has audit verification badge and alert", () => {
-    const html = readFileSync(
-      join(process.cwd(), "src/ui/provider-dashboard.html"),
-      "utf-8",
-    );
+    const html = loadDashboardSurface();
     expect(html).toContain("audit-verification-badge");
     expect(html).toContain("audit-verification-alert");
     expect(html).toContain("Audit verification failed");
     expect(html).toContain("export-audit-json");
+    expect(html).toContain("export-audit-html");
+    expect(html).toContain("window.audit.exportJson");
 
 --- FILE: ./tests/sprint39-smoke.test.js ---
 import { existsSync, readFileSync } from "fs";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { join } from "path";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
@@ -6456,10 +6498,10 @@ describe("Sprint 39 smoke tests — workspace quota service", () => {
 
     const usage = getWorkspaceQuotaUsage("ws-clear", t + 2000);
     expect(usage.dayCount).toBe(0);
-    expect(usage.exceeded).toBe(false);
 
 --- FILE: ./tests/sprint40-smoke.test.js ---
 import { existsSync, readFileSync } from "fs";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { join } from "path";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
@@ -6678,10 +6720,10 @@ describe("Sprint 40 smoke tests — workspace quota service and gateway enforcem
       await import("../src/llm/gateway.js");
 
     setWorkspaceQuotaPolicy({
-      workspaceId: "ws-gateway-block",
 
 --- FILE: ./tests/sprint41-smoke.test.js ---
 import { existsSync, readFileSync } from "fs";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { join } from "path";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
@@ -6900,10 +6942,10 @@ describe("Sprint 41 smoke tests — file surface", () => {
     expect(content).toContain("workspaceApproval:list");
   });
 
-  it("preload exposes Sprint 41 methods on workspaceQuota", () => {
 
 --- FILE: ./tests/sprint42-smoke.test.js ---
 import { existsSync, readFileSync } from "fs";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { join } from "path";
 import { describe, it, expect, vi } from "vitest";
 
@@ -7039,10 +7081,7 @@ describe("Sprint 42 smoke tests — file surface", () => {
   });
 
   it("dashboard has knowledge panel elements", () => {
-    const html = readFileSync(
-      join(process.cwd(), "src/ui/provider-dashboard.html"),
-      "utf-8",
-    );
+    const html = loadDashboardSurface();
     expect(html).toContain("knowledge-ingest");
     expect(html).toContain("knowledge-search");
     expect(html).toContain("window.workspaceKnowledge.ingest");
@@ -7050,10 +7089,7 @@ describe("Sprint 42 smoke tests — file surface", () => {
   });
 
   it("dashboard preserves Sprint 25–41 compatibility strings", () => {
-    const html = readFileSync(
-      join(process.cwd(), "src/ui/provider-dashboard.html"),
-      "utf-8",
-    );
+    const html = loadDashboardSurface();
     expect(html).toContain("Workspace Analytics");
     expect(html).toContain("Audit Trail");
     expect(html).toContain("Workspace Approvals");
@@ -7079,6 +7115,7 @@ describe("Sprint 42 smoke tests — file surface", () => {
 
 --- FILE: ./tests/sprint43-smoke.test.js ---
 import { existsSync, readFileSync } from "fs";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { join } from "path";
 import { describe, it, expect } from "vitest";
 import { buildKnowledgePromptBlock } from "../src/knowledge/index.js";
@@ -7272,6 +7309,7 @@ describe("Sprint 43 smoke tests — file surface", () => {
 
 --- FILE: ./tests/sprint44-smoke.test.js ---
 import { describe, it, expect } from "vitest";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import fs from "node:fs";
 import path from "node:path";
 
@@ -7349,7 +7387,7 @@ describe("Sprint 44 smoke tests — file surface", () => {
   });
 
   it("dashboard includes Secrets Scanning panel", () => {
-    const text = read("src/ui/provider-dashboard.html");
+    const text = loadDashboardSurface();
     expect(text).toContain("Secrets Scanning");
     expect(text).toContain("secrets-scan-btn");
     expect(text).toContain("secrets-findings-body");
@@ -7358,7 +7396,7 @@ describe("Sprint 44 smoke tests — file surface", () => {
   });
 
   it("dashboard Knowledge panel shows score column and filter input", () => {
-    const text = read("src/ui/provider-dashboard.html");
+    const text = loadDashboardSurface();
     expect(text).toContain("knowledge-filter");
     expect(text).toContain("knowledge-results-body");
     expect(text).toContain("<th>Score</th>");
@@ -7366,7 +7404,7 @@ describe("Sprint 44 smoke tests — file surface", () => {
   });
 
   it("dashboard preserves Sprint 43 compatibility strings", () => {
-    const text = read("src/ui/provider-dashboard.html");
+    const text = loadDashboardSurface();
     expect(text).toContain("Knowledge Layer");
     expect(text).toContain("knowledge-ingest-btn");
     expect(text).toContain("Workspace Quotas");
@@ -7392,6 +7430,7 @@ describe("Sprint 44 smoke tests — file surface", () => {
 
 --- FILE: ./tests/sprint45-smoke.test.js ---
 import { describe, it, expect } from "vitest";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import fs from "node:fs";
 import path from "node:path";
 
@@ -7482,7 +7521,7 @@ describe("Sprint 45 smoke tests — file surface", () => {
   });
 
   it("dashboard includes Dependency & Image Risks panel", () => {
-    const text = read("src/ui/provider-dashboard.html");
+    const text = loadDashboardSurface();
     expect(text).toContain("Dependency & Image Risks");
     expect(text).toContain("risks-panel");
     expect(text).toContain("risks-scan-deps");
@@ -7493,21 +7532,21 @@ describe("Sprint 45 smoke tests — file surface", () => {
   });
 
   it("dashboard preserves Sprint 44 Secrets Scanning panel", () => {
-    const text = read("src/ui/provider-dashboard.html");
+    const text = loadDashboardSurface();
     expect(text).toContain("Secrets Scanning");
     expect(text).toContain("secrets-scan-btn");
     expect(text).toContain("window.secrets.scan");
   });
 
   it("dashboard preserves Sprint 44 Knowledge panel compatibility strings", () => {
-    const text = read("src/ui/provider-dashboard.html");
+    const text = loadDashboardSurface();
     expect(text).toContain("Knowledge Layer");
     expect(text).toContain("knowledge-filter");
     expect(text).toContain("knowledge-results-body");
   });
 
   it("dashboard preserves Sprint 43 and earlier compatibility strings", () => {
-    const text = read("src/ui/provider-dashboard.html");
+    const text = loadDashboardSurface();
     expect(text).toContain("Workspace Analytics & Explainability");
     expect(text).toContain("Workspace Quotas");
     expect(text).toContain("Audit Trail");
@@ -7531,6 +7570,7 @@ describe("Sprint 45 smoke tests — file surface", () => {
 
 --- FILE: ./tests/sprint46-smoke.test.js ---
 import { describe, it, expect } from "vitest";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 
@@ -7592,10 +7632,7 @@ describe("Sprint 46 smoke tests — file surface", () => {
   });
 
   it("dashboard has Security Overview panel above Secrets panel", () => {
-    const html = readFileSync(
-      join(process.cwd(), "src/ui/provider-dashboard.html"),
-      "utf-8",
-    );
+    const html = loadDashboardSurface();
     expect(html).toContain("security-overview-panel");
     expect(html).toContain("security-load-overview");
     expect(html).toContain("security-save-baseline");
@@ -7607,10 +7644,7 @@ describe("Sprint 46 smoke tests — file surface", () => {
   });
 
   it("dashboard preserves Sprint 25–45 compatibility strings", () => {
-    const html = readFileSync(
-      join(process.cwd(), "src/ui/provider-dashboard.html"),
-      "utf-8",
-    );
+    const html = loadDashboardSurface();
     expect(html).toContain("Workspace Analytics");
     expect(html).toContain("Audit Trail");
     expect(html).toContain("Workspace Approvals");
@@ -7631,6 +7665,7 @@ describe("Sprint 46 smoke tests — file surface", () => {
 
 --- FILE: ./tests/sprint47-smoke.test.js ---
 import { describe, it, expect } from "vitest";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import fs from "node:fs";
 import path from "node:path";
 
@@ -7718,7 +7753,7 @@ describe("Sprint 47 smoke tests — file surface", () => {
   });
 
   it("dashboard has triage controls", () => {
-    const text = read("src/ui/provider-dashboard.html");
+    const text = loadDashboardSurface();
     expect(text).toContain("security-triage-path");
     expect(text).toContain("security-triage-fingerprint");
     expect(text).toContain("security-triage-status");
@@ -7728,20 +7763,20 @@ describe("Sprint 47 smoke tests — file surface", () => {
   });
 
   it("dashboard has triage metric cards", () => {
-    const text = read("src/ui/provider-dashboard.html");
+    const text = loadDashboardSurface();
     expect(text).toContain("security-open");
     expect(text).toContain("security-accepted");
     expect(text).toContain("security-resolved");
   });
 
   it("dashboard calls workspaceSecurity.setTriage and .loadTriage", () => {
-    const text = read("src/ui/provider-dashboard.html");
+    const text = loadDashboardSurface();
     expect(text).toContain("workspaceSecurity.setTriage");
     expect(text).toContain("workspaceSecurity.loadTriage");
   });
 
   it("dashboard preserves Sprint 46 security overview strings", () => {
-    const text = read("src/ui/provider-dashboard.html");
+    const text = loadDashboardSurface();
     expect(text).toContain("security-overview-panel");
     expect(text).toContain("security-total");
     expect(text).toContain("security-load-overview");
@@ -7750,14 +7785,14 @@ describe("Sprint 47 smoke tests — file surface", () => {
   });
 
   it("dashboard preserves Sprint 44/45 scanner panels", () => {
-    const text = read("src/ui/provider-dashboard.html");
+    const text = loadDashboardSurface();
     expect(text).toContain("Secrets Scanning");
     expect(text).toContain("Dependency & Image Risks");
     expect(text).toContain("risks-panel");
   });
 
   it("dashboard preserves Sprint 43 and earlier compatibility strings", () => {
-    const text = read("src/ui/provider-dashboard.html");
+    const text = loadDashboardSurface();
     expect(text).toContain("Workspace Analytics & Explainability");
     expect(text).toContain("Audit Trail");
     expect(text).toContain("Workspace Quotas");
@@ -7783,6 +7818,7 @@ describe("Sprint 47 smoke tests — file surface", () => {
 
 --- FILE: ./tests/sprint48-smoke.test.js ---
 import { describe, it, expect } from "vitest";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 
@@ -7855,7 +7891,7 @@ describe("Sprint 48 smoke tests — file surface", () => {
   });
 
   it("dashboard has Security Drift panel", () => {
-    const html = read("src/ui/provider-dashboard.html");
+    const html = loadDashboardSurface();
     expect(html).toContain("security-drift-panel");
     expect(html).toContain("security-drift-baseline-path");
     expect(html).toContain("security-drift-compare-btn");
@@ -7866,7 +7902,7 @@ describe("Sprint 48 smoke tests — file surface", () => {
   });
 
   it("dashboard Security Drift panel appears after Security Overview panel", () => {
-    const html = read("src/ui/provider-dashboard.html");
+    const html = loadDashboardSurface();
     const overviewIdx = html.indexOf("security-overview-panel");
     const driftIdx = html.indexOf("security-drift-panel");
     expect(overviewIdx).toBeGreaterThan(-1);
@@ -7874,7 +7910,7 @@ describe("Sprint 48 smoke tests — file surface", () => {
   });
 
   it("dashboard preserves Sprint 25–47 compatibility strings", () => {
-    const html = read("src/ui/provider-dashboard.html");
+    const html = loadDashboardSurface();
     expect(html).toContain("Workspace Analytics");
     expect(html).toContain("Audit Trail");
     expect(html).toContain("Workspace Quotas");
@@ -7892,6 +7928,7 @@ describe("Sprint 48 smoke tests — file surface", () => {
 
 --- FILE: ./tests/sprint49-smoke.test.js ---
 import { describe, it, expect } from "vitest";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import fs from "node:fs";
 import path from "node:path";
 
@@ -7992,7 +8029,7 @@ describe("Sprint 49 smoke tests — file surface", () => {
   });
 
   it("dashboard has AI Finding Explanation panel", () => {
-    const text = read("src/ui/provider-dashboard.html");
+    const text = loadDashboardSurface();
     expect(text).toContain("AI Finding Explanation");
     expect(text).toContain("security-ai-panel");
     expect(text).toContain("security-ai-explain-btn");
@@ -8001,32 +8038,32 @@ describe("Sprint 49 smoke tests — file surface", () => {
   });
 
   it("dashboard wires explainIntroduced and uses latestSecurityDriftResult", () => {
-    const text = read("src/ui/provider-dashboard.html");
+    const text = loadDashboardSurface();
     expect(text).toContain("window.workspaceSecurity.explainIntroduced");
     expect(text).toContain("latestSecurityDriftResult");
   });
 
   it("dashboard preserves Sprint 48 Security Drift panel", () => {
-    const text = read("src/ui/provider-dashboard.html");
+    const text = loadDashboardSurface();
     expect(text).toContain("Security Drift");
     expect(text).toContain("window.workspaceSecurity.compareBaseline");
   });
 
   it("dashboard preserves Sprint 47 Security Overview triage controls", () => {
-    const text = read("src/ui/provider-dashboard.html");
+    const text = loadDashboardSurface();
     expect(text).toContain("security-set-triage");
     expect(text).toContain("security-load-triage");
   });
 
   it("dashboard preserves Sprint 44-46 scanner panels", () => {
-    const text = read("src/ui/provider-dashboard.html");
+    const text = loadDashboardSurface();
     expect(text).toContain("Secrets Scanning");
     expect(text).toContain("Dependency & Image Risks");
     expect(text).toContain("Security Overview");
   });
 
   it("dashboard preserves Sprint 43 and earlier compatibility strings", () => {
-    const text = read("src/ui/provider-dashboard.html");
+    const text = loadDashboardSurface();
     expect(text).toContain("Workspace Analytics & Explainability");
     expect(text).toContain("Audit Trail");
     expect(text).toContain("metric-success-rate");
@@ -8051,6 +8088,7 @@ describe("Sprint 49 smoke tests — file surface", () => {
 
 --- FILE: ./tests/sprint50-smoke.test.js ---
 import { describe, it, expect } from "vitest";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { readFileSync } from "fs";
 import { join } from "path";
 
@@ -8209,36 +8247,36 @@ describe("Sprint 50 smoke tests — consolidated T1-T3 surface", () => {
 
   describe("dashboard surface — T3", () => {
     it("has driftClassificationBadge element", () => {
-      const h = read("src/ui/provider-dashboard.html");
+      const h = loadDashboardSurface();
       expect(h).toContain("driftClassificationBadge");
     });
     it("has driftClassificationLabel element", () => {
-      const h = read("src/ui/provider-dashboard.html");
+      const h = loadDashboardSurface();
       expect(h).toContain("driftClassificationLabel");
     });
     it("calls getDriftClassification in JS", () => {
-      const h = read("src/ui/provider-dashboard.html");
+      const h = loadDashboardSurface();
       expect(h).toContain("getDriftClassification");
     });
     it("badge call is inside try/catch (non-fatal)", () => {
-      const h = read("src/ui/provider-dashboard.html");
+      const h = loadDashboardSurface();
       expect(h).toContain("driftClassificationBadge");
       expect(h).toContain("catch (_e)");
     });
     it("preserves latestSecurityDriftResult cache (Sprint 49)", () => {
-      const h = read("src/ui/provider-dashboard.html");
+      const h = loadDashboardSurface();
       expect(h).toContain("latestSecurityDriftResult");
     });
     it("preserves explainIntroduced (Sprint 49)", () => {
-      const h = read("src/ui/provider-dashboard.html");
+      const h = loadDashboardSurface();
       expect(h).toContain("explainIntroduced");
     });
     it("preserves security-drift-panel (Sprint 48)", () => {
-      const h = read("src/ui/provider-dashboard.html");
+      const h = loadDashboardSurface();
       expect(h).toContain("security-drift-panel");
     });
     it("preserves security-overview-panel (Sprint 46)", () => {
-      const h = read("src/ui/provider-dashboard.html");
+      const h = loadDashboardSurface();
       expect(h).toContain("security-overview-panel");
     });
   });
@@ -8269,6 +8307,7 @@ describe("Sprint 50 smoke tests — consolidated T1-T3 surface", () => {
 
 --- FILE: ./tests/sprint51-smoke.test.js ---
 import { describe, it, expect } from "vitest";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 
@@ -8362,7 +8401,7 @@ describe("Sprint 51 smoke tests — security surface regression", () => {
   });
 
   it("Sprint 44-50 scanner panels still present in dashboard", () => {
-    const html = read("src/ui/provider-dashboard.html");
+    const html = loadDashboardSurface();
     const required = [
       "security-overview-panel",
       "security-drift-panel",
@@ -8401,6 +8440,7 @@ describe("Sprint 51 smoke tests — security surface regression", () => {
 
 --- FILE: ./tests/sprint52-smoke.test.js ---
 import { describe, it, expect } from 'vitest';
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -8484,7 +8524,7 @@ describe('Sprint 52 smoke tests — bulk triage surface', () => {
   });
 
   it('dashboard is unchanged — Sprint 44-51 surfaces still present', () => {
-    const html = read('src/ui/provider-dashboard.html');
+    const html = loadDashboardSurface();
     expect(html).toContain('security-overview-panel');
     expect(html).toContain('security-drift-panel');
     expect(html).toContain('Workspace Analytics');
@@ -8506,6 +8546,7 @@ describe('Sprint 52 smoke tests — bulk triage surface', () => {
 
 --- FILE: ./tests/sprint53-smoke.test.js ---
 import { describe, it, expect } from "vitest";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import fs from "node:fs";
 import path from "node:path";
 
@@ -8620,6 +8661,7 @@ describe("Sprint 53 smoke tests — test harness regression", () => {
 
 --- FILE: ./tests/sprint54-smoke.test.js ---
 import { describe, it, expect } from "vitest";
+import { loadDashboardSurface } from './dashboard-loader.js';
 import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 
@@ -9352,11 +9394,11 @@ describe("test-runner scaffold", () => {
 });
 
 === TEST RESULTS ===
-    at new Promise (<anonymous>)
     at runWithTimeout [90m(file:///home/pawan/vscodeagent/Solution/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
     at [90mfile:///home/pawan/vscodeagent/Solution/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
 
-[90mstderr[2m | tests/startup-bootstrap.test.js
+ [32m✓[39m tests/startup-bootstrap.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+[90mstderr[2m | Timeout._onTimeout (/home/pawan/vscodeagent/Solution/src/startup-bootstrap.js:40:15)
 [22m[39m[startup-bootstrap] bootstrap failed Error: Keychain locked
     at [90m/home/pawan/vscodeagent/Solution/[39mtests/startup-bootstrap.test.js:21:7
     at [90mfile:///home/pawan/vscodeagent/Solution/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
@@ -9369,18 +9411,18 @@ describe("test-runner scaffold", () => {
     at runWithTimeout [90m(file:///home/pawan/vscodeagent/Solution/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
     at [90mfile:///home/pawan/vscodeagent/Solution/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
 
- [32m✓[39m tests/startup-bootstrap.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 3[2mms[22m[39m
- [32m✓[39m tests/llm/local-provider.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 3[2mms[22m[39m
- [32m✓[39m tests/updater-config.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
- [32m✓[39m tests/chaos-runbook.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
- [32m✓[39m tests/window-security.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
- [32m✓[39m tests/test-runner.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 4[2mms[22m[39m
- [32m✓[39m tests/thread.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m tests/chaos-workflow.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/thread.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/chaos-slo.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/window-security.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/chaos-runbook.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/test-runner.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/updater-config.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
 
-[2m Test Files [22m [1m[32m130 passed[39m[22m[90m (130)[39m
-[2m      Tests [22m [1m[32m1370 passed[39m[22m[90m (1370)[39m
-[2m   Start at [22m 02:23:12
-[2m   Duration [22m 6.10s[2m (transform 9.30s, setup 4.25s, import 12.95s, tests 13.21s, environment 85.89s)[22m
+[2m Test Files [22m [1m[32m136 passed[39m[22m[90m (136)[39m
+[2m      Tests [22m [1m[32m1439 passed[39m[22m[90m (1439)[39m
+[2m   Start at [22m 04:58:12
+[2m   Duration [22m 7.95s[2m (transform 10.82s, setup 5.24s, import 15.76s, tests 14.88s, environment 112.90s)[22m
 
 
 === TYPECHECK ===
