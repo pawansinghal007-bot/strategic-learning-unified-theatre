@@ -69,8 +69,9 @@ Sprint 59 (Human Tester 6 — executive walkthrough panel, demo mode, exportable
 | 63     | Human Tester 9 — executive release panel (deferred from Sprint 62), real review wiring, and release-readiness surfaces.                                                                                                                                                                                                                                                                                                                                                                                                | Complete |
 | 64     | Sonar S7761 dataset migration: setAttribute('data-\*') converted to .dataset across all executive panel helper functions (setProofAction, setLocalAiStatus, setWalkthroughState, setProofSummaryState, setComplianceState, setDriftHistoryState, setDemoPersistenceState, setReviewState, setReviewPersistenceState, setReviewExportState, setReleaseBlockersState, setReleaseState). sprint64-dataset-migration.test.js regression guard added. Repo cleanup: Sprint 63 debug artifacts removed, .gitignore hardened. | Complete |
 | 65     | Architecture verification and residual cleanup audit: confirmed dashboard.js/provider-dashboard.html split, audited remaining setAttribute calls, fixed 3 residual S7761 violations in event handlers (compliance/release-readiness/sonar-refresh), verified no duplicate functions. Guard-only regression suite (27 tests) created: compatibility hooks, dataset-backed state markers, false-clean language prevention, release-truth wording lock. All 1466 tests passing.                                           | Complete |
-
-## Standing Architecture Rules (all future sprints)
+| 66     | Sonar remediation continuation: Cognitive complexity reduction (S3776 in preload.cjs), TypeScript migration and cleanup (preload.cjs types.d.ts), remaining dataset migration in utility files. Sonar quality gate: gate FAILED with 151 new_violations. Guard regression suite (30 tests) added for remediation tracking.                                                                                                                                                                                             | Complete |
+| 67     | Measured Sonar cleanup in dashboard.js: S3504 var→let/const conversion (40 declarations across 3 passes), S7760 default parameter fix (setWalkthroughState), S7761 getAttribute residual removal. sprint67-measured-cleanup.test.js guard added (13 tests). No HTML changes, no new features. Dashboard.js var count reduced from 12 to 0. Sonar scan completed; gate status evaluation pending.                                                                                                                       | Complete |
+| 68     | Evaluate Sonar quality gate path after Sprint 67: if new_violations reduced significantly from S3504 conversion, assess remaining blockers (new_coverage 0% vs 80% threshold, new_security_hotspots_reviewed 0% vs 100% threshold). Coverage requires vitest expansion to new-code-period files; hotspots require Sonar acknowledgement/waiver.                                                                                                                                                                        | Next     |
 
 - Never replace preload.cjs entirely — append/extend only
 - Never add a second interface Window in types.d.ts
@@ -84,11 +85,9 @@ Sprint 59 (Human Tester 6 — executive walkthrough panel, demo mode, exportable
 Sprint 63 (Executive Release Truth Panel) is complete.
 Sprint 64 (Sonar Dataset Migration) is complete.
 Sprint 65 (Architecture Verification + Residual Cleanup Audit + Guard-Only Regression Suite) is complete.
-Sprint 66 (Sonar Remediation Continuation — Cognitive Complexity + TypeScript Fixes) is complete.
+Sprint 66 (Sonar Remediation Continuation) is complete.
+Sprint 67 (Measured Sonar Cleanup) is complete.
 
 ## Next
 
-Sprint 67 — Continue Sonar new-code issue reduction toward quality gate pass.
-Fresh scan as of Sprint 66 showed 151 unresolved new-code violations (gate FAILED).
-Primary focus: S3504 var→let/const migration across codebase to reduce violation count.
-Secondary focus: S7761 getAttribute→.dataset migration in remaining files.
+Sprint 68 — Evaluate Sonar quality gate path after Sprint 67 scan results.

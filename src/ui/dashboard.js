@@ -1,11 +1,11 @@
 function setProofAction(action, detail) {
-  var lastActionEl = document.querySelector(
+  const lastActionEl = document.querySelector(
     '[data-testid="proof-last-action-value"]',
   );
-  var proofOutputEl = document.querySelector(
+  const proofOutputEl = document.querySelector(
     '[data-testid="proof-state-output"]',
   );
-  var proofPanelEl = document.querySelector(
+  const proofPanelEl = document.querySelector(
     '[data-testid="executive-proof-panel"]',
   );
   if (lastActionEl) lastActionEl.textContent = action || "Idle";
@@ -23,17 +23,19 @@ function setProofAction(action, detail) {
 }
 
 function setLocalAiStatus(status, detail) {
-  var valueEl = document.querySelector('[data-testid="local-ai-status-value"]');
-  var detailEl = document.querySelector(
+  const valueEl = document.querySelector(
+    '[data-testid="local-ai-status-value"]',
+  );
+  const detailEl = document.querySelector(
     '[data-testid="local-ai-status-detail"]',
   );
-  var evidenceEl = document.querySelector(
+  const evidenceEl = document.querySelector(
     '[data-testid="evidence-local-ai-value"]',
   );
   if (valueEl) valueEl.textContent = status || "unknown";
   if (detailEl) detailEl.textContent = detail || "";
   if (evidenceEl) evidenceEl.textContent = status || "unknown";
-  var panel = document.querySelector('[data-testid="local-ai-status-panel"]');
+  const panel = document.querySelector('[data-testid="local-ai-status-panel"]');
   if (panel) panel.dataset.localAiState = String(status).toLowerCase();
   setProofAction(
     "Local AI Sync",
@@ -52,15 +54,20 @@ function normalizeStateToken(value, fallback = "idle") {
     .replace(/\s+/g, "-");
 }
 
-function setWalkthroughState(step, detail, mode) {
-  mode = mode || "standby";
-  var stepEl = document.querySelector('[data-testid="walkthrough-step-value"]');
-  var demoEl = document.querySelector('[data-testid="walkthrough-demo-value"]');
-  var outputEl = document.querySelector('[data-testid="walkthrough-output"]');
-  var panelEl = document.querySelector(
+function setWalkthroughState(step, detail, mode = "standby") {
+  const stepEl = document.querySelector(
+    '[data-testid="walkthrough-step-value"]',
+  );
+  const demoEl = document.querySelector(
+    '[data-testid="walkthrough-demo-value"]',
+  );
+  const outputEl = document.querySelector('[data-testid="walkthrough-output"]');
+  const panelEl = document.querySelector(
     '[data-testid="executive-walkthrough-panel"]',
   );
-  var syncEl = document.querySelector('[data-testid="walkthrough-sync-value"]');
+  const syncEl = document.querySelector(
+    '[data-testid="walkthrough-sync-value"]',
+  );
   if (stepEl) stepEl.textContent = step || "Ready";
   if (demoEl) demoEl.textContent = mode || "Standby";
   if (syncEl) syncEl.textContent = "Aligned";
@@ -76,9 +83,8 @@ function setWalkthroughState(step, detail, mode) {
 
 function buildProofSummary() {
   const localAiState =
-    document
-      .querySelector('[data-testid="local-ai-status-panel"]')
-      ?.getAttribute("data-local-ai-state") || "unknown";
+    document.querySelector('[data-testid="local-ai-status-panel"]')?.dataset
+      .localAiState || "unknown";
 
   return [
     "Executive Proof Summary",
@@ -93,10 +99,10 @@ function buildProofSummary() {
 }
 
 function setProofSummaryState(label, summaryText) {
-  var exportEl = document.querySelector(
+  const exportEl = document.querySelector(
     '[data-testid="walkthrough-export-value"]',
   );
-  var summaryEl = document.querySelector(
+  const summaryEl = document.querySelector(
     '[data-testid="proof-summary-output"]',
   );
   if (exportEl) exportEl.textContent = label || "Idle";
@@ -108,11 +114,11 @@ function setProofSummaryState(label, summaryText) {
 }
 
 function setComplianceState(state, detail) {
-  var outputEl = document.querySelector('[data-testid="compliance-output"]');
-  var panelEl = document.querySelector(
+  const outputEl = document.querySelector('[data-testid="compliance-output"]');
+  const panelEl = document.querySelector(
     '[data-testid="executive-compliance-panel"]',
   );
-  var summaryEl = document.querySelector(
+  const summaryEl = document.querySelector(
     '[data-testid="compliance-summary-value"]',
   );
   if (outputEl) {
@@ -126,8 +132,10 @@ function setComplianceState(state, detail) {
 }
 
 function setDriftHistoryState(label, text) {
-  var driftEl = document.querySelector('[data-testid="drift-history-output"]');
-  var driftValueEl = document.querySelector(
+  const driftEl = document.querySelector(
+    '[data-testid="drift-history-output"]',
+  );
+  const driftValueEl = document.querySelector(
     '[data-testid="compliance-drift-value"]',
   );
   if (driftValueEl) driftValueEl.textContent = label || "Idle";
@@ -138,10 +146,10 @@ function setDriftHistoryState(label, text) {
 }
 
 function setDemoPersistenceState(label, detail) {
-  var persistenceEl = document.querySelector(
+  const persistenceEl = document.querySelector(
     '[data-testid="compliance-persistence-value"]',
   );
-  var panelEl = document.querySelector(
+  const panelEl = document.querySelector(
     '[data-testid="executive-compliance-panel"]',
   );
   if (persistenceEl) persistenceEl.textContent = label || "Standby";
@@ -191,11 +199,11 @@ function buildLiveReviewEvidence() {
 }
 
 function setReviewState(label, detail) {
-  var reviewOutput = document.querySelector('[data-testid="review-output"]');
-  var reviewPanel = document.querySelector(
+  const reviewOutput = document.querySelector('[data-testid="review-output"]');
+  const reviewPanel = document.querySelector(
     '[data-testid="executive-review-panel"]',
   );
-  var exportValue = document.querySelector(
+  const exportValue = document.querySelector(
     '[data-testid="review-export-value"]',
   );
   if (reviewOutput) {
@@ -211,10 +219,10 @@ function setReviewState(label, detail) {
 }
 
 function setReviewPersistenceState(label, detail) {
-  var persistenceValue = document.querySelector(
+  const persistenceValue = document.querySelector(
     '[data-testid="review-persistence-value"]',
   );
-  var reviewPanel = document.querySelector(
+  const reviewPanel = document.querySelector(
     '[data-testid="executive-review-panel"]',
   );
   if (persistenceValue) persistenceValue.textContent = label || "Standby";
@@ -225,16 +233,18 @@ function setReviewPersistenceState(label, detail) {
     );
   }
   if (detail) {
-    var reviewOutput = document.querySelector('[data-testid="review-output"]');
+    const reviewOutput = document.querySelector(
+      '[data-testid="review-output"]',
+    );
     if (reviewOutput) reviewOutput.textContent = detail;
   }
 }
 
 function setReviewExportState(label, text) {
-  var exportOutput = document.querySelector(
+  const exportOutput = document.querySelector(
     '[data-testid="review-export-output"]',
   );
-  var exportValue = document.querySelector(
+  const exportValue = document.querySelector(
     '[data-testid="review-export-value"]',
   );
   if (exportValue) exportValue.textContent = label || "Idle";
@@ -278,10 +288,10 @@ function buildReleaseReadinessEvidence() {
 // setReleaseState defined at script root for test regex compatibility
 
 function setReleaseBlockersState(label, detail) {
-  var blockersValue = document.querySelector(
+  const blockersValue = document.querySelector(
     '[data-testid="release-blockers-value"]',
   );
-  var releasePanel = document.querySelector(
+  const releasePanel = document.querySelector(
     '[data-testid="executive-release-panel"]',
   );
   if (blockersValue) blockersValue.textContent = label || "Standby";
@@ -292,7 +302,7 @@ function setReleaseBlockersState(label, detail) {
     );
   }
   if (detail) {
-    var releaseOutput = document.querySelector(
+    const releaseOutput = document.querySelector(
       '[data-testid="release-output"]',
     );
     if (releaseOutput) releaseOutput.textContent = detail;
@@ -720,9 +730,13 @@ function attachIfExists(selector, handler) {
 }
 
 (function () {
-  var govVal = document.querySelector('[data-testid="proof-governance-value"]');
-  var secVal = document.querySelector('[data-testid="proof-security-value"]');
-  var knwVal = document.querySelector('[data-testid="proof-knowledge-value"]');
+  const govVal = document.querySelector(
+    '[data-testid="proof-governance-value"]',
+  );
+  const secVal = document.querySelector('[data-testid="proof-security-value"]');
+  const knwVal = document.querySelector(
+    '[data-testid="proof-knowledge-value"]',
+  );
   if (govVal) govVal.textContent = "Ready";
   if (secVal) secVal.textContent = "Ready";
   if (knwVal) knwVal.textContent = "Ready";
@@ -736,7 +750,7 @@ function attachIfExists(selector, handler) {
     "Executive proof flow initialized for Human Tester 5.",
   );
 
-  var captureBtn = document.querySelector(
+  const captureBtn = document.querySelector(
     '[data-testid="capture-proof-state-btn"]',
   );
   attachIfExists('[data-testid="capture-proof-state-btn"]', function () {
@@ -1935,12 +1949,14 @@ document.getElementById("build-prompt").addEventListener("click", async () => {
 // data-review-surface="governance"
 // data-review-surface="timeline"
 function setReleaseState(label, detail) {
-  var t = normalizeStateToken(label, "idle");
-  var releaseOutput = document.querySelector('[data-testid="release-output"]');
-  var releasePanel = document.querySelector(
+  const t = normalizeStateToken(label, "idle");
+  const releaseOutput = document.querySelector(
+    '[data-testid="release-output"]',
+  );
+  const releasePanel = document.querySelector(
     '[data-testid="executive-release-panel"]',
   );
-  var releaseValue = document.querySelector(
+  const releaseValue = document.querySelector(
     '[data-testid="release-export-value"]',
   );
   if (releaseOutput) {
