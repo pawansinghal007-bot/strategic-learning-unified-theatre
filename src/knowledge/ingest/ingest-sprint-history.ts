@@ -145,8 +145,10 @@ export async function ingestSprintHistory(
 
 if (process.argv[1] && process.argv[1].includes("ingest-sprint-history")) {
   const baseDir = process.argv[2] ?? "./docs/sprints";
-  ingestSprintHistory({ baseDir }).catch((err) => {
+  try {
+    await ingestSprintHistory({ baseDir });
+  } catch (err) {
     console.error("[knowledge] Ingestion failed:", err);
     process.exitCode = 1;
-  });
+  }
 }

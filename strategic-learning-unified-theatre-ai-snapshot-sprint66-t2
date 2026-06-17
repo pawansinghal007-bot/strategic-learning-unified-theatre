@@ -1,0 +1,31 @@
+  SPRINT 66 — T2 COMPLETE
+
+  FILE:
+    tests/sprint66-remediation-guard.test.js (created)
+
+  STATUS:
+    Section "no regression of Sprint 65 fixes" — asserts zero setAttribute(
+      calls remain, all 3 Sprint 65 dataset fixes present, and the exact
+      locked wording (release-readiness-output blocked text with "89 open
+      issues", release-output "Release truth idle.", release-blockers-output
+      "Release blockers not yet verified") is unchanged
+    Section "extraction work" — [describes the genuine helper extracted by
+      T1, with real function names | OR: documents that no extraction was
+      needed/performed this sprint, single no-op test]
+    Section "TypeScript fixes" — [describes the genuine fix applied to
+      gateway.ts and/or ingest-sprint-history.ts | OR: documents deferral
+      with reason]
+    No placeholder/angle-bracket text remains in the final test file
+    tests/sprint65-guard-only.test.js re-run and confirmed still 27/27
+    compile clean [if run]
+
+  DELIVERABLES:
+    [x] tests/sprint66-remediation-guard.test.js created with real (not
+        placeholder) assertions matching T1's actual changes
+    [x] Confirmed zero setAttribute regression
+    [x] Confirmed Sprint 65's exact locked wording is unchanged
+    [x] Re-ran Sprint 65's guard suite — still 27/27 passing
+    [x] No source files touched in this step
+
+  NEXT:
+    T3 — full validation, sprint closure

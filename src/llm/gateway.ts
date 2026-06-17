@@ -567,7 +567,7 @@ export function enforceWorkspaceQuotaOrThrow(input: {
 let _gateway: Gateway | undefined;
 export const gateway = new Proxy({} as Gateway, {
   get(_target, prop) {
-    if (!_gateway) _gateway = new Gateway();
+    _gateway ??= new Gateway();
     return (_gateway as any)[prop];
   },
 });

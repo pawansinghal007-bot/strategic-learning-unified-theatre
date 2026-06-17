@@ -84,3 +84,11 @@ Sprint 59 (Human Tester 6 — executive walkthrough panel, demo mode, exportable
 Sprint 63 (Executive Release Truth Panel) is complete.
 Sprint 64 (Sonar Dataset Migration) is complete.
 Sprint 65 (Architecture Verification + Residual Cleanup Audit + Guard-Only Regression Suite) is complete.
+Sprint 66 (Sonar Remediation Continuation — Cognitive Complexity + TypeScript Fixes) is complete.
+
+## Next
+
+Sprint 67 — Continue Sonar new-code issue reduction toward quality gate pass.
+Fresh scan as of Sprint 66 showed 151 unresolved new-code violations (gate FAILED).
+Primary focus: S3504 var→let/const migration across codebase to reduce violation count.
+Secondary focus: S7761 getAttribute→.dataset migration in remaining files.

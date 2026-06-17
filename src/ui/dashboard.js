@@ -711,6 +711,14 @@ document.getElementById("save-html").addEventListener("click", async () => {
   reportOut.textContent = JSON.stringify(result, null, 2);
 });
 
+// Helper to attach click handler if button exists, reducing IIFE complexity
+function attachIfExists(selector, handler) {
+  const btn = document.querySelector(selector);
+  if (btn) {
+    btn.addEventListener("click", handler);
+  }
+}
+
 (function () {
   var govVal = document.querySelector('[data-testid="proof-governance-value"]');
   var secVal = document.querySelector('[data-testid="proof-security-value"]');
@@ -731,14 +739,12 @@ document.getElementById("save-html").addEventListener("click", async () => {
   var captureBtn = document.querySelector(
     '[data-testid="capture-proof-state-btn"]',
   );
-  if (captureBtn) {
-    captureBtn.addEventListener("click", function () {
-      setProofAction(
-        "Proof Captured",
-        "Executive proof state captured across governance, security, knowledge, and local AI surfaces.",
-      );
-    });
-  }
+  attachIfExists('[data-testid="capture-proof-state-btn"]', function () {
+    setProofAction(
+      "Proof Captured",
+      "Executive proof state captured across governance, security, knowledge, and local AI surfaces.",
+    );
+  });
 
   const demoBtn = document.querySelector('[data-testid="start-demo-mode-btn"]');
   const exportBtn = document.querySelector(
@@ -748,51 +754,45 @@ document.getElementById("save-html").addEventListener("click", async () => {
     '[data-testid="copy-proof-summary-btn"]',
   );
 
-  if (demoBtn) {
-    demoBtn.addEventListener("click", function () {
-      setWalkthroughState(
-        "Demo Running",
-        "Executive demo mode enabled for walkthrough-safe evidence review.",
-        "active",
-      );
-      setProofAction(
-        "Demo Mode Active",
-        "Executive demo mode aligned with proof surfaces.",
-      );
-    });
-  }
+  attachIfExists('[data-testid="start-demo-mode-btn"]', function () {
+    setWalkthroughState(
+      "Demo Running",
+      "Executive demo mode enabled for walkthrough-safe evidence review.",
+      "active",
+    );
+    setProofAction(
+      "Demo Mode Active",
+      "Executive demo mode aligned with proof surfaces.",
+    );
+  });
 
-  if (exportBtn) {
-    exportBtn.addEventListener("click", function () {
-      const summary = buildProofSummary();
-      setProofSummaryState("Exported", summary);
-      setWalkthroughState(
-        "Summary Exported",
-        "Executive proof summary exported for demo and handoff usage.",
-        "active",
-      );
-      setProofAction(
-        "Proof Summary Exported",
-        "Executive proof summary exported successfully.",
-      );
-    });
-  }
+  attachIfExists('[data-testid="export-proof-summary-btn"]', function () {
+    const summary = buildProofSummary();
+    setProofSummaryState("Exported", summary);
+    setWalkthroughState(
+      "Summary Exported",
+      "Executive proof summary exported for demo and handoff usage.",
+      "active",
+    );
+    setProofAction(
+      "Proof Summary Exported",
+      "Executive proof summary exported successfully.",
+    );
+  });
 
-  if (copyBtn) {
-    copyBtn.addEventListener("click", function () {
-      const summary = buildProofSummary();
-      setProofSummaryState("Copied", summary);
-      setWalkthroughState(
-        "Summary Copied",
-        "Executive proof summary prepared for copy-safe handoff.",
-        "active",
-      );
-      setProofAction(
-        "Proof Summary Copied",
-        "Executive proof summary copied into walkthrough state.",
-      );
-    });
-  }
+  attachIfExists('[data-testid="copy-proof-summary-btn"]', function () {
+    const summary = buildProofSummary();
+    setProofSummaryState("Copied", summary);
+    setWalkthroughState(
+      "Summary Copied",
+      "Executive proof summary prepared for copy-safe handoff.",
+      "active",
+    );
+    setProofAction(
+      "Proof Summary Copied",
+      "Executive proof summary copied into walkthrough state.",
+    );
+  });
 
   setWalkthroughState(
     "Ready",
@@ -822,78 +822,70 @@ document.getElementById("save-html").addEventListener("click", async () => {
   setDriftHistoryState("Idle", "No drift history loaded yet.");
   setDemoPersistenceState("Standby", "Demo persistence state is standing by.");
 
-  if (driftBtn) {
-    driftBtn.addEventListener("click", function () {
-      const summary = buildDriftHistorySummary();
-      setDriftHistoryState("Loaded", summary);
-      setComplianceState(
-        "Drift Reviewed",
-        "Executive drift history loaded for walkthrough review.",
-      );
-      setProofAction(
-        "Drift History Loaded",
-        "Executive drift history loaded successfully.",
-      );
-      setWalkthroughState(
-        "Drift Reviewed",
-        "Drift review aligned with executive walkthrough.",
-        "active",
-      );
-    });
-  }
+  attachIfExists('[data-testid="load-drift-history-btn"]', function () {
+    const summary = buildDriftHistorySummary();
+    setDriftHistoryState("Loaded", summary);
+    setComplianceState(
+      "Drift Reviewed",
+      "Executive drift history loaded for walkthrough review.",
+    );
+    setProofAction(
+      "Drift History Loaded",
+      "Executive drift history loaded successfully.",
+    );
+    setWalkthroughState(
+      "Drift Reviewed",
+      "Drift review aligned with executive walkthrough.",
+      "active",
+    );
+  });
 
-  if (benchmarkBtn) {
-    benchmarkBtn.addEventListener("click", function () {
-      const text = [
-        "Compliance Benchmarks",
-        "OWASP Top 10: mapped",
-        "CIS benchmark surface: mapped",
-        "Security overview evidence: linked",
-        "Audit traceability: linked",
-      ].join("\n");
+  attachIfExists('[data-testid="map-compliance-benchmarks-btn"]', function () {
+    const text = [
+      "Compliance Benchmarks",
+      "OWASP Top 10: mapped",
+      "CIS benchmark surface: mapped",
+      "Security overview evidence: linked",
+      "Audit traceability: linked",
+    ].join("\n");
 
-      const output = document.querySelector(
-        '[data-testid="compliance-output"]',
-      );
-      const benchmark = document.querySelector(
-        '[data-testid="compliance-benchmark-value"]',
-      );
+    const output = document.querySelector('[data-testid="compliance-output"]');
+    const benchmark = document.querySelector(
+      '[data-testid="compliance-benchmark-value"]',
+    );
 
-      if (benchmark) benchmark.textContent = "Mapped";
-      if (output) {
-        output.textContent = text;
-        output.dataset.complianceOutput = "mapped";
-      }
+    if (benchmark) benchmark.textContent = "Mapped";
+    if (output) {
+      output.textContent = text;
+      output.dataset.complianceOutput = "mapped";
+    }
 
-      setProofAction(
-        "Compliance Benchmarks Mapped",
-        "Compliance benchmark mapping prepared for executive review.",
-      );
-      setWalkthroughState(
-        "Compliance Mapped",
-        "Compliance benchmark mapping aligned with walkthrough state.",
-        "active",
-      );
-    });
-  }
+    setProofAction(
+      "Compliance Benchmarks Mapped",
+      "Compliance benchmark mapping prepared for executive review.",
+    );
+    setWalkthroughState(
+      "Compliance Mapped",
+      "Compliance benchmark mapping aligned with walkthrough state.",
+      "active",
+    );
+  });
 
-  if (persistBtn) {
-    persistBtn.addEventListener("click", function () {
-      setDemoPersistenceState(
-        "Persisted",
-        "Demo and walkthrough state marked as persisted for restart-safe review.",
-      );
-      setProofAction(
-        "Demo State Persisted",
-        "Demo persistence marker updated successfully.",
-      );
-      setWalkthroughState(
-        "Persisted",
-        "Walkthrough state persisted for executive review continuity.",
-        "active",
-      );
-    });
-  }
+  attachIfExists('[data-testid="persist-demo-state-btn"]', function () {
+    setDemoPersistenceState(
+      "Persisted",
+      "Demo and walkthrough state marked as persisted for restart-safe review.",
+    );
+    setProofAction(
+      "Demo State Persisted",
+      "Demo persistence marker updated successfully.",
+    );
+    setWalkthroughState(
+      "Persisted",
+      "Walkthrough state persisted for executive review continuity.",
+      "active",
+    );
+  });
 
   const liveReviewBtn = document.querySelector(
     '[data-testid="load-live-review-btn"]',
@@ -918,55 +910,49 @@ document.getElementById("save-html").addEventListener("click", async () => {
   setReviewPersistenceState("Standby", null);
   setReviewExportState("Idle", "No review export generated yet.");
 
-  if (liveReviewBtn) {
-    liveReviewBtn.addEventListener("click", function () {
-      const evidence = buildLiveReviewEvidence();
-      setReviewState("Loaded", "Live executive review evidence loaded.");
-      setReviewExportState("Prepared", evidence);
-      setProofAction(
-        "Live Review Loaded",
-        "Executive review evidence loaded successfully.",
-      );
-      setWalkthroughState(
-        "Review Loaded",
-        "Live review evidence aligned with executive walkthrough.",
-        "active",
-      );
-    });
-  }
+  attachIfExists('[data-testid="load-live-review-btn"]', function () {
+    const evidence = buildLiveReviewEvidence();
+    setReviewState("Loaded", "Live executive review evidence loaded.");
+    setReviewExportState("Prepared", evidence);
+    setProofAction(
+      "Live Review Loaded",
+      "Executive review evidence loaded successfully.",
+    );
+    setWalkthroughState(
+      "Review Loaded",
+      "Live review evidence aligned with executive walkthrough.",
+      "active",
+    );
+  });
 
-  if (exportReviewBtn) {
-    exportReviewBtn.addEventListener("click", function () {
-      const evidence = buildLiveReviewEvidence();
-      setReviewState(
-        "Exported",
-        "Executive review evidence exported for leadership review.",
-      );
-      setReviewExportState("Exported", evidence);
-      setProofAction(
-        "Review Exported",
-        "Executive review export completed successfully.",
-      );
-    });
-  }
+  attachIfExists('[data-testid="export-review-evidence-btn"]', function () {
+    const evidence = buildLiveReviewEvidence();
+    setReviewState(
+      "Exported",
+      "Executive review evidence exported for leadership review.",
+    );
+    setReviewExportState("Exported", evidence);
+    setProofAction(
+      "Review Exported",
+      "Executive review export completed successfully.",
+    );
+  });
 
-  if (verifyPersistenceBtn) {
-    verifyPersistenceBtn.addEventListener("click", function () {
-      setReviewPersistenceState(
-        "Verified",
-        "Review persistence verified against current walkthrough and compliance state.",
-      );
-      setProofAction(
-        "Persistence Verified",
-        "Executive review persistence verified successfully.",
-      );
-      setWalkthroughState(
-        "Persistence Verified",
-        "Persistence verification aligned with executive walkthrough.",
-        "active",
-      );
-    });
-  }
+  attachIfExists('[data-testid="verify-review-persistence-btn"]', function () {
+    setReviewPersistenceState(
+      "Verified",
+      "Review persistence verified against current walkthrough and compliance state.",
+    );
+    setProofAction(
+      "Persistence Verified",
+      "Executive review persistence verified successfully.",
+    );
+    setWalkthroughState(
+      "Persistence Verified",
+      "Persistence verification aligned with executive walkthrough.",
+      "active",
+    );
+  });
 
   const loadReleaseTruthBtn = document.querySelector(
     '[data-testid="load-release-truth-btn"]',
@@ -978,62 +964,56 @@ document.getElementById("save-html").addEventListener("click", async () => {
     '[data-testid="verify-release-blockers-btn"]',
   );
 
-  if (loadReleaseTruthBtn) {
-    loadReleaseTruthBtn.addEventListener("click", function () {
-      const evidence = buildReleaseReadinessEvidence();
-      setReleaseState("Loaded", "Executive release truth evidence loaded.");
-      setReleaseState("Prepared", evidence);
-      setProofAction(
-        "Release Truth Loaded",
-        "Release truth evidence loaded for executive readiness review.",
-      );
-      setWalkthroughState(
-        "Release Truth Loaded",
-        "Release truth evidence aligned with executive walkthrough.",
-        "active",
-      );
-    });
-  }
+  attachIfExists('[data-testid="load-release-truth-btn"]', function () {
+    const evidence = buildReleaseReadinessEvidence();
+    setReleaseState("Loaded", "Executive release truth evidence loaded.");
+    setReleaseState("Prepared", evidence);
+    setProofAction(
+      "Release Truth Loaded",
+      "Release truth evidence loaded for executive readiness review.",
+    );
+    setWalkthroughState(
+      "Release Truth Loaded",
+      "Release truth evidence aligned with executive walkthrough.",
+      "active",
+    );
+  });
 
-  if (exportReleaseTruthBtn) {
-    exportReleaseTruthBtn.addEventListener("click", function () {
-      const evidence = buildReleaseReadinessEvidence();
-      setReleaseState(
-        "Exported",
-        "Release truth evidence exported for leadership review.",
-      );
-      setReleaseBlockersState("Verified", evidence);
-      setProofAction(
-        "Release Truth Exported",
-        "Release truth export completed successfully.",
-      );
-    });
-  }
+  attachIfExists('[data-testid="export-release-truth-btn"]', function () {
+    const evidence = buildReleaseReadinessEvidence();
+    setReleaseState(
+      "Exported",
+      "Release truth evidence exported for leadership review.",
+    );
+    setReleaseBlockersState("Verified", evidence);
+    setProofAction(
+      "Release Truth Exported",
+      "Release truth export completed successfully.",
+    );
+  });
 
-  if (verifyReleaseBlockersBtn) {
-    verifyReleaseBlockersBtn.addEventListener("click", function () {
-      setReleaseBlockersState(
-        "Verified",
-        "Release blockers verified against current review and compliance evidence.",
-      );
-      const blockersOutput = document.querySelector(
-        '[data-testid="release-blockers-output"]',
-      );
-      if (blockersOutput) {
-        blockersOutput.textContent =
-          "Release blockers verified: quality gate FAILED with 89 open issues still unresolved.";
-      }
-      setProofAction(
-        "Release Blockers Verified",
-        "Executive release blockers verified successfully.",
-      );
-      setWalkthroughState(
-        "Blockers Verified",
-        "Release blockers verification aligned with executive walkthrough.",
-        "active",
-      );
-    });
-  }
+  attachIfExists('[data-testid="verify-release-blockers-btn"]', function () {
+    setReleaseBlockersState(
+      "Verified",
+      "Release blockers verified against current review and compliance evidence.",
+    );
+    const blockersOutput = document.querySelector(
+      '[data-testid="release-blockers-output"]',
+    );
+    if (blockersOutput) {
+      blockersOutput.textContent =
+        "Release blockers verified: quality gate FAILED with 89 open issues still unresolved.";
+    }
+    setProofAction(
+      "Release Blockers Verified",
+      "Executive release blockers verified successfully.",
+    );
+    setWalkthroughState(
+      "Blockers Verified",
+      "Release blockers verification aligned with executive walkthrough.",
+      "active",
+    );
+  });
 
   const loadReleaseReadinessBtn = document.querySelector(
     '[data-testid="load-release-readiness-btn"]',
@@ -1042,44 +1022,40 @@ document.getElementById("save-html").addEventListener("click", async () => {
     '[data-testid="refresh-sonar-truth-btn"]',
   );
 
-  if (loadReleaseReadinessBtn) {
-    loadReleaseReadinessBtn.addEventListener("click", function () {
-      const readinessOutput = document.querySelector(
-        '[data-testid="release-readiness-output"]',
-      );
-      if (readinessOutput) {
-        readinessOutput.textContent =
-          "Quality gate currently FAILED with 89 open issues. Release is blocked until issues are resolved.";
-        readinessOutput.dataset.releaseReadinessOutput = "blocked";
-      }
-      setProofAction(
-        "Release Readiness Loaded",
-        "Release readiness evidence loaded from Sonar quality gate truth.",
-      );
-    });
-  }
+  attachIfExists('[data-testid="load-release-readiness-btn"]', function () {
+    const readinessOutput = document.querySelector(
+      '[data-testid="release-readiness-output"]',
+    );
+    if (readinessOutput) {
+      readinessOutput.textContent =
+        "Quality gate currently FAILED with 89 open issues. Release is blocked until issues are resolved.";
+      readinessOutput.dataset.releaseReadinessOutput = "blocked";
+    }
+    setProofAction(
+      "Release Readiness Loaded",
+      "Release readiness evidence loaded from Sonar quality gate truth.",
+    );
+  });
 
-  if (refreshSonarTruthBtn) {
-    refreshSonarTruthBtn.addEventListener("click", function () {
-      const releasePanel = document.querySelector(
-        '[data-testid="executive-release-panel"]',
-      );
-      const readinessOutput = document.querySelector(
-        '[data-testid="release-readiness-output"]',
-      );
-      if (releasePanel) {
-        releasePanel.dataset.releaseReadiness = "blocked";
-      }
-      if (readinessOutput) {
-        readinessOutput.textContent =
-          "Release remains blocked: Sonar quality gate truth re-checked and still shows 89 open issues.";
-      }
-      setProofAction(
-        "Sonar Truth Refreshed",
-        "Sonar quality gate truth refreshed; release remains blocked.",
-      );
-    });
-  }
+  attachIfExists('[data-testid="refresh-sonar-truth-btn"]', function () {
+    const releasePanel = document.querySelector(
+      '[data-testid="executive-release-panel"]',
+    );
+    const readinessOutput = document.querySelector(
+      '[data-testid="release-readiness-output"]',
+    );
+    if (releasePanel) {
+      releasePanel.dataset.releaseReadiness = "blocked";
+    }
+    if (readinessOutput) {
+      readinessOutput.textContent =
+        "Release remains blocked: Sonar quality gate truth re-checked and still shows 89 open issues.";
+    }
+    setProofAction(
+      "Sonar Truth Refreshed",
+      "Sonar quality gate truth refreshed; release remains blocked.",
+    );
+  });
 
   refreshReleaseTruth();
 })();
