@@ -1,0 +1,68 @@
+SPRINT 71 COMPLETE: REMAINING-SCOPE ENFORCEMENT
+
+SPRINT SUMMARY:
+  T1+closure  guard + validation + closure  verified actual strings in Sprint 70
+                                            stable snapshot before writing any
+                                            assertion; created sprint71-newcode-
+                                            scope-guard.test.js using only real
+                                            confirmed strings; ran full suite;
+                                            closed sprint
+
+NO SOURCE FILE CHANGES THIS SPRINT.
+
+STATUS:
+  vitest pass — 144 files / 1615 tests
+  typecheck clean
+  playwright human suite: 42 passed
+  All sprint65-71 guard files passing
+  Sonar: NOT re-run this sprint (no code changes that would affect findings)
+  tagged sprint-71-complete
+
+SPRINT 71 GUARD ASSERTIONS:
+  Sprint 70 timeline entry recorded as Complete
+  master-instructions contains "Sprint 70 Complete" block
+  sprint70 stable contains "could never have moved" root-cause phrase
+  sprint70 stable confirms source files "were not modified in any Sprint 60+ commit"
+  sprint70 stable confirms sonar-project.properties was not changed
+  sprint70 stable mentions human admin decision for new-code-period changes
+  sprint70 pipeline guard file exists
+  package.json coverage script contains "vitest run --coverage"
+  package.json sonar scan and quality gate scripts exist
+  All 6 prior sprint guard files (sprint65-70) exist
+
+DELIVERABLES:
+  [x] Audited actual strings in Sprint 70 artifacts before writing assertions
+  [x] tests/sprint71-newcode-scope-guard.test.js — 11 tests, all passing
+  [x] No source file changes
+  [x] No dashboard feature expansion
+  [x] master_timeline_sprints_1_54.md updated
+  [x] strategic-learning-unified-theatre-master-instructions.md appended
+
+ARCHITECTURE CHANGES THIS SPRINT:
+New files only:
+  - tests/sprint71-newcode-scope-guard.test.js
+Updated docs:
+  - master_timeline_sprints_1_54.md
+  - strategic-learning-unified-theatre-master-instructions.md
+Unchanged (all):
+  - src/ui/dashboard.js
+  - src/ui/provider-dashboard.html
+  - All Playwright specs
+  - All prior sprint guards (sprint65-70)
+  - sonar-project.properties
+  - package.json
+
+SONAR STATUS:
+  Not re-run this sprint. Last known state (Sprint 70):
+  new_coverage: 0.0% — correct behavior for unchanged production files
+  new_violations: 106
+  new_security_hotspots_reviewed: 0.0%
+  Gate: FAILED
+
+NEXT:
+  Sprint 72 — evaluate whether any source files modified in Sprints 60-71
+  exist within Sonar's new-code period that have uncovered branches.
+  If yes: add targeted tests for those specific files.
+  If no: document as a hard boundary and treat new-code-period reset as
+  a human Sonar admin decision.
+  Security hotspot review remains out of automation scope.
