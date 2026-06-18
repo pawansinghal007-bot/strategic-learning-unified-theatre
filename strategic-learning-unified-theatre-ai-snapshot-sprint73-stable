@@ -1,0 +1,73 @@
+SPRINT 73 COMPLETE: REMAINING-SCOPE BOUNDARY CONFIRMATION AND VIOLATION-PATH INVESTIGATION
+
+SPRINT SUMMARY:
+  Track A    boundary lock +     fixed sprint72 guard transient-state defect
+             guard fix           (| Next | → | Complete |); confirmed Sprint 72
+                                 hard boundary intact; updated timeline and
+                                 master-instructions; added sprint73-boundary-
+                                 confirmation.test.js
+  Track B    violation-path      investigated new_violations (106); confirmed
+             investigation       addressable via source cleanup without
+                                 new-code-period reset; Sprint 74 plan
+                                 documented in master-instructions
+
+GUARD LESSON LEARNED:
+  Guard files must never assert transient states such as | Next |.
+  Only permanent facts belong in assertions: a sprint's existence, its
+  final Complete status, and stable file content. Sprint 72 guard was
+  corrected this sprint; this policy is now recorded in master-instructions.
+
+HARD BOUNDARY PRESERVED:
+  new-code-period reset remains a human Sonar admin decision outside
+  automated-script scope. Established Sprint 70, confirmed Sprint 71,
+  evaluated Sprint 72, locked Sprint 73.
+
+NO SOURCE FILE CHANGES THIS SPRINT.
+
+STATUS:
+  vitest pass — 146 files / 1650 tests
+  typecheck clean
+  playwright human suite: 42 passed
+  All sprint65-73 guard files passing
+  Sonar: NOT re-run this sprint (no code changes)
+  tagged sprint-73-complete
+
+DELIVERABLES:
+  [x] Fixed sprint72 guard transient-state defect (Next→Complete), one line only
+  [x] Timeline: Sprint 72 Complete, Sprint 73 Complete, Sprint 74 Planned
+  [x] Appended Sprint 72 Complete, Sprint 73 Planned/Complete, Sprint 74 Planned
+      to master-instructions
+  [x] tests/sprint73-boundary-confirmation.test.js — all tests passing
+  [x] All sprint65-73 guard files passing
+  [x] No source file changes
+  [x] No dashboard feature expansion
+
+ARCHITECTURE CHANGES THIS SPRINT:
+New files:
+  - tests/sprint73-boundary-confirmation.test.js
+Modified (one line only):
+  - tests/sprint72-modified-newcode-boundary.test.js
+    (| Next | → | Complete | in Sprint 72 row assertion)
+Updated docs:
+  - master_timeline_sprints_1_54.md
+  - strategic-learning-unified-theatre-master-instructions.md
+Unchanged (all):
+  - src/ui/dashboard.js
+  - src/ui/provider-dashboard.html
+  - All Playwright specs
+  - All prior sprint guards sprint65-71
+  - sonar-project.properties
+  - package.json
+
+SONAR STATUS:
+  Not re-run this sprint. Last known state (Sprint 70):
+  new_coverage: 0.0% — hard boundary; new-code-period reset is human admin decision
+  new_violations: 106 — actionable via source cleanup (see Sprint 74 Planned)
+  new_security_hotspots_reviewed: 0.0% — human Sonar UI review activity
+  Gate: FAILED
+
+NEXT:
+  Sprint 74 — Sonar new_violations remediation. Run sonar:issues to list
+  violations by rule. Fix highest-volume rule categories in source files.
+  Re-run Sonar. Do NOT reset new-code-period. Security hotspot review
+  remains human-only.
