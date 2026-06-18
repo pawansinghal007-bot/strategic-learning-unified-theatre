@@ -1,0 +1,56 @@
+SPRINT 69 COMPLETE: TARGETED BRANCH COVERAGE EXPANSION
+
+SPRINT SUMMARY:
+  T1  audit + targeted tests     verified real file paths (browser-bridge.js,
+                                 not user-bridge.js); audited actual exports;
+                                 read uncovered branch conditions;
+                                 wrote real branch-coverage tests;
+                                 confirmed coverage improvement
+  T2  guard + Sonar + closure    sprint69-coverage-guard.test.js created;
+                                 Sonar scan run; timeline + instructions
+                                 updated; tagged sprint-69-complete
+
+FILE NAME CORRECTION:
+  Sprint 68 assessment listed "user-bridge.js" — does NOT exist.
+  Actual file: src/browser-bridge.js (confirmed in T1 Step 2)
+
+STATUS:
+  vitest pass — 142 files / 1601 tests
+  typecheck clean
+  playwright human suite: 42 passed
+  branch coverage: 70.85% (was 58.96%)
+  Sonar new_coverage: 0.0% (was 0.0%)
+  Sonar new_violations: 106 (was 106)
+  Sonar quality gate: FAILED
+  tagged sprint-69-complete
+
+DELIVERABLES:
+  [x] File path corrected: browser-bridge.js (not user-bridge.js)
+  [x] Exports audited before any test written
+  [x] tests/sprint69-coverage-expansion.test.js — real branch tests,
+      no expect(true) fallbacks, no vitest imports
+  [x] tests/sprint69-coverage-guard.test.js — scope + regression guard
+  [x] Branch coverage improved from 58.96%: 58.96 → 70.85
+  [x] Sprint 65-68 guards preserved at original counts (27/14/13/24)
+  [x] No source file changes
+  [x] No dashboard feature expansion
+  [x] master timeline and instructions updated
+
+ARCHITECTURE CHANGES THIS SPRINT:
+New files only:
+  - tests/sprint69-coverage-expansion.test.js
+  - tests/sprint69-coverage-guard.test.js
+Updated docs:
+  - master_timeline_sprints_1_54.md
+  - strategic-learning-unified-theatre-master-instructions.md
+Unchanged:
+  - src/ui/dashboard.js
+  - src/ui/provider-dashboard.html
+  - All Playwright specs
+  - All prior sprint guards
+
+SONAR STATUS:
+  FAILED: new_coverage 0.0%, new_security_hotspots_reviewed 0.0%, new_violations 106
+
+NEXT:
+  Sprint 70 — expand new-code-period coverage to raise Sonar new_coverage and complete Sonar security hotspot review/reconciliation.
