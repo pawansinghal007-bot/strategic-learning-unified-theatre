@@ -1,0 +1,65 @@
+SPRINT 72 COMPLETE: MODIFIED-NEWCODE BOUNDARY EVALUATION AND GUARD
+
+SPRINT SUMMARY:
+  Single task    audit + guard + closure    verified actual Sprint 71 stable
+                                            snapshot content; confirmed missing
+                                            Sprint 71 Complete and Sprint 72
+                                            Planned blocks in master-instructions
+                                            and added them; verified exact
+                                            package.json sonar script key names;
+                                            created sprint72-modified-newcode-
+                                            boundary.test.js using only confirmed
+                                            real strings; closed sprint
+
+EVIDENCE FINDING:
+  No source files modified in Sprints 60-71 were identified as falling inside
+  Sonar's new-code period with uncovered branches that would move new_coverage.
+  Condition recorded as hard automation boundary: new-code-period reset is a
+  human Sonar admin decision outside automated-script scope.
+
+NO SOURCE FILE CHANGES THIS SPRINT.
+
+STATUS:
+  vitest pass — 145 files / 1631 tests
+  typecheck clean
+  playwright human suite: 42 passed
+  All sprint65-72 guard files passing
+  Sonar: NOT re-run this sprint (no code changes)
+  tagged sprint-72-complete
+
+DELIVERABLES:
+  [x] Verified actual content of sprint71-stable before writing assertions
+  [x] Appended Sprint 71 Complete and Sprint 72 Planned to master-instructions if missing
+  [x] Updated timeline Sprint 71 to Complete and added Sprint 72 as Next
+  [x] tests/sprint72-modified-newcode-boundary.test.js — 16 tests, all passing
+  [x] All sprint65-72 guard files passing
+  [x] No source file changes
+  [x] No dashboard feature expansion
+
+ARCHITECTURE CHANGES THIS SPRINT:
+New files only:
+  - tests/sprint72-modified-newcode-boundary.test.js
+Updated docs:
+  - master_timeline_sprints_1_54.md
+  - strategic-learning-unified-theatre-master-instructions.md
+Unchanged (all):
+  - src/ui/dashboard.js
+  - src/ui/provider-dashboard.html
+  - All Playwright specs
+  - All prior sprint guards (sprint65-71)
+  - sonar-project.properties
+  - package.json
+
+SONAR STATUS:
+  Not re-run this sprint. Last known state (Sprint 70):
+  new_coverage: 0.0% — correct Sonar behavior for files not in new-code period
+  new_violations: 106
+  new_security_hotspots_reviewed: 0.0%
+  Gate: FAILED
+
+NEXT:
+  Sprint 73 — re-evaluate Sonar gate remediation options with current evidence:
+  (a) Modify a production file in the new-code period to generate new coverage opportunity,
+  (b) Have a human admin reset the Sonar new-code-period in the Sonar UI,
+  (c) Address new_violations (currently 106) through targeted source cleanup.
+  Security hotspot review remains a human-review activity out of automation scope.
