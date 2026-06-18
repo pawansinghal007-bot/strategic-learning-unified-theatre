@@ -1,0 +1,20 @@
+SPRINT 70 — T2 COMPLETE
+
+FILE:
+tests/sprint70-coverage-pipeline-guard.test.js (created)
+
+STATUS:
+Guard template used: CASE B — new-code-period understanding documented
+Real findings substituted for all placeholder text: confirmed
+Re-ran Sprint 65-69 guard suites — all still passing at original counts
+
+DELIVERABLES:
+[x] tests/sprint70-coverage-pipeline-guard.test.js created with real
+(not placeholder) content matching T1's actual determined root cause
+[x] Guard meaningfully protects T1's finding, not a superficial
+existence/text-pattern check
+[x] No source files touched in this step
+
+NEXT:
+T3 — full validation, sprint closure, accurate Sprint 71 scoping based on
+the root cause determined
