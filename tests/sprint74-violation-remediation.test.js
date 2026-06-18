@@ -37,8 +37,8 @@ describe("Sprint 74 violation-remediation guard", () => {
       expect(instructions).toContain("## Sprint 73 Complete");
     });
 
-    it("master-instructions contains Sprint 74 Planned block", () => {
-      expect(instructions).toContain("## Sprint 74 Planned");
+    it("master-instructions contains Sprint 74 Complete block", () => {
+      expect(instructions).toContain("## Sprint 74 Complete");
     });
 
     it("sprint73 guard file still exists", () => {

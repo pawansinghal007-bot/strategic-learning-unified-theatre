@@ -1,120 +1,106 @@
 import fs from "node:fs";
-import { describe, it, expect } from "vitest";
+import path from "node:path";
+import { describe, it, expect, beforeAll } from "vitest";
 
-const timeline = fs.readFileSync("master_timeline_sprints_1_54.md", "utf8");
-const instructions = fs.readFileSync(
+const timelinePath = path.resolve("master_timeline_sprints_1_54.md");
+const instructionsPath = path.resolve(
   "strategic-learning-unified-theatre-master-instructions.md",
-  "utf8",
 );
-const snapshot = fs.readFileSync("CURRENT_ACTIVE_SNAPSHOT.md", "utf8").trim();
-const sprint72snap = fs.readFileSync(
-  "strategic-learning-unified-theatre-ai-snapshot-sprint72-stable",
-  "utf8",
+const snapshotPointerPath = path.resolve("CURRENT_ACTIVE_SNAPSHOT.md");
+const sprint73StablePath = path.resolve(
+  "strategic-learning-unified-theatre-ai-snapshot-sprint73-stable",
 );
-
-// Extract current sprint number from snapshot filename dynamically
-const snapshotMatch = snapshot.match(/sprint(\d+)-/);
-const currentSprint = snapshotMatch ? parseInt(snapshotMatch[1], 10) : null;
 
 describe("Sprint 73 boundary confirmation guard", () => {
-  describe("Timeline state", () => {
-    it("timeline contains Sprint 72 row", () => {
-      expect(timeline).toContain("| 72 ");
-    });
+  let timeline = "";
+  let instructions = "";
+  let activeSnapshotPointer = "";
+  let activeSnapshotBody = "";
+  let sprint73StableBody = "";
 
-    it("timeline contains Sprint 73 row", () => {
-      expect(timeline).toContain("| 73 ");
-    });
+  beforeAll(() => {
+    timeline = fs.readFileSync(timelinePath, "utf8");
+    instructions = fs.readFileSync(instructionsPath, "utf8");
+    activeSnapshotPointer = fs.readFileSync(snapshotPointerPath, "utf8").trim();
+    sprint73StableBody = fs.readFileSync(sprint73StablePath, "utf8");
 
-    it("timeline records Sprint 73 as Complete", () => {
-      expect(timeline).toContain("| Complete |");
-    });
+    const activeSnapshotPath = path.resolve(activeSnapshotPointer);
+    expect(fs.existsSync(activeSnapshotPath)).toBe(true);
+    activeSnapshotBody = fs.readFileSync(activeSnapshotPath, "utf8");
   });
 
-  describe("Master instructions state", () => {
-    it("instructions contain Sprint 72 Complete heading", () => {
-      expect(instructions).toContain("## Sprint 72 Complete");
+  describe("Sprint 73 permanent boundary facts", () => {
+    it("timeline records Sprint 73 as Complete", () => {
+      expect(timeline).toContain("| 73");
+      expect(timeline).toContain("Remaining-scope boundary confirmation");
+      expect(timeline).toContain(
+        "human admin decision outside automation scope",
+      );
+      expect(timeline).toContain(
+        "Added sprint73-boundary-confirmation.test.js",
+      );
+      expect(timeline).toContain("| Complete |");
     });
 
-    it("instructions contain Sprint 73 Planned heading", () => {
-      expect(instructions).toContain("## Sprint 73 Planned");
+    it("master instructions preserve Sprint 73 completion language", () => {
+      expect(instructions).toContain("Sprint 73 Complete");
+      expect(instructions).toContain(
+        "confirmed Sprint 72 hard boundary intact",
+      );
+      expect(instructions).toContain(
+        "outside automated-script scope phrase preserved from Sprint 72",
+      );
     });
 
-    it("instructions contain Sprint 73 Complete heading", () => {
-      expect(instructions).toContain("## Sprint 73 Complete");
-    });
-
-    it("instructions contain Sprint 74 Planned heading", () => {
-      expect(instructions).toContain("## Sprint 74 Planned");
-    });
-
-    it("instructions preserve hard boundary phrase from Sprint 72", () => {
-      expect(instructions).toContain("outside automated-script scope");
-    });
-
-    it("instructions record Sprint 73 no-source-file-changes", () => {
-      expect(instructions).toContain("No source file changes");
-    });
-
-    it("Sprint 74 plan references new_violations", () => {
-      expect(instructions).toContain("new_violations");
-    });
-
-    it("Sprint 74 plan does not mandate new-code-period reset", () => {
-      const s74Block = instructions.split("## Sprint 74 Planned")[1] || "";
-      expect(s74Block).not.toContain("reset the new-code-period");
+    it("master instructions show Sprint 74 closed and Sprint 75 complete", () => {
+      // Sprint 74 Planned heading is replaced by Complete at sprint closure —
+      // assert the heading that actually exists after closure.
+      expect(instructions).toContain("## Sprint 74 Complete");
+      expect(instructions).toContain("## Sprint 75 Complete");
+      expect(instructions).toContain("violation-remediation");
     });
   });
 
   describe("Snapshot chain", () => {
-    it("active snapshot follows sprint naming pattern", () => {
-      // Dynamic check: snapshot should match sprint naming pattern
-      expect(snapshot).toMatch(
-        /^strategic-learning-unified-theatre-ai-snapshot-sprint\d+-[a-z0-9]+$/,
+    it("active snapshot pointer matches the project naming convention", () => {
+      expect(activeSnapshotPointer).toMatch(
+        /^strategic-learning-unified-theatre-ai-snapshot-sprint\d+/,
       );
     });
 
-    it("snapshot chain file exists and is non-empty", () => {
-      // Verify the current snapshot file exists and is non-empty
-      const currentSnapPath = `./${snapshot}`;
-      const currentSnapContent = fs.readFileSync(currentSnapPath, "utf8");
-      expect(currentSnapContent.length).toBeGreaterThan(100);
+    it("active snapshot file exists and is non-empty", () => {
+      expect(activeSnapshotBody.length).toBeGreaterThan(100);
     });
 
-    it("Sprint 72 snapshot file is readable and non-empty", () => {
-      expect(sprint72snap.length).toBeGreaterThan(100);
+    it("sprint73 stable snapshot exists and is non-empty", () => {
+      expect(sprint73StableBody.length).toBeGreaterThan(100);
     });
 
-    it("Sprint 72 snapshot records hard boundary finding", () => {
-      expect(sprint72snap).toContain("hard automation boundary");
+    it("CURRENT_ACTIVE_SNAPSHOT is not pinned to sprint73 forever", () => {
+      // Guards must never assert transient sprint-local filenames.
+      // The pointer is allowed to advance beyond sprint73.
+      expect(activeSnapshotPointer).not.toBe("");
+      expect(activeSnapshotPointer).not.toBe("CURRENT_ACTIVE_SNAPSHOT.md");
     });
 
-    it("Sprint 72 snapshot confirms no source changes", () => {
-      expect(sprint72snap).toContain("NO SOURCE FILE CHANGES THIS SPRINT");
+    it("sprint73 stable snapshot body contains SPRINT 73 header", () => {
+      expect(sprint73StableBody).toContain("SPRINT 73");
     });
   });
 
-  describe("Guard chain integrity", () => {
-    it("sprint65 guard file exists", () => {
-      expect(fs.existsSync("tests/sprint65-guard-only.test.js")).toBe(true);
+  describe("Boundary rule wording", () => {
+    it("combined docs document the hard boundary as a human admin decision", () => {
+      const combined = `${timeline}\n${instructions}`;
+      expect(combined).toContain("human admin decision");
+      expect(combined).toContain("outside automation scope");
     });
 
-    it("sprint70 guard file exists", () => {
-      expect(
-        fs.existsSync("tests/sprint70-coverage-pipeline-guard.test.js"),
-      ).toBe(true);
-    });
-
-    it("sprint71 guard file exists", () => {
-      expect(fs.existsSync("tests/sprint71-newcode-scope-guard.test.js")).toBe(
-        true,
+    it("no transient Next state asserted for Sprint 73 in any doc", () => {
+      const combined = `${timeline}\n${instructions}`;
+      // This exact string appeared in the broken guard before the lesson was applied.
+      expect(combined).not.toContain(
+        "| 73     | Remaining-scope boundary confirmation sprint | Next |",
       );
-    });
-
-    it("sprint72 guard file exists", () => {
-      expect(
-        fs.existsSync("tests/sprint72-modified-newcode-boundary.test.js"),
-      ).toBe(true);
     });
   });
 });

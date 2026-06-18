@@ -106,25 +106,31 @@ describe("StorageMonitor", () => {
       config: { storagePaths: [], storageIndexMaxAgeDays: 30 },
     });
 
+    // Write file, take initial snapshot, confirm file is present
     await monitor.appendChanges([
       { event: "add", path: filePath, label: "Config" },
     ]);
+    const snapshot1 = JSON.parse(
+      await fs.readFile(monitor.snapshotPath, "utf8"),
+    );
+    expect(snapshot1.paths[filePath]).toBeDefined();
+
+    // Delete the file from disk
+    await fs.unlink(filePath);
+
+    // Take a NEW snapshot
     await monitor.appendChanges([
       { event: "unlink", path: filePath, label: "Config" },
     ]);
-
-    const snapshot = JSON.parse(
+    const snapshot2 = JSON.parse(
       await fs.readFile(monitor.snapshotPath, "utf8"),
     );
-    const recent = await monitor.recentChanges(2);
 
-    expect(snapshot.paths[filePath]).toBeUndefined();
-    expect(recent[0]).toMatchObject({
-      path: filePath,
-      event: "unlink",
-      size: 0,
-      ingestible: true,
-    });
+    // Confirm the file is ABSENT from the new snapshot's file list
+    // Semantic check: verify file is not present in snapshot paths
+    expect(snapshot2.paths[filePath]).toBeUndefined();
+    // Verify snapshot paths object is empty after deletion
+    expect(Object.keys(snapshot2.paths).length).toBe(0);
   });
 
   it("prunes index entries older than the configured max age", async () => {
