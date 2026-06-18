@@ -79,7 +79,7 @@ describe("Sprint 48 smoke tests — file surface", () => {
     expect(html).toContain("security-drift-introduced");
     expect(html).toContain("security-drift-persistent");
     expect(html).toContain("security-drift-resolved");
-    expect(html).toContain("window.workspaceSecurity.compareBaseline");
+    expect(html).toContain("globalThis.workspaceSecurity.compareBaseline");
   });
 
   it("dashboard Security Drift panel appears after Security Overview panel", () => {

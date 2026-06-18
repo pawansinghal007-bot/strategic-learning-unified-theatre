@@ -186,8 +186,8 @@ describe("Sprint 53 — dashboard cross-surface regression", () => {
     const html = loadDashboardSurface();
     expect(html).toContain("security-overview-panel");
     expect(html).toContain("security-drift-panel");
-    expect(html).toContain("window.workspaceSecurity.summarize");
-    expect(html).toContain("window.workspaceSecurity.compareBaseline");
+    expect(html).toContain("globalThis.workspaceSecurity.summarize");
+    expect(html).toContain("globalThis.workspaceSecurity.compareBaseline");
   });
 
   it("dashboard has all Sprint 25-50 analytics panels", () => {
@@ -203,8 +203,8 @@ describe("Sprint 53 — dashboard cross-surface regression", () => {
     const html = loadDashboardSurface();
     expect(html).toContain("security-overview-panel");
     expect(html).toContain("security-drift-panel");
-    expect(html).toContain("window.workspaceSecurity.compareBaseline");
-    expect(html).toContain("window.workspaceSecurity.getDriftClassification");
+    expect(html).toContain("globalThis.workspaceSecurity.compareBaseline");
+    expect(html).toContain("globalThis.workspaceSecurity.getDriftClassification");
   });
 });
 

@@ -49,7 +49,9 @@ describe("Sprint 75 guard test", () => {
   describe("Storage-monitor deletion test fix verification", () => {
     it("storage-monitor.test.js contains semantic deletion check", () => {
       // The fix should contain a semantic check like Object.keys(snapshot2.paths).length or similar
-      expect(storageMonitorTest).toContain("Object.keys(snapshot2.paths).length");
+      expect(storageMonitorTest).toContain(
+        "Object.keys(snapshot2.paths).length",
+      );
     });
   });
 

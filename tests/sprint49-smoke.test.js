@@ -38,9 +38,9 @@ describe("Sprint 49 smoke tests — file surface", () => {
     expect(text).toContain("ExplainIntroducedFindingsResult");
   });
 
-  it("ai-explain.ts has graceful degradation when window.llm unavailable", () => {
+  it("ai-explain.ts has graceful degradation when globalThis.llm unavailable", () => {
     const text = read("src/security/security-overview/ai-explain.ts");
-    expect(text).toContain("window.llm.ask is not available");
+    expect(text).toContain("globalThis.llm.ask is not available");
   });
 
   it("security-overview handler registers explain-introduced channel", () => {
@@ -110,14 +110,14 @@ describe("Sprint 49 smoke tests — file surface", () => {
 
   it("dashboard wires explainIntroduced and uses latestSecurityDriftResult", () => {
     const text = loadDashboardSurface();
-    expect(text).toContain("window.workspaceSecurity.explainIntroduced");
+    expect(text).toContain("globalThis.workspaceSecurity.explainIntroduced");
     expect(text).toContain("latestSecurityDriftResult");
   });
 
   it("dashboard preserves Sprint 48 Security Drift panel", () => {
     const text = loadDashboardSurface();
     expect(text).toContain("Security Drift");
-    expect(text).toContain("window.workspaceSecurity.compareBaseline");
+    expect(text).toContain("globalThis.workspaceSecurity.compareBaseline");
   });
 
   it("dashboard preserves Sprint 47 Security Overview triage controls", () => {

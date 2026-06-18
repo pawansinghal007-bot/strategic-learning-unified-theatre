@@ -238,8 +238,8 @@ describe("Sprint 36 smoke tests — file surface", () => {
     expect(source).toContain("load-audit-events");
     expect(source).toContain("verify-audit-log");
     expect(source).toContain("load-latest-audit");
-    expect(source).toContain("window.audit.list");
-    expect(source).toContain("window.audit.verify");
+    expect(source).toContain("globalThis.audit.list");
+    expect(source).toContain("globalThis.audit.verify");
   });
 
   it("dashboard preserves Sprint 35 compatibility strings", () => {

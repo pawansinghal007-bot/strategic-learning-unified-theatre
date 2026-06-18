@@ -247,7 +247,7 @@ describe("Sprint 41 smoke tests — file surface", () => {
     expect(html).toContain("workspace-quota-live-alert");
     expect(html).toContain("load-workspace-quota-latest-notification");
     expect(html).toContain("reset-workspace-quota-daily");
-    expect(html).toContain("window.workspaceQuota.onNotification");
+    expect(html).toContain("globalThis.workspaceQuota.onNotification");
     expect(html).toContain("workspaceQuota:notification");
   });
 

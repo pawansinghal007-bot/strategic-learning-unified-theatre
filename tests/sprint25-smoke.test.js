@@ -176,8 +176,8 @@ describe("Sprint 25 — Provider Telemetry IPC and Dashboard", () => {
       expect(dashboardContent).toContain("<!doctype html>");
     });
 
-    it("references window.providerTelemetry", () => {
-      expect(dashboardContent).toContain("window.providerTelemetry");
+    it("references globalThis.providerTelemetry", () => {
+      expect(dashboardContent).toContain("globalThis.providerTelemetry");
     });
 
     it("calls getStatus API", () => {
@@ -370,10 +370,10 @@ describe("Sprint 25 — Provider Telemetry IPC and Dashboard", () => {
         "\n" +
         (existsSync(jsPath) ? readFileSync(jsPath, "utf8") : "");
 
-      expect(dashboardContent).toContain("window.providerTelemetry.getStatus");
+      expect(dashboardContent).toContain("globalThis.providerTelemetry.getStatus");
 
       expect(dashboardContent).toContain(
-        "window.providerTelemetry.resetHealth",
+        "globalThis.providerTelemetry.resetHealth",
       );
     });
   });

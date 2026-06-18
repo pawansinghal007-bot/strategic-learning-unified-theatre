@@ -560,7 +560,7 @@ function setAuditVerificationState(result) {
 }
 
 async function verifyAuditIntegrity() {
-  const res = await window.audit.verify(
+  const res = await globalThis.audit.verify(
     wsId() ? { workspaceId: wsId() } : undefined,
   );
   auditVerifyOutput.textContent = JSON.stringify(res, null, 2);
@@ -571,11 +571,11 @@ async function loadUnifiedView() {
   const id = wsId();
   if (!id) return;
   const [policy, context, analytics, raw, svg] = await Promise.all([
-    window.workspacePolicy.resolve(id),
-    window.workspaceContext.get(id),
-    window.workspaceRouting.analytics(id, getFilter()),
-    window.workspaceRouting.list(id, 25, getFilter()),
-    window.workspaceRouting.bucketChartSvg(id, bucketMode.value, getFilter()),
+    globalThis.workspacePolicy.resolve(id),
+    globalThis.workspaceContext.get(id),
+    globalThis.workspaceRouting.analytics(id, getFilter()),
+    globalThis.workspaceRouting.list(id, 25, getFilter()),
+    globalThis.workspaceRouting.bucketChartSvg(id, bucketMode.value, getFilter()),
   ]);
   policyOutput.textContent = JSON.stringify(policy, null, 2);
   contextOutput.textContent = JSON.stringify(context, null, 2);
@@ -600,8 +600,8 @@ document
     const id = wsId();
     if (!id) return;
     const [analytics, raw] = await Promise.all([
-      window.workspaceRouting.analytics(id, getFilter()),
-      window.workspaceRouting.list(id, 25, getFilter()),
+      globalThis.workspaceRouting.analytics(id, getFilter()),
+      globalThis.workspaceRouting.list(id, 25, getFilter()),
     ]);
     routingSummary.textContent = JSON.stringify(analytics.summary, null, 2);
     routingHistory.textContent = JSON.stringify(raw, null, 2);
@@ -615,7 +615,7 @@ document
   .addEventListener("click", async () => {
     const id = wsId();
     if (!id) return;
-    await window.workspaceRouting.clear(id);
+    await globalThis.workspaceRouting.clear(id);
     routingHistory.textContent = "[]";
     bucketChartOut.innerHTML = "";
     trendsBody.innerHTML = "";
@@ -632,7 +632,7 @@ document
 document.getElementById("load-buckets").addEventListener("click", async () => {
   const id = wsId();
   if (!id) return;
-  const rows = await window.workspaceRouting.buckets(
+  const rows = await globalThis.workspaceRouting.buckets(
     id,
     bucketMode.value,
     getFilter(),
@@ -645,7 +645,7 @@ document
   .addEventListener("click", async () => {
     const id = wsId();
     if (!id) return;
-    const svg = await window.workspaceRouting.bucketChartSvg(
+    const svg = await globalThis.workspaceRouting.bucketChartSvg(
       id,
       bucketMode.value,
       getFilter(),
@@ -656,7 +656,7 @@ document
 document
   .getElementById("load-global-analytics")
   .addEventListener("click", async () => {
-    const rows = await window.workspaceRouting.globalAnalytics(getFilter());
+    const rows = await globalThis.workspaceRouting.globalAnalytics(getFilter());
     globalOut.textContent = JSON.stringify(rows, null, 2);
   });
 
@@ -664,8 +664,8 @@ document
   .getElementById("load-provider-comparison")
   .addEventListener("click", async () => {
     const [rows, svg] = await Promise.all([
-      window.workspaceRouting.providerComparison(getFilter()),
-      window.workspaceRouting.providerComparisonChartSvg(getFilter()),
+      globalThis.workspaceRouting.providerComparison(getFilter()),
+      globalThis.workspaceRouting.providerComparisonChartSvg(getFilter()),
     ]);
     comparisonOut.textContent = JSON.stringify(rows, null, 2);
     comparisonChart.innerHTML = svg;
@@ -674,7 +674,7 @@ document
 document.getElementById("export-json").addEventListener("click", async () => {
   const id = wsId();
   if (!id) return;
-  reportOut.textContent = await window.workspaceRouting.exportJson(
+  reportOut.textContent = await globalThis.workspaceRouting.exportJson(
     id,
     getFilter(),
   );
@@ -683,7 +683,7 @@ document.getElementById("export-json").addEventListener("click", async () => {
 document.getElementById("export-csv").addEventListener("click", async () => {
   const id = wsId();
   if (!id) return;
-  reportOut.textContent = await window.workspaceRouting.exportCsv(
+  reportOut.textContent = await globalThis.workspaceRouting.exportCsv(
     id,
     getFilter(),
   );
@@ -694,7 +694,7 @@ document
   .addEventListener("click", async () => {
     const id = wsId();
     if (!id) return;
-    reportOut.textContent = await window.workspaceRouting.exportHtmlReport(
+    reportOut.textContent = await globalThis.workspaceRouting.exportHtmlReport(
       id,
       getFilter(),
     );
@@ -703,21 +703,21 @@ document
 document.getElementById("save-json").addEventListener("click", async () => {
   const id = wsId();
   if (!id) return;
-  const result = await window.workspaceReport.save(id, "json", getFilter());
+  const result = await globalThis.workspaceReport.save(id, "json", getFilter());
   reportOut.textContent = JSON.stringify(result, null, 2);
 });
 
 document.getElementById("save-csv").addEventListener("click", async () => {
   const id = wsId();
   if (!id) return;
-  const result = await window.workspaceReport.save(id, "csv", getFilter());
+  const result = await globalThis.workspaceReport.save(id, "csv", getFilter());
   reportOut.textContent = JSON.stringify(result, null, 2);
 });
 
 document.getElementById("save-html").addEventListener("click", async () => {
   const id = wsId();
   if (!id) return;
-  const result = await window.workspaceReport.save(id, "html", getFilter());
+  const result = await globalThis.workspaceReport.save(id, "html", getFilter());
   reportOut.textContent = JSON.stringify(result, null, 2);
 });
 
@@ -1031,7 +1031,7 @@ function attachIfExists(selector, handler) {
 document.getElementById("save-context").addEventListener("click", async () => {
   const id = wsId();
   if (!id) return;
-  const result = await window.workspaceContext.set(id, {
+  const result = await globalThis.workspaceContext.set(id, {
     summary: contextSummary.value.trim(),
     tags: contextTags.value
       .split(",")
@@ -1044,20 +1044,20 @@ document.getElementById("save-context").addEventListener("click", async () => {
 
 loadAuditBtn?.addEventListener("click", async () => {
   const id = wsId();
-  const res = await window.audit.list(50, id ? { workspaceId: id } : undefined);
+  const res = await globalThis.audit.list(50, id ? { workspaceId: id } : undefined);
   auditOutput.textContent = JSON.stringify(res, null, 2);
 });
 
 verifyAuditBtn?.addEventListener("click", async () => {
   const filter = wsId() ? { workspaceId: wsId() } : undefined;
-  const res = await window.audit.verify(filter);
+  const res = await globalThis.audit.verify(filter);
   auditVerifyOutput.textContent = JSON.stringify(res, null, 2);
   setAuditVerificationState(res);
 });
 
 loadLatestAuditBtn?.addEventListener("click", async () => {
   const filter = wsId() ? { workspaceId: wsId() } : undefined;
-  const res = await window.audit.latest(filter);
+  const res = await globalThis.audit.latest(filter);
   auditOutput.textContent = JSON.stringify(res, null, 2);
 });
 
@@ -1065,7 +1065,7 @@ document
   .getElementById("export-audit-json")
   .addEventListener("click", async () => {
     const id = wsId();
-    const result = await window.audit.exportJson(
+    const result = await globalThis.audit.exportJson(
       id ? { workspaceId: id } : undefined,
     );
     auditOutput.textContent = JSON.stringify(result, null, 2);
@@ -1075,7 +1075,7 @@ document
   .getElementById("export-audit-html")
   .addEventListener("click", async () => {
     const id = wsId();
-    const result = await window.audit.exportHtmlReport(
+    const result = await globalThis.audit.exportHtmlReport(
       id ? { workspaceId: id } : undefined,
     );
     auditOutput.textContent = JSON.stringify(result, null, 2);
@@ -1085,7 +1085,7 @@ document
   .getElementById("load-workspace-approvals")
   .addEventListener("click", async () => {
     const id = wsId();
-    const res = await window.workspaceApproval.list(id || undefined, undefined);
+    const res = await globalThis.workspaceApproval.list(id || undefined, undefined);
     document.getElementById("workspace-approval-output").textContent =
       JSON.stringify(res, null, 2);
   });
@@ -1096,7 +1096,7 @@ document
     const id = quotaWsId();
     if (!id) return;
     const payload = getQuotaPayload();
-    const result = await window.workspaceQuota.set(id, payload, undefined);
+    const result = await globalThis.workspaceQuota.set(id, payload, undefined);
     renderQuotaResult(result);
     updateQuotaStatus(
       `saved (${result.mode}, daily=${result.dailyLimit}, weekly=${result.weeklyLimit})`,
@@ -1109,7 +1109,7 @@ document
   .addEventListener("click", async () => {
     const id = quotaWsId();
     if (!id) return;
-    const policy = await window.workspaceQuota.get(id);
+    const policy = await globalThis.workspaceQuota.get(id);
     renderQuotaResult(policy);
     if (policy) {
       setQuotaForm(policy);
@@ -1124,7 +1124,7 @@ document
   .addEventListener("click", async () => {
     const id = quotaWsId();
     if (!id) return;
-    const result = await window.workspaceQuota.recordUsage(id, {
+    const result = await globalThis.workspaceQuota.recordUsage(id, {
       provider: quotaFallbackProvider?.value.trim() || null,
     });
     renderQuotaResult(result);
@@ -1139,7 +1139,7 @@ document
   .addEventListener("click", async () => {
     const id = quotaWsId();
     if (!id) return;
-    const result = await window.workspaceQuota.evaluate(id, undefined);
+    const result = await globalThis.workspaceQuota.evaluate(id, undefined);
     renderQuotaResult(result);
     renderQuotaState(
       result.usage,
@@ -1150,7 +1150,7 @@ document
 document
   .getElementById("load-workspace-quota-rollup")
   .addEventListener("click", async () => {
-    const result = await window.workspaceQuota.rollup();
+    const result = await globalThis.workspaceQuota.rollup();
     if (workspaceQuotaRollupOutput) {
       workspaceQuotaRollupOutput.textContent = JSON.stringify(result, null, 2);
     }
@@ -1160,7 +1160,7 @@ document
   .getElementById("load-workspace-quota-latest-notification")
   .addEventListener("click", async () => {
     const id = quotaWsId() || wsId();
-    const result = await window.workspaceQuota.latestNotification(
+    const result = await globalThis.workspaceQuota.latestNotification(
       id || undefined,
     );
     renderLiveNotification(result);
@@ -1170,7 +1170,7 @@ document
   .getElementById("load-workspace-quota-notifications")
   .addEventListener("click", async () => {
     const id = quotaWsId() || wsId();
-    const result = await window.workspaceQuota.notifications(id || undefined);
+    const result = await globalThis.workspaceQuota.notifications(id || undefined);
     if (workspaceQuotaNotificationsOutput) {
       workspaceQuotaNotificationsOutput.textContent = JSON.stringify(
         result,
@@ -1183,7 +1183,7 @@ document
 document
   .getElementById("knowledge-ingest-btn")
   ?.addEventListener("click", async () => {
-    const result = await window.workspaceKnowledge.ingest(
+    const result = await globalThis.workspaceKnowledge.ingest(
       knowledgeBaseDir?.value.trim() || undefined,
       undefined,
     );
@@ -1222,7 +1222,7 @@ async function loadSecurityOverview() {
     triagePath:
       document.getElementById("security-triage-path")?.value?.trim() || "",
   };
-  const res = await window.workspaceSecurity.summarize(payload);
+  const res = await globalThis.workspaceSecurity.summarize(payload);
   updateSecurityMetrics(res?.snapshot);
   const out = document.getElementById("security-overview-output");
   if (out) out.textContent = JSON.stringify(res, null, 2);
@@ -1238,7 +1238,7 @@ async function saveSecurityBaseline() {
     }
     return;
   }
-  const result = await window.workspaceSecurity.saveBaseline(baselinePath, []);
+  const result = await globalThis.workspaceSecurity.saveBaseline(baselinePath, []);
   if (securityOverviewOutput) {
     securityOverviewOutput.textContent = JSON.stringify(result, null, 2);
   }
@@ -1253,7 +1253,7 @@ async function compareSecurityBaseline() {
 
   try {
     const snapshot = JSON.parse(raw);
-    const result = await window.workspaceSecurity.compareBaseline(
+    const result = await globalThis.workspaceSecurity.compareBaseline(
       snapshot,
       baselinePath || null,
     );
@@ -1263,7 +1263,7 @@ async function compareSecurityBaseline() {
     (async () => {
       try {
         const classResult =
-          await window.workspaceSecurity.getDriftClassification({
+          await globalThis.workspaceSecurity.getDriftClassification({
             introduced: latestSecurityDriftResult?.introduced ?? [],
             resolved: latestSecurityDriftResult?.resolved ?? [],
             persistent: latestSecurityDriftResult?.persistent ?? [],
@@ -1334,7 +1334,7 @@ async function explainIntroducedFindings() {
   const maxFindings = Number(maxFindingsRaw);
 
   try {
-    const result = await window.workspaceSecurity.explainIntroduced({
+    const result = await globalThis.workspaceSecurity.explainIntroduced({
       drift: latestSecurityDriftResult,
       workspaceId,
       model,
@@ -1368,7 +1368,7 @@ async function loadSecurityTriage() {
   const triagePath =
     document.getElementById("security-triage-path")?.value?.trim() || "";
   if (!triagePath) return;
-  const result = await window.workspaceSecurity.loadTriage(triagePath);
+  const result = await globalThis.workspaceSecurity.loadTriage(triagePath);
   const out = document.getElementById("security-overview-output");
   if (out) out.textContent = JSON.stringify(result, null, 2);
 }
@@ -1383,7 +1383,7 @@ async function applySecurityTriage() {
   const reason =
     document.getElementById("security-triage-reason")?.value?.trim() || "";
   if (!triagePath || !fingerprint) return;
-  const result = await window.workspaceSecurity.setTriage(
+  const result = await globalThis.workspaceSecurity.setTriage(
     triagePath,
     fingerprint,
     status,
@@ -1403,7 +1403,7 @@ async function runSecretsScan() {
   const configPath =
     document.getElementById("secrets-config-path").value.trim() || null;
 
-  const result = await window.secrets.scan({
+  const result = await globalThis.secrets.scan({
     repoPath,
     baselinePath,
     suppressionsPath,
@@ -1494,7 +1494,7 @@ async function runKnowledgeSearch() {
   const filter =
     document.getElementById("knowledge-filter").value.trim() || undefined;
 
-  const results = await window.workspaceKnowledge.search(queryText, {
+  const results = await globalThis.workspaceKnowledge.search(queryText, {
     limit: 8,
     minScore: 0.4,
     filter,
@@ -1558,7 +1558,7 @@ document
     document.getElementById("risks-output").textContent =
       "Scanning dependencies...";
     try {
-      const res = await window.workspaceRisks.scanDependency(target);
+      const res = await globalThis.workspaceRisks.scanDependency(target);
       const findings = res?.result?.findings ?? [];
       const minSev =
         document.getElementById("risks-filter-severity").value.trim() || null;
@@ -1584,7 +1584,7 @@ document
     }
     document.getElementById("risks-output").textContent = "Scanning image...";
     try {
-      const res = await window.workspaceRisks.scanImage(target);
+      const res = await globalThis.workspaceRisks.scanImage(target);
       const findings = res?.result?.findings ?? [];
       const minSev =
         document.getElementById("risks-filter-severity").value.trim() || null;
@@ -1602,7 +1602,7 @@ document
 document
   .getElementById("reset-workspace-quota-daily")
   .addEventListener("click", async () => {
-    const result = await window.workspaceQuota.resetDaily();
+    const result = await globalThis.workspaceQuota.resetDaily();
     if (workspaceQuotaNotificationsOutput) {
       workspaceQuotaNotificationsOutput.textContent = JSON.stringify(
         result,
@@ -1617,7 +1617,7 @@ document
   .addEventListener("click", async () => {
     const id = quotaWsId();
     if (!id) return;
-    const result = await window.workspaceQuota.clearUsage(id);
+    const result = await globalThis.workspaceQuota.clearUsage(id);
     renderQuotaResult(result);
     updateQuotaStatus("usage cleared", false);
   });
@@ -1634,7 +1634,7 @@ document
       .getElementById("approval-review-note")
       .value.trim();
     if (!approvalId) return;
-    const res = await window.workspaceApproval.resolve(
+    const res = await globalThis.workspaceApproval.resolve(
       approvalId,
       status,
       reviewedBy || undefined,
@@ -1647,7 +1647,7 @@ document
 document.getElementById("build-prompt").addEventListener("click", async () => {
   const id = wsId();
   if (!id) return;
-  const prompt = await window.workspaceContext.buildPrompt(id);
+  const prompt = await globalThis.workspaceContext.buildPrompt(id);
   contextOutput.textContent = prompt ?? "(no context)";
 });
 
@@ -1724,9 +1724,9 @@ document.getElementById("build-prompt").addEventListener("click", async () => {
 // providerPolicy
 // listPresets
 // getRoutingHistory
-// window.providerTelemetry
-// window.providerTelemetry.getStatus
-// window.providerTelemetry.resetHealth
+// globalThis.providerTelemetry
+// globalThis.providerTelemetry.getStatus
+// globalThis.providerTelemetry.resetHealth
 // getStatus
 // resetHealth
 // resetUsage
@@ -1735,13 +1735,13 @@ document.getElementById("build-prompt").addEventListener("click", async () => {
 // resetAllBtn
 // audit-verification-badge
 // audit-verification-alert
-// window.audit.exportJson
-// window.audit.exportHtmlReport
+// globalThis.audit.exportJson
+// globalThis.audit.exportHtmlReport
 // Workspace Quotas
 // workspace-quota-status
 // workspace-quota-alert
-// window.workspaceQuota.set
-// window.workspaceQuota.evaluate
+// globalThis.workspaceQuota.set
+// globalThis.workspaceQuota.evaluate
 // load-workspace-quota-rollup
 // load-workspace-quota-notifications
 // reset-workspace-quota-daily
@@ -1749,18 +1749,18 @@ document.getElementById("build-prompt").addEventListener("click", async () => {
 // workspace quota threshold reached
 // workspace-quota-live-alert
 // workspaceQuota:notification
-// window.workspaceQuota.onNotification
-// window.workspaceQuota.latestNotification
+// globalThis.workspaceQuota.onNotification
+// globalThis.workspaceQuota.latestNotification
 // load-workspace-quota-latest-notification
 // reset-workspace-quota-daily
-// window.workspaceQuota.rollup
-// window.workspaceQuota.notifications
-// window.workspaceQuota.resetDaily
+// globalThis.workspaceQuota.rollup
+// globalThis.workspaceQuota.notifications
+// globalThis.workspaceQuota.resetDaily
 // Knowledge
 // knowledge-ingest
 // knowledge-search
-// window.workspaceKnowledge.ingest
-// window.workspaceKnowledge.search
+// globalThis.workspaceKnowledge.ingest
+// globalThis.workspaceKnowledge.search
 // Security Overview
 // security-overview-panel
 // security-load-overview
@@ -1777,11 +1777,11 @@ document.getElementById("build-prompt").addEventListener("click", async () => {
 // security-drift-resolved
 // security-drift-loaded
 // security-drift-output
-// window.workspaceSecurity.compareBaseline
+// globalThis.workspaceSecurity.compareBaseline
 // Sprint 50
 // driftClassificationBadge
 // driftClassificationLabel
-// window.workspaceSecurity.getDriftClassification
+// globalThis.workspaceSecurity.getDriftClassification
 // AI Finding Explanation
 // security-ai-panel
 // security-ai-explain-btn
@@ -1792,7 +1792,7 @@ document.getElementById("build-prompt").addEventListener("click", async () => {
 // security-ai-knowledge-query
 // security-ai-max-findings
 // latestSecurityDriftResult
-// window.workspaceSecurity.explainIntroduced
+// globalThis.workspaceSecurity.explainIntroduced
 // security-triage-fingerprint
 // security-triage-status
 // security-triage-reason
@@ -1801,10 +1801,10 @@ document.getElementById("build-prompt").addEventListener("click", async () => {
 // security-open
 // security-accepted
 // security-resolved
-// window.workspaceSecurity.summarize
-// window.workspaceSecurity.saveBaseline
-// window.workspaceSecurity.setTriage
-// window.workspaceSecurity.loadTriage
+// globalThis.workspaceSecurity.summarize
+// globalThis.workspaceSecurity.saveBaseline
+// globalThis.workspaceSecurity.setTriage
+// globalThis.workspaceSecurity.loadTriage
 // Dependency & Image Risks
 // risks-panel
 // risks-scan-deps
@@ -1815,8 +1815,8 @@ document.getElementById("build-prompt").addEventListener("click", async () => {
 // risks-critical
 // risks-high
 // risks-filter-severity
-// window.workspaceRisks.scanDependency
-// window.workspaceRisks.scanImage
+// globalThis.workspaceRisks.scanDependency
+// globalThis.workspaceRisks.scanImage
 // Secrets Scanning
 // secrets-scan-btn
 // secrets-findings-body
@@ -1825,8 +1825,8 @@ document.getElementById("build-prompt").addEventListener("click", async () => {
 // knowledge-results-body
 // Score (column header)
 // row.score.toFixed(3)
-// window.secrets.scan
-// window.workspaceKnowledge.search
+// globalThis.secrets.scan
+// globalThis.workspaceKnowledge.search
 // Sprint 59 compatibility strings:
 // data-testid="executive-walkthrough-panel"
 // data-testid="executive-walkthrough-title"

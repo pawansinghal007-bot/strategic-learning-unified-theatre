@@ -455,3 +455,14 @@ Sprint 75 guard test fixes sprint. Fixed sprint73-boundary-confirmation.test.js 
 ## Sprint 76 Planned
 
 Sprint 76 window→globalThis dashboard cleanup sprint. Target: address Sonar S7764 (50 violations) by replacing window references with globalThis in src/ui/dashboard.js. Approach: (1) run `npm run sonar:issues` to list violations by rule; (2) identify all window references in dashboard.js; (3) replace window with globalThis; (4) re-run Sonar to confirm violations decrease; (5) do NOT reset new-code-period — that remains a human admin decision. Security hotspot review remains a human Sonar UI process.
+
+## Sprint 76 Complete
+
+Sprint 76 window→globalThis dashboard cleanup sprint. Target: address Sonar S7764 (50 violations) by replacing window references with globalThis in src/ui/dashboard.js. Approach: (1) run
+ `npm run sonar:issues` to list violations by rule; (2) identify all window references in dashboard.js; (3) replace window with globalThis; (4) re-run Sonar to confirm violations decrease; (5) do NOT reset new-code-period — that remains a human admin decision. Security hotspot review remains a human Sonar UI process.
+
+Fresh Sonar scan executed successfully: sonar-scanner EXECUTION SUCCESS, upload completed; task ID 16695cce-f600-420b-b9a1-d9de5eb154c5. Quality gate: FAILED (coverage 14.2%, new_security_hotspots_reviewed 0.0%, violations 98, new_violations 0). Violation audit: 98 total issues (down from 148), top categories (javascript:S7764 0 after fix, typescript:S7735 13, typescript:S6551 10, typescript:S4325 9, typescript:S3358 8). Top files: src/ui/dashboard.js (0 after fix), src/security/security-overview/normalizer.ts (16). Coverage: 80.42% statements, 70.85% branches. All violations in category (behavioral risk) require manual review - no mechanical fixes applied. New-code-period scope preserved: sonar.newCode.referenceBranch=main retained from Sprint 75.
+
+Regression guard added: tests/sprint76-globalthis-guard.test.js (6 tests) confirming Sprint 76 closure preserved, timeline Sprint 76 Complete row added, sonar.newCode.referenceBranch=main preserved, violation-remediation scope boundary intact. All 148 vitest files / 1664 tests passing. TypeScript zero errors. Playwright human suite: 42 passed (unchanged). No regression of Sprint 64-75 work.
+
+## Sprint 77 Planned

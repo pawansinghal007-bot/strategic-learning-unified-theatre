@@ -138,8 +138,8 @@ describe("Sprint 42 smoke tests — file surface", () => {
     const html = loadDashboardSurface();
     expect(html).toContain("knowledge-ingest");
     expect(html).toContain("knowledge-search");
-    expect(html).toContain("window.workspaceKnowledge.ingest");
-    expect(html).toContain("window.workspaceKnowledge.search");
+    expect(html).toContain("globalThis.workspaceKnowledge.ingest");
+    expect(html).toContain("globalThis.workspaceKnowledge.search");
   });
 
   it("dashboard preserves Sprint 25–41 compatibility strings", () => {

@@ -231,8 +231,8 @@ describe("Sprint 37 smoke tests — file surface", () => {
     expect(source).toContain("Workspace Approvals");
     expect(source).toContain("load-workspace-approvals");
     expect(source).toContain("resolve-workspace-approval");
-    expect(source).toContain("window.workspaceApproval.list");
-    expect(source).toContain("window.workspaceApproval.resolve");
+    expect(source).toContain("globalThis.workspaceApproval.list");
+    expect(source).toContain("globalThis.workspaceApproval.resolve");
   });
 
   it("dashboard preserves Sprint 36 compatibility strings", () => {

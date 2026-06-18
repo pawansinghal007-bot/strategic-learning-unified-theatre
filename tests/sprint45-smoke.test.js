@@ -96,15 +96,15 @@ describe("Sprint 45 smoke tests — file surface", () => {
     expect(text).toContain("risks-scan-deps");
     expect(text).toContain("risks-scan-image");
     expect(text).toContain("risks-table-body");
-    expect(text).toContain("window.workspaceRisks.scanDependency");
-    expect(text).toContain("window.workspaceRisks.scanImage");
+    expect(text).toContain("globalThis.workspaceRisks.scanDependency");
+    expect(text).toContain("globalThis.workspaceRisks.scanImage");
   });
 
   it("dashboard preserves Sprint 44 Secrets Scanning panel", () => {
     const text = loadDashboardSurface();
     expect(text).toContain("Secrets Scanning");
     expect(text).toContain("secrets-scan-btn");
-    expect(text).toContain("window.secrets.scan");
+    expect(text).toContain("globalThis.secrets.scan");
   });
 
   it("dashboard preserves Sprint 44 Knowledge panel compatibility strings", () => {

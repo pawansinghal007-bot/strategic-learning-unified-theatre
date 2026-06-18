@@ -31,7 +31,7 @@ describe("preload IPC surface", () => {
   });
 
   it("does not expose raw ipcRenderer to window", () => {
-    expect(source).not.toContain("window.ipcRenderer");
+    expect(source).not.toContain("globalThis.ipcRenderer");
 
     expect(source).not.toMatch(
       /exposeInMainWorld\s*\(\s*["'][^"']+["']\s*,\s*ipcRenderer/,

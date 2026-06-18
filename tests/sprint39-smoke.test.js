@@ -285,8 +285,8 @@ describe("Sprint 39 smoke tests — file surface and IPC", () => {
     expect(html).toContain("clear-workspace-quota-usage");
     expect(html).toContain("workspace-quota-status");
     expect(html).toContain("workspace-quota-alert");
-    expect(html).toContain("window.workspaceQuota.set");
-    expect(html).toContain("window.workspaceQuota.evaluate");
+    expect(html).toContain("globalThis.workspaceQuota.set");
+    expect(html).toContain("globalThis.workspaceQuota.evaluate");
   });
 
   it("dashboard preserves Sprint 25–38 compatibility strings", () => {

@@ -276,7 +276,7 @@ export async function explainIntroducedFindings(params: {
         answer: "",
         items: [],
         knowledge,
-        error: "window.llm.ask is not available in this context",
+        error: "globalThis.llm.ask is not available in this context",
       };
     }
 

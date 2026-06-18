@@ -13,7 +13,7 @@ describe('Sprint 70 coverage-pipeline guard: new_coverage metric understanding',
 		// behavior, not a bug, and this test documents that understanding so
 		// it survives even if this snapshot file is lost.
 		const note = 'new_coverage measures coverage of code changed within ' +
-			'the configured new-code-period window. Adding tests for ' +
+			'the configured new-code-period globalThis. Adding tests for ' +
 			'already-existing, unmodified source files (as Sprint 69 did for ' +
 			'browser-bridge.js, agent-handoff.js, local-llm.js) cannot move ' +
 			'this metric, regardless of how much the local vitest coverage ' +

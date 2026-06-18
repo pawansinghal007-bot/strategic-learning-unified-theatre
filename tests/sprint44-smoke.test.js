@@ -82,7 +82,7 @@ describe("Sprint 44 smoke tests — file surface", () => {
     expect(text).toContain("secrets-scan-btn");
     expect(text).toContain("secrets-findings-body");
     expect(text).toContain("secrets-summary-output");
-    expect(text).toContain("window.secrets.scan");
+    expect(text).toContain("globalThis.secrets.scan");
   });
 
   it("dashboard Knowledge panel shows score column and filter input", () => {

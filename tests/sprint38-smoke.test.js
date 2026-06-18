@@ -217,8 +217,8 @@ describe("Sprint 38 smoke tests — file surface and IPC", () => {
     expect(html).toContain("Audit verification failed");
     expect(html).toContain("export-audit-json");
     expect(html).toContain("export-audit-html");
-    expect(html).toContain("window.audit.exportJson");
-    expect(html).toContain("window.audit.exportHtmlReport");
+    expect(html).toContain("globalThis.audit.exportJson");
+    expect(html).toContain("globalThis.audit.exportHtmlReport");
   });
 
   it("dashboard preserves Sprint 25–37 compatibility strings", () => {
@@ -238,8 +238,8 @@ describe("Sprint 38 smoke tests — file surface and IPC", () => {
     const html = loadDashboardSurface();
     expect(html).toContain("load-workspace-approvals");
     expect(html).toContain("resolve-workspace-approval");
-    expect(html).toContain("window.workspaceApproval.list");
-    expect(html).toContain("window.workspaceApproval.resolve");
+    expect(html).toContain("globalThis.workspaceApproval.list");
+    expect(html).toContain("globalThis.workspaceApproval.resolve");
   });
 
   it("audit-log.ts exports AuditExportResult and export functions", () => {

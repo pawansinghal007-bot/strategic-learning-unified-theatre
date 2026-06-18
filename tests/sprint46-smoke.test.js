@@ -65,8 +65,8 @@ describe("Sprint 46 smoke tests — file surface", () => {
     expect(html).toContain("security-overview-panel");
     expect(html).toContain("security-load-overview");
     expect(html).toContain("security-save-baseline");
-    expect(html).toContain("window.workspaceSecurity.summarize");
-    expect(html).toContain("window.workspaceSecurity.saveBaseline");
+    expect(html).toContain("globalThis.workspaceSecurity.summarize");
+    expect(html).toContain("globalThis.workspaceSecurity.saveBaseline");
     const overviewIdx = html.indexOf("security-overview-panel");
     const secretsIdx = html.indexOf("secrets-scan");
     expect(overviewIdx).toBeLessThan(secretsIdx);
