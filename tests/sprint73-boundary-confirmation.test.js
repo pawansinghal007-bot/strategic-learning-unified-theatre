@@ -62,9 +62,9 @@ describe('Sprint 73 boundary confirmation guard', () => {
   });
 
   describe('Snapshot chain', () => {
-    it('active snapshot points to Sprint 72 stable during sprint', () => {
+    it('active snapshot points to Sprint 73 stable during sprint 73', () => {
       expect(snapshot).toBe(
-        'strategic-learning-unified-theatre-ai-snapshot-sprint72-stable'
+        'strategic-learning-unified-theatre-ai-snapshot-sprint73-stable'
       );
     });
 
