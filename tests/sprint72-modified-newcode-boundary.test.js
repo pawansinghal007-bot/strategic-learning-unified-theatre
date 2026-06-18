@@ -42,9 +42,9 @@ describe('Sprint 72 modified-newcode boundary guard', () => {
   });
 
   describe('Sprint 72 scope boundary', () => {
-    it('timeline contains Sprint 72 row as Next', () => {
+    it('timeline contains Sprint 72 row as Complete', () => {
       expect(timeline).toContain('| 72 ');
-      expect(timeline).toContain('| Next     |');
+      expect(timeline).toContain('| Complete |');
     });
 
     it('timeline Sprint 72 scope refers to modified files in new-code period', () => {
