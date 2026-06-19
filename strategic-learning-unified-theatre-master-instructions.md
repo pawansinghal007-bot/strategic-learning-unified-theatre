@@ -493,6 +493,23 @@ Files modified: ingest-sprint-history.ts (S7785 fix), sprint77-build-and-scope-g
 
 Snapshot created: strategic-learning-unified-theatre-ai-snapshot-sprint79-stable.md. Tag: sprint-79-complete.
 
-## Sprint 80 Planned
+## Sprint 80 — Security Overview Sonar Remediation
 
-Evaluate remaining Sonar quality gate blockers: coverage (new_coverage 0.0%), security_hotspots_reviewed (0.0%). Remaining new-code-period violations: S6551 (8), S7735 (4), S6644 (1), S3358 (1). No dashboard feature expansion.
+Status: Active
+
+Objective:
+Clear the remaining 14 Sonar issues in security overview normalization and drift comparison code without expanding product scope.
+
+Scope:
+- Fix S6551 object stringification in src/security/security-overview/normalizer.ts.
+- Fix S7735 negated conditions in src/security/security-overview/normalizer.ts.
+- Refactor S3358 nested ternary logic in src/security/security-overview/normalizer.ts.
+- Fix S6644 boolean literal conditional usage in src/security/security-overview/drift.ts.
+- Add focused unit tests to improve new-code coverage for the changed logic.
+
+Exit Criteria:
+- Targeted Sonar findings for Sprint 80 are cleared or reduced to zero.
+- Vitest passes (all existing tests + new Sprint 80 tests).
+- TypeScript passes with zero errors.
+- Electron and Playwright flows remain green.
+- Master sprint plan reflects Sprint 80 complete.
