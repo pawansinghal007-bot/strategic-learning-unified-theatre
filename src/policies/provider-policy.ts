@@ -116,23 +116,11 @@ export function policyReducer(
         next.allowedProviders = ["local"];
         next.blockedProviders = [];
         next.manualProvider = "local";
-      }
-
-      if (action.mode === "cloud") {
-        next.allowedProviders = [
-          "groq",
-          "gemini",
-          "openai",
-          "perplexity",
-          "local",
-        ];
-        next.blockedProviders = next.blockedProviders.filter(
-          (p) => p !== "local",
-        );
+      } else if (action.mode === "cloud") {
+        next.allowedProviders = ["groq", "gemini", "openai", "perplexity", "local"];
+        next.blockedProviders = next.blockedProviders.filter((p) => p !== "local");
         if (next.manualProvider === "local") next.manualProvider = null;
-      }
-
-      if (action.mode === "hybrid") {
+      } else if (action.mode === "hybrid") {
         next.allowedProviders = [...ALL_PROVIDERS];
       }
       break;

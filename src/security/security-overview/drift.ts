@@ -91,6 +91,26 @@ export function buildFindingFingerprintSet(
   return collectFingerprints(findings);
 }
 
+function pushWithTriageStatus(
+  f: Record<string, unknown>,
+  target: Array<Record<string, unknown>>,
+): void {
+  target.push(f);
+  if (!("triageStatus" in f) || f.triageStatus == null) {
+    f.triageStatus = "open";
+  }
+}
+
+function pushWithResolvedAt(
+  f: Record<string, unknown>,
+  target: Array<Record<string, unknown>>,
+): void {
+  target.push(f);
+  if (!("resolvedAt" in f) || f.resolvedAt == null) {
+    f.resolvedAt = new Date().toISOString();
+  }
+}
+
 export function compareSecurityOverviewWithBaseline(
   currentSnapshot: unknown,
   baselineSnapshot: unknown,
@@ -108,12 +128,9 @@ export function compareSecurityOverviewWithBaseline(
     const fp = typeof f?.fingerprint === "string" ? f.fingerprint.trim() : "";
     if (!fp) continue;
     if (baselineSet.has(fp)) {
-      persistent.push(f as Record<string, unknown>);
+      persistent.push(f);
     } else {
-      introduced.push(f as Record<string, unknown>);
-      if (!("triageStatus" in f) || f.triageStatus == null) {
-        (f as Record<string, unknown>).triageStatus = "open";
-      }
+      pushWithTriageStatus(f, introduced);
     }
   }
 
@@ -121,16 +138,13 @@ export function compareSecurityOverviewWithBaseline(
     const fp = typeof f?.fingerprint === "string" ? f.fingerprint.trim() : "";
     if (!fp) continue;
     if (!currentSet.has(fp)) {
-      resolved.push(f as Record<string, unknown>);
-      if (!("resolvedAt" in f) || f.resolvedAt == null) {
-        (f as Record<string, unknown>).resolvedAt = new Date().toISOString();
-      }
+      pushWithResolvedAt(f, resolved);
     }
   }
 
   return {
     ok: true,
-    baselineLoaded: baselineSnapshot != null,
+    baselineLoaded: baselineSnapshot === null ? false : true,
     counts: {
       current: currentFindings.length,
       baseline: baselineFindings.length,

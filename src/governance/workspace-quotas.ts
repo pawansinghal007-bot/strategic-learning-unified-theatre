@@ -133,6 +133,13 @@ export function setWorkspaceQuotaPolicy(input: {
     (p) => p.workspaceId === input.workspaceId,
   );
 
+  let alertThresholdPct: number | null = null;
+  if (typeof input.alertThresholdPct === "number") {
+    alertThresholdPct = input.alertThresholdPct;
+  } else if (existingIndex >= 0) {
+    alertThresholdPct = store.policies[existingIndex].alertThresholdPct;
+  }
+
   const next: WorkspaceQuotaPolicy = {
     workspaceId: input.workspaceId,
     dailyLimit: typeof input.dailyLimit === "number" ? input.dailyLimit : null,
@@ -140,12 +147,7 @@ export function setWorkspaceQuotaPolicy(input: {
       typeof input.weeklyLimit === "number" ? input.weeklyLimit : null,
     mode: input.mode ?? "alert",
     fallbackProvider: input.fallbackProvider ?? null,
-    alertThresholdPct:
-      typeof input.alertThresholdPct === "number"
-        ? input.alertThresholdPct
-        : existingIndex >= 0
-          ? store.policies[existingIndex].alertThresholdPct
-          : null,
+    alertThresholdPct,
     createdAt:
       existingIndex >= 0 ? store.policies[existingIndex].createdAt : now,
     updatedAt: now,

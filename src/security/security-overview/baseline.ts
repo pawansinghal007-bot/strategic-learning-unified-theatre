@@ -10,11 +10,16 @@ export function loadSecurityBaseline(filePath: string): Set<string> {
     const raw = fs.readFileSync(filePath, "utf8");
     const parsed = JSON.parse(raw) as unknown;
     const out = new Set<string>();
-    const items = Array.isArray(parsed)
-      ? (parsed as Array<{ fingerprint?: string }>)
-      : Array.isArray((parsed as SecurityBaselineFile).findings)
-        ? (parsed as SecurityBaselineFile).findings
-        : [];
+    let items: Array<{ fingerprint?: string }> = [];
+  if (Array.isArray(parsed)) {
+    items = parsed as Array<{ fingerprint?: string }>;
+  } else if (
+    parsed != null &&
+    typeof parsed === "object" &&
+    Array.isArray((parsed as SecurityBaselineFile).findings)
+  ) {
+    items = (parsed as SecurityBaselineFile).findings;
+  }
     for (const item of items) {
       if (item?.fingerprint) out.add(String(item.fingerprint));
     }

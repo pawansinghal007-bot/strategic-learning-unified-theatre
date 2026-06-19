@@ -12,11 +12,12 @@ export async function loadBaselineFingerprints(
   try {
     const raw = await fs.readFile(baselinePath, "utf8");
     const parsed = JSON.parse(raw);
-    const rows = Array.isArray(parsed)
-      ? parsed
-      : Array.isArray(parsed?.findings)
-        ? parsed.findings
-        : [];
+    let rows: unknown[] = [];
+  if (Array.isArray(parsed)) {
+    rows = parsed;
+  } else if (parsed != null && typeof parsed === "object" && Array.isArray((parsed as { findings?: unknown[] }).findings)) {
+    rows = (parsed as { findings: unknown[] }).findings;
+  }
     const out = new Set<string>();
     for (const row of rows) {
       const fp = getFingerprint(row);

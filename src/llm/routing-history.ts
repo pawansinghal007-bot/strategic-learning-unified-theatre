@@ -85,12 +85,19 @@ function toTimelineEntry(item: RoutingHistoryEntry): WorkspaceTimelineEntry {
 
   const ts = item.timestamp ?? item.createdAt;
 
+  let severity = "warning";
+  if (item.success) {
+    severity = "info";
+  } else if (item.errorMessage) {
+    severity = "error";
+  }
+
   return {
     id: item.id,
     timestamp: ts,
     title,
     detail: detailParts.join(" | "),
-    severity: item.success ? "info" : item.errorMessage ? "error" : "warning",
+    severity,
     provider: String(item.provider),
     success: item.success,
     workspaceId: item.workspaceId ?? null,

@@ -101,7 +101,7 @@ export async function runSecurityAutoScan(
       const triageStatus = suppressed
         ? "suppressed"
         : triageMod.getSecurityTriageStatus(
-            typeof f.fingerprint === "string" ? f.fingerprint : "",
+            f.fingerprint as string,
             triageEntries,
           );
       return {
@@ -118,23 +118,23 @@ export async function runSecurityAutoScan(
     const snapshot = overviewMod.buildSecurityOverviewSnapshot(findings);
 
     const driftResult: SecurityOverviewDriftResult | null =
-      baselinePath != null
-        ? driftMod.compareSecurityOverviewWithBaseline(
+      baselinePath === null
+        ? null
+        : driftMod.compareSecurityOverviewWithBaseline(
             snapshot,
             driftMod.loadSecurityBaselineSnapshot(baselinePath),
-          )
-        : null;
+          );
 
     let driftHistoryAppend: AutoScanResult["driftHistoryAppend"] = null;
 
     if (driftResult && driftHistoryPath) {
       const classification: DriftClassification =
         typeof overviewMod.classifyDriftSeverity === "function"
-          ? (overviewMod.classifyDriftSeverity({
+          ? overviewMod.classifyDriftSeverity({
               introduced: driftResult.introduced,
               resolved: driftResult.resolved,
               persistent: driftResult.persistent,
-            }) as DriftClassification)
+            })
           : "unknown";
 
       const entry: DriftHistoryEntry = {
@@ -164,8 +164,8 @@ export async function runSecurityAutoScan(
       risksDependencyResult,
       risksImageResult,
       summary: {
-        findings: findings as Record<string, unknown>[],
-        snapshot: snapshot as Record<string, unknown>,
+        findings,
+        snapshot,
       },
       drift: driftResult,
       driftHistoryAppend,

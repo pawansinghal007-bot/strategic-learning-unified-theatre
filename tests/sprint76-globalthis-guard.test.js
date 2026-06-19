@@ -17,7 +17,7 @@ describe("Sprint 76 — globalThis cleanup guard", () => {
   beforeAll(() => {
     dashboard = read("src/ui/dashboard.js");
     instructions = read(
-      "strategic-learning-unified-theatre-master-instructions.md"
+      "strategic-learning-unified-theatre-master-instructions.md",
     );
     timeline = read("master_timeline_sprints_1_54.md");
   });

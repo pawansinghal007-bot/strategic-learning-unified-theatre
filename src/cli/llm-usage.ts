@@ -11,10 +11,7 @@ export function registerLlmUsage(program) {
       console.log("\nAI Provider Usage\n");
 
       for (const p of rows) {
-        const resetLabel =
-          p.resetAt != null
-            ? ` | resets ${new Date(p.resetAt).toISOString()}`
-            : "";
+        const resetLabel = p.resetAt === null ? "" : ` | resets ${new Date(p.resetAt).toISOString()}`;
 
         console.log(
           [

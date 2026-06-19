@@ -54,7 +54,7 @@ export function markProviderFromError(provider: string, err: unknown) {
 
   const now = Date.now();
   const cooldown = COOLDOWN_MS[state];
-  const recoversAt = cooldown != null ? now + cooldown : undefined;
+  const recoversAt = cooldown === null ? undefined : now + cooldown;
 
   const snapshot = loadHealth();
   snapshot[provider] = {

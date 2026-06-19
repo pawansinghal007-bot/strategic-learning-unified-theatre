@@ -1,7 +1,7 @@
 import { detectSensitiveTask } from "../policies/sensitive-task-rules";
 import { getProviderPolicy } from "../policies/provider-policy";
 
-export function explainRoutingSelection(
+function getRoutingExplanation(
   request: {
     constraints?: {
       privacyMode?: string;
@@ -16,11 +16,10 @@ export function explainRoutingSelection(
     unavailableProviders?: string[];
     policyApplied?: boolean;
     policyReason?: string;
-  } = {},
-) {
-  const policy = getProviderPolicy();
-  const sensitive = detectSensitiveTask(request);
-
+  },
+  policy: { routingMode: string; manualProvider: string; blockedProviders: string[] },
+  sensitive: { forceLocal: boolean; reasons: string[] },
+): string | undefined {
   if (sensitive.forceLocal && provider === "local") {
     return `Selected local because sensitive task rules detected restricted content: ${sensitive.reasons.join(" ")}`;
   }
@@ -81,5 +80,28 @@ export function explainRoutingSelection(
     return "Selected local model because no cloud provider was suitable or available.";
   }
 
-  return `Selected ${provider} by default routing priority.`;
+  return undefined;
+}
+
+export function explainRoutingSelection(
+  request: {
+    constraints?: {
+      privacyMode?: string;
+      requiresWeb?: boolean;
+      preferredProvider?: string;
+    };
+    intent?: string;
+  },
+  provider: string,
+  context: {
+    fallbackFrom?: string;
+    unavailableProviders?: string[];
+    policyApplied?: boolean;
+    policyReason?: string;
+  } = {},
+) {
+  const policy = getProviderPolicy();
+  const sensitive = detectSensitiveTask(request);
+  const explanation = getRoutingExplanation(request, provider, context, policy, sensitive);
+  return explanation ?? `Selected ${provider} by default routing priority.`;
 }

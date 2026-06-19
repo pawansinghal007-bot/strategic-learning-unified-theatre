@@ -17,7 +17,9 @@ describe("Sprint 73 boundary confirmation guard", () => {
   });
 
   it("CURRENT_ACTIVE_SNAPSHOT.md exists and contains a sprint reference", () => {
-    const pointer = fs.readFileSync("CURRENT_ACTIVE_SNAPSHOT.md", "utf8").trim();
+    const pointer = fs
+      .readFileSync("CURRENT_ACTIVE_SNAPSHOT.md", "utf8")
+      .trim();
     expect(pointer.length).toBeGreaterThan(0);
     expect(pointer).toContain("sprint");
   });

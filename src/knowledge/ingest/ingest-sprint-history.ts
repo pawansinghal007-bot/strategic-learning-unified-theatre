@@ -28,21 +28,21 @@ async function discoverSprintReportFiles(baseDir: string): Promise<string[]> {
     files.push(path.join(baseDir, entry.name));
   }
 
-  return files.sort();
+  return files.sort((a, b) => a.localeCompare(b));
 }
 
 function parseSprintNumberFromFilename(filePath: string): number | undefined {
   const base = path.basename(filePath).toLowerCase();
-  const match = base.match(/sprint[-_ ]?(\d{1,3})/);
-  if (match && match[1]) {
+  const match = /sprint[-_ ]?(\d{1,3})/.exec(base);
+  if (match) {
     const num = Number(match[1]);
-    return Number.isFinite(num) ? num : undefined;
+    if (Number.isFinite(num)) return num;
   }
 
-  const leading = base.match(/^(\d{1,3})[_-]/);
-  if (leading && leading[1]) {
+  const leading = /^(\d{1,3})[_-]/.exec(base);
+  if (leading) {
     const num = Number(leading[1]);
-    return Number.isFinite(num) ? num : undefined;
+    if (Number.isFinite(num)) return num;
   }
 
   return undefined;
@@ -55,13 +55,13 @@ async function loadSprintReportDocument(
   const rawText = await fs.readFile(filePath, "utf8");
   const sprint = parseSprintNumberFromFilename(filePath);
   const title =
-    sprint != null
-      ? `Sprint ${sprint} Implementation Report`
-      : `Sprint Report: ${path.basename(filePath)}`;
+    sprint === null
+      ? `Sprint Report: ${path.basename(filePath)}`
+      : `Sprint ${sprint} Implementation Report`;
   const docId =
-    sprint != null
-      ? `sprint-${sprint}-report`
-      : `sprint-report:${path.basename(filePath)}`;
+    sprint === null
+      ? `sprint-report:${path.basename(filePath)}`
+      : `sprint-${sprint}-report`;
 
   return {
     id: docId,

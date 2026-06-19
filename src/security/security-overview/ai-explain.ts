@@ -285,12 +285,12 @@ export async function explainIntroducedFindings(params: {
       model: params.model,
     });
 
-    const answer =
-      typeof llmResult?.answer === "string"
-        ? llmResult.answer
-        : typeof llmResult === "string"
-          ? llmResult
-          : stringifySafe(llmResult);
+    let answer = stringifySafe(llmResult);
+    if (typeof llmResult?.answer === "string") {
+      answer = llmResult.answer;
+    } else if (typeof llmResult === "string") {
+      answer = llmResult;
+    }
 
     const parsed = parseExplainIntroducedFindingsAnswer(answer);
 

@@ -48,7 +48,7 @@ export function upsertSecurityTriageEntry(
 ): SecurityTriageEntry[] {
   const normalized = {
     ...next,
-    status: normalizeTriageStatus(next.status) as SecurityTriageStatus,
+    status: normalizeTriageStatus(next.status),
   };
   const ix = entries.findIndex((e) => e.fingerprint === normalized.fingerprint);
   if (ix >= 0) {
@@ -66,7 +66,7 @@ export function getSecurityTriageStatus(
   if (!fingerprint) return "open";
   return normalizeTriageStatus(
     entries.find((e) => e.fingerprint === fingerprint)?.status ?? "open",
-  ) as SecurityTriageStatus;
+  );
 }
 
 export function isTriageStatusFinal(status: TriageStatus): boolean {
@@ -90,9 +90,7 @@ export function applyBulkTriage(
     return entries;
   }
 
-  const normalizedStatus = normalizeTriageStatus(
-    status,
-  ) as SecurityTriageStatus;
+  const normalizedStatus = normalizeTriageStatus(status);
 
   return fingerprints.reduce<SecurityTriageEntry[]>((acc, fp) => {
     if (fp == null || fp === "") return acc;

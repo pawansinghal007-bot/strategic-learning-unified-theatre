@@ -449,11 +449,11 @@ function renderLiveNotification(payload) {
   );
 
   if (liveAlert) {
-    if (!payload) {
-      liveAlert.textContent = "Live notification: waiting for quota event.";
-    } else {
+    if (payload) {
       const label = `${payload.type.toUpperCase()} :: ${payload.workspaceId} :: ${new Date(payload.timestamp).toLocaleString()}`;
       liveAlert.textContent = `Live notification: ${label}`;
+    } else {
+      liveAlert.textContent = "Live notification: waiting for quota event.";
     }
   }
 
@@ -575,7 +575,11 @@ async function loadUnifiedView() {
     globalThis.workspaceContext.get(id),
     globalThis.workspaceRouting.analytics(id, getFilter()),
     globalThis.workspaceRouting.list(id, 25, getFilter()),
-    globalThis.workspaceRouting.bucketChartSvg(id, bucketMode.value, getFilter()),
+    globalThis.workspaceRouting.bucketChartSvg(
+      id,
+      bucketMode.value,
+      getFilter(),
+    ),
   ]);
   policyOutput.textContent = JSON.stringify(policy, null, 2);
   contextOutput.textContent = JSON.stringify(context, null, 2);
@@ -1044,7 +1048,10 @@ document.getElementById("save-context").addEventListener("click", async () => {
 
 loadAuditBtn?.addEventListener("click", async () => {
   const id = wsId();
-  const res = await globalThis.audit.list(50, id ? { workspaceId: id } : undefined);
+  const res = await globalThis.audit.list(
+    50,
+    id ? { workspaceId: id } : undefined,
+  );
   auditOutput.textContent = JSON.stringify(res, null, 2);
 });
 
@@ -1085,7 +1092,10 @@ document
   .getElementById("load-workspace-approvals")
   .addEventListener("click", async () => {
     const id = wsId();
-    const res = await globalThis.workspaceApproval.list(id || undefined, undefined);
+    const res = await globalThis.workspaceApproval.list(
+      id || undefined,
+      undefined,
+    );
     document.getElementById("workspace-approval-output").textContent =
       JSON.stringify(res, null, 2);
   });
@@ -1170,7 +1180,9 @@ document
   .getElementById("load-workspace-quota-notifications")
   .addEventListener("click", async () => {
     const id = quotaWsId() || wsId();
-    const result = await globalThis.workspaceQuota.notifications(id || undefined);
+    const result = await globalThis.workspaceQuota.notifications(
+      id || undefined,
+    );
     if (workspaceQuotaNotificationsOutput) {
       workspaceQuotaNotificationsOutput.textContent = JSON.stringify(
         result,
@@ -1238,7 +1250,10 @@ async function saveSecurityBaseline() {
     }
     return;
   }
-  const result = await globalThis.workspaceSecurity.saveBaseline(baselinePath, []);
+  const result = await globalThis.workspaceSecurity.saveBaseline(
+    baselinePath,
+    [],
+  );
   if (securityOverviewOutput) {
     securityOverviewOutput.textContent = JSON.stringify(result, null, 2);
   }

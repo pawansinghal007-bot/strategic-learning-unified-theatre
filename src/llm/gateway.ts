@@ -100,26 +100,7 @@ export class Gateway {
     // and not explicitly blocked by the active policy.
     const requestExcluded =
       parsedRequest.data.constraints?.excludedProviders ?? [];
-    try {
-      const policyState = getState();
-      if (
-        !candidates.includes("local") &&
-        !requestExcluded.includes("local") &&
-        !policyState.blockedProviders.includes("local") &&
-        this.providers.local
-      ) {
-        candidates = [...candidates, "local"];
-      }
-    } catch (_) {
-      // If policy state is unavailable, fall back to simple check
-      if (
-        !candidates.includes("local") &&
-        !requestExcluded.includes("local") &&
-        this.providers.local
-      ) {
-        candidates = [...candidates, "local"];
-      }
-    }
+    this.appendLocalIfAvailable(candidates, requestExcluded);
 
     if (!candidates.length) {
       throw new RoutingNoProviderError(
@@ -348,33 +329,7 @@ export class Gateway {
     // Honour preferredProvider: if local was explicitly preferred, put it first.
     const streamRequestExcluded =
       parsedRequest.data.constraints?.excludedProviders ?? [];
-    try {
-      const streamPolicyState = getState();
-      if (
-        !candidates.includes("local") &&
-        !streamRequestExcluded.includes("local") &&
-        !streamPolicyState.blockedProviders.includes("local") &&
-        this.providers.local
-      ) {
-        const preferred = parsedRequest.data.constraints?.preferredProvider;
-        candidates =
-          preferred === "local"
-            ? ["local", ...candidates]
-            : [...candidates, "local"];
-      }
-    } catch (_) {
-      if (
-        !candidates.includes("local") &&
-        !streamRequestExcluded.includes("local") &&
-        this.providers.local
-      ) {
-        const preferred = parsedRequest.data.constraints?.preferredProvider;
-        candidates =
-          preferred === "local"
-            ? ["local", ...candidates]
-            : [...candidates, "local"];
-      }
-    }
+    this.appendLocalIfAvailableForStream(candidates, streamRequestExcluded, parsedRequest.data.constraints?.preferredProvider);
 
     if (!candidates.length) {
       throw new RoutingNoProviderError(
@@ -571,3 +526,67 @@ export const gateway = new Proxy({} as Gateway, {
     return (_gateway as any)[prop];
   },
 });
+
+// ── Helper methods for cognitive complexity reduction ────────────────────────
+Gateway.prototype.appendLocalIfAvailable = function (
+  this: Gateway,
+  candidates: ProviderName[],
+  requestExcluded: ProviderName[],
+): void {
+  try {
+    const policyState = getState();
+    if (
+      !candidates.includes("local") &&
+      !requestExcluded.includes("local") &&
+      !policyState.blockedProviders.includes("local") &&
+      this.providers.local
+    ) {
+      candidates.push("local");
+    }
+  } catch (_) {
+    // If policy state is unavailable, fall back to simple check
+    if (
+      !candidates.includes("local") &&
+      !requestExcluded.includes("local") &&
+      this.providers.local
+    ) {
+      candidates.push("local");
+    }
+  }
+};
+
+Gateway.prototype.appendLocalIfAvailableForStream = function (
+  this: Gateway,
+  candidates: ProviderName[],
+  requestExcluded: ProviderName[],
+  preferredProvider?: string,
+): void {
+  try {
+    const policyState = getState();
+    if (
+      !candidates.includes("local") &&
+      !requestExcluded.includes("local") &&
+      !policyState.blockedProviders.includes("local") &&
+      this.providers.local
+    ) {
+      if (preferredProvider === "local") {
+        candidates.unshift("local");
+      } else {
+        candidates.push("local");
+      }
+    }
+  } catch (_) {
+    // If policy state is unavailable, fall back to simple check
+    if (
+      !candidates.includes("local") &&
+      !requestExcluded.includes("local") &&
+      this.providers.local
+    ) {
+      if (preferredProvider === "local") {
+        candidates.unshift("local");
+      } else {
+        candidates.push("local");
+      }
+    }
+  }
+};
