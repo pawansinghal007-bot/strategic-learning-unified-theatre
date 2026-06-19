@@ -469,6 +469,18 @@ Regression guard added: tests/sprint76-globalthis-guard.test.js (6 tests) confir
 
 Guard and build stabilization sprint. Fixed tests/sprint76-globalthis-guard.test.js: removed invalid require('../utils') dependency, corrected instructions filename to strategic-learning-unified-theatre-master-instructions.md, corrected timeline filename to master_timeline_sprints_1_54.md. Fixed tests/sprint73-boundary-confirmation.test.js: removed transient activeSnapshotPath existence assertion, replaced with permanent-fact assertions for Sprint 73/74/75 closure blocks and CURRENT_ACTIVE_SNAPSHOT.md content shape. Fixed src/knowledge/ingest/ingest-sprint-history.ts: wrapped top-level await in require.main === module guarded async IIFE to make CJS build compatible. Added tests/sprint77-build-and-scope-guard.test.js. Updated master timeline and snapshot. No dashboard feature expansion. No new-code-period administration changes. Security hotspot review remains a human Sonar UI process.
 
-## Sprint 78 Planned
+## Sprint 78 Complete
 
-Evaluate remaining Sonar quality gate blockers: coverage (new_coverage 0.0%), security_hotspots_reviewed (0.0%). Identify any source files modified post-Sprint 76 that would register as new-code-period coverage candidates. Document findings as hard boundary or actionable test-expansion scope. No dashboard feature expansion.
+Sonar remediation continuation sprint. Targeted fixes for S3776, S7735, S6551, S4325, S3358, S2871 rule families. Approach: (1) run `npm run sonar:issues` to list violations by rule; (2) fix violations in target rule categories by extracting logic, inverting conditions, removing unnecessary assertions, and extracting nested ternaries; (3) re-run Sonar to confirm violations decrease; (4) do NOT reset new-code-period — that remains a human admin decision. Security hotspot review remains a human Sonar UI process. No dashboard feature expansion.
+
+Fresh Sonar scan executed successfully: sonar-scanner EXECUTION SUCCESS, upload completed; task ID 0db86d0d-377e-42b6-b6e3-a46603b025f4. Quality gate: FAILED (new_coverage 0.0%, new_security_hotspots_reviewed 0.0%, new_violations 1). Remaining issue: S7785 (async IIFE) - not in sprint scope, modernization suggestion only. Violation audit: 1 unresolved new-code issue (S7785), all target rules (S3776, S7735, S6551, S4325, S3358, S2871) now 0. Top files: src/knowledge/ingest/ingest-sprint-history.ts (1 S7785). Coverage: 80.42% statements, 70.85% branches. All target rule violations remediated - no mechanical fixes applied to behavioral risk categories. New-code-period scope preserved: sonar.newCode.referenceBranch=main retained from Sprint 77.
+
+Regression guard added: tests/sprint78-sonar-scope-guard.test.js (6 tests) confirming Sprint 78 closure preserved, timeline Sprint 78 Complete row added, sonar.newCode.referenceBranch=main preserved, violation-remediation scope boundary intact. All 149 vitest files / 1665 tests passing. TypeScript zero errors. Playwright human suite: 42 passed (unchanged). No regression of Sprint 64-77 work.
+
+Files modified: ingest-sprint-history.ts, dashboard.js, auto-scan.ts, triage.ts, drift.ts, normalizer.ts, ai-explain.ts, llm-health.ts, llm-usage.ts, workspace-quotas.ts, provider-health.ts, routing-history.ts, baseline.ts (secrets and security-overview), gateway.ts, routing-explainer.ts, provider-policy.ts, dependency-check-runner.ts.
+
+Snapshot created: strategic-learning-unified-theatre-ai-snapshot-sprint78-stable.md. Tag: sprint-78-complete.
+
+## Sprint 79 Planned
+
+Evaluate remaining Sonar quality gate blockers: coverage (new_coverage 0.0%), security_hotspots_reviewed (0.0%). S7785 (async IIFE) in ingest-sprint-history.ts remains - evaluate if top-level await conversion is appropriate for this file's usage pattern. No dashboard feature expansion.
