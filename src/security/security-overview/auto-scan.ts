@@ -1,4 +1,10 @@
-import type { SecurityOverviewDriftResult } from "./schema.js";
+import type {
+  SecurityOverviewDriftResult,
+  SecurityFindingSummary,
+  SecurityFindingKind,
+  SecuritySeverity,
+  SecurityTriageStatus,
+} from "./schema.js";
 import {
   appendDriftHistory,
   type DriftClassification,
@@ -96,7 +102,10 @@ export async function runSecurityAutoScan(
       ? triageMod.loadSecurityTriage(triagePath)
       : [];
 
-    const findings = [...secretFindings, ...riskFindings].map((f) => {
+    const findings: SecurityFindingSummary[] = [
+      ...secretFindings,
+      ...riskFindings,
+    ].map((f) => {
       const suppressed = overviewMod.isSecuritySuppressed(f, suppressions);
       const triageStatus = suppressed
         ? "suppressed"
@@ -105,13 +114,25 @@ export async function runSecurityAutoScan(
             triageEntries,
           );
       return {
-        ...f,
+        kind: f.kind as SecurityFindingKind,
+        scanner: f.scanner as string,
+        id: f.id as string,
+        severity: f.severity as SecuritySeverity,
+        createdAt: f.createdAt as number,
         suppressed,
         baselineMatched:
           typeof f.fingerprint === "string"
             ? baseline.has(f.fingerprint)
             : false,
-        triageStatus,
+        triageStatus: triageStatus as SecurityTriageStatus,
+        title: f.title as string | undefined,
+        description: f.description as string | undefined,
+        file: f.file as string | undefined,
+        package: f.package as string | undefined,
+        version: f.version as string | undefined,
+        fingerprint: f.fingerprint as string | undefined,
+        ruleId: f.ruleId as string | undefined,
+        resolvedAt: f.resolvedAt as string | undefined,
       };
     });
 
@@ -164,8 +185,8 @@ export async function runSecurityAutoScan(
       risksDependencyResult,
       risksImageResult,
       summary: {
-        findings,
-        snapshot,
+        findings: findings as unknown as Record<string, unknown>[],
+        snapshot: snapshot as unknown as Record<string, unknown>,
       },
       drift: driftResult,
       driftHistoryAppend,
