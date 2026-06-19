@@ -329,7 +329,11 @@ export class Gateway {
     // Honour preferredProvider: if local was explicitly preferred, put it first.
     const streamRequestExcluded =
       parsedRequest.data.constraints?.excludedProviders ?? [];
-    this.appendLocalIfAvailableForStream(candidates, streamRequestExcluded, parsedRequest.data.constraints?.preferredProvider);
+    this.appendLocalIfAvailableForStream(
+      candidates,
+      streamRequestExcluded,
+      parsedRequest.data.constraints?.preferredProvider,
+    );
 
     if (!candidates.length) {
       throw new RoutingNoProviderError(

@@ -3,6 +3,7 @@
 ## Summary
 
 Sprint 78 focused on fixing open code-fixable issues for specific rule families:
+
 - S3776: Cognitive complexity
 - S7735: Unexpected negated conditions
 - S6551: Object stringification

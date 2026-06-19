@@ -38,10 +38,7 @@ function stateFromError(err: unknown) {
   const code = (err as { code?: unknown })?.code;
   if (code === "PROVIDER_AUTH_FAILED") return "auth_error";
   if (code === "PROVIDER_QUOTA_EXCEEDED") return "exhausted";
-  if (
-    code === "PROVIDER_TIMEOUT" ||
-    code === "PROVIDER_UNAVAILABLE"
-  ) {
+  if (code === "PROVIDER_TIMEOUT" || code === "PROVIDER_UNAVAILABLE") {
     return "temporarily_down";
   }
 

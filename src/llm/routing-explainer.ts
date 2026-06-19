@@ -17,7 +17,11 @@ function getRoutingExplanation(
     policyApplied?: boolean;
     policyReason?: string;
   },
-  policy: { routingMode: string; manualProvider: string; blockedProviders: string[] },
+  policy: {
+    routingMode: string;
+    manualProvider: string;
+    blockedProviders: string[];
+  },
   sensitive: { forceLocal: boolean; reasons: string[] },
 ): string | undefined {
   if (sensitive.forceLocal && provider === "local") {
@@ -102,6 +106,12 @@ export function explainRoutingSelection(
 ) {
   const policy = getProviderPolicy();
   const sensitive = detectSensitiveTask(request);
-  const explanation = getRoutingExplanation(request, provider, context, policy, sensitive);
+  const explanation = getRoutingExplanation(
+    request,
+    provider,
+    context,
+    policy,
+    sensitive,
+  );
   return explanation ?? `Selected ${provider} by default routing priority.`;
 }

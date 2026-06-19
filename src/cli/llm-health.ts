@@ -16,7 +16,10 @@ export function registerLlmHealth(program) {
 
       for (const p of rows) {
         const icon = p.hasKey ? (p.available ? "✅" : "❌") : "🔑";
-        const eta = p.recoversInMinutes === null ? "" : ` (recovers in ${p.recoversInMinutes}m)`;
+        const eta =
+          p.recoversInMinutes === null
+            ? ""
+            : ` (recovers in ${p.recoversInMinutes}m)`;
         const reason = p.reason === undefined ? "" : ` — ${p.reason}`;
         const usage = ` | req=${p.requestCount} ok=${p.successCount} fail=${p.failureCount} tokens=${p.totalTokens}`;
 
