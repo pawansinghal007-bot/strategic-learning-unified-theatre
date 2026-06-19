@@ -145,6 +145,10 @@ export async function ingestSprintHistory(
 
 // ── CLI entry point (ESM top-level await) ─────────────────────────────────────
 async function main() {
+  // Skip execution if running under test (Vitest sets VITEST env var)
+  if (process.env.VITEST) {
+    return;
+  }
   const baseDir = process.argv[2] ?? "./docs/sprints";
   try {
     await ingestSprintHistory({ baseDir });

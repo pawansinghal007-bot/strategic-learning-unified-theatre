@@ -32,7 +32,7 @@ export interface DriftHistoryEntry {
 export function loadDriftHistory(
   historyPath: string | null | undefined,
 ): DriftHistoryEntry[] {
-  if (!historyPath || !historyPath.trim()) return [];
+  if (!historyPath?.trim()) return [];
   try {
     const raw = fs.readFileSync(historyPath, "utf8");
     const parsed: unknown = JSON.parse(raw);

@@ -9,43 +9,43 @@
 
 ## Quality Gate Status
 
-| Metric | Value | Status |
-|--------|-------|--------|
-| **New Coverage** | 0.0% | ❌ FAILED |
-| **Security Hotspots Reviewed** | 0.0% | ❌ FAILED |
-| **New Violations** | 14 | ❌ FAILED |
+| Metric                         | Value | Status    |
+| ------------------------------ | ----- | --------- |
+| **New Coverage**               | 0.0%  | ❌ FAILED |
+| **Security Hotspots Reviewed** | 0.0%  | ❌ FAILED |
+| **New Violations**             | 14    | ❌ FAILED |
 
 ---
 
 ## Issue Summary
 
-| Category | Count |
-|----------|-------|
-| **Total New-Code Issues** | 14 |
+| Category                       | Count      |
+| ------------------------------ | ---------- |
+| **Total New-Code Issues**      | 14         |
 | **Total Effort (Remediation)** | 58 minutes |
-| **Files Affected** | 2 |
+| **Files Affected**             | 2          |
 
 ---
 
 ## Severity Breakdown
 
-| Severity | Count |
-|----------|-------|
-| **MAJOR** | 1 |
-| **MINOR** | 13 |
-| **TOTAL** | 14 |
+| Severity  | Count |
+| --------- | ----- |
+| **MAJOR** | 1     |
+| **MINOR** | 13    |
+| **TOTAL** | 14    |
 
 ---
 
 ## Rule Family Breakdown
 
-| Rule | Count | Category |
-|------|-------|----------|
-| S6551 (Object Stringification) | 8 | Code Smell |
-| S7735 (Unexpected Negated Condition) | 4 | Code Smell |
-| S3358 (Nested Ternary) | 1 | Code Smell |
-| S6644 (Boolean Literals) | 1 | Code Smell |
-| **TOTAL** | 14 | |
+| Rule                                 | Count | Category   |
+| ------------------------------------ | ----- | ---------- |
+| S6551 (Object Stringification)       | 8     | Code Smell |
+| S7735 (Unexpected Negated Condition) | 4     | Code Smell |
+| S3358 (Nested Ternary)               | 1     | Code Smell |
+| S6644 (Boolean Literals)             | 1     | Code Smell |
+| **TOTAL**                            | 14    |            |
 
 ---
 
@@ -53,41 +53,41 @@
 
 ### 1. `src/security/security-overview/drift.ts`
 
-| Line | Rule | Severity | Message |
-|------|------|----------|---------|
-| 147 | S6644 | MINOR | Unnecessary use of boolean literals in conditional expression |
+| Line | Rule  | Severity | Message                                                       |
+| ---- | ----- | -------- | ------------------------------------------------------------- |
+| 147  | S6644 | MINOR    | Unnecessary use of boolean literals in conditional expression |
 
 ---
 
 ### 2. `src/security/security-overview/normalizer.ts`
 
-| Line | Rule | Severity | Message |
-|------|------|----------|---------|
-| 49 | S6551 | MINOR | Using `join()` for fingerprintParts will use Object's default stringification format ('[object Object]') when stringified |
-| 52 | S7735 | MINOR | Unexpected negated condition |
-| 53 | S6551 | MINOR | 'item.scanner' will use Object's default stringification format ('[object Object]') when stringified |
-| 54 | S3358 | MAJOR | Extract this nested ternary operation into an independent statement |
-| 57 | S6551 | MINOR | 'item.id ?? fingerprint ?? `${kind}:${Date.now()}`' will use Object's default stringification format ('[object Object]') when stringified |
-| 58 | S6551 | MINOR | 'item.title' will use Object's default stringification format ('[object Object]') when stringified |
-| 60 | S6551 | MINOR | 'item.description' will use Object's default stringification format ('[object Object]') when stringified |
-| 61 | S6551 | MINOR | 'item.file' will use Object's default stringification format ('[object Object]') when stringified |
-| 61 | S7735 | MINOR | Unexpected negated condition |
-| 62 | S6551 | MINOR | 'item.package' will use Object's default stringification format ('[object Object]') when stringified |
-| 62 | S7735 | MINOR | Unexpected negated condition |
-| 63 | S7735 | MINOR | Unexpected negated condition |
-| 63 | S6551 | MINOR | 'item.version' will use Object's default stringification format ('[object Object]') when stringified |
+| Line | Rule  | Severity | Message                                                                                                                                   |
+| ---- | ----- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| 49   | S6551 | MINOR    | Using `join()` for fingerprintParts will use Object's default stringification format ('[object Object]') when stringified                 |
+| 52   | S7735 | MINOR    | Unexpected negated condition                                                                                                              |
+| 53   | S6551 | MINOR    | 'item.scanner' will use Object's default stringification format ('[object Object]') when stringified                                      |
+| 54   | S3358 | MAJOR    | Extract this nested ternary operation into an independent statement                                                                       |
+| 57   | S6551 | MINOR    | 'item.id ?? fingerprint ?? `${kind}:${Date.now()}`' will use Object's default stringification format ('[object Object]') when stringified |
+| 58   | S6551 | MINOR    | 'item.title' will use Object's default stringification format ('[object Object]') when stringified                                        |
+| 60   | S6551 | MINOR    | 'item.description' will use Object's default stringification format ('[object Object]') when stringified                                  |
+| 61   | S6551 | MINOR    | 'item.file' will use Object's default stringification format ('[object Object]') when stringified                                         |
+| 61   | S7735 | MINOR    | Unexpected negated condition                                                                                                              |
+| 62   | S6551 | MINOR    | 'item.package' will use Object's default stringification format ('[object Object]') when stringified                                      |
+| 62   | S7735 | MINOR    | Unexpected negated condition                                                                                                              |
+| 63   | S7735 | MINOR    | Unexpected negated condition                                                                                                              |
+| 63   | S6551 | MINOR    | 'item.version' will use Object's default stringification format ('[object Object]') when stringified                                      |
 
 ---
 
 ## Coverage & Security Metrics
 
-| Metric | Value |
-|--------|-------|
-| **Coverage (Statements)** | 80.42% |
-| **Coverage (Branches)** | 70.85% |
-| **New Coverage** | 0.0% |
-| **Security Rating** | A |
-| **Security Hotspots Reviewed** | 0.0% |
+| Metric                         | Value  |
+| ------------------------------ | ------ |
+| **Coverage (Statements)**      | 80.42% |
+| **Coverage (Branches)**        | 70.85% |
+| **New Coverage**               | 0.0%   |
+| **Security Rating**            | A      |
+| **Security Hotspots Reviewed** | 0.0%   |
 
 ---
 

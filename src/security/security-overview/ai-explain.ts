@@ -1,5 +1,3 @@
-import fs from "node:fs";
-
 export interface SecurityOverviewFindingLike {
   id?: string;
   title?: string;

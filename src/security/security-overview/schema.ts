@@ -76,6 +76,34 @@ export function emptySecurityOverviewSnapshot(): SecurityOverviewSnapshot {
   };
 }
 
+function updateSeverityCounts(
+  snap: SecurityOverviewSnapshot,
+  severity: string,
+): void {
+  if (severity in snap) {
+    (snap as Record<string, number>)[severity]++;
+  }
+}
+
+function updateTriageCounts(
+  snap: SecurityOverviewSnapshot,
+  triageStatus: string,
+): void {
+  if (triageStatus === "accepted") snap.accepted++;
+  else if (triageStatus === "false_positive") snap.falsePositive++;
+  else if (triageStatus === "resolved") snap.resolved++;
+  else snap.open++;
+}
+
+function updateLatestAt(
+  snap: SecurityOverviewSnapshot,
+  createdAt: number | null,
+): void {
+  if (snap.latestAt === null || (createdAt && createdAt > snap.latestAt)) {
+    snap.latestAt = createdAt;
+  }
+}
+
 export function buildSecurityOverviewSnapshot(
   findings: SecurityFindingSummary[],
 ): SecurityOverviewSnapshot {
@@ -85,20 +113,12 @@ export function buildSecurityOverviewSnapshot(
     if (f.kind === "secret") snap.secrets++;
     if (f.kind === "risk") snap.risks++;
     const sev = (f.severity ?? "unknown") as SecuritySeverity;
-    if (sev in snap) (snap as Record<string, number>)[sev]++;
+    updateSeverityCounts(snap, sev);
     if (f.suppressed) snap.suppressed++;
     if (f.baselineMatched) snap.baselineMatched++;
     const triageStatus = f.triageStatus ?? "open";
-    if (triageStatus === "accepted") snap.accepted++;
-    else if (triageStatus === "false_positive") snap.falsePositive++;
-    else if (triageStatus === "resolved") snap.resolved++;
-    else snap.open++;
-    if (
-      snap.latestAt === null ||
-      (f.createdAt && f.createdAt > snap.latestAt)
-    ) {
-      snap.latestAt = f.createdAt;
-    }
+    updateTriageCounts(snap, triageStatus);
+    updateLatestAt(snap, f.createdAt);
   }
   return snap;
 }

@@ -80,6 +80,234 @@ export class Gateway {
     ];
   }
 
+  // Helper function to handle quota decision logic
+  private handleQuotaDecision(
+    providerName: ProviderName,
+    workspaceId: string,
+    startedAt: number,
+    fallbackFrom: ProviderName | undefined,
+  ): {
+    selectedProviderName: ProviderName;
+    selectedProvider: ProviderAdapter | undefined;
+    shouldContinue: boolean;
+  } {
+    const quotaDecision = applyWorkspaceQuotaEnforcement({
+      workspaceId,
+      provider: providerName,
+      now: startedAt,
+    });
+
+    if (quotaDecision.blocked) {
+      logger.warn("gateway.provider.blocked_by_workspace_quota", {
+        workspaceId,
+        provider: providerName,
+      });
+      throw Object.assign(new Error("Workspace quota exceeded"), {
+        code: "WORKSPACE_QUOTA_EXCEEDED",
+        workspaceId,
+        quota: quotaDecision.quota,
+      });
+    }
+
+    let selectedProviderName: ProviderName = providerName;
+    let selectedProvider: ProviderAdapter | undefined =
+      this.providers[providerName];
+
+    if (
+      quotaDecision.shouldFallback &&
+      quotaDecision.provider &&
+      quotaDecision.provider !== providerName &&
+      this.providers[quotaDecision.provider as ProviderName]
+    ) {
+      selectedProviderName = quotaDecision.provider as ProviderName;
+      selectedProvider = this.providers[selectedProviderName];
+    }
+
+    if (quotaDecision.shouldAlert || quotaDecision.thresholdReached) {
+      logger.warn("gateway.workspace_quota.alert", {
+        workspaceId,
+        provider: providerName,
+        fallbackProvider: quotaDecision.provider,
+        thresholdReached: quotaDecision.thresholdReached,
+        shouldAlert: quotaDecision.shouldAlert,
+      });
+    }
+
+    return { selectedProviderName, selectedProvider, shouldContinue: true };
+  }
+
+  // Helper function to handle provider request processing
+  private async processProviderRequest(
+    providerName: ProviderName,
+    parsedRequest: {
+      success: boolean;
+      data: ProviderRequest;
+      error: any;
+    },
+    fallbackFrom: ProviderName | undefined,
+    unavailableProviders: ProviderName[],
+    policyReason: string,
+  ): Promise<{
+    response?: ProviderResponse;
+    error?: { provider: string; message: string };
+    newFallbackFrom?: ProviderName;
+  }> {
+    const provider = this.providers[providerName];
+    if (!provider) {
+      logger.warn("gateway.provider.missing", { provider: providerName });
+      return {
+        error: { provider: providerName, message: "Provider not found" },
+      };
+    }
+
+    if (!isProviderAvailable(providerName)) {
+      unavailableProviders.push(providerName);
+      logger.info("gateway.provider.skipped_unhealthy", {
+        provider: providerName,
+      });
+      return {
+        error: { provider: providerName, message: "Provider unavailable" },
+      };
+    }
+
+    const startedAt = Date.now();
+    let selectedProviderName: ProviderName = providerName;
+    let selectedProvider: ProviderAdapter | undefined = provider;
+
+    if (parsedRequest.data.workspaceId) {
+      const { selectedProviderName: qName, selectedProvider: qProvider } =
+        this.handleQuotaDecision(
+          providerName,
+          parsedRequest.data.workspaceId,
+          startedAt,
+          fallbackFrom,
+        );
+      selectedProviderName = qName;
+      selectedProvider = qProvider;
+    }
+
+    try {
+      logger.info("gateway.provider.try", {
+        requestId: parsedRequest.data.requestId,
+        provider: selectedProviderName,
+      });
+
+      // Inject workspace context into prompt if available
+      let requestData = parsedRequest.data;
+      if (requestData.workspaceId) {
+        try {
+          const contextPrompt = buildRequestContextPrompt(
+            requestData.workspaceId,
+          );
+          if (contextPrompt) {
+            requestData = {
+              ...requestData,
+              prompt: `${contextPrompt}\n\nUser request: ${requestData.prompt}`,
+            };
+          }
+        } catch (_) {
+          /* context injection is non-fatal */
+        }
+      }
+
+      const rawResponse = await selectedProvider!.ask(requestData);
+      const normalizedResponse = this.normalizeResponse(
+        rawResponse,
+        selectedProviderName,
+        parsedRequest.data.requestId,
+      );
+
+      const parsedResponse =
+        providerResponseSchema.safeParse(normalizedResponse);
+      if (!parsedResponse.success) {
+        throw new ValidationFailedError("Invalid provider response", {
+          provider: selectedProviderName,
+          issues: parsedResponse.error.flatten(),
+        });
+      }
+
+      recordProviderSuccess(selectedProviderName, parsedResponse.data);
+
+      const reason = explainRoutingSelection(
+        parsedRequest.data,
+        selectedProviderName,
+        {
+          fallbackFrom,
+          unavailableProviders,
+          policyApplied: true,
+          policyReason,
+        },
+      );
+
+      recordRoutingDecision({
+        request: parsedRequest.data,
+        provider: selectedProviderName,
+        model: parsedResponse.data.model,
+        success: true,
+        reason,
+        fallbackFrom,
+        latencyMs: Date.now() - startedAt,
+      });
+
+      logger.info("gateway.ask.success", {
+        requestId: parsedRequest.data.requestId,
+        provider: selectedProviderName,
+        model: parsedResponse.data.model,
+        reason,
+      });
+
+      return {
+        response: {
+          ...parsedResponse.data,
+          routingReasons: [
+            ...(parsedResponse.data.routingReasons ?? []),
+            { code: "default_selection", message: reason },
+          ],
+        },
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+
+      try {
+        recordProviderFailure(selectedProviderName);
+      } catch (_) {
+        /* non-fatal */
+      }
+
+      if (error instanceof DomainError) {
+        try {
+          markProviderFromError(selectedProviderName, error);
+        } catch (_) {
+          /* non-fatal */
+        }
+      }
+
+      const reason = `Provider ${selectedProviderName} failed and the gateway moved to fallback.`;
+
+      recordRoutingDecision({
+        request: parsedRequest.data,
+        provider: selectedProviderName,
+        model: "unknown-model",
+        success: false,
+        reason,
+        fallbackFrom,
+        latencyMs: Date.now() - startedAt,
+        errorMessage: message,
+      });
+
+      logger.warn("gateway.provider.failed", {
+        requestId: parsedRequest.data.requestId,
+        provider: selectedProviderName,
+        error: message,
+      });
+
+      return {
+        error: { provider: selectedProviderName, message },
+        newFallbackFrom: providerName,
+      };
+    }
+  }
+
   async ask(request: ProviderRequest): Promise<ProviderResponse> {
     const parsedRequest = providerRequestSchema.safeParse(request);
     if (!parsedRequest.success) {
@@ -122,180 +350,23 @@ export class Gateway {
     let fallbackFrom: ProviderName | undefined;
 
     for (const providerName of candidates) {
-      const provider = this.providers[providerName];
-      if (!provider) {
-        logger.warn("gateway.provider.missing", { provider: providerName });
-        continue;
+      const result = await this.processProviderRequest(
+        providerName,
+        parsedRequest,
+        fallbackFrom,
+        unavailableProviders,
+        policyReason,
+      );
+
+      if (result.response) {
+        return result.response;
       }
 
-      if (!isProviderAvailable(providerName)) {
-        unavailableProviders.push(providerName);
-        logger.info("gateway.provider.skipped_unhealthy", {
-          provider: providerName,
-        });
-        continue;
-      }
-
-      const startedAt = Date.now();
-      let selectedProviderName: ProviderName = providerName;
-      let selectedProvider: ProviderAdapter | undefined = provider;
-
-      if (parsedRequest.data.workspaceId) {
-        const quotaDecision = applyWorkspaceQuotaEnforcement({
-          workspaceId: parsedRequest.data.workspaceId,
-          provider: providerName,
-          now: startedAt,
-        });
-
-        if (quotaDecision.blocked) {
-          logger.warn("gateway.provider.blocked_by_workspace_quota", {
-            workspaceId: parsedRequest.data.workspaceId,
-            provider: providerName,
-          });
-          throw Object.assign(new Error("Workspace quota exceeded"), {
-            code: "WORKSPACE_QUOTA_EXCEEDED",
-            workspaceId: parsedRequest.data.workspaceId,
-            quota: quotaDecision.quota,
-          });
+      if (result.error) {
+        errors.push(result.error);
+        if (result.newFallbackFrom) {
+          fallbackFrom = result.newFallbackFrom;
         }
-
-        if (
-          quotaDecision.shouldFallback &&
-          quotaDecision.provider &&
-          quotaDecision.provider !== providerName &&
-          this.providers[quotaDecision.provider as ProviderName]
-        ) {
-          fallbackFrom = providerName;
-          selectedProviderName = quotaDecision.provider as ProviderName;
-          selectedProvider = this.providers[selectedProviderName];
-        }
-
-        if (quotaDecision.shouldAlert || quotaDecision.thresholdReached) {
-          logger.warn("gateway.workspace_quota.alert", {
-            workspaceId: parsedRequest.data.workspaceId,
-            provider: providerName,
-            fallbackProvider: quotaDecision.provider,
-            thresholdReached: quotaDecision.thresholdReached,
-            shouldAlert: quotaDecision.shouldAlert,
-          });
-        }
-      }
-
-      try {
-        logger.info("gateway.provider.try", {
-          requestId: parsedRequest.data.requestId,
-          provider: selectedProviderName,
-        });
-
-        // Inject workspace context into prompt if available
-        let requestData = parsedRequest.data;
-        if (requestData.workspaceId) {
-          try {
-            const contextPrompt = buildRequestContextPrompt(
-              requestData.workspaceId,
-            );
-            if (contextPrompt) {
-              requestData = {
-                ...requestData,
-                prompt: `${contextPrompt}\n\nUser request: ${requestData.prompt}`,
-              };
-            }
-          } catch (_) {
-            /* context injection is non-fatal */
-          }
-        }
-
-        const rawResponse = await selectedProvider!.ask(requestData);
-        const normalizedResponse = this.normalizeResponse(
-          rawResponse,
-          selectedProviderName,
-          parsedRequest.data.requestId,
-        );
-
-        const parsedResponse =
-          providerResponseSchema.safeParse(normalizedResponse);
-        if (!parsedResponse.success) {
-          throw new ValidationFailedError("Invalid provider response", {
-            provider: selectedProviderName,
-            issues: parsedResponse.error.flatten(),
-          });
-        }
-
-        recordProviderSuccess(selectedProviderName, parsedResponse.data);
-
-        const reason = explainRoutingSelection(
-          parsedRequest.data,
-          selectedProviderName,
-          {
-            fallbackFrom,
-            unavailableProviders,
-            policyApplied: true,
-            policyReason,
-          },
-        );
-
-        recordRoutingDecision({
-          request: parsedRequest.data,
-          provider: selectedProviderName,
-          model: parsedResponse.data.model,
-          success: true,
-          reason,
-          fallbackFrom,
-          latencyMs: Date.now() - startedAt,
-        });
-
-        logger.info("gateway.ask.success", {
-          requestId: parsedRequest.data.requestId,
-          provider: selectedProviderName,
-          model: parsedResponse.data.model,
-          reason,
-        });
-
-        return {
-          ...parsedResponse.data,
-          routingReasons: [
-            ...(parsedResponse.data.routingReasons ?? []),
-            { code: "default_selection", message: reason },
-          ],
-        };
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-
-        try {
-          recordProviderFailure(selectedProviderName);
-        } catch (_) {
-          /* non-fatal */
-        }
-
-        if (error instanceof DomainError) {
-          try {
-            markProviderFromError(selectedProviderName, error);
-          } catch (_) {
-            /* non-fatal */
-          }
-        }
-
-        const reason = `Provider ${selectedProviderName} failed and the gateway moved to fallback.`;
-
-        recordRoutingDecision({
-          request: parsedRequest.data,
-          provider: selectedProviderName,
-          model: "unknown-model",
-          success: false,
-          reason,
-          fallbackFrom,
-          latencyMs: Date.now() - startedAt,
-          errorMessage: message,
-        });
-
-        errors.push({ provider: selectedProviderName, message });
-        fallbackFrom = providerName;
-
-        logger.warn("gateway.provider.failed", {
-          requestId: parsedRequest.data.requestId,
-          provider: selectedProviderName,
-          error: message,
-        });
       }
     }
 

@@ -9,14 +9,14 @@
 
 ## Executive Summary
 
-| Metric | Value | Threshold | Status |
-|--------|-------|-----------|--------|
-| Coverage | 14.2% | 100% | ❌ FAILED |
-| New Coverage | 0.0% | 100% | ❌ FAILED |
-| Violations | 98 | 0 | ❌ FAILED |
-| New Violations | 1 | 0 | ❌ FAILED |
-| Security Hotspots Reviewed | 0.0% | 100% | ❌ FAILED |
-| Duplicated Lines (New) | 3.75% | ≤3% | ❌ FAILED |
+| Metric                     | Value | Threshold | Status    |
+| -------------------------- | ----- | --------- | --------- |
+| Coverage                   | 14.2% | 100%      | ❌ FAILED |
+| New Coverage               | 0.0%  | 100%      | ❌ FAILED |
+| Violations                 | 98    | 0         | ❌ FAILED |
+| New Violations             | 1     | 0         | ❌ FAILED |
+| Security Hotspots Reviewed | 0.0%  | 100%      | ❌ FAILED |
+| Duplicated Lines (New)     | 3.75% | ≤3%       | ❌ FAILED |
 
 ---
 
@@ -24,50 +24,50 @@
 
 ### Target Rules (Sprint 78 Scope)
 
-| Rule | Count | Status |
-|------|-------|--------|
-| typescript:S3776 (Cognitive Complexity) | 7 | ✅ Fixed |
-| typescript:S7735 (Negated Conditions) | 13 | ✅ Fixed |
-| typescript:S6551 (Object Stringification) | 10 | ✅ Fixed |
-| typescript:S4325 (Unnecessary Assertions) | 9 | ✅ Fixed |
-| typescript:S3358 (Nested Ternaries) | 8 | ✅ Fixed |
-| typescript:S2871 (localeCompare) | 2 | ✅ Fixed |
-| javascript:S7735 (Negated Conditions) | 1 | ✅ Fixed |
-| **Total Target Rules** | **50** | **✅ All Fixed** |
+| Rule                                      | Count  | Status           |
+| ----------------------------------------- | ------ | ---------------- |
+| typescript:S3776 (Cognitive Complexity)   | 7      | ✅ Fixed         |
+| typescript:S7735 (Negated Conditions)     | 13     | ✅ Fixed         |
+| typescript:S6551 (Object Stringification) | 10     | ✅ Fixed         |
+| typescript:S4325 (Unnecessary Assertions) | 9      | ✅ Fixed         |
+| typescript:S3358 (Nested Ternaries)       | 8      | ✅ Fixed         |
+| typescript:S2871 (localeCompare)          | 2      | ✅ Fixed         |
+| javascript:S7735 (Negated Conditions)     | 1      | ✅ Fixed         |
+| **Total Target Rules**                    | **50** | **✅ All Fixed** |
 
 ### Remaining Issues (Non-Target Rules)
 
-| Rule | Count | Severity | Description |
-|------|-------|----------|-------------|
-| typescript:S7785 | 1 | MAJOR | Prefer top-level await over async IIFE |
-| typescript:S1128 | 7 | MAJOR | Unused imports |
-| typescript:S7772 | 7 | MAJOR | Missing JSDoc comments |
-| typescript:S2486 | 5 | MAJOR | Hidden class fields |
-| typescript:S7748 | 4 | MAJOR | Unnecessary type parameters |
-| typescript:S7776 | 4 | MAJOR | Missing JSDoc parameter descriptions |
-| typescript:S1874 | 4 | MAJOR | Hidden class fields |
-| typescript:S6582 | 3 | MAJOR | Regex usage |
-| typescript:S6606 | 3 | MAJOR | Use `??` instead of `||` |
-| typescript:S7763 | 1 | MAJOR | Missing JSDoc return description |
-| typescript:S6571 | 1 | MAJOR | Regex usage |
-| typescript:S4323 | 1 | MAJOR | Hidden class fields |
-| typescript:S4624 | 1 | MAJOR | Hidden class fields |
-| typescript:S6564 | 1 | MAJOR | Regex usage |
-| javascript:S2486 | 2 | MAJOR | Hidden class fields |
-| javascript:S7781 | 1 | MAJOR | Missing JSDoc |
-| typescript:S6594 | 2 | MAJOR | Regex usage |
-| javascript:S7785 | 1 | MAJOR | Prefer top-level await over async IIFE |
+| Rule             | Count | Severity | Description                            |
+| ---------------- | ----- | -------- | -------------------------------------- | --- | --- |
+| typescript:S7785 | 1     | MAJOR    | Prefer top-level await over async IIFE |
+| typescript:S1128 | 7     | MAJOR    | Unused imports                         |
+| typescript:S7772 | 7     | MAJOR    | Missing JSDoc comments                 |
+| typescript:S2486 | 5     | MAJOR    | Hidden class fields                    |
+| typescript:S7748 | 4     | MAJOR    | Unnecessary type parameters            |
+| typescript:S7776 | 4     | MAJOR    | Missing JSDoc parameter descriptions   |
+| typescript:S1874 | 4     | MAJOR    | Hidden class fields                    |
+| typescript:S6582 | 3     | MAJOR    | Regex usage                            |
+| typescript:S6606 | 3     | MAJOR    | Use `??` instead of `                  |     | `   |
+| typescript:S7763 | 1     | MAJOR    | Missing JSDoc return description       |
+| typescript:S6571 | 1     | MAJOR    | Regex usage                            |
+| typescript:S4323 | 1     | MAJOR    | Hidden class fields                    |
+| typescript:S4624 | 1     | MAJOR    | Hidden class fields                    |
+| typescript:S6564 | 1     | MAJOR    | Regex usage                            |
+| javascript:S2486 | 2     | MAJOR    | Hidden class fields                    |
+| javascript:S7781 | 1     | MAJOR    | Missing JSDoc                          |
+| typescript:S6594 | 2     | MAJOR    | Regex usage                            |
+| javascript:S7785 | 1     | MAJOR    | Prefer top-level await over async IIFE |
 
 ---
 
 ## Coverage Analysis
 
-| Metric | Value |
-|--------|-------|
-| Lines to Cover | 8,511 |
+| Metric          | Value |
+| --------------- | ----- |
+| Lines to Cover  | 8,511 |
 | Uncovered Lines | 7,637 |
-| Coverage | 14.2% |
-| New Coverage | 0.0% |
+| Coverage        | 14.2% |
+| New Coverage    | 0.0%  |
 
 **Analysis**: Coverage is significantly below the 100% threshold. New coverage is 0.0% because no code changes were in the new-code-period window (Sprints 60+).
 
@@ -75,10 +75,10 @@
 
 ## Security Analysis
 
-| Metric | Value |
-|--------|-------|
-| Security Hotspots Reviewed | 0.0% |
-| Security Hotspots | 0 (TO_REVIEW) |
+| Metric                     | Value         |
+| -------------------------- | ------------- |
+| Security Hotspots Reviewed | 0.0%          |
+| Security Hotspots          | 0 (TO_REVIEW) |
 
 **Analysis**: No security hotspots in TO_REVIEW status. Review requires human security judgment in Sonar UI.
 
@@ -86,15 +86,15 @@
 
 ## Quality Gate Conditions
 
-| Condition | Metric | Threshold | Actual | Status |
-|-----------|--------|-----------|--------|--------|
-| Coverage | coverage | ≥100% | 14.2% | ❌ ERROR |
-| New Coverage | new_coverage | ≥100% | 0.0% | ❌ ERROR |
-| New Duplicated Lines | new_duplicated_lines_density | ≤3% | 3.75% | ❌ ERROR |
-| Duplicated Lines | duplicated_lines_density | ≤3% | 2.7% | ✅ OK |
-| New Violations | new_violations | ≤0 | 1 | ❌ ERROR |
-| Security Hotspots Reviewed | security_hotspots_reviewed | ≥100% | 0.0% | ❌ ERROR |
-| Violations | violations | ≤0 | 98 | ❌ ERROR |
+| Condition                  | Metric                       | Threshold | Actual | Status   |
+| -------------------------- | ---------------------------- | --------- | ------ | -------- |
+| Coverage                   | coverage                     | ≥100%     | 14.2%  | ❌ ERROR |
+| New Coverage               | new_coverage                 | ≥100%     | 0.0%   | ❌ ERROR |
+| New Duplicated Lines       | new_duplicated_lines_density | ≤3%       | 3.75%  | ❌ ERROR |
+| Duplicated Lines           | duplicated_lines_density     | ≤3%       | 2.7%   | ✅ OK    |
+| New Violations             | new_violations               | ≤0        | 1      | ❌ ERROR |
+| Security Hotspots Reviewed | security_hotspots_reviewed   | ≥100%     | 0.0%   | ❌ ERROR |
+| Violations                 | violations                   | ≤0        | 98     | ❌ ERROR |
 
 ---
 

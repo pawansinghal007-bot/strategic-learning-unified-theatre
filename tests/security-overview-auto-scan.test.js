@@ -3,21 +3,33 @@ import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
 
+const mocks = vi.hoisted(() => ({
+  runSecretsScan: vi.fn(),
+  runDependencyCheck: vi.fn(),
+  runTrivyImage: vi.fn(),
+}));
+
+vi.mock("../src/security/secrets/index.js", () => ({
+  runSecretsScan: mocks.runSecretsScan,
+}));
+
+vi.mock("../src/security/risks/index.js", () => ({
+  runDependencyCheck: mocks.runDependencyCheck,
+  runTrivyImage: mocks.runTrivyImage,
+}));
+
 describe("Sprint 82 — auto-scan module unit tests", () => {
   const tmpDir = path.join(os.tmpdir(), `auto-scan-test-${Date.now()}`);
 
-  beforeEach(async () => {
+  beforeEach(() => {
     fs.mkdirSync(tmpDir, { recursive: true });
 
-    // Mock secrets and risks modules to avoid gitleaks dependency
-    vi.mock("../src/security/secrets/index.js", () => ({
-      runSecretsScan: vi.fn().mockResolvedValue({ findings: [] }),
-    }));
-
-    vi.mock("../src/security/risks/index.js", () => ({
-      runDependencyCheck: vi.fn().mockResolvedValue({ findings: [] }),
-      runTrivyImage: vi.fn().mockResolvedValue(null),
-    }));
+    mocks.runSecretsScan.mockReset();
+    mocks.runDependencyCheck.mockReset();
+    mocks.runTrivyImage.mockReset();
+    mocks.runSecretsScan.mockResolvedValue({ findings: [] });
+    mocks.runDependencyCheck.mockResolvedValue({ findings: [] });
+    mocks.runTrivyImage.mockResolvedValue(null);
   });
 
   afterEach(() => {

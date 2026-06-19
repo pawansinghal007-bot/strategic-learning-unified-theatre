@@ -10,6 +10,40 @@ export interface RunDependencyCheckOptions {
   suppressionsPath?: string;
 }
 
+function parseDependencyCheckReport(reportFile: string): any {
+  try {
+    if (fs.existsSync(reportFile)) {
+      return JSON.parse(fs.readFileSync(reportFile, "utf8"));
+    }
+  } catch {
+    // ignore parse errors
+  }
+  return null;
+}
+
+function extractFindings(parsed: any): RiskFinding[] {
+  const findings: RiskFinding[] = [];
+  if (parsed?.vulnerabilities && Array.isArray(parsed.vulnerabilities)) {
+    for (const v of parsed.vulnerabilities) {
+      findings.push(normalizeDependencyCheckFinding(v));
+    }
+  } else if (parsed?.dependencies && Array.isArray(parsed.dependencies)) {
+    for (const dep of parsed.dependencies) {
+      if (!dep.vulnerabilities) continue;
+      for (const v of dep.vulnerabilities) {
+        findings.push(
+          normalizeDependencyCheckFinding({
+            ...v,
+            packageName: dep.packageName,
+            version: dep.version,
+          }),
+        );
+      }
+    }
+  }
+  return findings;
+}
+
 export async function runDependencyCheck(
   scanTarget: string,
   options: RunDependencyCheckOptions = {},
@@ -42,35 +76,8 @@ export async function runDependencyCheck(
 
     spawnSync("dependency-check", args, { encoding: "utf8" });
 
-    let parsed: any = null;
-    try {
-      if (fs.existsSync(reportFile)) {
-        parsed = JSON.parse(fs.readFileSync(reportFile, "utf8"));
-      }
-    } catch {
-      parsed = null;
-    }
-
-    const findings: RiskFinding[] = [];
-
-    if (parsed?.vulnerabilities && Array.isArray(parsed.vulnerabilities)) {
-      for (const v of parsed.vulnerabilities) {
-        findings.push(normalizeDependencyCheckFinding(v));
-      }
-    } else if (parsed?.dependencies && Array.isArray(parsed.dependencies)) {
-      for (const dep of parsed.dependencies) {
-        if (!dep.vulnerabilities) continue;
-        for (const v of dep.vulnerabilities) {
-          findings.push(
-            normalizeDependencyCheckFinding({
-              ...v,
-              packageName: dep.packageName,
-              version: dep.version,
-            }),
-          );
-        }
-      }
-    }
+    const parsed = parseDependencyCheckReport(reportFile);
+    const findings = extractFindings(parsed);
 
     return { ok: true, engine: "dependency-check", findings, raw: parsed };
   } catch (err) {

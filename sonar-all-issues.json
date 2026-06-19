@@ -1,0 +1,2393 @@
+{
+  "total": 44,
+  "p": 1,
+  "ps": 500,
+  "paging": {
+    "pageIndex": 1,
+    "pageSize": 500,
+    "total": 44
+  },
+  "effortTotal": 597,
+  "issues": [
+    {
+      "key": "f272c420-2445-4aae-ab1c-bc33409bb0d6",
+      "rule": "typescript:S1128",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/knowledge/ingest/ingest-sprint-history.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 3,
+      "hash": "e9f2e1a178057edd0122bbb389d64124",
+      "textRange": {
+        "startLine": 3,
+        "endLine": 3,
+        "startOffset": 9,
+        "endOffset": 22
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Remove this unused import of 'pathToFileURL'.",
+      "effort": "1min",
+      "debt": "1min",
+      "author": "",
+      "tags": [
+        "es2015",
+        "type-dependent",
+        "unused"
+      ],
+      "creationDate": "2026-06-19T12:11:38+0000",
+      "updateDate": "2026-06-19T12:11:38+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CLEAR",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "b8b28c97-92e3-4339-b595-a6a5cb422b43",
+      "rule": "typescript:S3776",
+      "severity": "CRITICAL",
+      "component": "strategic-learning-unified-theatre:src/llm/gateway.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 140,
+      "hash": "5f8b7f87afc899dcc5f36ce6b831c306",
+      "textRange": {
+        "startLine": 140,
+        "endLine": 140,
+        "startOffset": 16,
+        "endOffset": 38
+      },
+      "flows": [
+        {
+          "locations": [
+            {
+              "component": "strategic-learning-unified-theatre:src/llm/gateway.ts",
+              "textRange": {
+                "startLine": 156,
+                "endLine": 156,
+                "startOffset": 4,
+                "endOffset": 6
+              },
+              "msg": "+1",
+              "msgFormattings": []
+            }
+          ]
+        },
+        {
+          "locations": [
+            {
+              "component": "strategic-learning-unified-theatre:src/llm/gateway.ts",
+              "textRange": {
+                "startLine": 163,
+                "endLine": 163,
+                "startOffset": 4,
+                "endOffset": 6
+              },
+              "msg": "+1",
+              "msgFormattings": []
+            }
+          ]
+        },
+        {
+          "locations": [
+            {
+              "component": "strategic-learning-unified-theatre:src/llm/gateway.ts",
+              "textRange": {
+                "startLine": 177,
+                "endLine": 177,
+                "startOffset": 4,
+                "endOffset": 6
+              },
+              "msg": "+1",
+              "msgFormattings": []
+            }
+          ]
+        },
+        {
+          "locations": [
+            {
+              "component": "strategic-learning-unified-theatre:src/llm/gateway.ts",
+              "textRange": {
+                "startLine": 197,
+                "endLine": 197,
+                "startOffset": 6,
+                "endOffset": 8
+              },
+              "msg": "+1",
+              "msgFormattings": []
+            }
+          ]
+        },
+        {
+          "locations": [
+            {
+              "component": "strategic-learning-unified-theatre:src/llm/gateway.ts",
+              "textRange": {
+                "startLine": 202,
+                "endLine": 202,
+                "startOffset": 10,
+                "endOffset": 12
+              },
+              "msg": "+2 (incl. 1 for nesting)",
+              "msgFormattings": []
+            }
+          ]
+        },
+        {
+          "locations": [
+            {
+              "component": "strategic-learning-unified-theatre:src/llm/gateway.ts",
+              "textRange": {
+                "startLine": 208,
+                "endLine": 208,
+                "startOffset": 10,
+                "endOffset": 15
+              },
+              "msg": "+2 (incl. 1 for nesting)",
+              "msgFormattings": []
+            }
+          ]
+        },
+        {
+          "locations": [
+            {
+              "component": "strategic-learning-unified-theatre:src/llm/gateway.ts",
+              "textRange": {
+                "startLine": 222,
+                "endLine": 222,
+                "startOffset": 6,
+                "endOffset": 8
+              },
+              "msg": "+1",
+              "msgFormattings": []
+            }
+          ]
+        },
+        {
+          "locations": [
+            {
+              "component": "strategic-learning-unified-theatre:src/llm/gateway.ts",
+              "textRange": {
+                "startLine": 268,
+                "endLine": 268,
+                "startOffset": 6,
+                "endOffset": 11
+              },
+              "msg": "+1",
+              "msgFormattings": []
+            }
+          ]
+        },
+        {
+          "locations": [
+            {
+              "component": "strategic-learning-unified-theatre:src/llm/gateway.ts",
+              "textRange": {
+                "startLine": 269,
+                "endLine": 269,
+                "startOffset": 45,
+                "endOffset": 46
+              },
+              "msg": "+2 (incl. 1 for nesting)",
+              "msgFormattings": []
+            }
+          ]
+        },
+        {
+          "locations": [
+            {
+              "component": "strategic-learning-unified-theatre:src/llm/gateway.ts",
+              "textRange": {
+                "startLine": 273,
+                "endLine": 273,
+                "startOffset": 8,
+                "endOffset": 13
+              },
+              "msg": "+2 (incl. 1 for nesting)",
+              "msgFormattings": []
+            }
+          ]
+        },
+        {
+          "locations": [
+            {
+              "component": "strategic-learning-unified-theatre:src/llm/gateway.ts",
+              "textRange": {
+                "startLine": 277,
+                "endLine": 277,
+                "startOffset": 6,
+                "endOffset": 8
+              },
+              "msg": "+2 (incl. 1 for nesting)",
+              "msgFormattings": []
+            }
+          ]
+        },
+        {
+          "locations": [
+            {
+              "component": "strategic-learning-unified-theatre:src/llm/gateway.ts",
+              "textRange": {
+                "startLine": 280,
+                "endLine": 280,
+                "startOffset": 10,
+                "endOffset": 15
+              },
+              "msg": "+3 (incl. 2 for nesting)",
+              "msgFormattings": []
+            }
+          ]
+        }
+      ],
+      "status": "OPEN",
+      "message": "Refactor this function to reduce its Cognitive Complexity from 19 to the 15 allowed.",
+      "effort": "9min",
+      "debt": "9min",
+      "author": "",
+      "tags": [
+        "brain-overload"
+      ],
+      "creationDate": "2026-06-19T12:11:38+0000",
+      "updateDate": "2026-06-19T12:11:38+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": false,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "FOCUSED",
+      "cleanCodeAttributeCategory": "ADAPTABLE",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "HIGH"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "bb8a84d5-9291-4a68-ad47-16d9f3111a6a",
+      "rule": "typescript:S4325",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/security/security-overview/auto-scan.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 127,
+      "hash": "ee81dc8426d61b426e4151b2eaaacdee",
+      "textRange": {
+        "startLine": 127,
+        "endLine": 127,
+        "startOffset": 22,
+        "endOffset": 58
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "This assertion is unnecessary since it does not change the type of the expression.",
+      "effort": "1min",
+      "debt": "1min",
+      "author": "pawan@localhost",
+      "tags": [
+        "type-dependent",
+        "redundant"
+      ],
+      "creationDate": "2026-06-19T11:44:24+0000",
+      "updateDate": "2026-06-19T11:44:24+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CLEAR",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "0bee5de5-9e53-4b71-993d-1a1e74779cd7",
+      "rule": "javascript:S2486",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/ui/dashboard.js",
+      "project": "strategic-learning-unified-theatre",
+      "line": 1292,
+      "hash": "1cac544537d775994bbfd1fed5b3408e",
+      "textRange": {
+        "startLine": 1292,
+        "endLine": 1294,
+        "startOffset": 8,
+        "endOffset": 7
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Handle this exception or don't catch it at all.",
+      "effort": "1h",
+      "debt": "1h",
+      "author": "pawan@localhost",
+      "tags": [
+        "cwe",
+        "error-handling",
+        "suspicious"
+      ],
+      "creationDate": "2026-06-16T20:59:18+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": false,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CLEAR",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "c99dbe32-ea06-4d29-9cb2-a67bb58d90de",
+      "rule": "javascript:S2486",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/ui/dashboard.js",
+      "project": "strategic-learning-unified-theatre",
+      "line": 1316,
+      "hash": "889b666370a4cbe6afc9ca4f17e986c7",
+      "textRange": {
+        "startLine": 1316,
+        "endLine": 1321,
+        "startOffset": 4,
+        "endOffset": 3
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Handle this exception or don't catch it at all.",
+      "effort": "1h",
+      "debt": "1h",
+      "author": "pawan@localhost",
+      "tags": [
+        "cwe",
+        "error-handling",
+        "suspicious"
+      ],
+      "creationDate": "2026-06-16T20:59:18+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": false,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CLEAR",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "d882884f-fd52-4634-a8cd-afbbf30bde2a",
+      "rule": "javascript:S7781",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/ui/dashboard.js",
+      "project": "strategic-learning-unified-theatre",
+      "line": 1498,
+      "hash": "5effd41e8c8b7eee45998616789d8017",
+      "textRange": {
+        "startLine": 1498,
+        "endLine": 1498,
+        "startOffset": 40,
+        "endOffset": 47
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Prefer `String#replaceAll()` over `String#replace()`.",
+      "effort": "5min",
+      "debt": "5min",
+      "author": "pawan@localhost",
+      "tags": [
+        "readability",
+        "es2021"
+      ],
+      "creationDate": "2026-06-16T20:59:18+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CLEAR",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "RELIABILITY",
+          "severity": "LOW"
+        },
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "6777702e-12ac-4585-9b69-80c563718463",
+      "rule": "typescript:S6571",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/security/security-overview/ai-explain.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 170,
+      "hash": "47309f56ff264967d445735cb050e16c",
+      "textRange": {
+        "startLine": 170,
+        "endLine": 170,
+        "startOffset": 42,
+        "endOffset": 45
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "'any' overrides all other types in this union type.",
+      "effort": "5min",
+      "debt": "5min",
+      "author": "pawan@localhost",
+      "tags": [
+        "type-dependent",
+        "redundant"
+      ],
+      "creationDate": "2026-06-13T09:44:25+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": false,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CLEAR",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "29808433-d3ab-44b7-aabd-5624320a9e44",
+      "rule": "typescript:S4325",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/security/security-overview/schema.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 115,
+      "hash": "9cda9e51be285194249e6a2428c92bf4",
+      "textRange": {
+        "startLine": 115,
+        "endLine": 115,
+        "startOffset": 16,
+        "endOffset": 61
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "This assertion is unnecessary since it does not change the type of the expression.",
+      "effort": "1min",
+      "debt": "1min",
+      "author": "pawan@localhost",
+      "tags": [
+        "type-dependent",
+        "redundant"
+      ],
+      "creationDate": "2026-06-12T07:50:22+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CLEAR",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "9fa89bec-a5ac-4ebc-9b24-3a5c86269efc",
+      "rule": "typescript:S7748",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/security/risks/parsers.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 7,
+      "hash": "0e87a93abb9e62058d13a6ba10aaea10",
+      "textRange": {
+        "startLine": 7,
+        "endLine": 7,
+        "startOffset": 16,
+        "endOffset": 18
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Don't use a zero fraction in the number.",
+      "effort": "1min",
+      "debt": "1min",
+      "author": "pawan@localhost",
+      "tags": [
+        "consistency",
+        "formatting"
+      ],
+      "creationDate": "2026-06-12T07:07:59+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CONVENTIONAL",
+      "cleanCodeAttributeCategory": "CONSISTENT",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "3392d43f-5a3b-4349-a44f-63add699737f",
+      "rule": "typescript:S7748",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/security/risks/parsers.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 8,
+      "hash": "942650686c57edccb9f28c02a218e7f0",
+      "textRange": {
+        "startLine": 8,
+        "endLine": 8,
+        "startOffset": 16,
+        "endOffset": 18
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Don't use a zero fraction in the number.",
+      "effort": "1min",
+      "debt": "1min",
+      "author": "pawan@localhost",
+      "tags": [
+        "consistency",
+        "formatting"
+      ],
+      "creationDate": "2026-06-12T07:07:59+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CONVENTIONAL",
+      "cleanCodeAttributeCategory": "CONSISTENT",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "5574212a-950c-4327-8d85-6a4079526e92",
+      "rule": "typescript:S7748",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/security/risks/parsers.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 9,
+      "hash": "3722b69925c4e33ae20bc24142f5abb5",
+      "textRange": {
+        "startLine": 9,
+        "endLine": 9,
+        "startOffset": 16,
+        "endOffset": 18
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Don't use a zero fraction in the number.",
+      "effort": "1min",
+      "debt": "1min",
+      "author": "pawan@localhost",
+      "tags": [
+        "consistency",
+        "formatting"
+      ],
+      "creationDate": "2026-06-12T07:07:59+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CONVENTIONAL",
+      "cleanCodeAttributeCategory": "CONSISTENT",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "536bb393-7ce4-4a85-86c7-8a1a9170932f",
+      "rule": "typescript:S7772",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/knowledge/ingest/chunking.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 1,
+      "hash": "41fa16d26f81c832995c0ac36e84395b",
+      "textRange": {
+        "startLine": 1,
+        "endLine": 1,
+        "startOffset": 27,
+        "endOffset": 35
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Prefer `node:crypto` over `crypto`.",
+      "effort": "5min",
+      "debt": "5min",
+      "author": "pawan@localhost",
+      "tags": [
+        "convention",
+        "import",
+        "nodejs"
+      ],
+      "creationDate": "2026-06-11T02:05:17+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CONVENTIONAL",
+      "cleanCodeAttributeCategory": "CONSISTENT",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "MEDIUM"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "539ecbdc-c23f-4811-9a30-05f9e99c33d2",
+      "rule": "typescript:S7748",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/knowledge/ingest/chunking.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 50,
+      "hash": "b1d504906b92f5847a7f4a5738a11079",
+      "textRange": {
+        "startLine": 50,
+        "endLine": 50,
+        "startOffset": 17,
+        "endOffset": 19
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Don't use a zero fraction in the number.",
+      "effort": "1min",
+      "debt": "1min",
+      "author": "pawan@localhost",
+      "tags": [
+        "consistency",
+        "formatting"
+      ],
+      "creationDate": "2026-06-11T02:05:17+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CONVENTIONAL",
+      "cleanCodeAttributeCategory": "CONSISTENT",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "c9ab3c51-c15e-4ee2-af90-891fdc7ba862",
+      "rule": "typescript:S6606",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/knowledge/ingest/milvus-client.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 9,
+      "hash": "a7fc56c2f320ce765cbf042f6f49f645",
+      "textRange": {
+        "startLine": 9,
+        "endLine": 11,
+        "startOffset": 2,
+        "endOffset": 3
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Prefer using nullish coalescing operator (`??=`) instead of an assignment expression, as it is simpler to read.",
+      "effort": "5min",
+      "debt": "5min",
+      "author": "pawan@localhost",
+      "tags": [
+        "type-dependent",
+        "nullish-coalescing",
+        "es2020"
+      ],
+      "creationDate": "2026-06-11T02:05:17+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CONVENTIONAL",
+      "cleanCodeAttributeCategory": "CONSISTENT",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "990843e4-e304-4c4a-9671-199daec14b8b",
+      "rule": "typescript:S4323",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/governance/workspace-quotas.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 10,
+      "hash": "279992b773096bf2c74b07dd770537c0",
+      "textRange": {
+        "startLine": 10,
+        "endLine": 10,
+        "startOffset": 8,
+        "endOffset": 38
+      },
+      "flows": [
+        {
+          "locations": [
+            {
+              "component": "strategic-learning-unified-theatre:src/governance/workspace-quotas.ts",
+              "textRange": {
+                "startLine": 124,
+                "endLine": 124,
+                "startOffset": 9,
+                "endOffset": 39
+              },
+              "msg": "Following occurrence.",
+              "msgFormattings": []
+            }
+          ]
+        },
+        {
+          "locations": [
+            {
+              "component": "strategic-learning-unified-theatre:src/governance/workspace-quotas.ts",
+              "textRange": {
+                "startLine": 384,
+                "endLine": 384,
+                "startOffset": 8,
+                "endOffset": 38
+              },
+              "msg": "Following occurrence.",
+              "msgFormattings": []
+            }
+          ]
+        }
+      ],
+      "status": "OPEN",
+      "message": "Replace this union type with a type alias.",
+      "effort": "5min",
+      "debt": "5min",
+      "author": "pawan@localhost",
+      "tags": [
+        "proficiency"
+      ],
+      "creationDate": "2026-06-06T23:45:13+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": false,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "DISTINCT",
+      "cleanCodeAttributeCategory": "ADAPTABLE",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "5fd11814-deb4-42e8-ab33-5d06e99964d0",
+      "rule": "typescript:S7772",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/audit/audit-log.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 2,
+      "hash": "04520567c881b1e5212e843d3b83ca03",
+      "textRange": {
+        "startLine": 2,
+        "endLine": 2,
+        "startOffset": 30,
+        "endOffset": 34
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Prefer `node:fs` over `fs`.",
+      "effort": "5min",
+      "debt": "5min",
+      "author": "pawan@localhost",
+      "tags": [
+        "convention",
+        "import",
+        "nodejs"
+      ],
+      "creationDate": "2026-06-06T16:27:43+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CONVENTIONAL",
+      "cleanCodeAttributeCategory": "CONSISTENT",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "MEDIUM"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "a7304ec9-8658-4a5a-80e3-a81e663f4a66",
+      "rule": "typescript:S7772",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/audit/audit-log.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 3,
+      "hash": "f40651a1f94655f3cffc68ed8db5f6b9",
+      "textRange": {
+        "startLine": 3,
+        "endLine": 3,
+        "startOffset": 21,
+        "endOffset": 27
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Prefer `node:path` over `path`.",
+      "effort": "5min",
+      "debt": "5min",
+      "author": "pawan@localhost",
+      "tags": [
+        "convention",
+        "import",
+        "nodejs"
+      ],
+      "creationDate": "2026-06-06T16:27:43+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CONVENTIONAL",
+      "cleanCodeAttributeCategory": "CONSISTENT",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "MEDIUM"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "92669157-121b-4e16-9ccf-afc100cbd8a0",
+      "rule": "typescript:S6551",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/audit/audit-log.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 242,
+      "hash": "69e08d1f11e02b97dc240ff20df9582f",
+      "textRange": {
+        "startLine": 242,
+        "endLine": 242,
+        "startOffset": 16,
+        "endOffset": 27
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "'value ?? \"\"' will use Object's default stringification format ('[object Object]') when stringified.",
+      "effort": "5min",
+      "debt": "5min",
+      "author": "pawan@localhost",
+      "tags": [
+        "string",
+        "type-dependent",
+        "object"
+      ],
+      "creationDate": "2026-06-06T15:26:42+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": false,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "LOGICAL",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "1cdf453c-c1e1-4dc7-bbbb-a1e98d572977",
+      "rule": "typescript:S7772",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/audit/audit-log.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 1,
+      "hash": "41fa16d26f81c832995c0ac36e84395b",
+      "textRange": {
+        "startLine": 1,
+        "endLine": 1,
+        "startOffset": 27,
+        "endOffset": 35
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Prefer `node:crypto` over `crypto`.",
+      "effort": "5min",
+      "debt": "5min",
+      "author": "pawan@localhost",
+      "tags": [
+        "convention",
+        "import",
+        "nodejs"
+      ],
+      "creationDate": "2026-06-06T04:57:23+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CONVENTIONAL",
+      "cleanCodeAttributeCategory": "CONSISTENT",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "MEDIUM"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "99ea7ac2-d468-4d3d-a50b-25d27152fb52",
+      "rule": "typescript:S2486",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/llm/gateway.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 208,
+      "hash": "cd0b43a70dc3f336db02ee5d194b6db2",
+      "textRange": {
+        "startLine": 208,
+        "endLine": 210,
+        "startOffset": 10,
+        "endOffset": 9
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Handle this exception or don't catch it at all.",
+      "effort": "1h",
+      "debt": "1h",
+      "author": "pawan@localhost",
+      "tags": [
+        "cwe",
+        "error-handling",
+        "suspicious"
+      ],
+      "creationDate": "2026-06-05T01:46:16+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": false,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CLEAR",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "2c45b82a-a610-4365-bc00-0bce330b6703",
+      "rule": "typescript:S2486",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/llm/gateway.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 273,
+      "hash": "cd0b43a70dc3f336db02ee5d194b6db2",
+      "textRange": {
+        "startLine": 273,
+        "endLine": 275,
+        "startOffset": 8,
+        "endOffset": 7
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Handle this exception or don't catch it at all.",
+      "effort": "1h",
+      "debt": "1h",
+      "author": "pawan@localhost",
+      "tags": [
+        "cwe",
+        "error-handling",
+        "suspicious"
+      ],
+      "creationDate": "2026-06-05T01:46:16+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": false,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CLEAR",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "b365da99-8c19-4c42-bd92-0549818e55ee",
+      "rule": "typescript:S2486",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/llm/gateway.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 280,
+      "hash": "cd0b43a70dc3f336db02ee5d194b6db2",
+      "textRange": {
+        "startLine": 280,
+        "endLine": 282,
+        "startOffset": 10,
+        "endOffset": 9
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Handle this exception or don't catch it at all.",
+      "effort": "1h",
+      "debt": "1h",
+      "author": "pawan@localhost",
+      "tags": [
+        "cwe",
+        "error-handling",
+        "suspicious"
+      ],
+      "creationDate": "2026-06-05T01:46:16+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": false,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CLEAR",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "dfb5e1e4-02dd-4fcb-88db-49a800b06dbe",
+      "rule": "typescript:S2486",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/llm/gateway.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 621,
+      "hash": "cd0b43a70dc3f336db02ee5d194b6db2",
+      "textRange": {
+        "startLine": 621,
+        "endLine": 630,
+        "startOffset": 4,
+        "endOffset": 3
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Handle this exception or don't catch it at all.",
+      "effort": "1h",
+      "debt": "1h",
+      "author": "pawan@localhost",
+      "tags": [
+        "cwe",
+        "error-handling",
+        "suspicious"
+      ],
+      "creationDate": "2026-06-05T01:46:16+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": false,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CLEAR",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "ef98740e-0a3c-4357-9cc7-81e6a0800aa1",
+      "rule": "typescript:S2486",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/llm/gateway.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 653,
+      "hash": "cd0b43a70dc3f336db02ee5d194b6db2",
+      "textRange": {
+        "startLine": 653,
+        "endLine": 666,
+        "startOffset": 4,
+        "endOffset": 3
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Handle this exception or don't catch it at all.",
+      "effort": "1h",
+      "debt": "1h",
+      "author": "pawan@localhost",
+      "tags": [
+        "cwe",
+        "error-handling",
+        "suspicious"
+      ],
+      "creationDate": "2026-06-05T01:46:16+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": false,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CLEAR",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "bbd318e4-dfd9-459f-aacf-ae09b07ae736",
+      "rule": "typescript:S7776",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/cli/llm-workspace.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 14,
+      "hash": "a4f33d85d0592f9d41a7760994131da8",
+      "textRange": {
+        "startLine": 14,
+        "endLine": 14,
+        "startOffset": 6,
+        "endOffset": 17
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "`VALID_MODES` should be a `Set`, and use `VALID_MODES.has()` to check existence or non-existence.",
+      "effort": "5min",
+      "debt": "5min",
+      "author": "pawan@localhost",
+      "tags": [
+        "performance",
+        "es2015",
+        "optimization"
+      ],
+      "creationDate": "2026-06-05T01:10:40+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "EFFICIENT",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "MEDIUM"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "75707892-58eb-42b3-ae7d-a263fdf56e43",
+      "rule": "typescript:S7776",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/cli/llm-workspace.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 15,
+      "hash": "d64d6f043e0addc0c44c35e51aa11326",
+      "textRange": {
+        "startLine": 15,
+        "endLine": 15,
+        "startOffset": 6,
+        "endOffset": 21
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "`VALID_PROVIDERS` should be a `Set`, and use `VALID_PROVIDERS.has()` to check existence or non-existence.",
+      "effort": "5min",
+      "debt": "5min",
+      "author": "pawan@localhost",
+      "tags": [
+        "performance",
+        "es2015",
+        "optimization"
+      ],
+      "creationDate": "2026-06-05T01:10:40+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "EFFICIENT",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "MEDIUM"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "6f0cb9f5-b88b-4a07-b58c-0748bc63da0f",
+      "rule": "typescript:S1128",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/cli/llm-policy.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 1,
+      "hash": "030154b0bf1bc44be9a225d4a75b85a4",
+      "textRange": {
+        "startLine": 1,
+        "endLine": 1,
+        "startOffset": 9,
+        "endOffset": 16
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Remove this unused import of 'Command'.",
+      "effort": "1min",
+      "debt": "1min",
+      "author": "pawan@localhost",
+      "tags": [
+        "es2015",
+        "type-dependent",
+        "unused"
+      ],
+      "creationDate": "2026-06-04T19:56:52+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CLEAR",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "cf3e7adb-b84a-46a2-8e69-be633f6ac94f",
+      "rule": "typescript:S7776",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/cli/llm-policy.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 16,
+      "hash": "d64d6f043e0addc0c44c35e51aa11326",
+      "textRange": {
+        "startLine": 16,
+        "endLine": 16,
+        "startOffset": 6,
+        "endOffset": 21
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "`VALID_PROVIDERS` should be a `Set`, and use `VALID_PROVIDERS.has()` to check existence or non-existence.",
+      "effort": "5min",
+      "debt": "5min",
+      "author": "pawan@localhost",
+      "tags": [
+        "performance",
+        "es2015",
+        "optimization"
+      ],
+      "creationDate": "2026-06-04T19:56:52+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "EFFICIENT",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "MEDIUM"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "f13c9d44-af06-414d-afa9-0424ac4ca513",
+      "rule": "typescript:S7776",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/cli/llm-policy.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 17,
+      "hash": "a4f33d85d0592f9d41a7760994131da8",
+      "textRange": {
+        "startLine": 17,
+        "endLine": 17,
+        "startOffset": 6,
+        "endOffset": 17
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "`VALID_MODES` should be a `Set`, and use `VALID_MODES.has()` to check existence or non-existence.",
+      "effort": "5min",
+      "debt": "5min",
+      "author": "pawan@localhost",
+      "tags": [
+        "performance",
+        "es2015",
+        "optimization"
+      ],
+      "creationDate": "2026-06-04T19:56:52+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "EFFICIENT",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "MEDIUM"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "65d5b073-fd32-4850-849d-51c3600df928",
+      "rule": "typescript:S1128",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/llm/gateway.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 39,
+      "hash": "d387fa6187b3426cd8ccbd7d1d873aa2",
+      "textRange": {
+        "startLine": 39,
+        "endLine": 39,
+        "startOffset": 2,
+        "endOffset": 25
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Remove this unused import of 'applyPolicyToCandidates'.",
+      "effort": "1min",
+      "debt": "1min",
+      "author": "pawan@localhost",
+      "tags": [
+        "es2015",
+        "type-dependent",
+        "unused"
+      ],
+      "creationDate": "2026-06-04T19:35:16+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CLEAR",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "9097e248-795e-49d0-aa97-d80cdfc584bd",
+      "rule": "typescript:S1128",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/llm/gateway.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 42,
+      "hash": "0cb6a502cccd50b40eca616a2b21aa26",
+      "textRange": {
+        "startLine": 42,
+        "endLine": 42,
+        "startOffset": 2,
+        "endOffset": 25
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Remove this unused import of 'selectPolicyExplanation'.",
+      "effort": "1min",
+      "debt": "1min",
+      "author": "pawan@localhost",
+      "tags": [
+        "es2015",
+        "type-dependent",
+        "unused"
+      ],
+      "creationDate": "2026-06-04T19:35:16+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CLEAR",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "0ca0244f-401f-4b79-a8dc-c8049275fd2f",
+      "rule": "typescript:S6606",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/policies/provider-policy.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 243,
+      "hash": "9a10f2d4f75cf2e947c438a6ad5a2043",
+      "textRange": {
+        "startLine": 243,
+        "endLine": 243,
+        "startOffset": 2,
+        "endOffset": 42
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Prefer using nullish coalescing operator (`??=`) instead of an assignment expression, as it is simpler to read.",
+      "effort": "5min",
+      "debt": "5min",
+      "author": "pawan@localhost",
+      "tags": [
+        "type-dependent",
+        "nullish-coalescing",
+        "es2020"
+      ],
+      "creationDate": "2026-06-04T19:35:16+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CONVENTIONAL",
+      "cleanCodeAttributeCategory": "CONSISTENT",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "3c9a9b2b-f457-4675-bf11-328f1ee01d65",
+      "rule": "typescript:S6606",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/policies/provider-policy.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 250,
+      "hash": "9a10f2d4f75cf2e947c438a6ad5a2043",
+      "textRange": {
+        "startLine": 250,
+        "endLine": 250,
+        "startOffset": 2,
+        "endOffset": 42
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Prefer using nullish coalescing operator (`??=`) instead of an assignment expression, as it is simpler to read.",
+      "effort": "5min",
+      "debt": "5min",
+      "author": "pawan@localhost",
+      "tags": [
+        "type-dependent",
+        "nullish-coalescing",
+        "es2020"
+      ],
+      "creationDate": "2026-06-04T19:35:16+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CONVENTIONAL",
+      "cleanCodeAttributeCategory": "CONSISTENT",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "d499f758-1e7d-4c86-97ee-03ee7230e0ca",
+      "rule": "typescript:S1128",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/cli/llm-health.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 1,
+      "hash": "030154b0bf1bc44be9a225d4a75b85a4",
+      "textRange": {
+        "startLine": 1,
+        "endLine": 1,
+        "startOffset": 9,
+        "endOffset": 16
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Remove this unused import of 'Command'.",
+      "effort": "1min",
+      "debt": "1min",
+      "author": "pawan@localhost",
+      "tags": [
+        "es2015",
+        "type-dependent",
+        "unused"
+      ],
+      "creationDate": "2026-06-03T13:45:09+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CLEAR",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "37990065-9232-4218-ae72-1680fd0c5643",
+      "rule": "typescript:S3358",
+      "severity": "MAJOR",
+      "component": "strategic-learning-unified-theatre:src/cli/llm-health.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 18,
+      "hash": "382bea964fe5739f8bbfa76c37b220b3",
+      "textRange": {
+        "startLine": 18,
+        "endLine": 18,
+        "startOffset": 33,
+        "endOffset": 56
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Extract this nested ternary operation into an independent statement.",
+      "effort": "5min",
+      "debt": "5min",
+      "author": "pawan@localhost",
+      "tags": [
+        "confusing"
+      ],
+      "creationDate": "2026-06-03T13:45:09+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": false,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CLEAR",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "MEDIUM"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "c4cb3d09-29a9-422d-83c5-72c76419a299",
+      "rule": "typescript:S1128",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/cli/llm-usage.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 1,
+      "hash": "030154b0bf1bc44be9a225d4a75b85a4",
+      "textRange": {
+        "startLine": 1,
+        "endLine": 1,
+        "startOffset": 9,
+        "endOffset": 16
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Remove this unused import of 'Command'.",
+      "effort": "1min",
+      "debt": "1min",
+      "author": "pawan@localhost",
+      "tags": [
+        "es2015",
+        "type-dependent",
+        "unused"
+      ],
+      "creationDate": "2026-06-03T13:45:09+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CLEAR",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "18c2b5b1-8488-4bb4-83fe-6e840bc1b848",
+      "rule": "typescript:S7772",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/llm/storage.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 1,
+      "hash": "c7ef95f24c4988cf0c2832acad93ec7f",
+      "textRange": {
+        "startLine": 1,
+        "endLine": 1,
+        "startOffset": 67,
+        "endOffset": 71
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Prefer `node:fs` over `fs`.",
+      "effort": "5min",
+      "debt": "5min",
+      "author": "pawan@localhost",
+      "tags": [
+        "convention",
+        "import",
+        "nodejs"
+      ],
+      "creationDate": "2026-06-03T13:36:41+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CONVENTIONAL",
+      "cleanCodeAttributeCategory": "CONSISTENT",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "MEDIUM"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "c26a9582-b725-44c8-b14b-bf4aae680cfd",
+      "rule": "typescript:S7772",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/llm/storage.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 2,
+      "hash": "ae0f2587ae012a5dbf5d539c875d572c",
+      "textRange": {
+        "startLine": 2,
+        "endLine": 2,
+        "startOffset": 30,
+        "endOffset": 36
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Prefer `node:path` over `path`.",
+      "effort": "5min",
+      "debt": "5min",
+      "author": "pawan@localhost",
+      "tags": [
+        "convention",
+        "import",
+        "nodejs"
+      ],
+      "creationDate": "2026-06-03T13:36:41+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CONVENTIONAL",
+      "cleanCodeAttributeCategory": "CONSISTENT",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "MEDIUM"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "26731f06-2a4d-4519-a070-ca9a0c12c148",
+      "rule": "typescript:S7772",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/llm/storage.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 3,
+      "hash": "6d0daf2d58569fe5bd8d3b641f704b49",
+      "textRange": {
+        "startLine": 3,
+        "endLine": 3,
+        "startOffset": 24,
+        "endOffset": 28
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Prefer `node:os` over `os`.",
+      "effort": "5min",
+      "debt": "5min",
+      "author": "pawan@localhost",
+      "tags": [
+        "convention",
+        "import",
+        "nodejs"
+      ],
+      "creationDate": "2026-06-03T13:36:41+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CONVENTIONAL",
+      "cleanCodeAttributeCategory": "CONSISTENT",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "MEDIUM"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "7481a4d9-2e48-4930-860b-ec8672249577",
+      "rule": "typescript:S1128",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/llm/provider-health.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 2,
+      "hash": "9c5dd62d36bae10236d983e6c13e3c89",
+      "textRange": {
+        "startLine": 2,
+        "endLine": 2,
+        "startOffset": 2,
+        "endOffset": 13
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "Remove this unused import of 'DomainError'.",
+      "effort": "1min",
+      "debt": "1min",
+      "author": "pawan@localhost",
+      "tags": [
+        "es2015",
+        "type-dependent",
+        "unused"
+      ],
+      "creationDate": "2026-06-03T03:10:07+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": true,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CLEAR",
+      "cleanCodeAttributeCategory": "INTENTIONAL",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "fb86e9ca-2b39-480c-a4d8-a702a4f025e0",
+      "rule": "typescript:S1874",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/llm/gateway.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 388,
+      "hash": "262e353f34abc19b75282e0d7dad30dc",
+      "textRange": {
+        "startLine": 388,
+        "endLine": 388,
+        "startOffset": 36,
+        "endOffset": 43
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "The signature '(): $ZodFlattenedError<{ requestId: string; prompt: string; workspaceId?: string | undefined; systemPrompt?: string | undefined; intent?: \"general\" | \"tool_use\" | \"summarization\" | \"research\" | \"coding\" | ... 4 more ... | undefined; context?: string[] | undefined; metadata?: Record<...> | undefined; constraints?: { ...; } | undefined; stream?: boolean | undefined; }, string>' of 'parsedRequest.error.flatten' is deprecated.",
+      "effort": "15min",
+      "debt": "15min",
+      "author": "pawan@localhost",
+      "tags": [
+        "cwe",
+        "type-dependent",
+        "obsolete"
+      ],
+      "creationDate": "2026-06-03T02:26:45+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": false,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CONVENTIONAL",
+      "cleanCodeAttributeCategory": "CONSISTENT",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "abbbbdaf-1368-491d-83b1-6cd39404c6dd",
+      "rule": "typescript:S1874",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/llm/gateway.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 443,
+      "hash": "deb0a1c694b01cb744e2174d0df1971f",
+      "textRange": {
+        "startLine": 443,
+        "endLine": 443,
+        "startOffset": 40,
+        "endOffset": 47
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "The signature '(): $ZodFlattenedError<{ requestId: string; provider: \"groq\" | \"gemini\" | \"openai\" | \"perplexity\" | \"local\" | \"anthropic\" | \"custom\"; delta: string; done?: boolean | undefined; }, string>' of 'parsedChunk.error.flatten' is deprecated.",
+      "effort": "15min",
+      "debt": "15min",
+      "author": "pawan@localhost",
+      "tags": [
+        "cwe",
+        "type-dependent",
+        "obsolete"
+      ],
+      "creationDate": "2026-06-03T02:26:45+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": false,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CONVENTIONAL",
+      "cleanCodeAttributeCategory": "CONSISTENT",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "1e338e1c-82d8-4358-b12c-469437983376",
+      "rule": "typescript:S1874",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/llm/gateway.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 225,
+      "hash": "c512d501a2d51b8a6d0007d0536c033c",
+      "textRange": {
+        "startLine": 225,
+        "endLine": 225,
+        "startOffset": 39,
+        "endOffset": 46
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "The signature '(): $ZodFlattenedError<{ requestId: string; provider: \"groq\" | \"gemini\" | \"openai\" | \"perplexity\" | \"local\" | \"anthropic\" | \"custom\"; model: string; outputText: string; finishReason?: \"length\" | \"unknown\" | \"error\" | \"stop\" | \"tool_call\" | undefined; usage?: { ...; } | undefined; routingReasons?: { ...; }[] | undefined; raw?: unknown; }, string>' of 'parsedResponse.error.flatten' is deprecated.",
+      "effort": "15min",
+      "debt": "15min",
+      "author": "pawan@localhost",
+      "tags": [
+        "cwe",
+        "type-dependent",
+        "obsolete"
+      ],
+      "creationDate": "2026-06-02T05:32:48+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": false,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CONVENTIONAL",
+      "cleanCodeAttributeCategory": "CONSISTENT",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    },
+    {
+      "key": "9e312549-8ad2-4fcb-bee5-a62ef16c3854",
+      "rule": "typescript:S1874",
+      "severity": "MINOR",
+      "component": "strategic-learning-unified-theatre:src/llm/gateway.ts",
+      "project": "strategic-learning-unified-theatre",
+      "line": 315,
+      "hash": "262e353f34abc19b75282e0d7dad30dc",
+      "textRange": {
+        "startLine": 315,
+        "endLine": 315,
+        "startOffset": 36,
+        "endOffset": 43
+      },
+      "flows": [],
+      "status": "OPEN",
+      "message": "The signature '(): $ZodFlattenedError<{ requestId: string; prompt: string; workspaceId?: string | undefined; systemPrompt?: string | undefined; intent?: \"general\" | \"tool_use\" | \"summarization\" | \"research\" | \"coding\" | ... 4 more ... | undefined; context?: string[] | undefined; metadata?: Record<...> | undefined; constraints?: { ...; } | undefined; stream?: boolean | undefined; }, string>' of 'parsedRequest.error.flatten' is deprecated.",
+      "effort": "15min",
+      "debt": "15min",
+      "author": "pawan@localhost",
+      "tags": [
+        "cwe",
+        "type-dependent",
+        "obsolete"
+      ],
+      "creationDate": "2026-06-02T05:32:48+0000",
+      "updateDate": "2026-06-18T15:09:27+0000",
+      "type": "CODE_SMELL",
+      "scope": "MAIN",
+      "quickFixAvailable": false,
+      "messageFormattings": [],
+      "codeVariants": [],
+      "cleanCodeAttribute": "CONVENTIONAL",
+      "cleanCodeAttributeCategory": "CONSISTENT",
+      "impacts": [
+        {
+          "softwareQuality": "MAINTAINABILITY",
+          "severity": "LOW"
+        }
+      ],
+      "issueStatus": "OPEN",
+      "prioritizedRule": false,
+      "fromSonarQubeUpdate": false,
+      "internalTags": [],
+      "linkedTicketStatus": "NOT_LINKED"
+    }
+  ],
+  "components": [
+    {
+      "key": "strategic-learning-unified-theatre:src/audit/audit-log.ts",
+      "enabled": true,
+      "qualifier": "FIL",
+      "name": "audit-log.ts",
+      "longName": "src/audit/audit-log.ts",
+      "path": "src/audit/audit-log.ts"
+    },
+    {
+      "key": "strategic-learning-unified-theatre:src/security/security-overview/ai-explain.ts",
+      "enabled": true,
+      "qualifier": "FIL",
+      "name": "ai-explain.ts",
+      "longName": "src/security/security-overview/ai-explain.ts",
+      "path": "src/security/security-overview/ai-explain.ts"
+    },
+    {
+      "key": "strategic-learning-unified-theatre:src/ui/dashboard.js",
+      "enabled": true,
+      "qualifier": "FIL",
+      "name": "dashboard.js",
+      "longName": "src/ui/dashboard.js",
+      "path": "src/ui/dashboard.js"
+    },
+    {
+      "key": "strategic-learning-unified-theatre:src/governance/workspace-quotas.ts",
+      "enabled": true,
+      "qualifier": "FIL",
+      "name": "workspace-quotas.ts",
+      "longName": "src/governance/workspace-quotas.ts",
+      "path": "src/governance/workspace-quotas.ts"
+    },
+    {
+      "key": "strategic-learning-unified-theatre:src/llm/provider-health.ts",
+      "enabled": true,
+      "qualifier": "FIL",
+      "name": "provider-health.ts",
+      "longName": "src/llm/provider-health.ts",
+      "path": "src/llm/provider-health.ts"
+    },
+    {
+      "key": "strategic-learning-unified-theatre:src/knowledge/ingest/milvus-client.ts",
+      "enabled": true,
+      "qualifier": "FIL",
+      "name": "milvus-client.ts",
+      "longName": "src/knowledge/ingest/milvus-client.ts",
+      "path": "src/knowledge/ingest/milvus-client.ts"
+    },
+    {
+      "key": "strategic-learning-unified-theatre:src/security/security-overview/auto-scan.ts",
+      "enabled": true,
+      "qualifier": "FIL",
+      "name": "auto-scan.ts",
+      "longName": "src/security/security-overview/auto-scan.ts",
+      "path": "src/security/security-overview/auto-scan.ts"
+    },
+    {
+      "key": "strategic-learning-unified-theatre:src/security/risks/parsers.ts",
+      "enabled": true,
+      "qualifier": "FIL",
+      "name": "parsers.ts",
+      "longName": "src/security/risks/parsers.ts",
+      "path": "src/security/risks/parsers.ts"
+    },
+    {
+      "key": "strategic-learning-unified-theatre:src/llm/gateway.ts",
+      "enabled": true,
+      "qualifier": "FIL",
+      "name": "gateway.ts",
+      "longName": "src/llm/gateway.ts",
+      "path": "src/llm/gateway.ts"
+    },
+    {
+      "key": "strategic-learning-unified-theatre:src/cli/llm-health.ts",
+      "enabled": true,
+      "qualifier": "FIL",
+      "name": "llm-health.ts",
+      "longName": "src/cli/llm-health.ts",
+      "path": "src/cli/llm-health.ts"
+    },
+    {
+      "key": "strategic-learning-unified-theatre:src/cli/llm-workspace.ts",
+      "enabled": true,
+      "qualifier": "FIL",
+      "name": "llm-workspace.ts",
+      "longName": "src/cli/llm-workspace.ts",
+      "path": "src/cli/llm-workspace.ts"
+    },
+    {
+      "key": "strategic-learning-unified-theatre:src/llm/storage.ts",
+      "enabled": true,
+      "qualifier": "FIL",
+      "name": "storage.ts",
+      "longName": "src/llm/storage.ts",
+      "path": "src/llm/storage.ts"
+    },
+    {
+      "key": "strategic-learning-unified-theatre:src/knowledge/ingest/chunking.ts",
+      "enabled": true,
+      "qualifier": "FIL",
+      "name": "chunking.ts",
+      "longName": "src/knowledge/ingest/chunking.ts",
+      "path": "src/knowledge/ingest/chunking.ts"
+    },
+    {
+      "key": "strategic-learning-unified-theatre:src/cli/llm-usage.ts",
+      "enabled": true,
+      "qualifier": "FIL",
+      "name": "llm-usage.ts",
+      "longName": "src/cli/llm-usage.ts",
+      "path": "src/cli/llm-usage.ts"
+    },
+    {
+      "key": "strategic-learning-unified-theatre:src/security/security-overview/schema.ts",
+      "enabled": true,
+      "qualifier": "FIL",
+      "name": "schema.ts",
+      "longName": "src/security/security-overview/schema.ts",
+      "path": "src/security/security-overview/schema.ts"
+    },
+    {
+      "key": "strategic-learning-unified-theatre:src/knowledge/ingest/ingest-sprint-history.ts",
+      "enabled": true,
+      "qualifier": "FIL",
+      "name": "ingest-sprint-history.ts",
+      "longName": "src/knowledge/ingest/ingest-sprint-history.ts",
+      "path": "src/knowledge/ingest/ingest-sprint-history.ts"
+    },
+    {
+      "key": "strategic-learning-unified-theatre:src/policies/provider-policy.ts",
+      "enabled": true,
+      "qualifier": "FIL",
+      "name": "provider-policy.ts",
+      "longName": "src/policies/provider-policy.ts",
+      "path": "src/policies/provider-policy.ts"
+    },
+    {
+      "key": "strategic-learning-unified-theatre:src/cli/llm-policy.ts",
+      "enabled": true,
+      "qualifier": "FIL",
+      "name": "llm-policy.ts",
+      "longName": "src/cli/llm-policy.ts",
+      "path": "src/cli/llm-policy.ts"
+    },
+    {
+      "key": "strategic-learning-unified-theatre",
+      "enabled": true,
+      "qualifier": "TRK",
+      "name": "Strategic Learning Unified Theatre",
+      "longName": "Strategic Learning Unified Theatre"
+    }
+  ],
+  "facets": []
+}

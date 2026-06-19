@@ -104,8 +104,6 @@ function toTimelineEntry(item: RoutingHistoryEntry): WorkspaceTimelineEntry {
   };
 }
 
-export type RoutingHistoryEntry = RoutingHistoryRecord;
-
 export interface RoutingHistoryFilter {
   startTime?: number;
   endTime?: number;
@@ -562,8 +560,11 @@ function createBarChartSvg(
       const x = pad + index * (chartWidth / Math.max(points.length, 1)) + 8;
       const h = (point.value / maxValue) * chartHeight;
       const y = height - pad - h;
-      return `<rect x="${x}" y="${y}" width="${barWidth}" height="${h}" fill="${fill}"><title>${escapeHtml(`${point.label}: ${point.value}`)}</title></rect>
-<text x="${x + barWidth / 2}" y="${height - 10}" font-size="10" text-anchor="middle" fill="#555">${escapeHtml(point.label)}</text>`;
+      const titleText = `${point.label}: ${point.value}`;
+      const title = escapeHtml(titleText);
+      const label = escapeHtml(point.label);
+      return `<rect x="${x}" y="${y}" width="${barWidth}" height="${h}" fill="${fill}"><title>${title}</title></rect>
+<text x="${x + barWidth / 2}" y="${height - 10}" font-size="10" text-anchor="middle" fill="#555">${label}</text>`;
     })
     .join("");
 

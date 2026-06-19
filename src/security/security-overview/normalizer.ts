@@ -71,9 +71,7 @@ export function flattenFindings(
     const scanner =
       asTrimmedString(item.scanner) ?? defaultScannerForKind(kind);
     const id =
-      (asTrimmedString(item.id) ??
-        fingerprint ??
-        fallbackFingerprint) ||
+      (asTrimmedString(item.id) ?? fingerprint ?? fallbackFingerprint) ||
       `${kind}:${Date.now()}`;
 
     const title = asTrimmedString(item.title);

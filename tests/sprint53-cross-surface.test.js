@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { loadDashboardSurface } from './dashboard-loader.js';
+import { loadDashboardSurface } from "./dashboard-loader.js";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -22,7 +22,7 @@ describe("Sprint 53 — triage backend cross-surface regression", () => {
     expect(content).toContain("export function loadSecurityTriage");
     expect(content).toContain("export function saveSecurityTriage");
     expect(content).toContain("export function applyBulkTriage");
-    expect(content).toContain("export const TRIAGE_STATUSES");
+    expect(content).toMatch(/export\s*\{[\s\S]*TRIAGE_STATUSES/);
     expect(content).toContain("normalizeTriageStatus");
   });
 
@@ -204,7 +204,9 @@ describe("Sprint 53 — dashboard cross-surface regression", () => {
     expect(html).toContain("security-overview-panel");
     expect(html).toContain("security-drift-panel");
     expect(html).toContain("globalThis.workspaceSecurity.compareBaseline");
-    expect(html).toContain("globalThis.workspaceSecurity.getDriftClassification");
+    expect(html).toContain(
+      "globalThis.workspaceSecurity.getDriftClassification",
+    );
   });
 });
 

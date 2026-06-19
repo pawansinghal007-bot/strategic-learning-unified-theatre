@@ -32,7 +32,9 @@ describe("Sprint 79 — Sonar scope guard", () => {
   });
 
   it("strategic-learning-unified-theatre-master-instructions.md has Sprint 79 Complete section", () => {
-    const text = read("strategic-learning-unified-theatre-master-instructions.md");
+    const text = read(
+      "strategic-learning-unified-theatre-master-instructions.md",
+    );
     expect(text).toContain("## Sprint 79 Complete");
     expect(text).toContain("S7785 async IIFE remediation sprint");
   });
@@ -45,7 +47,9 @@ describe("Sprint 79 — Sonar scope guard", () => {
   it("sprint77-build-and-scope-guard.test.js retained (Sprint 78/79 regression guard)", () => {
     const text = read("tests/sprint77-build-and-scope-guard.test.js");
     expect(text).toContain("Sprint 77 — build and scope guard");
-    expect(text).toContain("ingest-sprint-history.ts uses top-level await pattern");
+    expect(text).toContain(
+      "ingest-sprint-history.ts uses top-level await pattern",
+    );
     expect(text).toContain("dashboard.js has zero window. references");
   });
 });

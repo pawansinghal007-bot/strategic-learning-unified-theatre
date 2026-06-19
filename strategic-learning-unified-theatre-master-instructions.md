@@ -501,6 +501,7 @@ Objective:
 Clear the remaining 14 Sonar issues in security overview normalization and drift comparison code without expanding product scope.
 
 Scope:
+
 - Fix S6551 object stringification in src/security/security-overview/normalizer.ts.
 - Fix S7735 negated conditions in src/security/security-overview/normalizer.ts.
 - Refactor S3358 nested ternary logic in src/security/security-overview/normalizer.ts.
@@ -508,6 +509,7 @@ Scope:
 - Add focused unit tests to improve new-code coverage for the changed logic.
 
 Exit Criteria:
+
 - Targeted Sonar findings for Sprint 80 are cleared or reduced to zero.
 - Vitest passes (all existing tests + new Sprint 80 tests).
 - TypeScript passes with zero errors.
@@ -515,6 +517,7 @@ Exit Criteria:
 - Master sprint plan reflects Sprint 80 complete.
 
 Results:
+
 - All 14 Sonar violations (S6551, S7735, S3358, S6644) remediated.
 - 15 tests added (sprint80-security-overview-sonar-remediation.test.js, sprint80-plan-and-scope-guard.test.js).
 - Coverage: 95.45% statements for drift.ts, 97.77% for normalizer.ts.
@@ -528,20 +531,24 @@ Objective:
 Fix Sonar new-code coverage reporting pipeline to correctly reflect actual test coverage of recently modified code.
 
 Root Cause:
+
 - Vitest coverage config only included specific files (agent-handoff.js, browser-bridge.js, etc.) but not security overview files (normalizer.ts, drift.ts).
 - Coverage pipeline misconfiguration caused Sonar to report 0.0% new-code coverage despite actual 80%+ coverage.
 
 Fix Applied:
+
 - Updated vitest.config.ts coverage.include to include src/security/security-overview/normalizer.ts and src/security/security-overview/drift.ts.
 - Coverage now correctly reports 95.45% (drift.ts) and 97.77% (normalizer.ts) statement coverage.
 
 Results:
+
 - Sonar new_coverage: 36.6% (was 0.0% before).
 - Sonar new_violations: 0 (was 14 before).
 - All 153 test files / 1686 tests passing (no regressions).
 - TypeScript zero errors.
 
 Exit Criteria:
+
 - LCOV report generated and correctly referenced by Sonar config.
 - Sonar new-code coverage > 0% (reflecting real coverage of touched files).
 - No new Sonar violations introduced.
