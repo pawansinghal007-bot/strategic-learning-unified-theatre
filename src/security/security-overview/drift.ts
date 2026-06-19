@@ -96,9 +96,8 @@ function pushWithTriageStatus(
   target: Array<Record<string, unknown>>,
 ): void {
   target.push(f);
-  if (!("triageStatus" in f) || f.triageStatus == null) {
-    f.triageStatus = "open";
-  }
+  if ("triageStatus" in f && f.triageStatus != null) return;
+  f.triageStatus = "open";
 }
 
 function pushWithResolvedAt(
@@ -106,9 +105,8 @@ function pushWithResolvedAt(
   target: Array<Record<string, unknown>>,
 ): void {
   target.push(f);
-  if (!("resolvedAt" in f) || f.resolvedAt == null) {
-    f.resolvedAt = new Date().toISOString();
-  }
+  if ("resolvedAt" in f && f.resolvedAt != null) return;
+  f.resolvedAt = new Date().toISOString();
 }
 
 export function compareSecurityOverviewWithBaseline(
@@ -144,7 +142,7 @@ export function compareSecurityOverviewWithBaseline(
 
   return {
     ok: true,
-    baselineLoaded: baselineSnapshot === null ? false : true,
+    baselineLoaded: baselineSnapshot !== null,
     counts: {
       current: currentFindings.length,
       baseline: baselineFindings.length,

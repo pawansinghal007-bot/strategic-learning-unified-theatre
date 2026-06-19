@@ -15,6 +15,29 @@ function normalizeSeverity(raw: string | undefined): SecuritySeverity {
   return "unknown";
 }
 
+function asTrimmedString(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  return trimmed ?? undefined;
+}
+
+function asNullableString(value: unknown): string | null {
+  const text = asTrimmedString(value);
+  return text ?? null;
+}
+
+function buildFallbackFingerprint(parts: unknown[]): string {
+  return parts
+    .map((part) => asTrimmedString(part) ?? "")
+    .join("|")
+    .trim();
+}
+
+function defaultScannerForKind(kind: SecurityFindingKind): string {
+  if (kind === "secret") return "gitleaks";
+  return "dependency-check";
+}
+
 export function flattenFindings(
   payload: unknown,
   kind: SecurityFindingKind,
@@ -31,36 +54,33 @@ export function flattenFindings(
   }
 
   return source.filter(Boolean).map((item) => {
-    const ruleId =
-      typeof item.ruleId === "string" && item.ruleId.trim()
-        ? item.ruleId.trim()
-        : "unknown-rule";
-    const severity = normalizeSeverity(item.severity as string | undefined);
-    const fingerprintParts = [
+    const ruleId = asTrimmedString(item.ruleId) ?? "unknown-rule";
+    const severity = normalizeSeverity(
+      typeof item.severity === "string" ? item.severity : undefined,
+    );
+
+    const fingerprint = asTrimmedString(item.fingerprint);
+    const fallbackFingerprint = buildFallbackFingerprint([
       ruleId,
       severity,
-      item.file ?? "",
-      item.package ?? "",
-      item.version ?? "",
-    ];
-    const fingerprint =
-      item.fingerprint != null
-        ? String(item.fingerprint)
-        : fingerprintParts.join("|").trim();
+      item.file,
+      item.package,
+      item.version,
+    ]);
 
     const scanner =
-      item.scanner != null
-        ? String(item.scanner)
-        : kind === "secret"
-          ? "gitleaks"
-          : "dependency-check";
-    const id = String(item.id ?? fingerprint ?? `${kind}:${Date.now()}`);
-    const title = item.title != null ? String(item.title) : undefined;
-    const description =
-      item.description != null ? String(item.description) : undefined;
-    const file = item.file != null ? String(item.file) : null;
-    const packageField = item.package != null ? String(item.package) : null;
-    const version = item.version != null ? String(item.version) : null;
+      asTrimmedString(item.scanner) ?? defaultScannerForKind(kind);
+    const id =
+      (asTrimmedString(item.id) ??
+        fingerprint ??
+        fallbackFingerprint) ||
+      `${kind}:${Date.now()}`;
+
+    const title = asTrimmedString(item.title);
+    const description = asTrimmedString(item.description);
+    const file = asNullableString(item.file);
+    const packageField = asNullableString(item.package);
+    const version = asNullableString(item.version);
 
     return {
       kind,
@@ -73,7 +93,7 @@ export function flattenFindings(
       file,
       package: packageField,
       version,
-      fingerprint: fingerprint || undefined,
+      fingerprint: (fingerprint ?? fallbackFingerprint) || undefined,
       createdAt:
         typeof item.createdAt === "number" ? item.createdAt : Date.now(),
     };
