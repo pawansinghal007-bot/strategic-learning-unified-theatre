@@ -31,6 +31,8 @@ export default defineConfig({
         'src/agent-handoff.js',
         'src/llm/local-llm.js',
         'src/idea-store.js',
+        'src/security/security-overview/normalizer.ts',
+        'src/security/security-overview/drift.ts',
       ],
       exclude: ['**/__tests__/**', '**/*.test.*', '**/node_modules/**'],
       thresholds: { statements: 70, branches: 70, functions: 70, lines: 70 },
