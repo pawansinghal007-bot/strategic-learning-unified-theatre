@@ -481,6 +481,18 @@ Files modified: ingest-sprint-history.ts, dashboard.js, auto-scan.ts, triage.ts,
 
 Snapshot created: strategic-learning-unified-theatre-ai-snapshot-sprint78-stable.md. Tag: sprint-78-complete.
 
-## Sprint 79 Planned
+## Sprint 79 Complete
 
-Evaluate remaining Sonar quality gate blockers: coverage (new_coverage 0.0%), security_hotspots_reviewed (0.0%). S7785 (async IIFE) in ingest-sprint-history.ts remains - evaluate if top-level await conversion is appropriate for this file's usage pattern. No dashboard feature expansion.
+S7785 async IIFE remediation sprint. Converted async IIFE in `src/knowledge/ingest/ingest-sprint-history.ts` to named async `main()` function with top-level await. Scope was limited to source-level refactors only. No dashboard features expanded. No Sonar admin settings changed.
+
+Fresh Sonar scan executed successfully: sonar-scanner EXECUTION SUCCESS, upload completed; task ID 2059c44f-4b1e-46f4-8e1c-157374bae58c. Quality gate: FAILED (new_coverage 0.0%, new_security_hotspots_reviewed 0.0%, new_violations 14). Remaining issues: 14 new-code-period violations (S6551, S7735, S6644, S3358) - all non-target rules outside Sprint 79 scope. S7785 resolved: 0 open issues. Coverage: 80.42% statements, 70.85% branches. All target rule violations remediated - no mechanical fixes applied to behavioral risk categories. New-code-period scope preserved: sonar.newCode.referenceBranch=main retained from Sprint 78.
+
+Regression guard updated: tests/sprint77-build-and-scope-guard.test.js (7 tests) confirming Sprint 79 closure preserved, timeline Sprint 79 Complete row added, sonar.newCode.referenceBranch=main preserved, violation-remediation scope boundary intact. All 150 vitest files / 1665 tests passing. TypeScript zero errors. Playwright human suite: 42 passed (unchanged). No regression of Sprint 64-78 work.
+
+Files modified: ingest-sprint-history.ts (S7785 fix), sprint77-build-and-scope-guard.test.js (test pattern update).
+
+Snapshot created: strategic-learning-unified-theatre-ai-snapshot-sprint79-stable.md. Tag: sprint-79-complete.
+
+## Sprint 80 Planned
+
+Evaluate remaining Sonar quality gate blockers: coverage (new_coverage 0.0%), security_hotspots_reviewed (0.0%). Remaining new-code-period violations: S6551 (8), S7735 (4), S6644 (1), S3358 (1). No dashboard feature expansion.
