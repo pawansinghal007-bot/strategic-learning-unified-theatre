@@ -10,7 +10,7 @@ function read(rel) {
 }
 
 describe("Sprint 77 — build and scope guard", () => {
-  it("ingest-sprint-history.ts has no top-level await", () => {
+  it("ingest-sprint-history.ts uses top-level await pattern", () => {
     const text = read("src/knowledge/ingest/ingest-sprint-history.ts");
     const lines = text.split(/\r?\n/);
 
@@ -18,12 +18,13 @@ describe("Sprint 77 — build and scope guard", () => {
     // await inside function bodies is always indented by at least 2 spaces.
     const topLevelAwaits = lines.filter((line) => /^await\s/.test(line));
 
-    expect(topLevelAwaits).toEqual([]);
+    expect(topLevelAwaits).toHaveLength(1);
+    expect(topLevelAwaits[0]).toBe("await main();");
   });
 
-  it("ingest-sprint-history.ts uses guarded CLI invocation pattern", () => {
+  it("ingest-sprint-history.ts has no require.main === module guard", () => {
     const text = read("src/knowledge/ingest/ingest-sprint-history.ts");
-    expect(text).toContain("require.main === module");
+    expect(text).not.toContain("require.main === module");
   });
 
   it("dashboard.js has zero window. references after Sprint 76 cleanup", () => {

@@ -143,15 +143,15 @@ export async function ingestSprintHistory(
   console.log("[knowledge] Sprint history ingestion complete.");
 }
 
-// ── CLI entry point (safe for CJS bundling) ──────────────────────────────────
-if (require.main === module) {
-  (async () => {
-    const baseDir = process.argv[2] ?? "./docs/sprints";
-    try {
-      await ingestSprintHistory({ baseDir });
-    } catch (err) {
-      console.error("[knowledge] Ingestion failed:", err);
-      process.exitCode = 1;
-    }
-  })();
+// ── CLI entry point (ESM top-level await) ─────────────────────────────────────
+async function main() {
+  const baseDir = process.argv[2] ?? "./docs/sprints";
+  try {
+    await ingestSprintHistory({ baseDir });
+  } catch (err) {
+    console.error("[knowledge] Ingestion failed:", err);
+    process.exitCode = 1;
+  }
 }
+
+await main();
