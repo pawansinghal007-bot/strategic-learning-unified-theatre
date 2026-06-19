@@ -117,8 +117,16 @@ export function policyReducer(
         next.blockedProviders = [];
         next.manualProvider = "local";
       } else if (action.mode === "cloud") {
-        next.allowedProviders = ["groq", "gemini", "openai", "perplexity", "local"];
-        next.blockedProviders = next.blockedProviders.filter((p) => p !== "local");
+        next.allowedProviders = [
+          "groq",
+          "gemini",
+          "openai",
+          "perplexity",
+          "local",
+        ];
+        next.blockedProviders = next.blockedProviders.filter(
+          (p) => p !== "local",
+        );
         if (next.manualProvider === "local") next.manualProvider = null;
       } else if (action.mode === "hybrid") {
         next.allowedProviders = [...ALL_PROVIDERS];
@@ -240,14 +248,14 @@ export function initPolicy(initial?: PolicyState) {
 }
 
 export function dispatch(action: PolicyAction) {
-  if (!state) state = getProviderPolicy();
+  state ??= getProviderPolicy();
   state = policyReducer(state, action);
   saveProviderPolicy(state);
   return state;
 }
 
 export function getState() {
-  if (!state) state = getProviderPolicy();
+  state ??= getProviderPolicy();
   return state;
 }
 

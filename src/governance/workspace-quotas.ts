@@ -3,11 +3,13 @@ import { appendAuditEvent } from "../audit/audit-log.js";
 
 const QUOTA_FILE = "workspace-quotas.json";
 
+export type QuotaMode = "alert" | "fallback" | "block";
+
 export interface WorkspaceQuotaPolicy {
   workspaceId: string;
   dailyLimit: number | null;
   weeklyLimit: number | null;
-  mode: "alert" | "fallback" | "block";
+  mode: QuotaMode;
   fallbackProvider: string | null;
   alertThresholdPct: number | null;
   createdAt: number;

@@ -112,7 +112,7 @@ export function buildSecurityOverviewSnapshot(
     snap.total++;
     if (f.kind === "secret") snap.secrets++;
     if (f.kind === "risk") snap.risks++;
-    const sev = (f.severity ?? "unknown") as SecuritySeverity;
+    const sev = f.severity ?? "unknown";
     updateSeverityCounts(snap, sev);
     if (f.suppressed) snap.suppressed++;
     if (f.baselineMatched) snap.baselineMatched++;

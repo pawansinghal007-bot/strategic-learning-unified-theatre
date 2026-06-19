@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { loadDashboardSurface } from './dashboard-loader.js';
+import { loadDashboardSurface } from "./dashboard-loader.js";
 import { readFileSync } from "fs";
 import { join } from "path";
 
@@ -172,7 +172,7 @@ describe("Sprint 50 smoke tests — consolidated T1-T3 surface", () => {
     it("badge call is inside try/catch (non-fatal)", () => {
       const h = loadDashboardSurface();
       expect(h).toContain("driftClassificationBadge");
-      expect(h).toContain("catch (_e)");
+      expect(h).toContain("logNonFatalErrorUI");
     });
     it("preserves latestSecurityDriftResult cache (Sprint 49)", () => {
       const h = loadDashboardSurface();

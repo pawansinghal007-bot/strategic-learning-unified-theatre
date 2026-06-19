@@ -3,7 +3,6 @@ import type {
   SecurityFindingSummary,
   SecurityFindingKind,
   SecuritySeverity,
-  SecurityTriageStatus,
 } from "./schema.js";
 import {
   appendDriftHistory,
@@ -124,15 +123,15 @@ export async function runSecurityAutoScan(
           typeof f.fingerprint === "string"
             ? baseline.has(f.fingerprint)
             : false,
-        triageStatus: triageStatus as SecurityTriageStatus,
-        title: f.title as string | undefined,
-        description: f.description as string | undefined,
-        file: f.file as string | undefined,
-        package: f.package as string | undefined,
-        version: f.version as string | undefined,
-        fingerprint: f.fingerprint as string | undefined,
-        ruleId: f.ruleId as string | undefined,
-        resolvedAt: f.resolvedAt as string | undefined,
+        triageStatus: triageStatus,
+        title: f.title,
+        description: f.description,
+        file: f.file,
+        package: f.package,
+        version: f.version,
+        fingerprint: f.fingerprint,
+        ruleId: f.ruleId,
+        resolvedAt: f.resolvedAt,
       };
     });
 

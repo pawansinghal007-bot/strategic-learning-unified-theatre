@@ -1,4 +1,3 @@
-import { Command } from "commander";
 import { getProviderUsage, resetProviderUsage } from "../llm/provider-usage";
 
 export function registerLlmUsage(program) {

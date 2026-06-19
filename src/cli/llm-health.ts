@@ -1,4 +1,3 @@
-import { Command } from "commander";
 import {
   getProviderStatus,
   resetAllProviderTelemetry,
@@ -15,7 +14,10 @@ export function registerLlmHealth(program) {
       console.log("\nAI Provider Health\n");
 
       for (const p of rows) {
-        const icon = p.hasKey ? (p.available ? "✅" : "❌") : "🔑";
+        let icon = "🔑";
+        if (p.hasKey) {
+          icon = p.available ? "✅" : "❌";
+        }
         const eta =
           p.recoversInMinutes === null
             ? ""

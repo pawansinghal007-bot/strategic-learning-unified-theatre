@@ -1,5 +1,4 @@
 import {
-  DomainError,
   ProviderAuthError,
   ProviderQuotaError,
   ProviderTimeoutError,

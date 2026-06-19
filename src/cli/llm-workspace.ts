@@ -11,8 +11,14 @@ import {
   clearWorkspaceContext,
 } from "../memory/request-context";
 
-const VALID_MODES = ["cloud", "hybrid", "local-only"];
-const VALID_PROVIDERS = ["groq", "gemini", "openai", "perplexity", "local"];
+const VALID_MODES = new Set(["cloud", "hybrid", "local-only"]);
+const VALID_PROVIDERS = new Set([
+  "groq",
+  "gemini",
+  "openai",
+  "perplexity",
+  "local",
+]);
 
 export function registerLlmWorkspace(program: Command) {
   const workspace = program

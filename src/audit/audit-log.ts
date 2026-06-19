@@ -1,6 +1,6 @@
-import { createHash } from "crypto";
-import { writeFileSync } from "fs";
-import { join } from "path";
+import { createHash } from "node:crypto";
+import { writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { readJsonFile, writeJsonFile } from "../llm/storage.js";
 
 const AUDIT_FILE = "audit-log.json";
@@ -239,7 +239,10 @@ export interface AuditExportResult {
 }
 
 function escapeHtmlAudit(value: unknown): string {
-  return String(value ?? "")
+  if (typeof value !== "string" || value === "") {
+    return "";
+  }
+  return value
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")

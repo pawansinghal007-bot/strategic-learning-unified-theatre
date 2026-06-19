@@ -36,12 +36,21 @@ import {
 import { explainRoutingSelection } from "./routing-explainer";
 import { recordRoutingDecision } from "./routing-history";
 import {
-  applyPolicyToCandidates,
   applyPolicyToCandidatesWithReason,
   getState,
-  selectPolicyExplanation,
 } from "../policies/provider-policy";
 import { buildRequestContextPrompt } from "../memory/request-context";
+
+/**
+ * Non-fatal error handler for gateway operations.
+ * Catches and logs errors that should not halt the request flow.
+ */
+function logNonFatalError(error: unknown, context: string): void {
+  logger.warn("gateway.non-fatal-error", {
+    context,
+    error: error instanceof Error ? error.message : String(error),
+  });
+}
 
 export interface GatewayOptions {
   providers?: Partial<Record<ProviderName, ProviderAdapter>>;
@@ -136,6 +145,133 @@ export class Gateway {
     return { selectedProviderName, selectedProvider, shouldContinue: true };
   }
 
+  private validateProviderAvailable(
+    providerName: ProviderName,
+    unavailableProviders: ProviderName[],
+  ): { valid: boolean; provider?: ProviderAdapter; error?: string } {
+    const provider = this.providers[providerName];
+    if (!provider) {
+      logger.warn("gateway.provider.missing", { provider: providerName });
+      return { valid: false, error: "Provider not found" };
+    }
+
+    if (!isProviderAvailable(providerName)) {
+      unavailableProviders.push(providerName);
+      logger.info("gateway.provider.skipped_unhealthy", {
+        provider: providerName,
+      });
+      return { valid: false, error: "Provider unavailable" };
+    }
+
+    return { valid: true, provider };
+  }
+
+  private async injectContextIntoRequest(
+    requestData: ProviderRequest,
+  ): Promise<ProviderRequest> {
+    if (!requestData.workspaceId) {
+      return requestData;
+    }
+
+    try {
+      const contextPrompt = buildRequestContextPrompt(requestData.workspaceId);
+      if (contextPrompt) {
+        return {
+          ...requestData,
+          prompt: `${contextPrompt}\n\nUser request: ${requestData.prompt}`,
+        };
+      }
+    } catch (error) {
+      logNonFatalError(error, "context-injection");
+    }
+
+    return requestData;
+  }
+
+  private recordSuccessResponse(
+    selectedProviderName: ProviderName,
+    parsedResponse: any,
+    parsedRequest: any,
+    fallbackFrom: ProviderName | undefined,
+    unavailableProviders: ProviderName[],
+    policyReason: string,
+    startedAt: number,
+  ): void {
+    recordProviderSuccess(selectedProviderName, parsedResponse.data);
+
+    const reason = explainRoutingSelection(
+      parsedRequest.data,
+      selectedProviderName,
+      {
+        fallbackFrom,
+        unavailableProviders,
+        policyApplied: true,
+        policyReason,
+      },
+    );
+
+    recordRoutingDecision({
+      request: parsedRequest.data,
+      provider: selectedProviderName,
+      model: parsedResponse.data.model,
+      success: true,
+      reason,
+      fallbackFrom,
+      latencyMs: Date.now() - startedAt,
+    });
+
+    logger.info("gateway.ask.success", {
+      requestId: parsedRequest.data.requestId,
+      provider: selectedProviderName,
+      model: parsedResponse.data.model,
+      reason,
+    });
+  }
+
+  private recordFailureResponse(
+    selectedProviderName: ProviderName,
+    providerName: ProviderName,
+    error: unknown,
+    parsedRequest: any,
+    fallbackFrom: ProviderName | undefined,
+    startedAt: number,
+  ): void {
+    const message = error instanceof Error ? error.message : String(error);
+
+    try {
+      recordProviderFailure(selectedProviderName);
+    } catch (error) {
+      logNonFatalError(error, "record-provider-failure");
+    }
+
+    if (error instanceof DomainError) {
+      try {
+        markProviderFromError(selectedProviderName, error);
+      } catch (error) {
+        logNonFatalError(error, "mark-provider-from-error");
+      }
+    }
+
+    const reason = `Provider ${selectedProviderName} failed and the gateway moved to fallback.`;
+
+    recordRoutingDecision({
+      request: parsedRequest.data,
+      provider: selectedProviderName,
+      model: "unknown-model",
+      success: false,
+      reason,
+      fallbackFrom,
+      latencyMs: Date.now() - startedAt,
+      errorMessage: message,
+    });
+
+    logger.warn("gateway.provider.failed", {
+      requestId: parsedRequest.data.requestId,
+      provider: selectedProviderName,
+      error: message,
+    });
+  }
+
   // Helper function to handle provider request processing
   private async processProviderRequest(
     providerName: ProviderName,
@@ -152,27 +288,19 @@ export class Gateway {
     error?: { provider: string; message: string };
     newFallbackFrom?: ProviderName;
   }> {
-    const provider = this.providers[providerName];
-    if (!provider) {
-      logger.warn("gateway.provider.missing", { provider: providerName });
+    const validation = this.validateProviderAvailable(
+      providerName,
+      unavailableProviders,
+    );
+    if (!validation.valid) {
       return {
-        error: { provider: providerName, message: "Provider not found" },
-      };
-    }
-
-    if (!isProviderAvailable(providerName)) {
-      unavailableProviders.push(providerName);
-      logger.info("gateway.provider.skipped_unhealthy", {
-        provider: providerName,
-      });
-      return {
-        error: { provider: providerName, message: "Provider unavailable" },
+        error: { provider: providerName, message: validation.error! },
       };
     }
 
     const startedAt = Date.now();
     let selectedProviderName: ProviderName = providerName;
-    let selectedProvider: ProviderAdapter | undefined = provider;
+    let selectedProvider: ProviderAdapter | undefined = validation.provider;
 
     if (parsedRequest.data.workspaceId) {
       const { selectedProviderName: qName, selectedProvider: qProvider } =
@@ -192,23 +320,7 @@ export class Gateway {
         provider: selectedProviderName,
       });
 
-      // Inject workspace context into prompt if available
-      let requestData = parsedRequest.data;
-      if (requestData.workspaceId) {
-        try {
-          const contextPrompt = buildRequestContextPrompt(
-            requestData.workspaceId,
-          );
-          if (contextPrompt) {
-            requestData = {
-              ...requestData,
-              prompt: `${contextPrompt}\n\nUser request: ${requestData.prompt}`,
-            };
-          }
-        } catch (_) {
-          /* context injection is non-fatal */
-        }
-      }
+      let requestData = await this.injectContextIntoRequest(parsedRequest.data);
 
       const rawResponse = await selectedProvider!.ask(requestData);
       const normalizedResponse = this.normalizeResponse(
@@ -222,87 +334,56 @@ export class Gateway {
       if (!parsedResponse.success) {
         throw new ValidationFailedError("Invalid provider response", {
           provider: selectedProviderName,
-          issues: parsedResponse.error.flatten(),
+          issues: parsedResponse.error.flatten,
         });
       }
 
-      recordProviderSuccess(selectedProviderName, parsedResponse.data);
-
-      const reason = explainRoutingSelection(
-        parsedRequest.data,
+      this.recordSuccessResponse(
         selectedProviderName,
-        {
-          fallbackFrom,
-          unavailableProviders,
-          policyApplied: true,
-          policyReason,
-        },
-      );
-
-      recordRoutingDecision({
-        request: parsedRequest.data,
-        provider: selectedProviderName,
-        model: parsedResponse.data.model,
-        success: true,
-        reason,
+        parsedResponse,
+        parsedRequest,
         fallbackFrom,
-        latencyMs: Date.now() - startedAt,
-      });
-
-      logger.info("gateway.ask.success", {
-        requestId: parsedRequest.data.requestId,
-        provider: selectedProviderName,
-        model: parsedResponse.data.model,
-        reason,
-      });
+        unavailableProviders,
+        policyReason,
+        startedAt,
+      );
 
       return {
         response: {
           ...parsedResponse.data,
           routingReasons: [
             ...(parsedResponse.data.routingReasons ?? []),
-            { code: "default_selection", message: reason },
+            {
+              code: "default_selection",
+              message: explainRoutingSelection(
+                parsedRequest.data,
+                selectedProviderName,
+                {
+                  fallbackFrom,
+                  unavailableProviders,
+                  policyApplied: true,
+                  policyReason,
+                },
+              ),
+            },
           ],
         },
       };
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-
-      try {
-        recordProviderFailure(selectedProviderName);
-      } catch (_) {
-        /* non-fatal */
-      }
-
-      if (error instanceof DomainError) {
-        try {
-          markProviderFromError(selectedProviderName, error);
-        } catch (_) {
-          /* non-fatal */
-        }
-      }
-
-      const reason = `Provider ${selectedProviderName} failed and the gateway moved to fallback.`;
-
-      recordRoutingDecision({
-        request: parsedRequest.data,
-        provider: selectedProviderName,
-        model: "unknown-model",
-        success: false,
-        reason,
+      this.recordFailureResponse(
+        selectedProviderName,
+        providerName,
+        error,
+        parsedRequest,
         fallbackFrom,
-        latencyMs: Date.now() - startedAt,
-        errorMessage: message,
-      });
-
-      logger.warn("gateway.provider.failed", {
-        requestId: parsedRequest.data.requestId,
-        provider: selectedProviderName,
-        error: message,
-      });
+        startedAt,
+      );
 
       return {
-        error: { provider: selectedProviderName, message },
+        error: {
+          provider: selectedProviderName,
+          message: error instanceof Error ? error.message : String(error),
+        },
         newFallbackFrom: providerName,
       };
     }
@@ -312,7 +393,7 @@ export class Gateway {
     const parsedRequest = providerRequestSchema.safeParse(request);
     if (!parsedRequest.success) {
       throw new ValidationFailedError("Invalid provider request", {
-        issues: parsedRequest.error.flatten(),
+        issues: parsedRequest.error.flatten,
       });
     }
 
@@ -385,7 +466,7 @@ export class Gateway {
     const parsedRequest = providerRequestSchema.safeParse(request);
     if (!parsedRequest.success) {
       throw new ValidationFailedError("Invalid provider request for stream", {
-        issues: parsedRequest.error.flatten(),
+        issues: parsedRequest.error.flatten,
       });
     }
 
@@ -440,7 +521,7 @@ export class Gateway {
             "Invalid token chunk from provider stream",
             {
               provider: providerName,
-              issues: parsedChunk.error.flatten(),
+              issues: parsedChunk.error.flatten,
             },
           );
         }
@@ -618,8 +699,8 @@ Gateway.prototype.appendLocalIfAvailable = function (
     ) {
       candidates.push("local");
     }
-  } catch (_) {
-    // If policy state is unavailable, fall back to simple check
+  } catch (error) {
+    logNonFatalError(error, "appendLocalIfAvailable-policy-state");
     if (
       !candidates.includes("local") &&
       !requestExcluded.includes("local") &&
@@ -650,8 +731,8 @@ Gateway.prototype.appendLocalIfAvailableForStream = function (
         candidates.push("local");
       }
     }
-  } catch (_) {
-    // If policy state is unavailable, fall back to simple check
+  } catch (error) {
+    logNonFatalError(error, "appendLocalIfAvailableForStream-policy-state");
     if (
       !candidates.includes("local") &&
       !requestExcluded.includes("local") &&

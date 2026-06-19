@@ -4,9 +4,9 @@ export function mapSeverityFromCvss(
   score?: number,
 ): "critical" | "high" | "medium" | "low" | "info" | "unknown" {
   if (typeof score !== "number") return "unknown";
-  if (score >= 9.0) return "critical";
-  if (score >= 7.0) return "high";
-  if (score >= 4.0) return "medium";
+  if (score >= 9) return "critical";
+  if (score >= 7) return "high";
+  if (score >= 4) return "medium";
   if (score > 0) return "low";
   return "info";
 }

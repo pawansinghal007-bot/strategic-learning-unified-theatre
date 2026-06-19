@@ -18,38 +18,42 @@
 - [x] Coverage thresholds updated in vitest.config.ts (70% → 100%)
 
 ### Test Coverage Breakdown
-| Test Case | Status |
-|-----------|--------|
-| Empty directory handling | ✅ PASS |
-| Well-formed sprint report ingestion | ✅ PASS |
-| Malformed/partial records | ✅ PASS |
-| embedTextBatch mismatch error | ✅ PASS |
+
+| Test Case                             | Status  |
+| ------------------------------------- | ------- |
+| Empty directory handling              | ✅ PASS |
+| Well-formed sprint report ingestion   | ✅ PASS |
+| Malformed/partial records             | ✅ PASS |
+| embedTextBatch mismatch error         | ✅ PASS |
 | Sprint number extraction (underscore) | ✅ PASS |
-| Sprint number extraction (hyphen) | ✅ PASS |
-| Empty chunks skipping | ✅ PASS |
-| Coverage path verification | ✅ PASS |
+| Sprint number extraction (hyphen)     | ✅ PASS |
+| Empty chunks skipping                 | ✅ PASS |
+| Coverage path verification            | ✅ PASS |
 
 ---
 
 ## Objective B: Sonar Violations Triage ✅ PARTIAL
 
 ### Violations Summary
-| Severity | Initial | Fixed | Remaining | % Fixed |
-|----------|---------|-------|-----------|---------|
-| CRITICAL | 5 | 4 | 1 | 80% |
-| MAJOR | 4 | 4 | 0 | 100% |
-| MINOR | 43 | 0 | 42 | 0% |
-| **TOTAL** | **52** | **8** | **44** | **15.4%** |
+
+| Severity  | Initial | Fixed | Remaining | % Fixed   |
+| --------- | ------- | ----- | --------- | --------- |
+| CRITICAL  | 5       | 4     | 1         | 80%       |
+| MAJOR     | 4       | 4     | 0         | 100%      |
+| MINOR     | 43      | 0     | 42        | 0%        |
+| **TOTAL** | **52**  | **8** | **44**    | **15.4%** |
 
 ### Files Modified (Violation Fixes)
 
 #### Critical Violations Fixed
+
 - [x] `src/security/security-overview/schema.ts:79` — S3776 (cognitive complexity) → Extracted helpers
 - [x] `src/security/risks/dependency-check-runner.ts:13` — S3776 (cognitive complexity) → Extracted helpers
 - [x] `src/llm/gateway.ts:83` — S3776 (cognitive complexity) → Extracted methods
 - [x] `src/llm/routing-explainer.ts:4` — S3776 (cognitive complexity) → Decomposed to 12 functions
 
 #### Major Violations Fixed
+
 - [x] `src/audit/audit-log.ts:38` — S2871 (localeCompare) → Applied collation
 - [x] `src/security/security-overview/drift-history.ts:35` — S6582 (optional chaining) → Changed to `?.`
 - [x] `src/cli/llm-health.ts:18` — S3358 (nested ternary) → Extracted statement
@@ -57,10 +61,12 @@
 - [x] `src/llm/routing-history.ts:565` — S4624 (nested templates) → Extracted variables
 
 #### Minor Violations Fixed
+
 - [x] `src/security/security-overview/ai-explain.ts:1` — S1128 (unused import) → Removed fs
 - [x] `src/knowledge/ingest/ingest-sprint-history.ts:3` — S1128 (unused import) → Removed pathToFileURL
 
 ### Remaining Violations (44 — for future sprints)
+
 - [ ] S1128 (Unused Imports): 7 instances
 - [ ] S7772 (various): 7 instances
 - [ ] S2486 (Handle Exceptions): 7 instances
@@ -76,6 +82,7 @@
 ## Objective C: Quality Gate Validation ✅ COMPLETE
 
 ### Build Verification
+
 - [x] TypeScript compilation: 0 errors
 - [x] Test suite: 1701/1701 passing (100%)
 - [x] Coverage: ingest-sprint-history.ts ≥80% (achieved 84.37%)
@@ -83,20 +90,23 @@
 - [x] Violations tracked and categorized
 
 ### Quality Metrics
-| Metric | Status | Details |
-|--------|--------|---------|
-| Test Passing Rate | ✅ 100% | 1701/1701 tests |
-| Type Safety | ✅ 0 errors | TypeScript strict mode |
-| Coverage Target | ✅ 84.37% | Exceeded 80% goal |
-| Build Stability | ✅ Stable | No regressions |
+
+| Metric            | Status      | Details                |
+| ----------------- | ----------- | ---------------------- |
+| Test Passing Rate | ✅ 100%     | 1701/1701 tests        |
+| Type Safety       | ✅ 0 errors | TypeScript strict mode |
+| Coverage Target   | ✅ 84.37%   | Exceeded 80% goal      |
+| Build Stability   | ✅ Stable   | No regressions         |
 
 ### Configuration Updated
+
 - [x] `vitest.config.ts` — Coverage thresholds 70% → 100%
 - [x] `src/knowledge/ingest/ingest-sprint-history.ts` — Added VITEST guard in main()
 - [x] Test setup files validated
 - [x] Mock strategy documented
 
 ### Documentation Created
+
 - [x] `docs/sprint-83-quality-gate.md` — Quality gate validation report
 - [x] `docs/sprint-83-scope.md` — Scope and objectives detail
 
@@ -105,6 +115,7 @@
 ## Objective D: Final Validation & Commit ✅ IN PROGRESS
 
 ### Pre-Commit Validation Steps
+
 - [x] All source files reviewed and cleaned
 - [x] Test suite passes (1701/1701)
 - [x] TypeScript compilation passes (0 errors)
@@ -113,6 +124,7 @@
 - [ ] Documentation files created (2/2)
 
 ### Pre-Commit Code Quality Checks
+
 - [x] No broken imports
 - [x] No type mismatches
 - [x] No unused variables (verified in fixed files)
@@ -120,12 +132,14 @@
 - [x] Mock patterns consistent
 
 ### Documentation Files (Objective D)
+
 - [x] `docs/sprint-83-quality-gate.md` — Status: COMPLETE
 - [x] `docs/sprint-83-scope.md` — Status: COMPLETE
 - [ ] Final commit message drafted
 - [ ] Git tag prepared
 
 ### Modified Files Final List (12 source + 1 test + 1 config)
+
 1. [x] `src/knowledge/ingest/ingest-sprint-history.ts` — Coverage + import fix
 2. [x] `src/security/security-overview/schema.ts` — Complexity fix
 3. [x] `src/security/risks/dependency-check-runner.ts` — Complexity fix
@@ -142,9 +156,11 @@
 14. [x] `docs/sprint-83-scope.md` — NEW: Scope document
 
 ### Git Commit Plan
+
 - [ ] Review all changes: `git status`
 - [ ] Stage all changes: `git add .`
 - [ ] Create commit with message:
+
   ```
   git commit -m "sprint-83: coverage improvement & violation triage
 
@@ -170,6 +186,7 @@
   - vitest.config.ts: Coverage thresholds updated (70% → 100%)
   "
   ```
+
 - [ ] Create annotated tag:
   ```
   git tag -a sprint-83-complete -m "Sprint 83: Coverage & Quality Objectives Complete"
@@ -181,14 +198,16 @@
 ## Risk Management
 
 ### Identified Risks
-| Risk | Probability | Impact | Mitigation | Status |
-|------|-------------|--------|-----------|--------|
-| Test flakiness | LOW | MEDIUM | Deterministic tests + temp dirs | ✅ Verified |
-| Regression from refactoring | LOW | HIGH | 1701 tests passing | ✅ Verified |
-| Sonar violations regression | LOW | MEDIUM | Tracked violations | ✅ Monitored |
-| Type safety issues | LOW | HIGH | TypeScript strict | ✅ Verified |
+
+| Risk                        | Probability | Impact | Mitigation                      | Status       |
+| --------------------------- | ----------- | ------ | ------------------------------- | ------------ |
+| Test flakiness              | LOW         | MEDIUM | Deterministic tests + temp dirs | ✅ Verified  |
+| Regression from refactoring | LOW         | HIGH   | 1701 tests passing              | ✅ Verified  |
+| Sonar violations regression | LOW         | MEDIUM | Tracked violations              | ✅ Monitored |
+| Type safety issues          | LOW         | HIGH   | TypeScript strict               | ✅ Verified  |
 
 ### Testing Coverage
+
 - [x] Unit tests (ingest-sprint-history: 8 tests)
 - [x] Integration tests (existing suite: 155 files)
 - [x] Type checking (TypeScript strict: 0 errors)
@@ -199,24 +218,28 @@
 ## Acceptance Criteria
 
 ### Objective A: Coverage ✅
+
 - [x] Coverage ≥80% on ingest-sprint-history.ts
 - [x] Test file created and passing
 - [x] Real code paths executed for coverage
 - [x] All tests passing (8/8)
 
 ### Objective B: Violations ✅ PARTIAL
+
 - [x] Initial violations triaged (52 total)
 - [x] High-severity violations addressed (8 fixed)
 - [x] Remaining violations documented (44 total)
 - [ ] Goal: Further reduction in future sprints
 
 ### Objective C: Quality Gate ✅
+
 - [x] Test suite validation complete
 - [x] TypeScript compilation verified
 - [x] Coverage metrics documented
 - [x] Build readiness confirmed
 
 ### Objective D: Commit ✅ PENDING
+
 - [x] Documentation created (2 files)
 - [ ] All changes staged and ready
 - [ ] Commit message drafted
@@ -230,7 +253,7 @@
 **Objective A**: ✅ APPROVED — Coverage 84.37% (exceeded 80% target)  
 **Objective B**: ✅ APPROVED — 8 violations fixed; 44 tracked for future work  
 **Objective C**: ✅ APPROVED — Quality gate validation complete  
-**Objective D**: 🔄 IN PROGRESS — Awaiting final commit  
+**Objective D**: 🔄 IN PROGRESS — Awaiting final commit
 
 ---
 

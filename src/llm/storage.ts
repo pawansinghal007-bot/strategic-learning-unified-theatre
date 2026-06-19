@@ -1,10 +1,12 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
-import { dirname, join } from "path";
-import { homedir } from "os";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { homedir } from "node:os";
 import { logger } from "../shared/logging/logger";
 
 function getAppDir() {
-  return process.env.UNIFIED_AI_DATA_DIR ?? join(homedir(), ".unified-ai-workspace");
+  return (
+    process.env.UNIFIED_AI_DATA_DIR ?? join(homedir(), ".unified-ai-workspace")
+  );
 }
 
 function ensureDir(path: string) {

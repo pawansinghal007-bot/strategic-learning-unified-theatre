@@ -6,9 +6,7 @@ const MILVUS_ADDRESS = process.env.MILVUS_ADDRESS ?? "localhost:19530";
 let _client: MilvusClient | null = null;
 
 export function getMilvusClient(): MilvusClient {
-  if (!_client) {
-    _client = new MilvusClient({ address: MILVUS_ADDRESS });
-  }
+  _client ??= new MilvusClient({ address: MILVUS_ADDRESS });
   return _client;
 }
 

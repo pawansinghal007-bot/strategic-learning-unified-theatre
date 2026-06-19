@@ -1,3 +1,14 @@
+/**
+ * Non-fatal error handler for UI operations.
+ * Catches and logs errors that should not halt the UI flow.
+ */
+function logNonFatalErrorUI(error, context) {
+  console.warn("ui.non-fatal-error", {
+    context,
+    error: error instanceof Error ? error.message : String(error),
+  });
+}
+
 function setProofAction(action, detail) {
   const lastActionEl = document.querySelector(
     '[data-testid="proof-last-action-value"]',
@@ -1289,8 +1300,8 @@ async function compareSecurityBaseline() {
           document.getElementById("driftClassificationBadge").style.display =
             "block";
         }
-      } catch (_e) {
-        // non-fatal — badge stays hidden
+      } catch (error) {
+        logNonFatalErrorUI(error, "security-drift-badge");
       }
     })();
 
@@ -1313,7 +1324,8 @@ async function compareSecurityBaseline() {
       resolvedEl.textContent = String(result?.counts?.resolved ?? 0);
     if (loadedEl) loadedEl.textContent = result?.baselineLoaded ? "yes" : "no";
     if (outputEl) outputEl.textContent = JSON.stringify(result, null, 2);
-  } catch (_err) {
+  } catch (error) {
+    logNonFatalErrorUI(error, "security-drift-output");
     const outputEl = document.getElementById("security-drift-output");
     if (outputEl) {
       outputEl.textContent = "Run Security Overview summarize first.";
@@ -1495,7 +1507,7 @@ function renderRisks(findings, minSeverity) {
                   <td>${f.severity}</td>
                   <td>${f.package || f.file || ""}</td>
                   <td>${f.ruleId || ""}</td>
-                  <td>${(f.title || "").replace(/</g, "&lt;")}</td>
+                  <td>${(f.title || "").replaceAll("<", "&lt;")}</td>
                 `;
     body.appendChild(tr);
   }

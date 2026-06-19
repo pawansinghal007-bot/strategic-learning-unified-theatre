@@ -1,4 +1,4 @@
-import { createHash } from "crypto";
+import { createHash } from "node:crypto";
 import type { KnowledgeDocument } from "../schema/documents.js";
 import type { KnowledgeChunk } from "../schema/metadata.js";
 
@@ -47,7 +47,7 @@ export function chunkDocument(doc: KnowledgeDocument): KnowledgeChunk[] {
     version: doc.version,
     path: doc.path,
     section: undefined,
-    importance: 1.0,
+    importance: 1,
     hash: hashText(text),
     createdAt: now,
     denseVector: [],
