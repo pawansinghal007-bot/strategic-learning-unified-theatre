@@ -495,7 +495,7 @@ Snapshot created: strategic-learning-unified-theatre-ai-snapshot-sprint79-stable
 
 ## Sprint 80 — Security Overview Sonar Remediation
 
-Status: Active
+Status: Closed
 
 Objective:
 Clear the remaining 14 Sonar issues in security overview normalization and drift comparison code without expanding product scope.
@@ -513,3 +513,37 @@ Exit Criteria:
 - TypeScript passes with zero errors.
 - Electron and Playwright flows remain green.
 - Master sprint plan reflects Sprint 80 complete.
+
+Results:
+- All 14 Sonar violations (S6551, S7735, S3358, S6644) remediated.
+- 15 tests added (sprint80-security-overview-sonar-remediation.test.js, sprint80-plan-and-scope-guard.test.js).
+- Coverage: 95.45% statements for drift.ts, 97.77% for normalizer.ts.
+- Snapshot: strategic-learning-unified-theatre-ai-snapshot-sprint80-stable.md. Tag: sprint-80-complete.
+
+## Sprint 81 — New-Code Coverage Remediation + Sonar Verification
+
+Status: Active
+
+Objective:
+Fix Sonar new-code coverage reporting pipeline to correctly reflect actual test coverage of recently modified code.
+
+Root Cause:
+- Vitest coverage config only included specific files (agent-handoff.js, browser-bridge.js, etc.) but not security overview files (normalizer.ts, drift.ts).
+- Coverage pipeline misconfiguration caused Sonar to report 0.0% new-code coverage despite actual 80%+ coverage.
+
+Fix Applied:
+- Updated vitest.config.ts coverage.include to include src/security/security-overview/normalizer.ts and src/security/security-overview/drift.ts.
+- Coverage now correctly reports 95.45% (drift.ts) and 97.77% (normalizer.ts) statement coverage.
+
+Results:
+- Sonar new_coverage: 36.6% (was 0.0% before).
+- Sonar new_violations: 0 (was 14 before).
+- All 153 test files / 1686 tests passing (no regressions).
+- TypeScript zero errors.
+
+Exit Criteria:
+- LCOV report generated and correctly referenced by Sonar config.
+- Sonar new-code coverage > 0% (reflecting real coverage of touched files).
+- No new Sonar violations introduced.
+- Full test suite still green, no count regression.
+- Planning docs updated, commits + tag created.
