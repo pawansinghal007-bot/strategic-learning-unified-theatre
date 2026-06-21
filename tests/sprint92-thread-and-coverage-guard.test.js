@@ -60,7 +60,9 @@ describe("Sprint 92 thread fix and coverage alignment guard", () => {
   describe("sprint91 guard preserved", () => {
     it("sprint91-sonar-fix-guard.test.js still exists", () => {
       expect(
-        fs.existsSync(path.join(ROOT, "tests/sprint91-sonar-fix-guard.test.js"))
+        fs.existsSync(
+          path.join(ROOT, "tests/sprint91-sonar-fix-guard.test.js"),
+        ),
       ).toBe(true);
     });
   });
