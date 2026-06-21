@@ -98,7 +98,7 @@ export async function ingestSprintHistory(options) {
       chunks[i].denseVector = vectors[i];
     }
 
-    const entities = chunks.map(chunkToMilvusEntity);
+    const entities = chunks.map((chunk) => chunkToMilvusEntity(chunk));
     const client = getMilvusClient();
 
     await client.insert({
