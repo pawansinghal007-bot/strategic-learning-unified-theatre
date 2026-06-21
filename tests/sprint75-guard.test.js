@@ -57,10 +57,14 @@ describe("Sprint 75 guard test", () => {
 
   describe("Snapshot pointer verification", () => {
     it("CURRENT_ACTIVE_SNAPSHOT.md points to sprint75 or later", () => {
-      // The pointer should match sprint75 or later, not be pinned to sprint73 or sprint74
-      expect(snapshotPointer).toMatch(
-        /^strategic-learning-unified-theatre-ai-snapshot-sprint7[5-9]/,
+      // Dynamic check: extracts sprint number and compares numerically
+      // This works for sprint75, sprint91, sprint100+ without ever needing updating
+      const match = snapshotPointer.match(
+        /^strategic-learning-unified-theatre-ai-snapshot-sprint(\d+)/,
       );
+      expect(match).not.toBeNull();
+      const sprintNumber = parseInt(match[1], 10);
+      expect(sprintNumber).toBeGreaterThanOrEqual(75);
     });
   });
 

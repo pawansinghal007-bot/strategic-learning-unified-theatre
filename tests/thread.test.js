@@ -1,3 +1,10 @@
-it("sanity: test counting increments", () => {
-  expect(1 + 1).toBe(2);
+import fs from "node:fs";
+import path from "node:path";
+import { describe, it, expect } from "vitest";
+
+describe("thread module existence guard", () => {
+  it("package.json exists at project root", () => {
+    const packageJsonPath = path.join(process.cwd(), "package.json");
+    expect(fs.existsSync(packageJsonPath)).toBe(true);
+  });
 });
