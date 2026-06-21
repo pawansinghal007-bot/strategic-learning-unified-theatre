@@ -1,0 +1,727 @@
+{
+    "total": 9,
+    "p": 1,
+    "ps": 500,
+    "paging": {
+        "pageIndex": 1,
+        "pageSize": 500,
+        "total": 9
+    },
+    "effortTotal": 54,
+    "issues": [
+        {
+            "key": "135fd8fb-84ff-42b6-b6fd-1dfeac047081",
+            "rule": "javascript:S2699",
+            "severity": "BLOCKER",
+            "component": "strategic-learning-unified-theatre:tests/sprint85-guard.test.js",
+            "project": "strategic-learning-unified-theatre",
+            "line": 33,
+            "hash": "a9cb8f29025b38bd1883eebcdb75f294",
+            "textRange": {
+                "startLine": 33,
+                "endLine": 33,
+                "startOffset": 4,
+                "endOffset": 6
+            },
+            "flows": [],
+            "status": "OPEN",
+            "message": "Add at least one assertion to this test case.",
+            "effort": "10min",
+            "debt": "10min",
+            "author": "pawan@localhost",
+            "tags": [
+                "node",
+                "sinon",
+                "chai",
+                "tests",
+                "playwright",
+                "type-dependent",
+                "mocha",
+                "supertest",
+                "vitest",
+                "jasmine",
+                "jest",
+                "cypress"
+            ],
+            "creationDate": "2026-06-19T14:23:58+0000",
+            "updateDate": "2026-06-21T00:14:48+0000",
+            "type": "CODE_SMELL",
+            "scope": "TEST",
+            "quickFixAvailable": false,
+            "messageFormattings": [],
+            "codeVariants": [],
+            "cleanCodeAttribute": "TESTED",
+            "cleanCodeAttributeCategory": "ADAPTABLE",
+            "impacts": [
+                {
+                    "softwareQuality": "MAINTAINABILITY",
+                    "severity": "BLOCKER"
+                }
+            ],
+            "issueStatus": "OPEN",
+            "prioritizedRule": false,
+            "fromSonarQubeUpdate": false,
+            "internalTags": [],
+            "linkedTicketStatus": "NOT_LINKED"
+        },
+        {
+            "key": "31e0fc2e-1d79-4647-ad33-b36a0eb9793c",
+            "rule": "javascript:S3776",
+            "severity": "CRITICAL",
+            "component": "strategic-learning-unified-theatre:src/knowledge/ingest/ingest-repository.js",
+            "project": "strategic-learning-unified-theatre",
+            "line": 133,
+            "hash": "812df4deef43a062870ceeb02d447d21",
+            "textRange": {
+                "startLine": 133,
+                "endLine": 133,
+                "startOffset": 22,
+                "endOffset": 38
+            },
+            "flows": [
+                {
+                    "locations": [
+                        {
+                            "component": "strategic-learning-unified-theatre:src/knowledge/ingest/ingest-repository.js",
+                            "textRange": {
+                                "startLine": 141,
+                                "endLine": 141,
+                                "startOffset": 6,
+                                "endOffset": 7
+                            },
+                            "msg": "+1",
+                            "msgFormattings": []
+                        }
+                    ]
+                },
+                {
+                    "locations": [
+                        {
+                            "component": "strategic-learning-unified-theatre:src/knowledge/ingest/ingest-repository.js",
+                            "textRange": {
+                                "startLine": 140,
+                                "endLine": 140,
+                                "startOffset": 34,
+                                "endOffset": 36
+                            },
+                            "msg": "+1",
+                            "msgFormattings": []
+                        }
+                    ]
+                },
+                {
+                    "locations": [
+                        {
+                            "component": "strategic-learning-unified-theatre:src/knowledge/ingest/ingest-repository.js",
+                            "textRange": {
+                                "startLine": 149,
+                                "endLine": 149,
+                                "startOffset": 2,
+                                "endOffset": 5
+                            },
+                            "msg": "+1",
+                            "msgFormattings": []
+                        }
+                    ]
+                },
+                {
+                    "locations": [
+                        {
+                            "component": "strategic-learning-unified-theatre:src/knowledge/ingest/ingest-repository.js",
+                            "textRange": {
+                                "startLine": 150,
+                                "endLine": 150,
+                                "startOffset": 4,
+                                "endOffset": 6
+                            },
+                            "msg": "+2 (incl. 1 for nesting)",
+                            "msgFormattings": []
+                        }
+                    ]
+                },
+                {
+                    "locations": [
+                        {
+                            "component": "strategic-learning-unified-theatre:src/knowledge/ingest/ingest-repository.js",
+                            "textRange": {
+                                "startLine": 152,
+                                "endLine": 152,
+                                "startOffset": 4,
+                                "endOffset": 6
+                            },
+                            "msg": "+2 (incl. 1 for nesting)",
+                            "msgFormattings": []
+                        }
+                    ]
+                },
+                {
+                    "locations": [
+                        {
+                            "component": "strategic-learning-unified-theatre:src/knowledge/ingest/ingest-repository.js",
+                            "textRange": {
+                                "startLine": 160,
+                                "endLine": 160,
+                                "startOffset": 2,
+                                "endOffset": 4
+                            },
+                            "msg": "+1",
+                            "msgFormattings": []
+                        }
+                    ]
+                },
+                {
+                    "locations": [
+                        {
+                            "component": "strategic-learning-unified-theatre:src/knowledge/ingest/ingest-repository.js",
+                            "textRange": {
+                                "startLine": 169,
+                                "endLine": 169,
+                                "startOffset": 2,
+                                "endOffset": 5
+                            },
+                            "msg": "+1",
+                            "msgFormattings": []
+                        }
+                    ]
+                },
+                {
+                    "locations": [
+                        {
+                            "component": "strategic-learning-unified-theatre:src/knowledge/ingest/ingest-repository.js",
+                            "textRange": {
+                                "startLine": 173,
+                                "endLine": 173,
+                                "startOffset": 4,
+                                "endOffset": 7
+                            },
+                            "msg": "+2 (incl. 1 for nesting)",
+                            "msgFormattings": []
+                        }
+                    ]
+                },
+                {
+                    "locations": [
+                        {
+                            "component": "strategic-learning-unified-theatre:src/knowledge/ingest/ingest-repository.js",
+                            "textRange": {
+                                "startLine": 176,
+                                "endLine": 176,
+                                "startOffset": 8,
+                                "endOffset": 10
+                            },
+                            "msg": "+3 (incl. 2 for nesting)",
+                            "msgFormattings": []
+                        }
+                    ]
+                },
+                {
+                    "locations": [
+                        {
+                            "component": "strategic-learning-unified-theatre:src/knowledge/ingest/ingest-repository.js",
+                            "textRange": {
+                                "startLine": 203,
+                                "endLine": 203,
+                                "startOffset": 8,
+                                "endOffset": 13
+                            },
+                            "msg": "+3 (incl. 2 for nesting)",
+                            "msgFormattings": []
+                        }
+                    ]
+                },
+                {
+                    "locations": [
+                        {
+                            "component": "strategic-learning-unified-theatre:src/knowledge/ingest/ingest-repository.js",
+                            "textRange": {
+                                "startLine": 208,
+                                "endLine": 208,
+                                "startOffset": 4,
+                                "endOffset": 6
+                            },
+                            "msg": "+2 (incl. 1 for nesting)",
+                            "msgFormattings": []
+                        }
+                    ]
+                },
+                {
+                    "locations": [
+                        {
+                            "component": "strategic-learning-unified-theatre:src/knowledge/ingest/ingest-repository.js",
+                            "textRange": {
+                                "startLine": 215,
+                                "endLine": 215,
+                                "startOffset": 4,
+                                "endOffset": 6
+                            },
+                            "msg": "+2 (incl. 1 for nesting)",
+                            "msgFormattings": []
+                        }
+                    ]
+                },
+                {
+                    "locations": [
+                        {
+                            "component": "strategic-learning-unified-theatre:src/knowledge/ingest/ingest-repository.js",
+                            "textRange": {
+                                "startLine": 221,
+                                "endLine": 221,
+                                "startOffset": 4,
+                                "endOffset": 7
+                            },
+                            "msg": "+2 (incl. 1 for nesting)",
+                            "msgFormattings": []
+                        }
+                    ]
+                }
+            ],
+            "status": "OPEN",
+            "message": "Refactor this function to reduce its Cognitive Complexity from 23 to the 15 allowed.",
+            "effort": "13min",
+            "debt": "13min",
+            "author": "",
+            "tags": [
+                "brain-overload"
+            ],
+            "creationDate": "2026-06-21T00:05:19+0000",
+            "updateDate": "2026-06-21T00:05:19+0000",
+            "type": "CODE_SMELL",
+            "scope": "MAIN",
+            "quickFixAvailable": false,
+            "messageFormattings": [],
+            "codeVariants": [],
+            "cleanCodeAttribute": "FOCUSED",
+            "cleanCodeAttributeCategory": "ADAPTABLE",
+            "impacts": [
+                {
+                    "softwareQuality": "MAINTAINABILITY",
+                    "severity": "HIGH"
+                }
+            ],
+            "issueStatus": "OPEN",
+            "prioritizedRule": false,
+            "fromSonarQubeUpdate": false,
+            "internalTags": [],
+            "linkedTicketStatus": "NOT_LINKED"
+        },
+        {
+            "key": "833f8dcd-72f4-42e2-8f58-21255177d4c8",
+            "rule": "javascript:S5914",
+            "severity": "MAJOR",
+            "component": "strategic-learning-unified-theatre:tests/scheduler.test.js",
+            "project": "strategic-learning-unified-theatre",
+            "line": 93,
+            "hash": "609930f6b7095e413d4ad0c6ec7aadda",
+            "textRange": {
+                "startLine": 93,
+                "endLine": 93,
+                "startOffset": 17,
+                "endOffset": 21
+            },
+            "flows": [],
+            "status": "OPEN",
+            "message": "Replace this assertion; it always succeeds or fails.",
+            "effort": "5min",
+            "debt": "5min",
+            "author": "",
+            "tags": [
+                "node",
+                "chai",
+                "tests",
+                "playwright",
+                "bun",
+                "confusing",
+                "suspicious",
+                "vitest",
+                "jasmine",
+                "jest",
+                "cypress"
+            ],
+            "creationDate": "2026-06-21T00:14:48+0000",
+            "updateDate": "2026-06-21T00:14:48+0000",
+            "type": "CODE_SMELL",
+            "scope": "TEST",
+            "quickFixAvailable": false,
+            "messageFormattings": [],
+            "codeVariants": [],
+            "cleanCodeAttribute": "LOGICAL",
+            "cleanCodeAttributeCategory": "INTENTIONAL",
+            "impacts": [
+                {
+                    "softwareQuality": "MAINTAINABILITY",
+                    "severity": "MEDIUM"
+                }
+            ],
+            "issueStatus": "OPEN",
+            "prioritizedRule": false,
+            "fromSonarQubeUpdate": false,
+            "internalTags": [],
+            "linkedTicketStatus": "NOT_LINKED"
+        },
+        {
+            "key": "6ae39b6b-4d78-4785-addb-dbb0a7ab0ce4",
+            "rule": "javascript:S5914",
+            "severity": "MAJOR",
+            "component": "strategic-learning-unified-theatre:tests/thread.test.js",
+            "project": "strategic-learning-unified-theatre",
+            "line": 2,
+            "hash": "dcf87755316558051c428b1e8280081a",
+            "textRange": {
+                "startLine": 2,
+                "endLine": 2,
+                "startOffset": 9,
+                "endOffset": 14
+            },
+            "flows": [],
+            "status": "OPEN",
+            "message": "Replace this assertion; it always succeeds or fails.",
+            "effort": "5min",
+            "debt": "5min",
+            "author": "pawansinghal007@gmail.com",
+            "tags": [
+                "node",
+                "chai",
+                "tests",
+                "playwright",
+                "bun",
+                "confusing",
+                "suspicious",
+                "vitest",
+                "jasmine",
+                "jest",
+                "cypress"
+            ],
+            "creationDate": "2026-05-20T10:14:38+0000",
+            "updateDate": "2026-06-21T00:14:48+0000",
+            "type": "CODE_SMELL",
+            "scope": "TEST",
+            "quickFixAvailable": false,
+            "messageFormattings": [],
+            "codeVariants": [],
+            "cleanCodeAttribute": "LOGICAL",
+            "cleanCodeAttributeCategory": "INTENTIONAL",
+            "impacts": [
+                {
+                    "softwareQuality": "MAINTAINABILITY",
+                    "severity": "MEDIUM"
+                }
+            ],
+            "issueStatus": "OPEN",
+            "prioritizedRule": false,
+            "fromSonarQubeUpdate": false,
+            "internalTags": [],
+            "linkedTicketStatus": "NOT_LINKED"
+        },
+        {
+            "key": "51d571c7-4104-4849-9dad-ba6233a3ebc6",
+            "rule": "javascript:S7785",
+            "severity": "MAJOR",
+            "component": "strategic-learning-unified-theatre:src/knowledge/ingest/ingest-repository.js",
+            "project": "strategic-learning-unified-theatre",
+            "line": 262,
+            "hash": "4b536b86a36c9d0adc9adaee2177dbf0",
+            "textRange": {
+                "startLine": 262,
+                "endLine": 262,
+                "startOffset": 7,
+                "endOffset": 13
+            },
+            "flows": [],
+            "status": "OPEN",
+            "message": "Prefer top-level await over an async function `main` call.",
+            "effort": "5min",
+            "debt": "5min",
+            "author": "",
+            "tags": [
+                "async",
+                "es2022",
+                "esm-only",
+                "modernize"
+            ],
+            "creationDate": "2026-06-21T00:05:19+0000",
+            "updateDate": "2026-06-21T00:05:19+0000",
+            "type": "CODE_SMELL",
+            "scope": "MAIN",
+            "quickFixAvailable": true,
+            "messageFormattings": [],
+            "codeVariants": [],
+            "cleanCodeAttribute": "CONVENTIONAL",
+            "cleanCodeAttributeCategory": "CONSISTENT",
+            "impacts": [
+                {
+                    "softwareQuality": "MAINTAINABILITY",
+                    "severity": "MEDIUM"
+                }
+            ],
+            "issueStatus": "OPEN",
+            "prioritizedRule": false,
+            "fromSonarQubeUpdate": false,
+            "internalTags": [],
+            "linkedTicketStatus": "NOT_LINKED"
+        },
+        {
+            "key": "45382045-5b9d-4c1a-8aa0-319fe30502f1",
+            "rule": "javascript:S4043",
+            "severity": "MAJOR",
+            "component": "strategic-learning-unified-theatre:src/llm/agent-loop-guard.js",
+            "project": "strategic-learning-unified-theatre",
+            "line": 122,
+            "hash": "dc0090cb921c6fc76dc1b3b0f0eb64dc",
+            "textRange": {
+                "startLine": 122,
+                "endLine": 123,
+                "startOffset": 9,
+                "endOffset": 38
+            },
+            "flows": [],
+            "status": "OPEN",
+            "message": "Move this array \"sort\" operation to a separate statement or replace it with \"toSorted\".",
+            "effort": "5min",
+            "debt": "5min",
+            "author": "",
+            "tags": [
+                "type-dependent"
+            ],
+            "creationDate": "2026-06-21T00:05:19+0000",
+            "updateDate": "2026-06-21T00:05:19+0000",
+            "type": "CODE_SMELL",
+            "scope": "MAIN",
+            "quickFixAvailable": true,
+            "messageFormattings": [],
+            "codeVariants": [],
+            "cleanCodeAttribute": "CLEAR",
+            "cleanCodeAttributeCategory": "INTENTIONAL",
+            "impacts": [
+                {
+                    "softwareQuality": "MAINTAINABILITY",
+                    "severity": "MEDIUM"
+                }
+            ],
+            "issueStatus": "OPEN",
+            "prioritizedRule": false,
+            "fromSonarQubeUpdate": false,
+            "internalTags": [],
+            "linkedTicketStatus": "NOT_LINKED"
+        },
+        {
+            "key": "41fbe2ba-5c51-4e8b-b03d-6e6061c6eadc",
+            "rule": "javascript:S5914",
+            "severity": "MAJOR",
+            "component": "strategic-learning-unified-theatre:tests/scheduler.test.js",
+            "project": "strategic-learning-unified-theatre",
+            "line": 95,
+            "hash": "78d9f9b6e068978e99f02f2ea79216ea",
+            "textRange": {
+                "startLine": 95,
+                "endLine": 95,
+                "startOffset": 17,
+                "endOffset": 22
+            },
+            "flows": [],
+            "status": "OPEN",
+            "message": "Replace this assertion; it always succeeds or fails.",
+            "effort": "5min",
+            "debt": "5min",
+            "author": "",
+            "tags": [
+                "node",
+                "chai",
+                "tests",
+                "playwright",
+                "bun",
+                "confusing",
+                "suspicious",
+                "vitest",
+                "jasmine",
+                "jest",
+                "cypress"
+            ],
+            "creationDate": "2026-06-21T00:14:48+0000",
+            "updateDate": "2026-06-21T00:14:48+0000",
+            "type": "CODE_SMELL",
+            "scope": "TEST",
+            "quickFixAvailable": false,
+            "messageFormattings": [],
+            "codeVariants": [],
+            "cleanCodeAttribute": "LOGICAL",
+            "cleanCodeAttributeCategory": "INTENTIONAL",
+            "impacts": [
+                {
+                    "softwareQuality": "MAINTAINABILITY",
+                    "severity": "MEDIUM"
+                }
+            ],
+            "issueStatus": "OPEN",
+            "prioritizedRule": false,
+            "fromSonarQubeUpdate": false,
+            "internalTags": [],
+            "linkedTicketStatus": "NOT_LINKED"
+        },
+        {
+            "key": "161659c7-297a-40f5-9b8d-61a502527cef",
+            "rule": "javascript:S5914",
+            "severity": "MAJOR",
+            "component": "strategic-learning-unified-theatre:tests/storage/storageStatus.test.js",
+            "project": "strategic-learning-unified-theatre",
+            "line": 105,
+            "hash": "b99c5aa93db757cadf5a9874d5be45e0",
+            "textRange": {
+                "startLine": 105,
+                "endLine": 105,
+                "startOffset": 15,
+                "endOffset": 19
+            },
+            "flows": [],
+            "status": "OPEN",
+            "message": "Replace this assertion; it always succeeds or fails.",
+            "effort": "5min",
+            "debt": "5min",
+            "author": "",
+            "tags": [
+                "node",
+                "chai",
+                "tests",
+                "playwright",
+                "bun",
+                "confusing",
+                "suspicious",
+                "vitest",
+                "jasmine",
+                "jest",
+                "cypress"
+            ],
+            "creationDate": "2026-06-21T00:14:48+0000",
+            "updateDate": "2026-06-21T00:14:48+0000",
+            "type": "CODE_SMELL",
+            "scope": "TEST",
+            "quickFixAvailable": false,
+            "messageFormattings": [],
+            "codeVariants": [],
+            "cleanCodeAttribute": "LOGICAL",
+            "cleanCodeAttributeCategory": "INTENTIONAL",
+            "impacts": [
+                {
+                    "softwareQuality": "MAINTAINABILITY",
+                    "severity": "MEDIUM"
+                }
+            ],
+            "issueStatus": "OPEN",
+            "prioritizedRule": false,
+            "fromSonarQubeUpdate": false,
+            "internalTags": [],
+            "linkedTicketStatus": "NOT_LINKED"
+        },
+        {
+            "key": "f9ba779e-16e3-4f0b-a0ec-5ef10822f5c2",
+            "rule": "javascript:S1128",
+            "severity": "MINOR",
+            "component": "strategic-learning-unified-theatre:src/knowledge/ingest/ingest-sprint-history.js",
+            "project": "strategic-learning-unified-theatre",
+            "line": 3,
+            "hash": "e9f2e1a178057edd0122bbb389d64124",
+            "textRange": {
+                "startLine": 3,
+                "endLine": 3,
+                "startOffset": 9,
+                "endOffset": 22
+            },
+            "flows": [],
+            "status": "OPEN",
+            "message": "Remove this unused import of 'pathToFileURL'.",
+            "effort": "1min",
+            "debt": "1min",
+            "author": "",
+            "tags": [
+                "es2015",
+                "type-dependent",
+                "unused"
+            ],
+            "creationDate": "2026-06-21T00:05:19+0000",
+            "updateDate": "2026-06-21T00:05:19+0000",
+            "type": "CODE_SMELL",
+            "scope": "MAIN",
+            "quickFixAvailable": true,
+            "messageFormattings": [],
+            "codeVariants": [],
+            "cleanCodeAttribute": "CLEAR",
+            "cleanCodeAttributeCategory": "INTENTIONAL",
+            "impacts": [
+                {
+                    "softwareQuality": "MAINTAINABILITY",
+                    "severity": "LOW"
+                }
+            ],
+            "issueStatus": "OPEN",
+            "prioritizedRule": false,
+            "fromSonarQubeUpdate": false,
+            "internalTags": [],
+            "linkedTicketStatus": "NOT_LINKED"
+        }
+    ],
+    "components": [
+        {
+            "key": "strategic-learning-unified-theatre:tests/scheduler.test.js",
+            "enabled": true,
+            "qualifier": "UTS",
+            "name": "scheduler.test.js",
+            "longName": "tests/scheduler.test.js",
+            "path": "tests/scheduler.test.js"
+        },
+        {
+            "key": "strategic-learning-unified-theatre:tests/sprint85-guard.test.js",
+            "enabled": true,
+            "qualifier": "UTS",
+            "name": "sprint85-guard.test.js",
+            "longName": "tests/sprint85-guard.test.js",
+            "path": "tests/sprint85-guard.test.js"
+        },
+        {
+            "key": "strategic-learning-unified-theatre:tests/thread.test.js",
+            "enabled": true,
+            "qualifier": "UTS",
+            "name": "thread.test.js",
+            "longName": "tests/thread.test.js",
+            "path": "tests/thread.test.js"
+        },
+        {
+            "key": "strategic-learning-unified-theatre:src/knowledge/ingest/ingest-sprint-history.js",
+            "enabled": true,
+            "qualifier": "FIL",
+            "name": "ingest-sprint-history.js",
+            "longName": "src/knowledge/ingest/ingest-sprint-history.js",
+            "path": "src/knowledge/ingest/ingest-sprint-history.js"
+        },
+        {
+            "key": "strategic-learning-unified-theatre:src/llm/agent-loop-guard.js",
+            "enabled": true,
+            "qualifier": "FIL",
+            "name": "agent-loop-guard.js",
+            "longName": "src/llm/agent-loop-guard.js",
+            "path": "src/llm/agent-loop-guard.js"
+        },
+        {
+            "key": "strategic-learning-unified-theatre:tests/storage/storageStatus.test.js",
+            "enabled": true,
+            "qualifier": "UTS",
+            "name": "storageStatus.test.js",
+            "longName": "tests/storage/storageStatus.test.js",
+            "path": "tests/storage/storageStatus.test.js"
+        },
+        {
+            "key": "strategic-learning-unified-theatre",
+            "enabled": true,
+            "qualifier": "TRK",
+            "name": "Strategic Learning Unified Theatre",
+            "longName": "Strategic Learning Unified Theatre"
+        },
+        {
+            "key": "strategic-learning-unified-theatre:src/knowledge/ingest/ingest-repository.js",
+            "enabled": true,
+            "qualifier": "FIL",
+            "name": "ingest-repository.js",
+            "longName": "src/knowledge/ingest/ingest-repository.js",
+            "path": "src/knowledge/ingest/ingest-repository.js"
+        }
+    ],
+    "facets": []
+}

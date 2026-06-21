@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { readJsonFile, writeJsonFile } from "./storage";
 import { logger } from "../shared/logging/logger";
 
@@ -63,7 +64,7 @@ function saveHistory(records: RoutingHistoryRecord[]) {
 }
 
 function nextId() {
-  return `route_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  return `route_${Date.now()}_${randomBytes(4).toString("hex")}`;
 }
 
 function round(value: number): number {

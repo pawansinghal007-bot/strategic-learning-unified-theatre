@@ -31,15 +31,13 @@ describe("Sprint 85 Guard", () => {
 
   describe("TypeScript compilation", () => {
     it("compiles with 0 errors", () => {
-      try {
+      expect(() =>
         execSync("npx tsc --noEmit", {
           cwd: workspaceRoot,
           stdio: "pipe",
           encoding: "utf8",
-        });
-      } catch (error) {
-        fail("TypeScript compilation failed: " + error.message);
-      }
+        }),
+      ).not.toThrow();
     });
   });
 });

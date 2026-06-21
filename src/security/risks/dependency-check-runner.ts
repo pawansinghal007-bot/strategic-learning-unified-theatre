@@ -56,7 +56,7 @@ export async function runDependencyCheck(
 }> {
   const outDir = path.join(
     os.tmpdir(),
-    `depchk-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    `depchk-${Date.now()}-${crypto.randomBytes(4).toString("hex")}`,
   );
   const reportFile = path.join(outDir, "dependency-check-report.json");
 

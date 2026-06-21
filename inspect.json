@@ -1,0 +1,372 @@
+[
+    {
+        "Id": "f47b1ac3975b62d7a943bef07497e34a42c089592d102f69d555bed93c10c150",
+        "Created": "2026-06-20T18:42:35.383697269Z",
+        "Path": "/app/llama-server",
+        "Args": [],
+        "State": {
+            "Status": "running",
+            "Running": true,
+            "Paused": false,
+            "Restarting": false,
+            "OOMKilled": false,
+            "Dead": false,
+            "Pid": 44684,
+            "ExitCode": 0,
+            "Error": "",
+            "StartedAt": "2026-06-20T18:42:40.414369888Z",
+            "FinishedAt": "0001-01-01T00:00:00Z",
+            "Health": {
+                "Status": "healthy",
+                "FailingStreak": 0,
+                "Log": [
+                    {
+                        "Start": "2026-06-20T18:55:12.679302024Z",
+                        "End": "2026-06-20T18:55:12.741108165Z",
+                        "ExitCode": 0,
+                        "Output": "  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current\n                                 Dload  Upload   Total   Spent    Left  Speed\n\r  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0\r100    15  100    15    0     0  40983      0 --:--:-- --:--:-- --:--:-- 15000\n{\"status\":\"ok\"}"
+                    },
+                    {
+                        "Start": "2026-06-20T18:55:42.754986089Z",
+                        "End": "2026-06-20T18:55:42.802031645Z",
+                        "ExitCode": 0,
+                        "Output": "  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current\n                                 Dload  Upload   Total   Spent    Left  Speed\n\r  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0\r100    15  100    15    0     0  33039      0 --:--:-- --:--:-- --:--:-- 15000\n{\"status\":\"ok\"}"
+                    },
+                    {
+                        "Start": "2026-06-20T18:56:12.837741356Z",
+                        "End": "2026-06-20T18:56:12.877370493Z",
+                        "ExitCode": 0,
+                        "Output": "  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current\n                                 Dload  Upload   Total   Spent    Left  Speed\n\r  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0{\"status\":\"ok\"}\r100    15  100    15    0     0  34562      0 --:--:-- --:--:-- --:--:-- 15000\n"
+                    },
+                    {
+                        "Start": "2026-06-20T18:56:42.893275553Z",
+                        "End": "2026-06-20T18:56:42.94547407Z",
+                        "ExitCode": 0,
+                        "Output": "  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current\n                                 Dload  Upload   Total   Spent    Left  Speed\n\r  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0{\"status\":\"ok\"}\r100    15  100    15    0     0  29644      0 --:--:-- --:--:-- --:--:-- 15000\n"
+                    },
+                    {
+                        "Start": "2026-06-20T18:57:12.962292059Z",
+                        "End": "2026-06-20T18:57:13.027168209Z",
+                        "ExitCode": 0,
+                        "Output": "{\"status\":\"ok\"}  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current\n                                 Dload  Upload   Total   Spent    Left  Speed\n\r  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0\r100    15  100    15    0     0  43859      0 --:--:-- --:--:-- --:--:-- 15000\n"
+                    }
+                ]
+            }
+        },
+        "Image": "sha256:841b199aed2649a748875b043b32fed2e8c2d4d87e1d563556817fb7fa44b72b",
+        "ResolvConfPath": "/var/lib/docker/containers/f47b1ac3975b62d7a943bef07497e34a42c089592d102f69d555bed93c10c150/resolv.conf",
+        "HostnamePath": "/var/lib/docker/containers/f47b1ac3975b62d7a943bef07497e34a42c089592d102f69d555bed93c10c150/hostname",
+        "HostsPath": "/var/lib/docker/containers/f47b1ac3975b62d7a943bef07497e34a42c089592d102f69d555bed93c10c150/hosts",
+        "LogPath": "/var/lib/docker/containers/f47b1ac3975b62d7a943bef07497e34a42c089592d102f69d555bed93c10c150/f47b1ac3975b62d7a943bef07497e34a42c089592d102f69d555bed93c10c150-json.log",
+        "Name": "/qwen-llm",
+        "RestartCount": 0,
+        "Driver": "overlayfs",
+        "Platform": "linux",
+        "MountLabel": "",
+        "ProcessLabel": "",
+        "AppArmorProfile": "",
+        "ExecIDs": null,
+        "HostConfig": {
+            "Binds": [
+                "/mnt/d/ai/models/Q5_K_M/:/models:ro",
+                "/home/pawan/qwen-stack/slot-cache:/slot-cache:rw"
+            ],
+            "ContainerIDFile": "",
+            "LogConfig": {
+                "Type": "json-file",
+                "Config": {}
+            },
+            "NetworkMode": "qwen-net",
+            "PortBindings": {
+                "8080/tcp": [
+                    {
+                        "HostIp": "",
+                        "HostPort": "8080"
+                    }
+                ]
+            },
+            "RestartPolicy": {
+                "Name": "unless-stopped",
+                "MaximumRetryCount": 0
+            },
+            "AutoRemove": false,
+            "VolumeDriver": "",
+            "VolumesFrom": null,
+            "ConsoleSize": [
+                0,
+                0
+            ],
+            "CapAdd": null,
+            "CapDrop": null,
+            "CgroupnsMode": "private",
+            "Dns": null,
+            "DnsOptions": null,
+            "DnsSearch": null,
+            "ExtraHosts": [],
+            "GroupAdd": null,
+            "IpcMode": "private",
+            "Cgroup": "",
+            "Links": null,
+            "OomScoreAdj": 0,
+            "PidMode": "",
+            "Privileged": false,
+            "PublishAllPorts": false,
+            "ReadonlyRootfs": false,
+            "SecurityOpt": null,
+            "UTSMode": "",
+            "UsernsMode": "",
+            "ShmSize": 2147483648,
+            "Runtime": "runc",
+            "Isolation": "",
+            "CpuShares": 0,
+            "Memory": 0,
+            "NanoCpus": 0,
+            "CgroupParent": "",
+            "BlkioWeight": 0,
+            "BlkioWeightDevice": null,
+            "BlkioDeviceReadBps": null,
+            "BlkioDeviceWriteBps": null,
+            "BlkioDeviceReadIOps": null,
+            "BlkioDeviceWriteIOps": null,
+            "CpuPeriod": 0,
+            "CpuQuota": 0,
+            "CpuRealtimePeriod": 0,
+            "CpuRealtimeRuntime": 0,
+            "CpusetCpus": "",
+            "CpusetMems": "",
+            "Devices": null,
+            "DeviceCgroupRules": null,
+            "DeviceRequests": [
+                {
+                    "Driver": "nvidia",
+                    "Count": -1,
+                    "DeviceIDs": null,
+                    "Capabilities": [
+                        [
+                            "gpu"
+                        ]
+                    ],
+                    "Options": null
+                }
+            ],
+            "MemoryReservation": 0,
+            "MemorySwap": 0,
+            "MemorySwappiness": null,
+            "OomKillDisable": null,
+            "PidsLimit": null,
+            "Ulimits": [
+                {
+                    "Name": "stack",
+                    "Hard": 67108864,
+                    "Soft": 67108864
+                },
+                {
+                    "Name": "memlock",
+                    "Hard": -1,
+                    "Soft": -1
+                }
+            ],
+            "CpuCount": 0,
+            "CpuPercent": 0,
+            "IOMaximumIOps": 0,
+            "IOMaximumBandwidth": 0,
+            "MaskedPaths": [
+                "/proc/acpi",
+                "/proc/asound",
+                "/proc/interrupts",
+                "/proc/kcore",
+                "/proc/keys",
+                "/proc/latency_stats",
+                "/proc/sched_debug",
+                "/proc/scsi",
+                "/proc/timer_list",
+                "/proc/timer_stats",
+                "/sys/devices/virtual/powercap",
+                "/sys/firmware"
+            ],
+            "ReadonlyPaths": [
+                "/proc/bus",
+                "/proc/fs",
+                "/proc/irq",
+                "/proc/sys",
+                "/proc/sysrq-trigger"
+            ]
+        },
+        "Storage": {
+            "RootFS": {
+                "Snapshot": {
+                    "Name": "overlayfs"
+                }
+            }
+        },
+        "Mounts": [
+            {
+                "Type": "bind",
+                "Source": "/mnt/d/ai/models/Q5_K_M/",
+                "Destination": "/models",
+                "Mode": "ro",
+                "RW": false,
+                "Propagation": "rprivate"
+            },
+            {
+                "Type": "bind",
+                "Source": "/home/pawan/qwen-stack/slot-cache",
+                "Destination": "/slot-cache",
+                "Mode": "rw",
+                "RW": true,
+                "Propagation": "rprivate"
+            }
+        ],
+        "Config": {
+            "Hostname": "f47b1ac3975b",
+            "Domainname": "",
+            "User": "",
+            "AttachStdin": false,
+            "AttachStdout": true,
+            "AttachStderr": true,
+            "ExposedPorts": {
+                "8080/tcp": {}
+            },
+            "Tty": false,
+            "OpenStdin": false,
+            "StdinOnce": false,
+            "Env": [
+                "LLAMA_ARG_N_PARALLEL=1",
+                "LLAMA_ARG_PORT=8080",
+                "LLAMA_ARG_CONT_BATCHING=0",
+                "LLAMA_ARG_THREADS=20",
+                "LLAMA_ARG_TEMP=0.20",
+                "LLAMA_ARG_N_CPU_MOE=12",
+                "LLAMA_ARG_CACHE_TYPE_V=q8_0",
+                "LLAMA_ARG_THREADS_BATCH=20",
+                "LLAMA_ARG_NO_MMAP=0",
+                "LLAMA_ARG_MODEL=/models/Qwen3-Coder-Next-Q5_K_M-00001-of-00003.gguf",
+                "LLAMA_ARG_REPEAT_PENALTY=1.08",
+                "LLAMA_ARG_DRY_ALLOWED_LENGTH=2",
+                "LLAMA_ARG_MIN_P=0.05",
+                "LLAMA_ARG_DRY_MULTIPLIER=0.8",
+                "LLAMA_ARG_UBATCH=512",
+                "LLAMA_ARG_HOST=0.0.0.0",
+                "LLAMA_ARG_CTX_SIZE=65536",
+                "LLAMA_CACHE=/slot-cache",
+                "LLAMA_ARG_BATCH=2048",
+                "LLAMA_ARG_DRY_BASE=1.75",
+                "LLAMA_ARG_CACHE_TYPE_K=q8_0",
+                "LLAMA_ARG_JINJA=1",
+                "LLAMA_ARG_FLASH_ATTN=1",
+                "LLAMA_ARG_TOP_P=0.92",
+                "PATH=/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "NVARCH=x86_64",
+                "NVIDIA_REQUIRE_CUDA=cuda\u003e=12.8 brand=unknown,driver\u003e=470,driver\u003c471 brand=grid,driver\u003e=470,driver\u003c471 brand=tesla,driver\u003e=470,driver\u003c471 brand=nvidia,driver\u003e=470,driver\u003c471 brand=quadro,driver\u003e=470,driver\u003c471 brand=quadrortx,driver\u003e=470,driver\u003c471 brand=nvidiartx,driver\u003e=470,driver\u003c471 brand=vapps,driver\u003e=470,driver\u003c471 brand=vpc,driver\u003e=470,driver\u003c471 brand=vcs,driver\u003e=470,driver\u003c471 brand=vws,driver\u003e=470,driver\u003c471 brand=cloudgaming,driver\u003e=470,driver\u003c471 brand=unknown,driver\u003e=535,driver\u003c536 brand=grid,driver\u003e=535,driver\u003c536 brand=tesla,driver\u003e=535,driver\u003c536 brand=nvidia,driver\u003e=535,driver\u003c536 brand=quadro,driver\u003e=535,driver\u003c536 brand=quadrortx,driver\u003e=535,driver\u003c536 brand=nvidiartx,driver\u003e=535,driver\u003c536 brand=vapps,driver\u003e=535,driver\u003c536 brand=vpc,driver\u003e=535,driver\u003c536 brand=vcs,driver\u003e=535,driver\u003c536 brand=vws,driver\u003e=535,driver\u003c536 brand=cloudgaming,driver\u003e=535,driver\u003c536 brand=unknown,driver\u003e=550,driver\u003c551 brand=grid,driver\u003e=550,driver\u003c551 brand=tesla,driver\u003e=550,driver\u003c551 brand=nvidia,driver\u003e=550,driver\u003c551 brand=quadro,driver\u003e=550,driver\u003c551 brand=quadrortx,driver\u003e=550,driver\u003c551 brand=nvidiartx,driver\u003e=550,driver\u003c551 brand=vapps,driver\u003e=550,driver\u003c551 brand=vpc,driver\u003e=550,driver\u003c551 brand=vcs,driver\u003e=550,driver\u003c551 brand=vws,driver\u003e=550,driver\u003c551 brand=cloudgaming,driver\u003e=550,driver\u003c551 brand=unknown,driver\u003e=560,driver\u003c561 brand=grid,driver\u003e=560,driver\u003c561 brand=tesla,driver\u003e=560,driver\u003c561 brand=nvidia,driver\u003e=560,driver\u003c561 brand=quadro,driver\u003e=560,driver\u003c561 brand=quadrortx,driver\u003e=560,driver\u003c561 brand=nvidiartx,driver\u003e=560,driver\u003c561 brand=vapps,driver\u003e=560,driver\u003c561 brand=vpc,driver\u003e=560,driver\u003c561 brand=vcs,driver\u003e=560,driver\u003c561 brand=vws,driver\u003e=560,driver\u003c561 brand=cloudgaming,driver\u003e=560,driver\u003c561 brand=unknown,driver\u003e=565,driver\u003c566 brand=grid,driver\u003e=565,driver\u003c566 brand=tesla,driver\u003e=565,driver\u003c566 brand=nvidia,driver\u003e=565,driver\u003c566 brand=quadro,driver\u003e=565,driver\u003c566 brand=quadrortx,driver\u003e=565,driver\u003c566 brand=nvidiartx,driver\u003e=565,driver\u003c566 brand=vapps,driver\u003e=565,driver\u003c566 brand=vpc,driver\u003e=565,driver\u003c566 brand=vcs,driver\u003e=565,driver\u003c566 brand=vws,driver\u003e=565,driver\u003c566 brand=cloudgaming,driver\u003e=565,driver\u003c566",
+                "NV_CUDA_CUDART_VERSION=12.8.90-1",
+                "CUDA_VERSION=12.8.1",
+                "LD_LIBRARY_PATH=/usr/local/cuda/lib64",
+                "NVIDIA_VISIBLE_DEVICES=all",
+                "NVIDIA_DRIVER_CAPABILITIES=compute,utility",
+                "NV_CUDA_LIB_VERSION=12.8.1-1",
+                "NV_NVTX_VERSION=12.8.90-1",
+                "NV_LIBNPP_VERSION=12.3.3.100-1",
+                "NV_LIBNPP_PACKAGE=libnpp-12-8=12.3.3.100-1",
+                "NV_LIBCUSPARSE_VERSION=12.5.8.93-1",
+                "NV_LIBCUBLAS_PACKAGE_NAME=libcublas-12-8",
+                "NV_LIBCUBLAS_VERSION=12.8.4.1-1",
+                "NV_LIBCUBLAS_PACKAGE=libcublas-12-8=12.8.4.1-1",
+                "NV_LIBNCCL_PACKAGE_NAME=libnccl2",
+                "NV_LIBNCCL_PACKAGE_VERSION=2.25.1-1",
+                "NCCL_VERSION=2.25.1-1",
+                "NV_LIBNCCL_PACKAGE=libnccl2=2.25.1-1+cuda12.8",
+                "NVIDIA_PRODUCT_NAME=CUDA"
+            ],
+            "Cmd": null,
+            "Healthcheck": {
+                "Test": [
+                    "CMD",
+                    "curl",
+                    "-f",
+                    "http://localhost:8080/health"
+                ]
+            },
+            "Image": "ghcr.io/ggml-org/llama.cpp:server-cuda",
+            "Volumes": null,
+            "WorkingDir": "/app",
+            "Entrypoint": [
+                "/app/llama-server"
+            ],
+            "Labels": {
+                "com.docker.compose.config-hash": "aae4b805d5f77671c6cf32f0007f11cd3c87d95f804a6fbe3da8ff99356dc9c8",
+                "com.docker.compose.container-number": "1",
+                "com.docker.compose.depends_on": "",
+                "com.docker.compose.image": "sha256:841b199aed2649a748875b043b32fed2e8c2d4d87e1d563556817fb7fa44b72b",
+                "com.docker.compose.oneoff": "False",
+                "com.docker.compose.project": "qwen-stack",
+                "com.docker.compose.project.config_files": "/home/pawan/qwen-stack/docker-compose.yml",
+                "com.docker.compose.project.working_dir": "/home/pawan/qwen-stack",
+                "com.docker.compose.replace": "qwen-llm",
+                "com.docker.compose.service": "llm",
+                "com.docker.compose.version": "5.1.4",
+                "desktop.docker.io/wsl-distro": "Ubuntu-22.04",
+                "maintainer": "NVIDIA CORPORATION \u003ccudatools@nvidia.com\u003e",
+                "org.opencontainers.image.created": "2026-06-12T05:48:49Z",
+                "org.opencontainers.image.description": "LLM inference in C/C++",
+                "org.opencontainers.image.ref.name": "ubuntu",
+                "org.opencontainers.image.revision": "ba1df050f3dc7827fc64936b2e24fe499c9f74eb",
+                "org.opencontainers.image.source": "https://github.com/ggml-org/llama.cpp",
+                "org.opencontainers.image.title": "llama.cpp",
+                "org.opencontainers.image.url": "https://github.com/ggml-org/llama.cpp",
+                "org.opencontainers.image.version": "b9603"
+            },
+            "StopTimeout": 1
+        },
+        "NetworkSettings": {
+            "SandboxID": "b6b744ca35006eb115b0f8db67440292c00ca92fec95bae1f5bbf186f5eaf5a8",
+            "SandboxKey": "/var/run/docker/netns/b6b744ca3500",
+            "Ports": {
+                "8080/tcp": [
+                    {
+                        "HostIp": "0.0.0.0",
+                        "HostPort": "8080"
+                    },
+                    {
+                        "HostIp": "::",
+                        "HostPort": "8080"
+                    }
+                ]
+            },
+            "Networks": {
+                "qwen-net": {
+                    "IPAMConfig": null,
+                    "Links": null,
+                    "Aliases": [
+                        "qwen-llm",
+                        "llm"
+                    ],
+                    "DriverOpts": null,
+                    "GwPriority": 0,
+                    "NetworkID": "9f79c4ec90d472a5d3a3a90b0ba00c7376b83cbf5238bd7e34fd9f0387908a0f",
+                    "EndpointID": "dc958d2b41d8a8f34d29c790e3712b1b48b02eea3d7988c8b8bbca54632f3240",
+                    "Gateway": "172.19.0.1",
+                    "IPAddress": "172.19.0.4",
+                    "MacAddress": "62:21:3d:64:00:ec",
+                    "IPPrefixLen": 16,
+                    "IPv6Gateway": "",
+                    "GlobalIPv6Address": "",
+                    "GlobalIPv6PrefixLen": 0,
+                    "DNSNames": [
+                        "qwen-llm",
+                        "llm",
+                        "f47b1ac3975b"
+                    ]
+                }
+            }
+        },
+        "ImageManifestDescriptor": {
+            "mediaType": "application/vnd.oci.image.manifest.v1+json",
+            "digest": "sha256:b74981198242837ddcefb236e0ef20c014b4d0f3b4c079d435380c45098a99fa",
+            "size": 3271,
+            "platform": {
+                "architecture": "amd64",
+                "os": "linux"
+            }
+        }
+    }
+]

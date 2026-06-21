@@ -14,7 +14,7 @@ export async function runTrivyImage(imageRef: string): Promise<{
 }> {
   const tmp = path.join(
     os.tmpdir(),
-    `trivy-${Date.now()}-${Math.random().toString(16).slice(2)}.json`,
+    `trivy-${Date.now()}-${crypto.randomBytes(4).toString("hex")}.json`,
   );
 
   try {

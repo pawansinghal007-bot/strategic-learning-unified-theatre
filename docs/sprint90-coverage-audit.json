@@ -1,0 +1,226 @@
+[
+  {
+    "file": "src/knowledge/ingest/ingest-repository.ts",
+    "stmts": 0,
+    "branches": 0,
+    "functions": 0,
+    "lines": 0
+  },
+  {
+    "file": "src/security/security-overview/ai-explain.ts",
+    "stmts": 39.34,
+    "branches": 53.53,
+    "functions": 80,
+    "lines": 36.2
+  },
+  {
+    "file": "src/security/secrets/suppressions.ts",
+    "stmts": 46.15,
+    "branches": 71.42,
+    "functions": 50,
+    "lines": 45.45
+  },
+  {
+    "file": "src/knowledge/ingest/milvus-client.ts",
+    "stmts": 50,
+    "branches": 25,
+    "functions": 0,
+    "lines": 52.94
+  },
+  {
+    "file": "src/shared/errors/memory.error.ts",
+    "stmts": 50,
+    "branches": 50,
+    "functions": 50,
+    "lines": 50
+  },
+  {
+    "file": "src/shared/errors/routing.error.ts",
+    "stmts": 50,
+    "branches": 50,
+    "functions": 50,
+    "lines": 50
+  },
+  {
+    "file": "src/internal/git-monitor.js",
+    "stmts": 50.74,
+    "branches": 31.81,
+    "functions": 35.71,
+    "lines": 52.54
+  },
+  {
+    "file": "src/session-supervisor.js",
+    "stmts": 54.54,
+    "branches": 25,
+    "functions": 80,
+    "lines": 54.83
+  },
+  {
+    "file": "src/accounts/switcher.js",
+    "stmts": 57.14,
+    "branches": 47.82,
+    "functions": 90,
+    "lines": 57.14
+  },
+  {
+    "file": "src/commands/ai.js",
+    "stmts": 58.76,
+    "branches": 47.61,
+    "functions": 59.25,
+    "lines": 58.85
+  },
+  {
+    "file": "src/internal/paths.js",
+    "stmts": 59.09,
+    "branches": 53.92,
+    "functions": 65.21,
+    "lines": 61.85
+  },
+  {
+    "file": "src/storage/storage-monitor.js",
+    "stmts": 60.2,
+    "branches": 55.23,
+    "functions": 57.44,
+    "lines": 64.28
+  },
+  {
+    "file": "src/encrypt.js",
+    "stmts": 63.49,
+    "branches": 44.82,
+    "functions": 62.5,
+    "lines": 64.91
+  },
+  {
+    "file": "src/internal/journal.js",
+    "stmts": 64.51,
+    "branches": 61.11,
+    "functions": 85.71,
+    "lines": 64.28
+  },
+  {
+    "file": "src/daemon/watcher.js",
+    "stmts": 69.18,
+    "branches": 53.98,
+    "functions": 72.72,
+    "lines": 68.5
+  },
+  {
+    "file": "src/startup-bootstrap.js",
+    "stmts": 69.23,
+    "branches": 42.85,
+    "functions": 60,
+    "lines": 69.23
+  },
+  {
+    "file": "src/startup-plugins.js",
+    "stmts": 72.72,
+    "branches": 75,
+    "functions": 100,
+    "lines": 72.72
+  },
+  {
+    "file": "src/browser-bridge.js",
+    "stmts": 74.19,
+    "branches": 65.87,
+    "functions": 72.05,
+    "lines": 75.36
+  },
+  {
+    "file": "src/internal/config.js",
+    "stmts": 75,
+    "branches": 75,
+    "functions": 90.9,
+    "lines": 75
+  },
+  {
+    "file": "src/llm/local-llm.js",
+    "stmts": 75.35,
+    "branches": 65.78,
+    "functions": 68.42,
+    "lines": 75.91
+  },
+  {
+    "file": "src/accounts/health.js",
+    "stmts": 75.43,
+    "branches": 62.75,
+    "functions": 88.88,
+    "lines": 79.87
+  },
+  {
+    "file": "src/llm/gateway.ts",
+    "stmts": 78.03,
+    "branches": 61.53,
+    "functions": 86.36,
+    "lines": 78.03
+  },
+  {
+    "file": "src/policies/provider-policy.ts",
+    "stmts": 79.74,
+    "branches": 61.47,
+    "functions": 82.75,
+    "lines": 79.86
+  },
+  {
+    "file": "src/llm/knowledge-graph.js",
+    "stmts": 83.07,
+    "branches": 45.74,
+    "functions": 85.71,
+    "lines": 83.07
+  },
+  {
+    "file": "src/llm/storage.ts",
+    "stmts": 83.33,
+    "branches": 37.5,
+    "functions": 100,
+    "lines": 82.35
+  },
+  {
+    "file": "src/llm/training-exporter.js",
+    "stmts": 86.59,
+    "branches": 52.72,
+    "functions": 93.75,
+    "lines": 87.64
+  },
+  {
+    "file": "src/ai-memory/repositories/handoff-repo.js",
+    "stmts": 86.66,
+    "branches": 55.55,
+    "functions": 71.42,
+    "lines": 92.85
+  },
+  {
+    "file": "src/ai-memory/repositories/sprint-state-repo.js",
+    "stmts": 86.66,
+    "branches": 55.55,
+    "functions": 71.42,
+    "lines": 92.85
+  },
+  {
+    "file": "src/policies/policy-presets.ts",
+    "stmts": 90,
+    "branches": 50,
+    "functions": 100,
+    "lines": 100
+  },
+  {
+    "file": "src/security/risks/parsers.ts",
+    "stmts": 95,
+    "branches": 55.73,
+    "functions": 100,
+    "lines": 93.33
+  },
+  {
+    "file": "src/knowledge/ingest/embedder.ts",
+    "stmts": 100,
+    "branches": 50,
+    "functions": 100,
+    "lines": 100
+  },
+  {
+    "file": "src/shared/errors/base.ts",
+    "stmts": 100,
+    "branches": 50,
+    "functions": 100,
+    "lines": 100
+  }
+]

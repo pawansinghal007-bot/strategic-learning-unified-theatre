@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   createCollection: vi.fn(),
   createIndex: vi.fn(),
   loadCollection: vi.fn(),
+  flush: vi.fn(),
   ensureKnowledgeCollection: vi.fn(),
   embedTextBatch: vi.fn(),
 }));
@@ -22,6 +23,7 @@ vi.mock("../src/knowledge/ingest/milvus-client.js", () => ({
     createCollection: mocks.createCollection,
     createIndex: mocks.createIndex,
     loadCollection: mocks.loadCollection,
+    flush: mocks.flush,
   }),
   ensureKnowledgeCollection: mocks.ensureKnowledgeCollection,
   KNOWLEDGE_COLLECTION: "knowledge_chunks",
@@ -63,6 +65,7 @@ describe("Sprint 83 — ingest-sprint-history module unit tests", () => {
     mocks.createCollection.mockResolvedValue(undefined);
     mocks.createIndex.mockResolvedValue(undefined);
     mocks.loadCollection.mockResolvedValue(undefined);
+    mocks.flush.mockResolvedValue(undefined);
     mocks.ensureKnowledgeCollection.mockResolvedValue(undefined);
     // embedTextBatch returns a vector for each text
     mocks.embedTextBatch.mockImplementation((texts) =>

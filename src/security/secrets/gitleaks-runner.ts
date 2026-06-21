@@ -67,7 +67,7 @@ function normalizeFinding(row: any): SecretFinding {
       .digest("hex");
 
   return {
-    id: crypto.createHash("sha1").update(String(fingerprint)).digest("hex"),
+    id: crypto.createHash("sha256").update(String(fingerprint)).digest("hex"),
     ruleId,
     description,
     severity: mapSeverity(ruleId, description),
@@ -159,7 +159,7 @@ export async function runSecretsScan(
 ): Promise<SecretsScanResult> {
   const reportPath = path.join(
     os.tmpdir(),
-    `gitleaks-report-${Date.now()}-${Math.random().toString(16).slice(2)}.json`,
+    `gitleaks-report-${Date.now()}-${crypto.randomBytes(4).toString("hex")}.json`,
   );
 
   const args: string[] = [
