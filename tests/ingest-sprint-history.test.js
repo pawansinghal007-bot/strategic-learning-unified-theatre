@@ -27,6 +27,7 @@ vi.mock("../src/knowledge/ingest/milvus-client.js", () => ({
   }),
   ensureKnowledgeCollection: mocks.ensureKnowledgeCollection,
   KNOWLEDGE_COLLECTION: "knowledge_chunks",
+  chunkToMilvusEntity: (chunk) => chunk,
 }));
 
 vi.mock("../src/knowledge/ingest/embedder.js", () => ({

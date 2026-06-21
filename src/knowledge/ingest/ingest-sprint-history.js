@@ -4,6 +4,7 @@ import {
   getMilvusClient,
   KNOWLEDGE_COLLECTION,
   ensureKnowledgeCollection,
+  chunkToMilvusEntity,
 } from "./milvus-client.js";
 import { chunkDocument } from "./chunking.js";
 import { embedTextBatch } from "./embedder.js";
@@ -61,25 +62,6 @@ async function loadSprintReportDocument(filePath, defaultFeatureArea) {
     sprint,
     featureArea: defaultFeatureArea,
     rawText,
-  };
-}
-
-function chunkToMilvusEntity(chunk) {
-  return {
-    chunk_id: chunk.chunkId,
-    doc_id: chunk.docId,
-    source_type: chunk.sourceType,
-    sprint: chunk.sprint ?? -1,
-    module: chunk.module ?? "",
-    feature_area: chunk.featureArea ?? "",
-    version: chunk.version ?? "",
-    path: chunk.path ?? "",
-    section: chunk.section ?? "",
-    importance: chunk.importance,
-    hash: chunk.hash,
-    created_at: chunk.createdAt,
-    text: chunk.text.slice(0, 16_384),
-    dense_vector: chunk.denseVector,
   };
 }
 
