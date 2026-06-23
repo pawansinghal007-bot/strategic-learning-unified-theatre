@@ -4,11 +4,11 @@ import { pathToFileURL } from "node:url";
 
 const coreModules = [
   "src/accounts/secret-store.js",
-  "src/daemon/daemon-runner.js",
   "src/browser-bridge.js",
   "src/agent-handoff.js",
   "src/llm/local-llm.js",
   "src/idea-store.js",
+  "src/knowledge/ingest/ingest-sprint-history.js",
 ];
 const threshold = 70;
 

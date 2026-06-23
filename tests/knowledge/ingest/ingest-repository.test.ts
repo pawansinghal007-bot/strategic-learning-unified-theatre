@@ -14,18 +14,24 @@ const mocks = vi.hoisted(() => ({
   embedTextBatch: vi.fn(),
 }));
 
-vi.mock("../../../src/knowledge/ingest/milvus-client.js", () => ({
-  getMilvusClient: vi.fn().mockReturnValue({
-    insert: mocks.insert,
-    hasCollection: mocks.hasCollection,
-    createCollection: mocks.createCollection,
-    createIndex: mocks.createIndex,
-    loadCollection: mocks.loadCollection,
-    flush: mocks.flush,
-  }),
-  ensureKnowledgeCollection: mocks.ensureKnowledgeCollection,
-  KNOWLEDGE_COLLECTION: "knowledge_chunks",
-}));
+vi.mock(
+  "../../../src/knowledge/ingest/milvus-client.js",
+  async (importOriginal) => {
+    const actual = await importOriginal();
+    return {
+      ...actual,
+      getMilvusClient: vi.fn().mockReturnValue({
+        insert: mocks.insert,
+        hasCollection: mocks.hasCollection,
+        createCollection: mocks.createCollection,
+        createIndex: mocks.createIndex,
+        loadCollection: mocks.loadCollection,
+        flush: mocks.flush,
+      }),
+      ensureKnowledgeCollection: mocks.ensureKnowledgeCollection,
+    };
+  },
+);
 
 vi.mock("../../../src/knowledge/ingest/embedder.js", () => ({
   embedTextBatch: mocks.embedTextBatch,

@@ -243,7 +243,10 @@ describe("WatcherDaemon coverage — _setupGitMonitoring", () => {
     }
     await daemon.stop();
     expect(gitWarnEvents).toHaveLength(1);
-    expect(gitWarnEvents[0]).toMatchObject({ repoPath: "/repo/a", reason: "dirty" });
+    expect(gitWarnEvents[0]).toMatchObject({
+      repoPath: "/repo/a",
+      reason: "dirty",
+    });
     expect(s.journal.append).toHaveBeenCalledWith(
       expect.objectContaining({ type: "GIT_WARN" }),
     );

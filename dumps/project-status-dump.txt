@@ -1,31 +1,30 @@
 === GIT STATUS ===
  M dumps/project-status-dump.txt
- M strategic-learning-unified-theatre-ai-snapshot-sprint67-stable
 
 === GIT BRANCH ===
 main
 
 === RECENT COMMITS ===
-eb5ec46e chore(sprint-67): var→let/const S3504 conversion, residual S7761/S7760 fixes in dashboard.js
-76ffff7a chore(sprint-66): Sonar remediation continuation — fresh scan, complexity/TypeScript cleanup where safe, regression guard against Sprint 65 fix reversal
-6037ba5b chore(sprint-65): guard-only regression suite + residual cleanup verification — confirm Sprint 64 dataset migration, lock release-truth wording
-7f7d5d9b feat(sprint-64): Sonar S7761 dataset migration, repo cleanup, sprint closure
-ce6d281c docs(sprint-64-t1): update active snapshot to sprint64-t1 completion
-eb5b97d3 chore(sprint-64-t1): remove debug artifacts, harden .gitignore, pre-migration audit
-a74386ca feat(sprint-63): executive release truth panel — honest scanner/quality-gate/issues/coverage surface, no false-clean claims
-b6885fe9 feat(sprint-62): Sonar truthfulness — real preflight/qualitygate/issues scripts, coverage config audit, clean-tree guard, reporting language precision
-743f8b8e feat(sprint-61): executive review panel, live review evidence, export and persistence verification — Human Tester 8
-b61ac653 feat(sprint-60): executive compliance panel, drift review, benchmark mapping, demo persistence — Human Tester 7
-e9ddb7f2 feat(sprint-59): executive walkthrough panel, demo mode, proof export — Human Tester 6
-c907f94d feat(sprint-58): Human Tester 5 — proof interactions, capture flow, screenshot-safe evidence surfaces
-3fb5416c feat(sprint-57): Human Tester 4 — executive evidence pack, governance/security/knowledge proof surfaces
-3df9a294 feat(sprint-56): Human Tester 3 — data-testid hooks, local-AI status, Playwright stabilization
-9432d5cc feat(sprint-56-t1-t2): dashboard data-testid hooks, local-AI status panel, Playwright spec updates
-685053bf feat(sprint-55): timeline reconciliation, Playwright .cjs guard, Vitest regression test
-2a2f6f10 feat(sprint-54): human tester E2E scaffold and UI validation suite
-e70cba86 feat(sprint-54): auto-scan trigger, drift-history storage
-9bb8d3b6 feat(sprint-54-t1-t2): drift-history backend, auto-scan orchestrator, IPC, preload, types
-4be1d228 feat(sprint-53): cross-surface regression hardening — tests only
+bd30f44 fix(sprint-93): remove unused truncateTextForMilvus import (S1128), wrap map callback (S7727)
+8bc3443 style(sprint-93): formatting-only change in sprint92 guard
+87d5e38 refactor(sprint-93): extract chunkToMilvusEntity and truncateTextForMilvus to milvus-client.js to eliminate S1192 duplication
+520cd8c chore(sprint-92): stable snapshot and active pointer update
+c117ace chore(sprint-92): add closure guard for thread fix and coverage alignment
+c42c241 fix(sprint-92): align sonar.coverage.exclusions with vitest exclude list — coverage now 84.1%
+1d10c07 fix(sprint-92): S5914 thread.test.js + dynamic snapshot regex in sprint75-guard
+e639786 chore(sprint-91): add stable snapshot
+2ef14f5 chore(sprint-91): Sonar S3776/S7785/S4043/S1128/S2699 fixes, sprint90 coverage guard now passing
+94b9cdd sprint-91-complete: fix all test failures and coverage thresholds
+d178124 Sprint 86: Quality Gate Remediation - Hotspot Triage + Coverage Baseline
+a732319 Sprint 85: Eliminate S2486 violations with structural fixes
+a0127e5 sprint-83: coverage improvement & violation triage
+e32c261 Sprint 82: Security Overview Coverage & Validation
+437023b Sprint 81: Update planning docs
+c2d674c Sprint 81: Fix Sonar new-code coverage reporting pipeline
+2147977 Sprint 80: Update planning docs
+7c17aaa Sprint 80: Add Sonar remediation and scope guard tests
+94b540c Sprint 80: Fix S6551/S7735/S3358/S6644 in security overview files
+6d10369 Sprint 79: Add Sonar issues report (14 new-code violations)
 
 === TRACKED FILES ===
 .continue/agents/new-config.yaml
@@ -40,6 +39,8 @@ e70cba86 feat(sprint-54): auto-scan trigger, drift-history storage
 .github/workflows/test.yml
 .gitignore
 .scannerwork/.sonar_lock
+.tmp/strategic-learning-ingest-repository.mjs
+.tmp/strategic-learning-ingest-sprint-history.mjs
 BC2-INTEGRATION-GUIDE.js
 CURRENT_ACTIVE_SNAPSHOT.md
 IPC
@@ -77,7 +78,13 @@ PROJECT_ARCHITECTURE_BASELINE-20260605-071822.md
 PROJECT_ARCHITECTURE_BASELINE.md
 Preload
 README.md
+SONAR_ISSUES_REPORT_SPRINT77.md
+SONAR_ISSUES_REPORT_SPRINT78.md
+SONAR_ISSUES_REPORT_SPRINT79.md
+SONAR_REPORT_SPRINT78.md
+SPRINT91_AI_SNAPSHOT.md
 SPRINT_67_SUMMARY.md
+SPRINT_83_VIOLATIONS.md
 Service
 ai-snapshot-sprint17-local.md
 ai-snapshot-sprint17.md
@@ -159,6 +166,7 @@ audit_chunks/group_co
 audit_chunks/group_cp
 audit_chunks/group_cq
 build/icon.ico
+check-coverage-failures.cjs
 config/ci-runtime.json
 config/security-governance.json
 config/update.README.md
@@ -211,7 +219,10 @@ docs/archive/sprints/sprint-15-5-packaging-signing-updates.md
 docs/archive/sprints/sprint-15-confirmation.md
 docs/chaos-resilience-runbook.md
 docs/coverage-baseline.md
+docs/coverage-exclusions.md
 docs/release-checklist-enterprise.md
+docs/security-confidence-summary.md
+docs/security-hotspot-log.md
 docs/security/hotspots/waivers.json
 docs/sprint-11-analysis.md
 docs/sprint-18-checklist.md
@@ -256,6 +267,22 @@ docs/sprint-46-checklist.md
 docs/sprint-46-scope.md
 docs/sprint-48-checklist.md
 docs/sprint-48-scope.md
+docs/sprint-82-checklist.md
+docs/sprint-82-scope.md
+docs/sprint-83-checklist.md
+docs/sprint-83-quality-gate.md
+docs/sprint-83-scope.md
+docs/sprint-84-checklist.md
+docs/sprint-84-master-plan-update.md
+docs/sprint-84-scope.md
+docs/sprint-84-sonar-backlog.md
+docs/sprint-85-checklist.md
+docs/sprint-85-scope.md
+docs/sprint-86-coverage-baseline.md
+docs/sprint-86-hotspot-inventory.json
+docs/sprint-86-hotspot-inventory.md
+docs/sprint-87-hotspot-raw.json
+docs/sprint90-coverage-audit.json
 docs/technical/SPRINT-14-S1-ARCHITECTURE.md
 docs/technical/SPRINT-14-S4-INTEGRATION.md
 docs/test-protection-dashboard.md
@@ -331,14 +358,17 @@ electron-ui/preload.bundled.cjs
 electron-ui/preload.cjs
 electron-ui/sharp-linux-x64-DQNVFNDI.node
 electron-ui/src-loader.cjs
+fetch-violations.mjs
 git-history.txt
 hello.py
 index_repo.py
+inspect.json
 key-files.txt
 lessons
 load-env.ps1
 main
 master_timeline_sprints_1_54.md
+memories/session/sprint90-todo.md
 package-lock.json
 package.json
 playwright-config.txt
@@ -407,7 +437,10 @@ scripts/check-sonar-quality-gate.mjs
 scripts/check-sonar-readiness.mjs
 scripts/export-repo.ps1
 scripts/export-sonar-issues.mjs
+scripts/export-sonar-summary.mjs
 scripts/generate-icons.js
+scripts/ingest-repository.mjs
+scripts/ingest-sprint-history.mjs
 scripts/install.js
 scripts/one-time-capture.mjs
 scripts/plugin_test_runner.mjs
@@ -420,7 +453,10 @@ scripts/watch-browser-activity.mjs
 search_repo.py
 smoke-test-sprint12.js
 snapshots/SPRINT16_COMPLETE.md
+sonar-all-issues.json
+sonar-issues.json
 sonar-project.properties
+sonar-report-sprint74-t1.md
 sonar-security-issues.json
 sonar_hotspots.csv
 sonar_issues.csv
@@ -526,11 +562,16 @@ src/internal/reporter.js
 src/knowledge/index.ts
 src/knowledge/ingest/chunking.ts
 src/knowledge/ingest/embedder.ts
+src/knowledge/ingest/ingest-repository.js
+src/knowledge/ingest/ingest-sprint-history.js
 src/knowledge/ingest/ingest-sprint-history.ts
+src/knowledge/ingest/milvus-client.js
 src/knowledge/ingest/milvus-client.ts
+src/knowledge/rag-dedup.js
 src/knowledge/schema/documents.ts
 src/knowledge/schema/metadata.ts
 src/limit-detector.js
+src/llm/agent-loop-guard.js
 src/llm/document-ingester.js
 src/llm/embeddings.js
 src/llm/experience-db.js
@@ -809,6 +850,25 @@ strategic-learning-unified-theatre-ai-snapshot-sprint66-t1
 strategic-learning-unified-theatre-ai-snapshot-sprint66-t2
 strategic-learning-unified-theatre-ai-snapshot-sprint67-stable
 strategic-learning-unified-theatre-ai-snapshot-sprint67-t1
+strategic-learning-unified-theatre-ai-snapshot-sprint68-stable
+strategic-learning-unified-theatre-ai-snapshot-sprint68-t1
+strategic-learning-unified-theatre-ai-snapshot-sprint68-t2
+strategic-learning-unified-theatre-ai-snapshot-sprint69-stable
+strategic-learning-unified-theatre-ai-snapshot-sprint69-t1
+strategic-learning-unified-theatre-ai-snapshot-sprint70-stable
+strategic-learning-unified-theatre-ai-snapshot-sprint70-t1
+strategic-learning-unified-theatre-ai-snapshot-sprint70-t2
+strategic-learning-unified-theatre-ai-snapshot-sprint71-stable
+strategic-learning-unified-theatre-ai-snapshot-sprint72-stable
+strategic-learning-unified-theatre-ai-snapshot-sprint73-stable
+strategic-learning-unified-theatre-ai-snapshot-sprint74-stable
+strategic-learning-unified-theatre-ai-snapshot-sprint74-t1
+strategic-learning-unified-theatre-ai-snapshot-sprint75-stable
+strategic-learning-unified-theatre-ai-snapshot-sprint77-stable
+strategic-learning-unified-theatre-ai-snapshot-sprint78-stable.md
+strategic-learning-unified-theatre-ai-snapshot-sprint79-stable.md
+strategic-learning-unified-theatre-ai-snapshot-sprint91-stable
+strategic-learning-unified-theatre-ai-snapshot-sprint92-stable
 strategic-learning-unified-theatre-ai-snapshot-v1.3-stable
 strategic-learning-unified-theatre-ai-snapshot-v1.3b-active
 strategic-learning-unified-theatre-ai-snapshot-v1.4-stable
@@ -857,6 +917,7 @@ tests/cli-validation.test.js
 tests/config-policy.test.js
 tests/config-validation.test.js
 tests/coverage-gate.test.js
+tests/coverage-thresholds.js
 tests/dashboard-loader.js
 tests/dashboard.test.js
 tests/domain-error.test.js
@@ -885,8 +946,14 @@ tests/human/quota-security.spec.js
 tests/idea-store-quarantine.test.js
 tests/idea-store.test.js
 tests/idea-validation.test.js
+tests/ingest-sprint-history.test.js
+tests/internal/journal.test.js
+tests/internal/paths.test.js
 tests/knowledge-graph.test.js
+tests/knowledge/ingest/ingest-repository.test.ts
+tests/limit-detector.test.js
 tests/llm-training-exporter.test.js
+tests/llm/agent-loop-guard.test.js
 tests/llm/embeddings.test.js
 tests/llm/llm.test.js
 tests/llm/local-provider.test.js
@@ -907,10 +974,13 @@ tests/regression/scoring-invariants.test.js
 tests/risks-runner.test.js
 tests/robot-suites.test.js
 tests/run-tests-smoke.test.js
+tests/sanitize-env-spawn.test.js
+tests/scheduler.test.js
 tests/scorer.test.js
 tests/secret-store.test.js
 tests/secrets-runner.test.js
 tests/security-overview-ai-explain.test.js
+tests/security-overview-auto-scan.test.js
 tests/security-overview-drift.test.js
 tests/security-overview.test.js
 tests/session-supervisor.test.js
@@ -990,10 +1060,33 @@ tests/sprint64-dataset-migration.test.js
 tests/sprint65-guard-only.test.js
 tests/sprint66-remediation-guard.test.js
 tests/sprint67-measured-cleanup.test.js
+tests/sprint68-gate-path-guard.test.js
+tests/sprint69-coverage-expansion.test.js
+tests/sprint69-coverage-guard.test.js
+tests/sprint70-coverage-pipeline-guard.test.js
+tests/sprint71-newcode-scope-guard.test.js
+tests/sprint72-modified-newcode-boundary.test.js
+tests/sprint73-boundary-confirmation.test.js
+tests/sprint74-violation-remediation.test.js
+tests/sprint75-guard.test.js
+tests/sprint76-globalthis-guard.test.js
+tests/sprint77-build-and-scope-guard.test.js
+tests/sprint79-sonar-scope-guard.test.js
+tests/sprint80-plan-and-scope-guard.test.js
+tests/sprint80-security-overview-sonar-remediation.test.js
+tests/sprint84-quality-and-scope-guard.test.js
+tests/sprint84-sonar-backlog-guard.test.js
+tests/sprint85-guard.test.js
+tests/sprint86-hotspot-guard.test.js
+tests/sprint87-gate-guard.test.js
+tests/sprint90-coverage-policy.test.js
+tests/sprint91-sonar-fix-guard.test.js
+tests/sprint92-thread-and-coverage-guard.test.js
 tests/startup-bootstrap.test.js
 tests/startup-plugins.test.js
 tests/storage/collector.test.js
 tests/storage/storage-monitor.test.js
+tests/storage/storageStatus.test.js
 tests/store.test.js
 tests/switcher.test.js
 tests/system/systemHealth.test.js
@@ -1087,18 +1180,30 @@ Sprint 59 (Human Tester 6 — executive walkthrough panel, demo mode, exportable
 
 ## Remaining
 
-| Sprint | Focus                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Status   |
-| ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| 59     | Human Tester 6 — executive walkthrough panel, demo mode, exportable/copyable proof summary, walkthrough surface markers across governance/security/audit/timeline/knowledge, Playwright walkthrough coverage, regression guard, sprint closure.                                                                                                                                                                                                                                                                        | Complete |
-| 60     | Human Tester 7 — executive compliance panel, drift-history review, compliance benchmark mapping, persisted demo-state markers, executive-compliance Playwright spec, regression guard, sprint closure.                                                                                                                                                                                                                                                                                                                 | Complete |
-| 61     | Human Tester 8 — executive review panel, live review evidence assembly from drift/compliance/proof-summary surfaces, review export and persistence verification, executive-review Playwright spec, regression guard, sprint closure.                                                                                                                                                                                                                                                                                   | Complete |
-| 62     | Sonar truthfulness and coverage integrity — replaced placeholder Sonar npm scripts with real preflight/qualitygate/issues checks, audited sonar-project.properties LCOV path and exclusions, hardened .gitignore against generated artifacts, added 4 regression test suites for Sonar wiring/config/clean-tree/reporting-language precision.                                                                                                                                                                          | Complete |
-| 63     | Human Tester 9 — executive release panel (deferred from Sprint 62), real review wiring, and release-readiness surfaces.                                                                                                                                                                                                                                                                                                                                                                                                | Complete |
-| 64     | Sonar S7761 dataset migration: setAttribute('data-\*') converted to .dataset across all executive panel helper functions (setProofAction, setLocalAiStatus, setWalkthroughState, setProofSummaryState, setComplianceState, setDriftHistoryState, setDemoPersistenceState, setReviewState, setReviewPersistenceState, setReviewExportState, setReleaseBlockersState, setReleaseState). sprint64-dataset-migration.test.js regression guard added. Repo cleanup: Sprint 63 debug artifacts removed, .gitignore hardened. | Complete |
-| 65     | Architecture verification and residual cleanup audit: confirmed dashboard.js/provider-dashboard.html split, audited remaining setAttribute calls, fixed 3 residual S7761 violations in event handlers (compliance/release-readiness/sonar-refresh), verified no duplicate functions. Guard-only regression suite (27 tests) created: compatibility hooks, dataset-backed state markers, false-clean language prevention, release-truth wording lock. All 1466 tests passing.                                           | Complete |
-| 66     | Sonar remediation continuation: Cognitive complexity reduction (S3776 in preload.cjs), TypeScript migration and cleanup (preload.cjs types.d.ts), remaining dataset migration in utility files. Sonar quality gate: gate FAILED with 151 new_violations. Guard regression suite (30 tests) added for remediation tracking.                                                                                                                                                                                             | Complete |
-| 67     | Measured Sonar cleanup in dashboard.js: S3504 var→let/const conversion (40 declarations across 3 passes), S7760 default parameter fix (setWalkthroughState), S7761 getAttribute residual removal. sprint67-measured-cleanup.test.js guard added (13 tests). No HTML changes, no new features. Dashboard.js var count reduced from 12 to 0. Sonar scan completed; gate status evaluation pending.                                                                                                                       | Complete |
-| 68     | Evaluate Sonar quality gate path after Sprint 67: if new_violations reduced significantly from S3504 conversion, assess remaining blockers (new_coverage 0% vs 80% threshold, new_security_hotspots_reviewed 0% vs 100% threshold). Coverage requires vitest expansion to new-code-period files; hotspots require Sonar acknowledgement/waiver.                                                                                                                                                                        | Next     |
+| Sprint | Focus                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Status   |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | --- | --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| 59     | Human Tester 6 — executive walkthrough panel, demo mode, exportable/copyable proof summary, walkthrough surface markers across governance/security/audit/timeline/knowledge, Playwright walkthrough coverage, regression guard, sprint closure.                                                                                                                                                                                                                                                                                                                                                                                                                           | Complete |
+| 60     | Human Tester 7 — executive compliance panel, drift-history review, compliance benchmark mapping, persisted demo-state markers, executive-compliance Playwright spec, regression guard, sprint closure.                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | Complete |
+| 61     | Human Tester 8 — executive review panel, live review evidence assembly from drift/compliance/proof-summary surfaces, review export and persistence verification, executive-review Playwright spec, regression guard, sprint closure.                                                                                                                                                                                                                                                                                                                                                                                                                                      | Complete |
+| 62     | Sonar truthfulness and coverage integrity — replaced placeholder Sonar npm scripts with real preflight/qualitygate/issues checks, audited sonar-project.properties LCOV path and exclusions, hardened .gitignore against generated artifacts, added 4 regression test suites for Sonar wiring/config/clean-tree/reporting-language precision.                                                                                                                                                                                                                                                                                                                             | Complete |
+| 63     | Human Tester 9 — executive release panel (deferred from Sprint 62), real review wiring, and release-readiness surfaces.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Complete |
+| 64     | Sonar S7761 dataset migration: setAttribute('data-\*') converted to .dataset across all executive panel helper functions (setProofAction, setLocalAiStatus, setWalkthroughState, setProofSummaryState, setComplianceState, setDriftHistoryState, setDemoPersistenceState, setReviewState, setReviewPersistenceState, setReviewExportState, setReleaseBlockersState, setReleaseState). sprint64-dataset-migration.test.js regression guard added. Repo cleanup: Sprint 63 debug artifacts removed, .gitignore hardened.                                                                                                                                                    | Complete |
+| 65     | Architecture verification and residual cleanup audit: confirmed dashboard.js/provider-dashboard.html split, audited remaining setAttribute calls, fixed 3 residual S7761 violations in event handlers (compliance/release-readiness/sonar-refresh), verified no duplicate functions. Guard-only regression suite (27 tests) created: compatibility hooks, dataset-backed state markers, false-clean language prevention, release-truth wording lock. All 1466 tests passing.                                                                                                                                                                                              | Complete |
+| 66     | Sonar remediation continuation: Cognitive complexity reduction (S3776 in preload.cjs), TypeScript migration and cleanup (preload.cjs types.d.ts), remaining dataset migration in utility files. Sonar quality gate: gate FAILED with 151 new_violations. Guard regression suite (30 tests) added for remediation tracking.                                                                                                                                                                                                                                                                                                                                                | Complete |
+| 67     | Measured Sonar cleanup in dashboard.js: S3504 var→let/const conversion (40 declarations across 3 passes), S7760 default parameter fix (setWalkthroughState), S7761 getAttribute residual removal. sprint67-measured-cleanup.test.js guard added (13 tests). No HTML changes, no new features. Dashboard.js var count reduced from 12 to 0. Sonar scan completed; gate status evaluation pending.                                                                                                                                                                                                                                                                          | Complete |
+| 68     | Sonar gate-path assessment and dead-variable cleanup: audited S1854/S1481 findings from Sprint 67 scan, removed 15 confirmed dead variable declarations in dashboard.js (lines 753, 763, 764, 767, 818, 821, 824, 904, 907, 910, 971, 974, 977, 1032, 1035), all verified via full-function review before removal. Assessed (without remediating) new_coverage (0.0%) and new_security_hotspots_reviewed (0 in TO_REVIEW) blockers as evidence for future scoping. Fresh Sonar scan executed: 106 issues (delta -30 from Sprint 67). Added sprint68-gate-path-guard.test.js (21 assertions). No regression of Sprint 64-67 fixes.                                         | Complete |
+| 69     | Address new_coverage blocker — write targeted tests for uncovered new-code-period files identified in Sprint 68's assessment: local-llm.js (55.63% coverage), agent-handoff.js (75.67%), user-bridge.js (70.04%). Target: raise branch coverage from 58.96% to 70%+. Note: new_security_hotspots_reviewed requires human security judgment in Sonar UI (mark as Safe/Fixed/Acknowledged with justification) — flagged as a process decision requiring explicit human review rather than automated coding work.                                                                                                                                                            | Complete |
+| 70     | Investigated why Sonar new_coverage remained at 0.0% despite Sprint 69's vitest coverage gains (58.96%→70.85% branches); determined CASE B (Sonar new_coverage measures coverage of code changed within the configured new-code-period window only; git history confirms browser-bridge.js, agent-handoff.js, and local-llm.js were not modified in any Sprint 60+ commit, only their test files were added in Sprint 69); added sprint70-coverage-pipeline-guard.test.js documenting the root-cause understanding for future sprints. Sonar scan executed: new_coverage 0.0% (unchanged, reflects correct Sonar behavior given Sprint 69's approach, not a fixable bug). | Complete |
+| 71     | Remaining-scope enforcement sprint. Added sprint71-newcode-scope-guard.test.js to document and guard the Sprint 70 root-cause finding: Sonar new_coverage cannot be moved by adding tests for unchanged production files; any new-code-period reset is a human Sonar admin decision. No source file changes.                                                                                                                                                                                                                                                                                                                                                              | Complete |
+| 72     | Evaluate whether any source files actually modified in Sprints 60-71 fall inside Sonar's new-code period with uncovered branches. If yes, add targeted tests for those specific files only. If no qualifying files exist, document the hard automation boundary and treat new-code-period reset as a human Sonar admin decision.                                                                                                                                                                                                                                                                                                                                          | Complete |
+| 73     | Remaining-scope boundary confirmation and violation-path investigation. Confirmed Sprint 72 hard boundary: Sonar new-code-period reset remains a human admin decision outside automation scope. Investigated new_violations (106) rule distribution to produce actionable Sprint 74 remediation plan. Added sprint73-boundary-confirmation.test.js. No source file changes.                                                                                                                                                                                                                                                                                               | Complete |
+| 74     | Sonar new_violations remediation: fresh scan after sonar.newCode.referenceBranch=main change; violation audit; 0 mechanical fixes applied (all violations in category b behavioral risk); new_violations reduced from 106 to 0 (new-code scope). Sonar re-run: gate FAILED (violations: 148, coverage: 14.2%). sprint74-violation-remediation.test.js regression guard added (10 tests).                                                                                                                                                                                                                                                                                  | Complete |
+| 75     | Sprint 73 guard fix + storage-monitor deletion test fix: remove transient snapshot pin, fix semantic deletion check. All 147 vitest files / 1661 tests passing. TypeScript zero errors. Playwright human suite: 42 passed. No regression of Sprint 64-74 work.                                                                                                                                                                                                                                                                                                                                                                                                            | Complete |
+| 76     | window→globalThis dashboard cleanup: replace window with globalThis in src/ui/dashboard.js (50 violations → 0), update test files, add sprint76-globalthis-guard.test.js. Fresh Sonar scan: violations 98 (down from 148), new_violations 0. All 148 vitest files / 1664 tests passing. TypeScript zero errors. Playwright human suite: 42 passed. No regression of Sprint 64-75 work.                                                                                                                                                                                                                                                                                    | Complete |
+| 77     | Guard and build stabilization: fixed sprint76-globalthis-guard.test.js (bad require path + wrong instructions filename), fixed sprint73-boundary-confirmation.test.js (transient snapshot pin removed), fixed ingest-sprint-history.ts top-level await CJS build blocker (wrapped in require.main guard). sprint77-build-and-scope-guard.test.js added. npm run build:electron-main passes.                                                                                                                                                                                                                                                                               | Complete |     | 78  | Sonar remediation continuation: S3776 cognitive complexity (extracted helpers), S7735 negated conditions (inverted + swapped branches), S6551 object stringification (extracted String() calls), S4325 unnecessary assertions (removed), S3358 nested ternaries (extracted to variables/if-else), S2871 localeCompare (added compare function). Files modified: ingest-sprint-history.ts, dashboard.js, auto-scan.ts, triage.ts, drift.ts, normalizer.ts, ai-explain.ts, llm-health.ts, llm-usage.ts, workspace-quotas.ts, provider-health.ts, routing-history.ts, baseline.ts (secrets and security-overview), gateway.ts, routing-explainer.ts, provider-policy.ts, dependency-check-runner.ts. Fresh Sonar scan: 1 unresolved new-code issue (S7785 - async IIFE, not in scope). All 149 vitest files / 1665 tests passing. TypeScript zero errors. Playwright human suite: 42 passed. No regression of Sprint 64-77 work. Snapshot: strategic-learning-unified-theatre-ai-snapshot-sprint78-stable.md. Tag: sprint-78-complete. | Complete |
+| 79     | S7785 async IIFE remediation: converted async IIFE in ingest-sprint-history.ts to named async main() function with top-level await. Test pattern updated in sprint77-build-and-scope-guard.test.js. Fresh Sonar scan: S7785 resolved (0 open issues), 14 remaining new-code-period violations (S6551, S7735, S6644, S3358 - all non-target rules). All 150 vitest files / 1665 tests passing. TypeScript zero errors. Playwright human suite: 42 passed. No regression of Sprint 64-78 work. Snapshot: strategic-learning-unified-theatre-ai-snapshot-sprint79-stable.md. Tag: sprint-79-complete.                                                                        | Complete |
+| 80     | Security overview sonar remediation (S6551/S7735/S3358/S6644)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | Closed   |
+| 81     | New-code coverage remediation + Sonar verification (coverage pipeline fix)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | Active   |
 
 - Never replace preload.cjs entirely — append/extend only
 - Never add a second interface Window in types.d.ts
@@ -1114,10 +1219,24 @@ Sprint 64 (Sonar Dataset Migration) is complete.
 Sprint 65 (Architecture Verification + Residual Cleanup Audit + Guard-Only Regression Suite) is complete.
 Sprint 66 (Sonar Remediation Continuation) is complete.
 Sprint 67 (Measured Sonar Cleanup) is complete.
+Sprint 68 (Sonar Gate-Path Assessment and Dead-Variable Cleanup) is complete.
 
 ## Next
 
-Sprint 68 — Evaluate Sonar quality gate path after Sprint 67 scan results.
+Sprint 69 — Coverage guard test created for browser-bridge.js, agent-handoff.js, and local-llm.js; Sonar scan executed with analysis uploaded. Quality gate currently FAILED: new_coverage 0.0% (threshold 80), new_security_hotspots_reviewed 0.0% (threshold 100), new_violations 106 (threshold 0). Remaining scope: raise new-code-period coverage and complete hotspot review.
+
+Sprint 70 (new_coverage metric investigation) is complete.
+Sprint 71 (remaining-scope enforcement) is complete.
+Sprint 72 (modified-newcode boundary evaluation) is complete.
+Sprint 73 (remaining-scope boundary confirmation) is complete.
+Sprint 74 (Sonar violation remediation + guard added) is complete.
+Sprint 75 (Sprint 73 guard fix + storage-monitor deletion test fix) is complete.
+Sprint 76 (window→globalThis dashboard cleanup) is complete.
+Sprint 77 (guard and build stabilization) is complete.
+Sprint 78 (Sonar remediation continuation - S3776, S7735, S6551, S4325, S3358, S2871) is complete.
+Sprint 79 (S7785 async IIFE remediation) is complete.
+Sprint 78 (Sonar remediation continuation - S3776, S7735, S6551, S4325, S3358, S2871) is complete.
+Sprint 78 (Sonar remediation continuation - S3776, S7735, S6551, S4325, S3358, S2871) is complete.
 
 === MASTER TIMELINE 1-60 ===
 NOT FOUND: master_timeline_sprints_1_60.md
@@ -2647,7 +2766,7 @@ security-overview:compare-baseline
 
 === ACTIVE SNAPSHOT ===
 FILE: ./CURRENT_ACTIVE_SNAPSHOT.md
-strategic-learning-unified-theatre-ai-snapshot-sprint67-stable
+strategic-learning-unified-theatre-ai-snapshot-sprint92-stable
 
 === ALL SMOKE TEST FILES ===
 --- FILE: ./tests/run-tests-smoke.test.js ---
@@ -3616,8 +3735,8 @@ describe("Sprint 25 — Provider Telemetry IPC and Dashboard", () => {
       expect(dashboardContent).toContain("<!doctype html>");
     });
 
-    it("references window.providerTelemetry", () => {
-      expect(dashboardContent).toContain("window.providerTelemetry");
+    it("references globalThis.providerTelemetry", () => {
+      expect(dashboardContent).toContain("globalThis.providerTelemetry");
     });
 
     it("calls getStatus API", () => {
@@ -6297,7 +6416,7 @@ describe("Sprint 38 smoke tests — file surface and IPC", () => {
     expect(html).toContain("Audit verification failed");
     expect(html).toContain("export-audit-json");
     expect(html).toContain("export-audit-html");
-    expect(html).toContain("window.audit.exportJson");
+    expect(html).toContain("globalThis.audit.exportJson");
 
 --- FILE: ./tests/sprint39-smoke.test.js ---
 import { existsSync, readFileSync } from "fs";
@@ -7106,8 +7225,8 @@ describe("Sprint 42 smoke tests — file surface", () => {
     const html = loadDashboardSurface();
     expect(html).toContain("knowledge-ingest");
     expect(html).toContain("knowledge-search");
-    expect(html).toContain("window.workspaceKnowledge.ingest");
-    expect(html).toContain("window.workspaceKnowledge.search");
+    expect(html).toContain("globalThis.workspaceKnowledge.ingest");
+    expect(html).toContain("globalThis.workspaceKnowledge.search");
   });
 
   it("dashboard preserves Sprint 25–41 compatibility strings", () => {
@@ -7414,7 +7533,7 @@ describe("Sprint 44 smoke tests — file surface", () => {
     expect(text).toContain("secrets-scan-btn");
     expect(text).toContain("secrets-findings-body");
     expect(text).toContain("secrets-summary-output");
-    expect(text).toContain("window.secrets.scan");
+    expect(text).toContain("globalThis.secrets.scan");
   });
 
   it("dashboard Knowledge panel shows score column and filter input", () => {
@@ -7549,15 +7668,15 @@ describe("Sprint 45 smoke tests — file surface", () => {
     expect(text).toContain("risks-scan-deps");
     expect(text).toContain("risks-scan-image");
     expect(text).toContain("risks-table-body");
-    expect(text).toContain("window.workspaceRisks.scanDependency");
-    expect(text).toContain("window.workspaceRisks.scanImage");
+    expect(text).toContain("globalThis.workspaceRisks.scanDependency");
+    expect(text).toContain("globalThis.workspaceRisks.scanImage");
   });
 
   it("dashboard preserves Sprint 44 Secrets Scanning panel", () => {
     const text = loadDashboardSurface();
     expect(text).toContain("Secrets Scanning");
     expect(text).toContain("secrets-scan-btn");
-    expect(text).toContain("window.secrets.scan");
+    expect(text).toContain("globalThis.secrets.scan");
   });
 
   it("dashboard preserves Sprint 44 Knowledge panel compatibility strings", () => {
@@ -7658,8 +7777,8 @@ describe("Sprint 46 smoke tests — file surface", () => {
     expect(html).toContain("security-overview-panel");
     expect(html).toContain("security-load-overview");
     expect(html).toContain("security-save-baseline");
-    expect(html).toContain("window.workspaceSecurity.summarize");
-    expect(html).toContain("window.workspaceSecurity.saveBaseline");
+    expect(html).toContain("globalThis.workspaceSecurity.summarize");
+    expect(html).toContain("globalThis.workspaceSecurity.saveBaseline");
     const overviewIdx = html.indexOf("security-overview-panel");
     const secretsIdx = html.indexOf("secrets-scan");
     expect(overviewIdx).toBeLessThan(secretsIdx);
@@ -7920,7 +8039,7 @@ describe("Sprint 48 smoke tests — file surface", () => {
     expect(html).toContain("security-drift-introduced");
     expect(html).toContain("security-drift-persistent");
     expect(html).toContain("security-drift-resolved");
-    expect(html).toContain("window.workspaceSecurity.compareBaseline");
+    expect(html).toContain("globalThis.workspaceSecurity.compareBaseline");
   });
 
   it("dashboard Security Drift panel appears after Security Overview panel", () => {
@@ -7989,9 +8108,9 @@ describe("Sprint 49 smoke tests — file surface", () => {
     expect(text).toContain("ExplainIntroducedFindingsResult");
   });
 
-  it("ai-explain.ts has graceful degradation when window.llm unavailable", () => {
+  it("ai-explain.ts has graceful degradation when globalThis.llm unavailable", () => {
     const text = read("src/security/security-overview/ai-explain.ts");
-    expect(text).toContain("window.llm.ask is not available");
+    expect(text).toContain("globalThis.llm.ask is not available");
   });
 
   it("security-overview handler registers explain-introduced channel", () => {
@@ -8061,14 +8180,14 @@ describe("Sprint 49 smoke tests — file surface", () => {
 
   it("dashboard wires explainIntroduced and uses latestSecurityDriftResult", () => {
     const text = loadDashboardSurface();
-    expect(text).toContain("window.workspaceSecurity.explainIntroduced");
+    expect(text).toContain("globalThis.workspaceSecurity.explainIntroduced");
     expect(text).toContain("latestSecurityDriftResult");
   });
 
   it("dashboard preserves Sprint 48 Security Drift panel", () => {
     const text = loadDashboardSurface();
     expect(text).toContain("Security Drift");
-    expect(text).toContain("window.workspaceSecurity.compareBaseline");
+    expect(text).toContain("globalThis.workspaceSecurity.compareBaseline");
   });
 
   it("dashboard preserves Sprint 47 Security Overview triage controls", () => {
@@ -8110,7 +8229,7 @@ describe("Sprint 49 smoke tests — file surface", () => {
 
 --- FILE: ./tests/sprint50-smoke.test.js ---
 import { describe, it, expect } from "vitest";
-import { loadDashboardSurface } from './dashboard-loader.js';
+import { loadDashboardSurface } from "./dashboard-loader.js";
 import { readFileSync } from "fs";
 import { join } from "path";
 
@@ -8283,7 +8402,7 @@ describe("Sprint 50 smoke tests — consolidated T1-T3 surface", () => {
     it("badge call is inside try/catch (non-fatal)", () => {
       const h = loadDashboardSurface();
       expect(h).toContain("driftClassificationBadge");
-      expect(h).toContain("catch (_e)");
+      expect(h).toContain("logNonFatalErrorUI");
     });
     it("preserves latestSecurityDriftResult cache (Sprint 49)", () => {
       const h = loadDashboardSurface();
@@ -9416,9 +9535,9 @@ describe("test-runner scaffold", () => {
 });
 
 === TEST RESULTS ===
+    at [90mfile:///home/pawan/vscodeagent/Solution/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
 
- [32m✓[39m tests/startup-bootstrap.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 3[2mms[22m[39m
-[90mstderr[2m | Timeout._onTimeout (/home/pawan/vscodeagent/Solution/src/startup-bootstrap.js:40:15)
+[90mstderr[2m | tests/startup-bootstrap.test.js
 [22m[39m[startup-bootstrap] bootstrap failed Error: Keychain locked
     at [90m/home/pawan/vscodeagent/Solution/[39mtests/startup-bootstrap.test.js:21:7
     at [90mfile:///home/pawan/vscodeagent/Solution/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
@@ -9431,20 +9550,20 @@ describe("test-runner scaffold", () => {
     at runWithTimeout [90m(file:///home/pawan/vscodeagent/Solution/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
     at [90mfile:///home/pawan/vscodeagent/Solution/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
 
- [32m✓[39m tests/chaos-workflow.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/startup-bootstrap.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 4[2mms[22m[39m
  [32m✓[39m tests/chaos-slo.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/sprint86-hotspot-guard.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 4[2mms[22m[39m
  [32m✓[39m tests/llm/local-provider.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 3[2mms[22m[39m
- [32m✓[39m tests/dashboard.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 3[2mms[22m[39m
  [32m✓[39m tests/test-runner.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
- [32m✓[39m tests/updater-config.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
- [32m✓[39m tests/chaos-runbook.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m tests/dashboard.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 4[2mms[22m[39m
  [32m✓[39m tests/window-security.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
  [32m✓[39m tests/thread.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m tests/updater-config.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
 
-[2m Test Files [22m [1m[32m139 passed[39m[22m[90m (139)[39m
-[2m      Tests [22m [1m[32m1493 passed[39m[22m[90m (1493)[39m
-[2m   Start at [22m 00:53:09
-[2m   Duration [22m 5.70s[2m (transform 8.05s, setup 3.87s, import 11.74s, tests 12.30s, environment 77.85s)[22m
+[2m Test Files [22m [1m[32m170 passed[39m[22m[90m (170)[39m
+[2m      Tests [22m [1m[32m1815 passed[39m[22m[90m (1815)[39m
+[2m   Start at [22m 04:51:07
+[2m   Duration [22m 7.55s[2m (transform 9.34s, setup 4.89s, import 14.02s, tests 16.74s, environment 107.29s)[22m
 
 
 === TYPECHECK ===

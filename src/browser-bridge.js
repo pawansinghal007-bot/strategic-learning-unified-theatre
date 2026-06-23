@@ -12,6 +12,11 @@ import { ExperienceDb } from "./llm/experience-db.js";
 import { MistakeTracker } from "./llm/mistake-tracker.js";
 export { parseFrontmatter } from "./storage/vscode-learn-utils.js";
 import { createLogger } from "./logger.js";
+// Self-import so that vi.spyOn(browserBridge, 'launchBrowser') / 'sendPrompt'
+// intercepts calls made from within this module.  ESM circular imports are
+// live: _self is the same namespace object that the test receives, so any spy
+// placed on it is immediately visible to internal callers.
+import * as _self from "./browser-bridge.js";
 
 const log = createLogger("browser-bridge");
 
@@ -37,7 +42,10 @@ function rotatorPath(...segments) {
     "os.homedir()": os.homedir(),
     resolved,
     result: path.join(resolved, ".vscode-rotator", ...segments),
-    stack: new Error("browser rotator path resolution").stack?.split("\n")[2]?.trim() ?? "unknown",
+    stack:
+      new Error("browser rotator path resolution").stack
+        ?.split("\n")[2]
+        ?.trim() ?? "unknown",
   });
   return path.join(resolved, ".vscode-rotator", ...segments);
 }
@@ -440,7 +448,12 @@ export async function sendPrompt(options) {
       timeout,
     });
     const adapter = await getAdapterModule(platform);
-    context = await launchBrowser({ browserType, platform, headless, timeout });
+    context = await _self.launchBrowser({
+      browserType,
+      platform,
+      headless,
+      timeout,
+    });
     const page = await context.newPage();
     await page.goto(adapter.baseUrl);
     await page.waitForLoadState("networkidle");
@@ -599,7 +612,7 @@ export async function comparePrompts(options) {
   for (const platform of platforms) {
     await waitForMinimumDelay(platform);
     try {
-      const result = await sendPrompt({
+      const result = await _self.sendPrompt({
         platform,
         prompt,
         browserType,
@@ -899,7 +912,7 @@ async function captureThread(
     });
   }
 
-  const context = await launchBrowser({ platform, headless, timeout });
+  const context = await _self.launchBrowser({ platform, headless, timeout });
 
   try {
     const page = await context.newPage();
