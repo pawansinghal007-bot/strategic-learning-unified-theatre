@@ -1,0 +1,35 @@
+# Strategic Learning Unified Theatre AI Snapshot Sprint 96
+
+- Date: 2026-06-25
+- Session: Sprint 96 test triage hardening and snapshot lock
+- Repository: /home/pawan/vscodeagent/Solution
+- Snapshot tag: sprint-96-complete
+- Snapshot purpose: Lock Sprint 96 state after resolving the remaining Vitest regressions in profile-manager, CLI, security barrels, and base-provider compatibility.
+
+## Summary
+
+- Sprint 96 focused on regression triage and stabilization rather than new feature work.
+- The remaining failures were caused by missing profile templates, ESM-safe barrel exports, CLI mock compatibility drift, and a TypeScript-only test syntax pattern that broke plain JavaScript Vitest execution.
+- All targeted Sprint 96 verification suites were brought back to green.
+
+## Work Completed
+
+- Added and wired profile templates for default, codex, and trae profiles so profile creation resolves templates from the real filesystem path.
+- Fixed profile-manager creation flow to write profile settings and attempt extension installation through the expected child-process entry point.
+- Updated security overview, risk, and secret barrel exports to expose runtime-safe values for ESM-style imports in Vitest.
+- Reworked CLI regression tests to use constructible constructor mocks and assertions aligned with actual command behavior.
+- Replaced TypeScript-only syntax in the base-provider test with a plain-JavaScript-compatible async implementation shape.
+
+## Validation Results
+
+- Verified with:
+  - `npx vitest run tests/cli_debug.test.js tests/profile-manager.test.js tests/llm/base-provider.test.js --reporter=verbose`
+- Result:
+  - 3 test files passed
+  - 106 tests passed
+  - 0 failed
+
+## Handoff
+
+- Sprint 96 is locked as `strategic-learning-unified-theatre-ai-snapshot-sprint96-stable`.
+- Next step: preserve this sprint state via the sprint-96-complete tag and continue with broader regression verification as needed.
