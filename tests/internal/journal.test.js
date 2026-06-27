@@ -152,5 +152,79 @@ describe("Journal", () => {
 
       expect(result).toEqual(["line1", "line2", "line3"]);
     });
+
+    it("returns empty array when n is 0 (line 45)", async () => {
+      const filePath = path.join(testDir, "test.md");
+      const journal = new Journal({ filePath });
+      await fs.writeFile(filePath, "line1\nline2\nline3");
+
+      const result = await journal.tail(0);
+
+      expect(result).toEqual([]);
+    });
+
+    it("returns empty array when n is NaN (line 45)", async () => {
+      const filePath = path.join(testDir, "test.md");
+      const journal = new Journal({ filePath });
+      await fs.writeFile(filePath, "line1\nline2");
+
+      const result = await journal.tail(NaN);
+
+      expect(result).toEqual([]);
+    });
+
+    it("rethrows non-ENOENT errors (line 52)", async () => {
+      // Create the file then make it unreadable by replacing it with a directory
+      const filePath = path.join(testDir, "unreadable.md");
+      const journal = new Journal({ filePath });
+      // Create a directory at the file path — readFile on a directory throws EISDIR
+      await fs.mkdir(filePath, { recursive: true });
+
+      await expect(journal.tail(10)).rejects.toThrow();
+    });
+  });
+
+  describe("clear", () => {
+    it("renames existing file to dated .bak and creates empty file (lines 52-64)", async () => {
+      const filePath = path.join(testDir, "PROGRESS.md");
+      const journal = new Journal({ filePath });
+      await fs.writeFile(filePath, "some content", { encoding: "utf8" });
+
+      const bak = await journal.clear();
+
+      // backup file exists and has original content
+      const bakContent = await fs.readFile(bak, "utf8");
+      expect(bakContent).toBe("some content");
+
+      // original file now exists and is empty
+      const newContent = await fs.readFile(filePath, "utf8");
+      expect(newContent).toBe("");
+
+      // backup path follows naming convention PROGRESS-YYYY-MM-DD.md.bak
+      expect(bak).toMatch(/PROGRESS-\d{4}-\d{2}-\d{2}\.md\.bak$/);
+    });
+
+    it("creates empty file when original does not exist (ENOENT swallowed)", async () => {
+      const filePath = path.join(testDir, "nonexistent-progress.md");
+      const journal = new Journal({ filePath });
+
+      // should not throw even though file doesn't exist
+      const bak = await journal.clear();
+
+      const newContent = await fs.readFile(filePath, "utf8");
+      expect(newContent).toBe("");
+      expect(bak).toMatch(/\.bak$/);
+    });
+
+    it("returns the backup file path", async () => {
+      const filePath = path.join(testDir, "PROGRESS.md");
+      const journal = new Journal({ filePath });
+      await fs.writeFile(filePath, "data");
+
+      const bak = await journal.clear();
+
+      expect(typeof bak).toBe("string");
+      expect(bak).toContain(testDir);
+    });
   });
 });

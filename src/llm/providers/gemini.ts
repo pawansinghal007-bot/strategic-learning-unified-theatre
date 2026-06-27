@@ -14,7 +14,7 @@ export class GeminiProviderAdapter extends BaseProviderAdapter {
 
   protected async execute(req: ProviderRequest): Promise<ProviderResponse> {
     if (!process.env.GEMINI_API_KEY) {
-      throw new Error("Missing GEMINI_API_KEY");
+      throw new Error("401 unauthorized: missing API key for gemini");
     }
 
     return {

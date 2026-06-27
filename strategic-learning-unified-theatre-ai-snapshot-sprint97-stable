@@ -1,0 +1,112 @@
+# Strategic Learning Unified Theatre AI Snapshot Sprint 97
+
+- Date: 2026-06-28
+- Session: Sprint 97 — broad coverage-expansion and CI/installer hardening pass
+- Repository: /home/pawan/vscodeagent/Solution
+- Snapshot tag: sprint-97-complete
+- Snapshot purpose: Lock Sprint 97 state after a large coverage-expansion and
+  production-hardening pass that had accumulated in the working tree on top
+  of the sprint-96-complete tag and the subsequent docs-only backfill commit.
+
+## Summary
+
+- Sprint 97 covers a substantially larger scope than the Sprint 96 snapshot
+  described: ~70 new Vitest test files and 30+ extended existing suites,
+  alongside real production changes to the hardware-probe installer, the
+  security overview/auto-scan subsystem, and the LLM provider modules.
+- A new CI workflow, a Robot Framework functional-test suite, and a
+  knowledge-base config file were added to the repository for the first time.
+- The legacy duplicate `test/agent-handoff.test.js` was removed in favor of
+  the consolidated `tests/agent-handoff.test.js`.
+- The full suite was verified green before locking this snapshot.
+
+## Work Completed
+
+### Test coverage expansion
+- Added ~70 new test files spanning: CLI (`cli.test.js`, `cli_debug.test.js`,
+  `tests/cli/`), browser adapters (`chatgpt`, `claude`, `gemini`,
+  `perplexity`, `browser`, plus `browser-bridge` coverage additions),
+  providers (`providers.test.js`, `llm/base-provider.test.js`,
+  `llm-barrel.test.js`, `llm-cli-commands.test.js`), idea-store
+  (branch/extra coverage), logging (`logger-coverage`,
+  `logger-coverage.extra`), `memory-error.test.js`, `paths.test.js`,
+  `preload.test.ts`, `profile-manager.test.js`, `rag-dedup.test.js`,
+  `reporter.test.js`, `routing-error.test.js`, `schema.test.js`, the
+  security barrels (`security-overview-barrel`, `security-risks-barrel`,
+  `security-secrets-barrel`), `shared-errors-barrel`/`shared-errors-base`,
+  startup bootstrap/plugins coverage, `storage.test.js` and
+  `storage-monitor-coverage2.test.js`, `vscode-learn-utils.test.js`,
+  `test-baseline-repo.test.js`, `test-probe-spec.test.js`,
+  `test-runner-cli-coverage`/`test-runner-coverage`, `ui/dashboard.test.js`,
+  and `workspace-context.test.js`.
+- Substantially extended 30+ existing suites, including `lock.test.js`,
+  the plugin API/loader/registries tests, `risks-runner.test.js`,
+  `secrets-runner.test.js`, `scorer.test.js`, `session-supervisor.test.js`,
+  `storage-monitor.test.js`, `switcher.test.js`, `systemHealth.test.js`,
+  `test-runner.test.js`, `watcher.test.js`, `workspace.test.js`,
+  `journal.test.js`, `ai-memory.test.js`, `auth-capture.test.js`,
+  `auto-handoff.test.js`, `bc2-sync.test.js`, `git-monitor.test.js`,
+  `health.test.js`, `ingest-sprint-history.test.js`, and
+  `sprint18-smoke.test.js`.
+- Removed the legacy duplicate `test/agent-handoff.test.js` (96 lines) and
+  consolidated its coverage into `tests/agent-handoff.test.js` (now 613
+  lines added).
+
+### Production changes
+- Reworked the hardware-probe installer (`src/installer/hw-probe/hwProbe.ts`).
+- Reworked `src/security/security-overview/auto-scan.ts` and
+  `src/security/security-overview/index.ts`; extended
+  `security-overview/schema.ts`.
+- Touched security risk/secret modules: `risks/index.ts`,
+  `risks/trivy-runner.ts`, `secrets/baseline.ts`,
+  `secrets/gitleaks-runner.ts`, `secrets/index.ts`,
+  `secrets/suppressions.ts`.
+- Updated LLM provider files: `providers/gemini.ts`, `grok.ts`, `groq.ts`,
+  `openai.ts`, `perplexity.ts`.
+- Wired `src/accounts/profile-manager.js` to the new
+  `src/accounts/profile-templates/` directory; updated
+  `src/accounts/health.js`.
+- Touched `src/ai-memory/repositories/commands-repo.js`,
+  `src/auth-capture.js`, `src/cli.js`, `src/cli/llm-policy.ts`,
+  `src/cli/llm-workspace.ts`, `src/commands/ai.js`,
+  `src/commands/handoff.js`, `src/commands/llm.js`,
+  `src/daemon/watcher.js`, `src/idea-store.js`,
+  `src/internal/git-monitor.js`, `src/internal/paths.js`,
+  `src/knowledge/ingest/ingest-sprint-history.js`,
+  `src/knowledge/schema/documents.ts`, `src/knowledge/schema/metadata.ts`,
+  `src/storage/storage-monitor.js`, `src/test-runner.js`,
+  `src/ui/dashboard.js`.
+
+### Infrastructure additions
+- New CI workflow: `.github/workflows/build.yml`.
+- New knowledge-base config: `.oikb.yaml`.
+- New Robot Framework functional-test suite: `robot/functional/`.
+- New shared-errors test: `src/shared/errors/provider-map.test.ts`.
+- Updated `vitest.config.js`, `vitest.config.ts`, and `tsconfig.json` to
+  account for the new test surface; updated `package.json` and
+  `sonar-project.properties`.
+
+### Excluded from this sprint's commit
+The following were present in the working tree but are not part of the
+Sprint 97 deliverable and should not be committed under this scope:
+- `.venv/` — Python virtual environment, should not be tracked.
+- `audit-log.html` / `audit-log.json` — generated report output.
+- `collect-sprint96-info.sh` — ad hoc diagnostic script, not a project asset.
+
+## Validation Results
+
+- Verified with a full suite run:
+  - `npx vitest run --reporter=verbose`
+- Result:
+  - 243 test files passed (243)
+  - 3838 tests passed (3838)
+  - 0 failed
+- TypeScript: `npx tsc --noEmit` — 0 errors.
+
+## Handoff
+
+- Sprint 97 is locked as `strategic-learning-unified-theatre-ai-snapshot-sprint97-stable`.
+- Next step: preserve this sprint state via the `sprint-97-complete` tag,
+  commit the in-scope files only (see exclusions above), and continue
+  regression verification beyond Sprint 97 as needed. Sprint 89 remains the
+  one permanently undocumented gap in the timeline.

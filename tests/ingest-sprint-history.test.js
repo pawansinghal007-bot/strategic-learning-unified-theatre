@@ -197,4 +197,22 @@ describe("Sprint 83 — ingest-sprint-history module unit tests", () => {
     expect(mocks.embedTextBatch).not.toHaveBeenCalled();
     expect(mocks.insert).not.toHaveBeenCalled();
   });
+
+  it("ingestSprintHistory handles a filename with no parsable sprint number", async () => {
+    const { ingestSprintHistory } =
+      await import("../src/knowledge/ingest/ingest-sprint-history.js");
+
+    // Neither the "sprintNN" nor the leading "NN-"/"NN_" pattern matches —
+    // exercises parseSprintNumberFromFilename's `return undefined` path and
+    // loadSprintReportDocument's `sprint == null` title/docId branches.
+    await fs.writeFile(
+      path.join(tmpDir, "release-notes.md"),
+      "# Release Notes\n\nGeneral updates with no sprint number in the filename.",
+    );
+
+    await ingestSprintHistory({ baseDir: tmpDir });
+
+    expect(mocks.embedTextBatch).toHaveBeenCalledTimes(1);
+    expect(mocks.insert).toHaveBeenCalledTimes(1);
+  });
 });

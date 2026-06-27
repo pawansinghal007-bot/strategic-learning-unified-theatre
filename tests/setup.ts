@@ -4,22 +4,6 @@ import { tmpdir } from "os";
 import { join } from "path";
 
 // ---------------------------------------------------------------------------
-// Ensure the local-provider stub path is always active
-//
-// WHY: The real LocalProviderAdapter (src/llm/providers/local.ts) only
-// returns its deterministic `[local stub] ...` response when
-// VSCODE_ROTATOR_MOCK_LLM is truthy. The npm `test` script sets this via
-// cross-env, but tests are sometimes run directly via `vitest`/`npx vitest`,
-// which skips that. Tests that import LocalProviderAdapter directly (to
-// inject a real instance for the "local" slot) rely on this var being set,
-// so we set it here defensively if it isn't already.
-// ---------------------------------------------------------------------------
-
-if (!process.env.VSCODE_ROTATOR_MOCK_LLM) {
-  process.env.VSCODE_ROTATOR_MOCK_LLM = "1";
-}
-
-// ---------------------------------------------------------------------------
 // Provider adapter mocks
 //
 // WHY: Gateway's constructor instantiates every adapter unconditionally.
@@ -39,11 +23,18 @@ if (!process.env.VSCODE_ROTATOR_MOCK_LLM) {
 // ---------------------------------------------------------------------------
 
 function makeStubResponse(provider) {
+  const modelMap = {
+    gemini: "gemini-2.0-flash",
+    grok: "grok-3",
+    groq: "llama3-8b-8192",
+    openai: "gpt-4o-mini",
+    perplexity: "sonar",
+  };
   return {
     requestId: "stub",
     provider,
-    model: `${provider}-stub-model`,
-    outputText: `stub response from ${provider}`,
+    model: modelMap[provider] || `${provider}-stub-model`,
+    outputText: `[${provider} stub] stub prompt`,
     finishReason: "stop",
     usage: { inputTokens: 1, outputTokens: 1, totalTokens: 2 },
     routingReasons: [],
@@ -74,7 +65,12 @@ function makeStubAdapter(name) {
       status: "healthy",
       lastCheckedAt: new Date().toISOString(),
     }),
-    ask: vi.fn().mockResolvedValue(makeStubResponse(name)),
+    ask: vi.fn().mockImplementation((req) =>
+      Promise.resolve({
+        ...makeStubResponse(name),
+        outputText: `[${name} stub] ${req.prompt}`,
+      }),
+    ),
     stream: vi.fn().mockImplementation(() => stubStream(name)),
   };
 }
@@ -86,21 +82,70 @@ function makeStubAdapter(name) {
 // — letting tests with no explicit defaultOrder/exclusions fall through
 // groq -> gemini -> openai -> perplexity -> local, landing on local.
 function makeFailingCloudAdapter(name) {
+  const apiKeyEnvVarMap = {
+    gemini: "GEMINI_API_KEY",
+    grok: "XAI_API_KEY",
+    groq: "GROQ_API_KEY",
+    openai: "OPENAI_API_KEY",
+    perplexity: "PERPLEXITY_API_KEY",
+  };
+  const apiKeyVar = apiKeyEnvVarMap[name];
+
   return {
     name,
     capabilities: vi.fn().mockReturnValue(["chat"]),
-    health: vi.fn().mockResolvedValue({
-      provider: name,
-      available: false,
-      status: "auth_error",
-      message: `Missing API key for ${name}`,
-      lastCheckedAt: new Date().toISOString(),
+    health: vi.fn().mockImplementation(() => {
+      if (apiKeyVar && process.env[apiKeyVar]) {
+        return Promise.resolve({
+          provider: name,
+          available: true,
+          status: "healthy",
+          lastCheckedAt: new Date().toISOString(),
+        });
+      }
+      return Promise.resolve({
+        provider: name,
+        available: false,
+        status: "auth_error",
+        message: `Missing API key for ${name}`,
+        lastCheckedAt: new Date().toISOString(),
+      });
     }),
-    ask: vi
-      .fn()
-      .mockRejectedValue(
-        new Error(`401 unauthorized: missing API key for ${name}`),
-      ),
+    ask: vi.fn().mockImplementation((req) => {
+      if (!apiKeyVar || !process.env[apiKeyVar]) {
+        throw new Error(`401 unauthorized: missing API key for ${name}`);
+      }
+      return Promise.resolve({
+        requestId: req.requestId,
+        provider: name,
+        model:
+          name === "gemini"
+            ? "gemini-2.0-flash"
+            : name === "groq"
+              ? "llama3-8b-8192"
+              : name === "grok"
+                ? "grok-3"
+                : name === "openai"
+                  ? "gpt-4o-mini"
+                  : "sonar",
+        outputText: `[${name} stub] ${req.prompt}`,
+        finishReason: "stop",
+        usage: {
+          inputTokens: req.prompt.length,
+          outputTokens: Math.ceil(req.prompt.length * 0.8),
+          totalTokens: req.prompt.length + Math.ceil(req.prompt.length * 0.8),
+          estimatedCostUsd: 0.0001,
+          latencyMs: 120,
+        },
+        routingReasons: [
+          {
+            code: "default_selection",
+            message: `${name} adapter selected from configured provider set.`,
+          },
+        ],
+        raw: { stub: true, provider: name },
+      });
+    }),
     stream: vi.fn().mockImplementation(() => stubStream(name)),
   };
 }
@@ -192,7 +237,7 @@ vi.mock("../src/llm/providers", () => ({
     return makeStubAdapter("claude");
   }),
   GrokProviderAdapter: vi.fn().mockImplementation(function () {
-    return makeStubAdapter("grok");
+    return makeFailingCloudAdapter("grok");
   }),
 }));
 

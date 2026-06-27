@@ -47,7 +47,7 @@ function setLocalAiStatus(status, detail) {
   if (detailEl) detailEl.textContent = detail || "";
   if (evidenceEl) evidenceEl.textContent = status || "unknown";
   const panel = document.querySelector('[data-testid="local-ai-status-panel"]');
-  if (panel) panel.dataset.localAiState = String(status).toLowerCase();
+  if (panel) panel.dataset.localAiState = String(status);
   setProofAction(
     "Local AI Sync",
     detail || "Local AI state synchronized to evidence surface.",
@@ -185,14 +185,24 @@ function buildDriftHistorySummary() {
 }
 
 function buildLiveReviewEvidence() {
-  const driftText =
+  const driftRaw =
     document
       .querySelector('[data-testid="drift-history-output"]')
-      ?.textContent?.trim() || "No drift history loaded yet.";
-  const complianceText =
+      ?.textContent?.trim() || "";
+  const driftText =
+    !driftRaw || driftRaw === "No drift history loaded yet."
+      ? "No drift history loaded yet."
+      : driftRaw;
+
+  const complianceRaw =
     document
       .querySelector('[data-testid="compliance-output"]')
-      ?.textContent?.trim() || "Compliance walkthrough idle.";
+      ?.textContent?.trim() || "";
+  const complianceText =
+    !complianceRaw ||
+    /^Compliance walkthrough initialized for /.test(complianceRaw)
+      ? "Compliance walkthrough idle."
+      : complianceRaw;
   const proofSummaryText =
     document
       .querySelector('[data-testid="proof-summary-output"]')
@@ -274,10 +284,14 @@ function buildReleaseReadinessEvidence() {
     document
       .querySelector('[data-testid="compliance-output"]')
       ?.textContent?.trim() || "Compliance walkthrough idle.";
-  const reviewText =
+  const reviewRaw =
     document
       .querySelector('[data-testid="review-output"]')
-      ?.textContent?.trim() || "Executive review idle.";
+      ?.textContent?.trim() || "";
+  const reviewText =
+    !reviewRaw || /^Executive review initialized for /.test(reviewRaw)
+      ? "Executive review idle."
+      : reviewRaw;
   const blockersText =
     document
       .querySelector('[data-testid="drift-history-output"]')
@@ -1454,7 +1468,7 @@ async function runSecretsScan() {
     JSON.stringify(result.summary, null, 2);
 
   const body = document.getElementById("secrets-findings-body");
-  body.innerHTML = "";
+  if (body) body.innerHTML = "";
   for (const row of result.findings) {
     const tr = document.createElement("tr");
     tr.innerHTML = `
@@ -1466,7 +1480,7 @@ async function runSecretsScan() {
                   <td>${row.baselineMatched ? "yes" : "no"}</td>
                   <td>${row.suppressed ? row.suppressionReason || "yes" : "no"}</td>
                 `;
-    body.appendChild(tr);
+    if (body) body.appendChild(tr);
   }
 }
 
@@ -1489,7 +1503,7 @@ function severityOrder(s) {
 
 function renderRisks(findings, minSeverity) {
   const body = document.getElementById("risks-table-body");
-  body.innerHTML = "";
+  if (body) body.innerHTML = "";
   let total = 0;
   let critical = 0;
   let high = 0;
@@ -1501,15 +1515,17 @@ function renderRisks(findings, minSeverity) {
     total++;
     if (sev === "critical") critical++;
     if (sev === "high") high++;
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
+    if (body) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
                   <td>${f.scanner}</td>
                   <td>${f.severity}</td>
                   <td>${f.package || f.file || ""}</td>
                   <td>${f.ruleId || ""}</td>
                   <td>${(f.title || "").replaceAll("<", "&lt;")}</td>
                 `;
-    body.appendChild(tr);
+      body.appendChild(tr);
+    }
   }
   document.getElementById("risks-total").textContent = String(total);
   document.getElementById("risks-critical").textContent = String(critical);
@@ -1534,7 +1550,7 @@ async function runKnowledgeSearch() {
   );
 
   const body = document.getElementById("knowledge-results-body");
-  body.innerHTML = "";
+  if (body) body.innerHTML = "";
   for (const row of results) {
     const tr = document.createElement("tr");
     tr.innerHTML = `
@@ -1544,7 +1560,7 @@ async function runKnowledgeSearch() {
                   <td>${row.section ?? ""}</td>
                   <td>${row.path ?? ""}</td>
                 `;
-    body.appendChild(tr);
+    if (body) body.appendChild(tr);
   }
 }
 
@@ -1951,3 +1967,44 @@ function setReleaseState(label, detail) {
     releaseValue.textContent = label;
   }
 }
+
+// ─── Exports for unit-test coverage ──────────────────────────────────────────
+export {
+  logNonFatalErrorUI,
+  normalizeStateToken,
+  setProofAction,
+  setLocalAiStatus,
+  setWalkthroughState,
+  buildProofSummary,
+  setProofSummaryState,
+  setComplianceState,
+  setDriftHistoryState,
+  setDemoPersistenceState,
+  buildDriftHistorySummary,
+  buildLiveReviewEvidence,
+  setReviewState,
+  setReviewPersistenceState,
+  setReviewExportState,
+  buildReleaseReadinessEvidence,
+  setReleaseState,
+  setReleaseBlockersState,
+  refreshReleaseTruth,
+  attachIfExists,
+  formatQuotaModeValue,
+  parseLimit,
+  clearQuotaStatus,
+  renderQuotaResult,
+  updateQuotaAlert,
+  updateQuotaStatus,
+  renderQuotaState,
+  renderLiveNotification,
+  setAuditVerificationState,
+  updateSecurityMetrics,
+  severityOrder,
+  getFilter,
+  setMetrics,
+  renderTrends,
+  renderTimeline,
+  setQuotaForm,
+  verifyAuditIntegrity,
+};

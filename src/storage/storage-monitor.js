@@ -40,13 +40,13 @@ const WINDOWS_SKIP_NAMES = new Set([
   "pagefile.sys",
 ]);
 
-function appBaseDir(baseDir) {
+export function appBaseDir(baseDir) {
   return (
     baseDir ?? path.join(process.env.HOME || os.homedir(), ".vscode-rotator")
   );
 }
 
-function dateKey(ts) {
+export function dateKey(ts) {
   return String(ts).slice(0, 10);
 }
 
@@ -72,7 +72,7 @@ function isWindowsSkipped(filePath) {
     .some((part) => WINDOWS_SKIP_NAMES.has(part.toLowerCase()));
 }
 
-async function exists(filePath) {
+export async function exists(filePath) {
   try {
     await fs.stat(filePath);
     return true;
@@ -129,7 +129,7 @@ function normalizeStoragePath(entry) {
   };
 }
 
-async function* walkFiles(root, recursive) {
+export async function* walkFiles(root, recursive) {
   let dir;
   try {
     dir = await fs.opendir(root);

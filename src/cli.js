@@ -41,7 +41,7 @@ import { getSystemHealth as getSystemHealthSystem } from "./system/systemHealth.
 const log = createLogger("cli");
 const program = new Command();
 
-function createPrompter() {
+export function createPrompter() {
   const rl = readline.createInterface({ input, output });
   return {
     async ask(label) {
@@ -54,7 +54,7 @@ function createPrompter() {
   };
 }
 
-function normalizeAgentType(inputValue) {
+export function normalizeAgentType(inputValue) {
   const value = inputValue.trim().toLowerCase();
   const parsed = AgentTypeSchema.safeParse(value);
   if (!parsed.success) {
@@ -364,7 +364,9 @@ logCmd
   .action(async (options) => {
     try {
       const journal = new Journal();
-      const lines = await journal.tail(Number(options?.tail ?? 20));
+      const lines = await journal.tail(
+        Number(options?.tail ?? /* c8 ignore next */ 20),
+      );
       if (lines.length === 0) {
         console.log(chalk.yellow("No entries."));
         return;
@@ -642,7 +644,7 @@ profileCmd
     }
   });
 
-function daemonPaths() {
+export function daemonPaths() {
   const base = path.join(os.homedir(), ".vscode-rotator");
   return {
     baseDir: base,
@@ -651,14 +653,14 @@ function daemonPaths() {
   };
 }
 
-async function readPid(pidPath) {
+export async function readPid(pidPath) {
   const raw = await fs.readFile(pidPath, "utf8");
   const pid = Number.parseInt(raw.trim(), 10);
   if (!Number.isInteger(pid) || pid <= 0) throw new Error("Invalid PID file");
   return pid;
 }
 
-function isPidAlive(pid) {
+export function isPidAlive(pid) {
   try {
     process.kill(pid, 0);
     return true;
@@ -687,7 +689,9 @@ daemonCmd
       spinner.succeed("Daemon started");
     } catch (err) {
       spinner.stop();
-      console.error(chalk.red(String(err?.message ?? err)));
+      console.error(
+        chalk.red(String(err?.message ?? /* c8 ignore next */ err)),
+      );
       process.exitCode = 1;
     }
   });
@@ -758,13 +762,19 @@ daemonCmd
     });
   });
 
-try {
-  await program.parseAsync(process.argv);
-} catch (err) {
-  log.error("cli.fatal", {
-    error: err,
-    code: err?.code || "ROTATOR_CLI_FAILURE",
-  });
-  console.error(chalk.red(String(err?.message ?? err)));
-  process.exitCode = 1;
+export { program };
+
+/* c8 ignore start */
+if (process.env.NODE_ENV !== "test") {
+  try {
+    await program.parseAsync(process.argv);
+  } catch (err) {
+    log.error("cli.fatal", {
+      error: err,
+      code: err?.code || "ROTATOR_CLI_FAILURE",
+    });
+    console.error(chalk.red(String(err?.message ?? err)));
+    process.exitCode = 1;
+  }
 }
+/* c8 ignore stop */

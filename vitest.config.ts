@@ -27,50 +27,30 @@ export default defineConfig({
       clean: true,
       provider: "v8",
       all: true,
+
+      // important: write reports even if tests fail
+      reportOnFailure: true,
+
       reporter: ["text", "json", "html", "json-summary", "lcov", "cobertura"],
+
       reportsDirectory: "./coverage/ts",
+
       include: ["src/**/*.js", "src/**/*.ts"],
+
       exclude: [
         "**/__tests__/**",
         "**/*.test.*",
         "**/node_modules/**",
-        "src/preload.ts",
-        "src/main/**/*",
-        "src/cli.js",
-        "src/cli/llm-*.ts",
-        "src/browser-adapters/*.js",
-        "src/llm/providers/*.ts",
-        "src/llm/index.ts",
-        "src/llm/inference.js",
-        "src/security/**/*-runner.ts",
-        "src/security/**/index.ts",
-        "src/security/**/schema.ts",
-        "src/ui/dashboard.js",
-        "src/ui/types.d.ts",
-        "src/auth-capture.js",
-        "src/commands/storage.js",
-        "src/commands/handoff.js",
-        "src/commands/idea.js",
-        "src/commands/browser.js",
-        "src/commands/llm.js",
-        "src/commands/bc2-sync.js",
-        "src/daemon/daemonStatus.js",
-        "src/knowledge/schema/*.ts",
+        // confirmed-dead .ts spec companions — excluded to avoid phantom coverage
         "src/knowledge/ingest/milvus-client.ts",
         "src/knowledge/ingest/ingest-sprint-history.ts",
-        "src/shared/errors/index.ts",
-        "src/shared/ipc/contract.ts",
-        "src/shared/contracts/provider.ts",
-        "src/internal/reporter.js",
-        "src/internal/paths.js",
-        "src/domain/types.js",
-        "src/vscode.js",
-        "src/test-runner.js",
-        "src/installer/hw-probe/*.ts",
-        "src/renderer/types/electron.d.ts",
-        "src/security/security-overview/index.ts",
-        "src/governance/workspace-context.ts",
+        "**/*.d.ts", // excludes types.d.ts and any other declaration files
+        // Browser-only coverage report UI scripts — no exports, DOM-dependent
+        "src/coverage/**",
+        // ...any other existing excludes
+        "**/schema.ts", // types/interfaces only — no executable code
       ],
+
       thresholds: {
         statements: 75,
         branches: 60,

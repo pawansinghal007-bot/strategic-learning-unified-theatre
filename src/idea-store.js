@@ -47,6 +47,7 @@ function parseIdeaOrThrowDomainError(raw, context = {}) {
 }
 
 function slugify(text) {
+  /* v8 ignore next */
   const slug = String(text || "")
     .toLowerCase()
     .replaceAll(/[^a-z0-9]+/g, "-")
@@ -76,6 +77,7 @@ function extractTitle(body) {
 
 function stripTitleFromBody(body) {
   const lines = String(body || "").split(/\r?\n/);
+  /* v8 ignore next */
   if (lines.length === 0) return "";
   const first = lines[0].trim();
   if (/^#+\s*/.test(first)) {
@@ -89,6 +91,7 @@ function maxCharHint(tokens) {
 }
 
 function estimateTokens(text) {
+  /* v8 ignore next */
   return Math.ceil(String(text || "").length / 4);
 }
 

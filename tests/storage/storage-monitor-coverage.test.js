@@ -3,6 +3,17 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+// Mock chokidar before importing StorageMonitor
+const fakeWatcher = {
+  on: vi.fn(),
+  close: vi.fn(async () => {}),
+};
+vi.mock("chokidar", () => ({
+  default: { watch: vi.fn(() => fakeWatcher) },
+  watch: vi.fn(() => fakeWatcher),
+}));
+
+import chokidar from "chokidar";
 import {
   INGESTIBLE_EXTENSIONS,
   DEV_CHANGE_EXTENSIONS,
@@ -862,5 +873,212 @@ describe("fileSize() via appendChanges", () => {
     const index = JSON.parse(await fs.readFile(monitor.indexPath, "utf8"));
     const entries = Object.values(index).flat();
     expect(entries[0].size).toBe(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// normalizeStoragePath() — empty basename fallback (line 127)
+// This is a local function, not exported. We test it indirectly via getStoragePaths()
+// ---------------------------------------------------------------------------
+describe("normalizeStoragePath() via getStoragePaths()", () => {
+  it("uses absolute path as label when basename returns empty string", async () => {
+    const monitor = new StorageMonitor({
+      config: {
+        storagePaths: [{ path: "/tmp/" }],
+        storageIndexMaxAgeDays: 30,
+      },
+    });
+    const result = await monitor.getStoragePaths();
+    expect(result).toHaveLength(1);
+    expect(result[0].path).toBe("/tmp");
+    // path.basename("/tmp/") returns "tmp" which is truthy, so label should be "tmp"
+    // For truly empty basename, we need a path like "/tmp/."
+    expect(result[0].label).toBe("tmp");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// appendChanges() — new date key creates index[key] = [] (line 250)
+// ---------------------------------------------------------------------------
+describe("appendChanges() new date key branch", () => {
+  it("creates new date-key bucket when index[key] is undefined (line 250)", async () => {
+    const baseDir = await makeTempDir();
+    const monitor = new StorageMonitor({
+      baseDir: path.join(baseDir, "state"),
+      config: { storagePaths: [], storageIndexMaxAgeDays: 30 },
+    });
+
+    // Use a date far in the future to ensure it's a brand new date key
+    const futureTs = "2099-12-31T23:59:59.999Z";
+    const docPath = path.join(baseDir, "future.md");
+    await fs.writeFile(docPath, "# Future", "utf8");
+
+    await monitor.appendChanges([
+      { event: "add", path: docPath, label: "Future", ts: futureTs },
+    ]);
+
+    const index = JSON.parse(await fs.readFile(monitor.indexPath, "utf8"));
+    // The date key "2099-12-31" should exist and contain one entry
+    expect(Object.keys(index)).toContain("2099-12-31");
+    const entries = index["2099-12-31"];
+    expect(Array.isArray(entries)).toBe(true);
+    expect(entries).toHaveLength(1);
+    expect(entries[0].path).toBe(docPath);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// watch() — ignored() exact path match branch (line 358)
+// ---------------------------------------------------------------------------
+describe("watch() ignored() exact path match", () => {
+  let capturedOptions;
+  let fakeWatcher;
+
+  beforeEach(() => {
+    capturedOptions = undefined;
+    fakeWatcher = {
+      on: vi.fn((event, cb) => {
+        return fakeWatcher;
+      }),
+      close: vi.fn(async () => {}),
+    };
+    vi.mocked(chokidar.watch).mockReturnValue(fakeWatcher);
+  });
+
+  it("ignored() returns true when filePath exactly matches a storage path", async () => {
+    const baseDir = await makeTempDir();
+    const watched = path.join(baseDir, "exact-match");
+    await fs.mkdir(watched, { recursive: true });
+
+    const monitor = new StorageMonitor({
+      baseDir: path.join(baseDir, "state"),
+      config: {
+        storagePaths: [{ path: watched, label: "Exact", recursive: true }],
+        storageIndexMaxAgeDays: 30,
+      },
+    });
+
+    await monitor.watch();
+
+    // Get the ignored function from chokidar options
+    const chokidarWatchSpy = vi.mocked(chokidar.watch);
+    const callArgs = chokidarWatchSpy.mock.calls[0];
+    const options = callArgs[1];
+    const ignoredFn = options.ignored;
+
+    // Test exact path match (line 358: absolute === entry.path)
+    // When a path exactly matches a storage root with recursive:true,
+    // ignored() returns false (it is NOT ignored — it should be watched).
+    expect(ignoredFn(watched)).toBe(false);
+    await monitor.close();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// watch() — watcher event handlers (line 388)
+// ---------------------------------------------------------------------------
+describe("watch() event handlers queueChange", () => {
+  let capturedHandlers;
+  let fakeWatcher;
+
+  beforeEach(() => {
+    capturedHandlers = {};
+    fakeWatcher = {
+      on: vi.fn((event, cb) => {
+        capturedHandlers[event] = cb;
+        return fakeWatcher;
+      }),
+      close: vi.fn(async () => {}),
+    };
+    vi.mocked(chokidar.watch).mockReturnValue(fakeWatcher);
+  });
+
+  it("add event handler calls queueChange with correct event type", async () => {
+    const baseDir = await makeTempDir();
+    const watched = path.join(baseDir, "event-test");
+    await fs.mkdir(watched, { recursive: true });
+
+    const monitor = new StorageMonitor({
+      baseDir: path.join(baseDir, "state"),
+      config: {
+        storagePaths: [{ path: watched, label: "Event", recursive: true }],
+        storageIndexMaxAgeDays: 30,
+      },
+    });
+
+    await monitor.watch();
+
+    // Simulate the add event
+    const addHandler = capturedHandlers["add"];
+    expect(addHandler).toBeDefined();
+    addHandler(path.join(watched, "new.md"));
+
+    // The change should be queued
+    expect(monitor.pending.size).toBe(1);
+    const queued = monitor.pending.get(
+      path.resolve(path.join(watched, "new.md")),
+    );
+    expect(queued).toBeDefined();
+    expect(queued.event).toBe("add");
+
+    await monitor.close();
+  });
+
+  it("change event handler calls queueChange with correct event type", async () => {
+    const baseDir = await makeTempDir();
+    const watched = path.join(baseDir, "change-test");
+    await fs.mkdir(watched, { recursive: true });
+
+    const monitor = new StorageMonitor({
+      baseDir: path.join(baseDir, "state"),
+      config: {
+        storagePaths: [{ path: watched, label: "Change", recursive: true }],
+        storageIndexMaxAgeDays: 30,
+      },
+    });
+
+    await monitor.watch();
+
+    const changeHandler = capturedHandlers["change"];
+    expect(changeHandler).toBeDefined();
+    changeHandler(path.join(watched, "updated.md"));
+
+    expect(monitor.pending.size).toBe(1);
+    const queued = monitor.pending.get(
+      path.resolve(path.join(watched, "updated.md")),
+    );
+    expect(queued).toBeDefined();
+    expect(queued.event).toBe("change");
+
+    await monitor.close();
+  });
+
+  it("unlink event handler calls queueChange with correct event type", async () => {
+    const baseDir = await makeTempDir();
+    const watched = path.join(baseDir, "unlink-test");
+    await fs.mkdir(watched, { recursive: true });
+
+    const monitor = new StorageMonitor({
+      baseDir: path.join(baseDir, "state"),
+      config: {
+        storagePaths: [{ path: watched, label: "Unlink", recursive: true }],
+        storageIndexMaxAgeDays: 30,
+      },
+    });
+
+    await monitor.watch();
+
+    const unlinkHandler = capturedHandlers["unlink"];
+    expect(unlinkHandler).toBeDefined();
+    unlinkHandler(path.join(watched, "deleted.md"));
+
+    expect(monitor.pending.size).toBe(1);
+    const queued = monitor.pending.get(
+      path.resolve(path.join(watched, "deleted.md")),
+    );
+    expect(queued).toBeDefined();
+    expect(queued.event).toBe("unlink");
+
+    await monitor.close();
   });
 });

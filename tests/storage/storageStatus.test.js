@@ -92,6 +92,75 @@ describe("storageStatus", () => {
       expect(result.reason).toContain("older than 30 minutes");
     });
 
+    it("normalizes an invalid/missing maxAge config to the default of 30 minutes", async () => {
+      const snapshotDir = path.join(testDir, ".vscode-rotator");
+      await fs.mkdir(snapshotDir, { recursive: true });
+      const snapshotFile = path.join(snapshotDir, "storage-snapshot.json");
+      await fs.writeFile(snapshotFile, "{}");
+      // 45 minutes old: stale relative to the default 30-minute threshold,
+      // but only if the NaN/invalid config actually falls back to 30.
+      const oldTime = new Date(Date.now() - 45 * 60000);
+      await fs.utimes(snapshotFile, oldTime, oldTime);
+
+      const result = await getStorageMonitorStatus({
+        storageSnapshotMaxAgeMinutes: "not-a-number",
+      });
+
+      expect(result.status).toBe("DEGRADED");
+      expect(result.reason).toContain("older than 30 minutes");
+    });
+
+    it("normalizes a non-positive maxAge config to the default of 30 minutes", async () => {
+      const snapshotDir = path.join(testDir, ".vscode-rotator");
+      await fs.mkdir(snapshotDir, { recursive: true });
+      const snapshotFile = path.join(snapshotDir, "storage-snapshot.json");
+      await fs.writeFile(snapshotFile, "{}");
+      const now = new Date();
+      await fs.utimes(snapshotFile, now, now);
+
+      const result = await getStorageMonitorStatus({
+        storageSnapshotMaxAgeMinutes: -5,
+      });
+
+      // A recent file should be OK under the default 30-minute threshold.
+      expect(result.status).toBe("OK");
+    });
+
+    it("falls back to process.cwd() when ROTATOR_STATE_DIR is unset (line 16)", async () => {
+      vi.resetModules();
+      vi.unstubAllEnvs();
+      delete process.env.ROTATOR_STATE_DIR;
+
+      const mod = await import("../../src/storage/storageStatus.js");
+
+      expect(mod.STORAGE_SNAPSHOT_FILE).toBe(
+        path.join(process.cwd(), ".vscode-rotator", "storage-snapshot.json"),
+      );
+
+      // Re-stub for any subsequent tests/hooks that expect it.
+      vi.stubEnv("ROTATOR_STATE_DIR", testDir);
+    });
+
+    it("falls back to the raw thrown value when the error has no message (line 65)", async () => {
+      const fsMod = await import("node:fs/promises");
+      const statSpy = vi
+        .spyOn(fsMod.default, "stat")
+        .mockImplementation(async () => {
+          // Throw a non-Error value so `err?.message` is undefined and the
+          // `?? err` fallback must be used instead.
+          throw "disk fell off the table";
+        });
+
+      const result = await getStorageMonitorStatus({
+        storageSnapshotMaxAgeMinutes: 30,
+      });
+
+      expect(result.status).toBe("ERROR");
+      expect(result.reason).toBe("disk fell off the table");
+
+      statSpy.mockRestore();
+    });
+
     it("returns ERROR for other file system errors", async () => {
       const snapshotDir = path.join(testDir, ".vscode-rotator");
       await fs.mkdir(snapshotDir, { recursive: true });

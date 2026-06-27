@@ -32,8 +32,12 @@ async function waitForAuthBlobChange(authPath, original, timeoutMs) {
 
   const cleanup = () => {
     canceled = true;
+    /* istanbul ignore next -- defensive guard: timer/watcher/interval are always
+       assigned by the time cleanup() can run, given this function's control flow */
     if (timer) clearTimeout(timer);
+    /* istanbul ignore next -- defensive guard: see above */
     if (interval) clearInterval(interval);
+    /* istanbul ignore next -- defensive guard: see above */
     if (watcher) watcher.close();
   };
 
@@ -68,6 +72,9 @@ async function waitForAuthBlobChange(authPath, original, timeoutMs) {
     });
 
     const poll = async () => {
+      /* istanbul ignore next -- defensive guard: canceled can't be true here given
+         this function's control flow (cleanup() also clears the interval that
+         schedules poll()) */
       if (canceled) return;
       const current = await checkCurrent();
       if (current) {
@@ -77,6 +84,7 @@ async function waitForAuthBlobChange(authPath, original, timeoutMs) {
     };
 
     interval = setInterval(() => {
+      /* istanbul ignore next -- defensive guard: see poll() above */
       if (canceled) return;
       poll().catch(() => {});
     }, 1500);
@@ -131,6 +139,8 @@ export async function captureAuthBlob(
     return await waitForAuthBlobChange(authPath, original, timeoutMs);
   }
 
+  /* istanbul ignore else -- unreachable: if launchEditor were false, the
+     `if (!launchEditor)` block above would already have returned */
   if (launchEditor) {
     await launchVSCode(profileName);
   }

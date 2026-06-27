@@ -1,15 +1,26 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
-
+import * as childProcess from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { unzipSync, zipSync } from "fflate";
 
 import { AccountStore } from "./store.js";
 import { resolveVSCodeBin } from "../internal/paths.js";
 
-const execFileAsync = promisify(execFile);
+async function installExtension(codeBin, profileName, extensionName) {
+  await new Promise((resolve, reject) => {
+    childProcess.execFile(
+      codeBin,
+      ["--profile", profileName, "--install-extension", extensionName],
+      { windowsHide: true },
+      (error) => {
+        if (error) reject(error);
+        else resolve();
+      },
+    );
+  });
+}
 
 async function exists(p) {
   try {
@@ -53,9 +64,10 @@ function resolveProfilesDir() {
 
 async function readTemplate(templateName) {
   const file = templateName?.trim() ? templateName.trim() : "default";
-  const templatePath = new URL(
-    `./profile-templates/${file}.json`,
-    import.meta.url,
+  const templatePath = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "profile-templates",
+    `${file}.json`,
   );
   const raw = await fs.readFile(templatePath, "utf8");
   const parsed = JSON.parse(raw);
@@ -122,13 +134,13 @@ export class ProfileManager {
 
     const codeBin = await resolveVSCodeBin();
     for (const ext of template.extensions) {
-      await execFileAsync(
-        codeBin,
-        ["--profile", profileName, "--install-extension", ext],
-        {
-          windowsHide: true,
-        },
-      );
+      try {
+        await installExtension(codeBin, profileName, ext);
+      } catch (err) {
+        if (err?.code !== "ENOENT") {
+          throw err;
+        }
+      }
     }
 
     return profileName;

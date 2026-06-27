@@ -1,4 +1,4 @@
-import fs from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import type { SecretFinding, SecretsSuppressionEntry } from "./schema.js";
 
 export async function loadSuppressions(
@@ -6,7 +6,7 @@ export async function loadSuppressions(
 ): Promise<SecretsSuppressionEntry[]> {
   if (!suppressionsPath) return [];
   try {
-    const raw = await fs.readFile(suppressionsPath, "utf8");
+    const raw = await readFile(suppressionsPath, "utf8");
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed : [];
   } catch {

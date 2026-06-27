@@ -174,6 +174,28 @@ async function createDbContext() {
   };
 }
 
+// ---------------------------------------------------------------------------
+// Context injection helper: if ctx is provided, wrap it; otherwise create new
+// ---------------------------------------------------------------------------
+async function getContext(ctx) {
+  if (ctx) {
+    // Test mode: use injected ctx
+    const db = await new MemoryDb().init();
+    return {
+      db,
+      sprintRepo: ctx.sprintRepo,
+      handoffRepo: ctx.handoffRepo,
+      lessonsRepo: ctx.lessonsRepo,
+      decisionsRepo: ctx.decisionsRepo,
+      baselineRepo: ctx.baselineRepo,
+      commandsRepo: ctx.commandsRepo,
+      close: () => db.close(),
+    };
+  }
+  // Production mode: create fresh context
+  return await createDbContext();
+}
+
 async function loadAiMemoryContext() {
   const context = await createDbContext();
 
@@ -209,7 +231,7 @@ async function loadAiMemoryContext() {
   return snapshot;
 }
 
-export function bindAiCommands(program) {
+export function bindAiCommands(program, ctx) {
   const ai = program
     .command("ai")
     .description("AI memory persistence commands");
@@ -220,27 +242,41 @@ export function bindAiCommands(program) {
       const spinner = ora("Loading AI memory...").start();
 
       try {
-        const {
+        const context = await getContext(ctx);
+        
+        let currentSprint = context.sprintRepo.getLatest();
+        let handoff = context.handoffRepo.getLatest();
+
+        const latestBaseline = context.baselineRepo.getLatest();
+
+        if (!currentSprint || !handoff) {
+          const manifest = await loadLatestSprintManifest();
+
+          if (manifest) {
+            if (!currentSprint) {
+              currentSprint = mapSprintManifestToSnapshot(manifest);
+            }
+
+            if (!handoff) {
+              handoff = mapSprintManifestToHandoff(manifest);
+            }
+          }
+        }
+
+        const snapshot = {
           currentSprint,
           handoff,
           latestBaseline,
-          decisions,
-          lessons,
-          commands,
-          snapshotPointer,
-        } = await loadAiMemoryContext();
+          decisions: context.decisionsRepo.list(),
+          lessons: context.lessonsRepo.list(),
+          commands: context.commandsRepo.list(),
+          snapshotPointer: await loadSnapshotPointer(),
+        };
+        context.close();
 
         spinner.stop();
 
-        renderSummary({
-          currentSprint,
-          handoff,
-          latestBaseline,
-          lessons,
-          decisions,
-          commands,
-          snapshotPointer,
-        });
+        renderSummary(snapshot);
       } catch (err) {
         spinner.stop();
         console.error(chalk.red(String(err?.message ?? err)));
@@ -254,27 +290,41 @@ export function bindAiCommands(program) {
       const spinner = ora("Loading resume state...").start();
 
       try {
-        const {
+        const context = await getContext(ctx);
+        
+        let currentSprint = context.sprintRepo.getLatest();
+        let handoff = context.handoffRepo.getLatest();
+
+        const latestBaseline = context.baselineRepo.getLatest();
+
+        if (!currentSprint || !handoff) {
+          const manifest = await loadLatestSprintManifest();
+
+          if (manifest) {
+            if (!currentSprint) {
+              currentSprint = mapSprintManifestToSnapshot(manifest);
+            }
+
+            if (!handoff) {
+              handoff = mapSprintManifestToHandoff(manifest);
+            }
+          }
+        }
+
+        const snapshot = {
           currentSprint,
           handoff,
           latestBaseline,
-          decisions,
-          lessons,
-          commands,
-          snapshotPointer,
-        } = await loadAiMemoryContext();
+          decisions: context.decisionsRepo.list(),
+          lessons: context.lessonsRepo.list(),
+          commands: context.commandsRepo.list(),
+          snapshotPointer: await loadSnapshotPointer(),
+        };
+        context.close();
 
         spinner.stop();
 
-        renderSummary({
-          currentSprint,
-          handoff,
-          latestBaseline,
-          lessons,
-          decisions,
-          commands,
-          snapshotPointer,
-        });
+        renderSummary(snapshot);
       } catch (err) {
         spinner.stop();
         console.error(chalk.red(String(err?.message ?? err)));
@@ -301,7 +351,7 @@ export function bindAiCommands(program) {
       const spinner = ora("Saving lesson...").start();
 
       try {
-        const context = await createDbContext();
+        const context = await getContext(ctx);
 
         const lesson = context.lessonsRepo.add({
           problem: options.problem,
@@ -334,7 +384,7 @@ export function bindAiCommands(program) {
       const spinner = ora("Loading lessons...").start();
 
       try {
-        const context = await createDbContext();
+        const context = await getContext(ctx);
 
         const rows = context.lessonsRepo.list();
         context.close();
@@ -381,7 +431,7 @@ export function bindAiCommands(program) {
       const spinner = ora("Saving decision...").start();
 
       try {
-        const context = await createDbContext();
+        const context = await getContext(ctx);
 
         const record = context.decisionsRepo.add({
           title: options.title,
@@ -415,7 +465,7 @@ export function bindAiCommands(program) {
       const spinner = ora("Loading decisions...").start();
 
       try {
-        const context = await createDbContext();
+        const context = await getContext(ctx);
 
         const rows = context.decisionsRepo.list();
         context.close();
@@ -477,7 +527,7 @@ export function bindAiCommands(program) {
           );
         }
 
-        const context = await createDbContext();
+        const context = await getContext(ctx);
 
         const baselineRecord = context.baselineRepo.add({
           passing_tests: passing,
@@ -515,7 +565,7 @@ export function bindAiCommands(program) {
       const spinner = ora("Saving command...").start();
 
       try {
-        const context = await createDbContext();
+        const context = await getContext(ctx);
 
         // Commander normalizes:
         // --powershell-command => powershellCommand
@@ -547,7 +597,7 @@ export function bindAiCommands(program) {
       const spinner = ora("Loading commands...").start();
 
       try {
-        const context = await createDbContext();
+        const context = await getContext(ctx);
 
         const rows = context.commandsRepo.list();
         context.close();

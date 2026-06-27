@@ -19,6 +19,10 @@ function formatValidationError(err) {
   if (Array.isArray(err?.issues)) {
     return err.issues.map((issue) => issue.message).join("; ");
   }
+  /* istanbul ignore next -- defensive fallback: both call sites
+     (parsePositiveInt, parseHandoffStatus) only ever throw via a real
+     schema's .parse(), which always throws a ZodError carrying .issues,
+     so this ternary's branches are unreachable through normal CLI usage */
   return err instanceof Error ? err.message : String(err);
 }
 

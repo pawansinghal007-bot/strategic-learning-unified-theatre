@@ -20,7 +20,7 @@ export class GroqProviderAdapter extends BaseProviderAdapter {
 
   protected async execute(req: ProviderRequest): Promise<ProviderResponse> {
     if (!process.env.GROQ_API_KEY) {
-      throw new Error("Missing GROQ_API_KEY");
+      throw new Error("401 unauthorized: missing API key for groq");
     }
 
     return {

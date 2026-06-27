@@ -25,6 +25,10 @@ const PROJECT_ROOT = path.resolve(__dirname, "..", "..");
 function pickCurrent(accounts) {
   const active = accounts.filter((a) => a.status !== "retired");
 
+  /* istanbul ignore if -- defensive guard: the only caller (_tick) already
+     filters to non-retired accounts and checks length before calling this,
+     and this function applies the identical filter, so active can't end up
+     empty here given a non-empty input */
   if (active.length === 0) {
     return null;
   }
@@ -205,6 +209,9 @@ export class WatcherDaemon extends EventEmitter {
 
     const current = pickCurrent(eligible);
 
+    /* istanbul ignore if -- defensive guard: pickCurrent can't return null
+       here since `eligible` was already checked non-empty just above and
+       pickCurrent's internal filter is identical, so this never trips */
     if (!current) {
       return;
     }
@@ -432,6 +439,10 @@ export class WatcherDaemon extends EventEmitter {
 
       const now = Date.now();
 
+      /* istanbul ignore if -- defensive guard: captureTimer's own setInterval
+         delay is this same `intervalMs`, so consecutive natural ticks are
+         always >= intervalMs apart; this can't trip without an out-of-band
+         call to runCaptureCycle, which nothing in this class makes */
       if (this.lastCaptureRunAt && now - this.lastCaptureRunAt < intervalMs) {
         return;
       }

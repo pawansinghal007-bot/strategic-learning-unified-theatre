@@ -1,9 +1,54 @@
-export * from "./schema.js";
-export * from "./baseline.js";
-export * from "./suppressions.js";
-export * from "./normalizer.js";
-export * from "./triage.js";
-export * from "./drift.js";
-export * from "./ai-explain.js";
-export * from "./drift-history.js";
-export * from "./auto-scan.js";
+export {
+  emptySecurityOverviewSnapshot,
+  buildSecurityOverviewSnapshot,
+  TRIAGE_STATUSES,
+  securityOverviewSchema,
+} from "./schema.js";
+export {
+  loadSecurityBaseline,
+  saveSecurityBaseline,
+  loadSecurityBaseline as loadBaseline,
+} from "./baseline.js";
+export {
+  loadSecuritySuppressions,
+  saveSecuritySuppressions,
+  isSecuritySuppressed,
+  loadSecuritySuppressions as loadSuppressions,
+  isSecuritySuppressed as isSuppressed,
+} from "./suppressions.js";
+export {
+  flattenFindings,
+  normalizeTriageStatus,
+  flattenFindings as normalizeFinding,
+} from "./normalizer.js";
+export {
+  loadSecurityTriage,
+  saveSecurityTriage,
+  upsertSecurityTriageEntry,
+  getSecurityTriageStatus,
+  isTriageStatusFinal,
+  applyBulkTriage,
+  upsertSecurityTriageEntry as triageFinding,
+} from "./triage.js";
+export {
+  loadSecurityBaselineSnapshot,
+  buildFindingFingerprintSet,
+  compareSecurityOverviewWithBaseline,
+  compareSecurityOverviewWithBaseline as detectDrift,
+  classifyDriftSeverity,
+} from "./drift.js";
+export {
+  buildIntroducedFindingsPrompt,
+  parseExplainIntroducedFindingsAnswer,
+  explainIntroducedFindings,
+  explainIntroducedFindings as explainWithAI,
+} from "./ai-explain.js";
+export {
+  loadDriftHistory,
+  saveDriftHistory,
+  appendDriftHistory,
+} from "./drift-history.js";
+export {
+  runSecurityAutoScan,
+  runSecurityAutoScan as runAutoScan,
+} from "./auto-scan.js";

@@ -96,3 +96,6 @@ tests/**/*.bak
 # ── Windows Zone.Identifier streams ──────────────────────
 *.Identifier
 *:Zone.Identifier
+.venv/
+audit-log.html
+audit-log.json

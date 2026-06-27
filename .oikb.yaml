@@ -1,0 +1,12 @@
+sources:
+- name: vscodeagent
+  source: /home/pawan/vscodeagent/Solution
+  kb-id: ebbac872-271f-461f-9409-afda69260d72
+  interval: 1h
+  filter:
+      exclude:
+        - ".venv/**"
+        - "**/__pycache__/**"
+        - "**/*.pyc"
+        - ".git/**"
+      max-size: 5mb

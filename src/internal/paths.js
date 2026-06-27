@@ -161,7 +161,9 @@ export function sanitizePathEntries(
   pathEnv,
   sep = process.platform === "win32" ? ";" : ":",
 ) {
-  const parts = String(pathEnv || "").split(sep).filter(Boolean);
+  const parts = String(pathEnv || "")
+    .split(sep)
+    .filter(Boolean);
   const allowed = new Set(getAllowedPathRoots());
 
   const extraAllowed = getExtraAllowedPaths(sep);
@@ -221,13 +223,16 @@ function getAllowedPathRoots() {
 }
 
 function getExtraAllowedPaths(sep) {
-  return process.env.VSCODE_ROTATOR_ALLOW_PATH?.split(sep).filter(Boolean) ?? [];
+  return (
+    process.env.VSCODE_ROTATOR_ALLOW_PATH?.split(sep).filter(Boolean) ?? []
+  );
 }
 
 function resolvePathEntry(part) {
   try {
     return path.resolve(part);
   } catch {
+    /* c8 ignore next */
     return null;
   }
 }
@@ -240,8 +245,7 @@ function isSafePathEntry(resolved) {
     if (process.platform === "win32") {
       const normalized = String(resolved).toLowerCase();
       return (
-        normalized.includes("program files") ||
-        normalized.includes("windows")
+        normalized.includes("program files") || normalized.includes("windows")
       );
     }
 
@@ -283,10 +287,20 @@ export async function resolveVSCodeBin() {
           ...resolvePathCandidates("code.cmd"),
           ...resolvePathCandidates("code.exe"),
           ...resolvePathCandidates("code"),
-          ...[process.env.LOCALAPPDATA, process.env.ProgramFiles, process.env["ProgramFiles(x86)"]]
+          ...[
+            process.env.LOCALAPPDATA,
+            process.env.ProgramFiles,
+            process.env["ProgramFiles(x86)"],
+          ]
             .filter(Boolean)
             .flatMap((root) => [
-              path.join(root, "Programs", "Microsoft VS Code", "bin", "code.cmd"),
+              path.join(
+                root,
+                "Programs",
+                "Microsoft VS Code",
+                "bin",
+                "code.cmd",
+              ),
               path.join(root, "Microsoft VS Code", "bin", "code.cmd"),
               path.join(
                 root,

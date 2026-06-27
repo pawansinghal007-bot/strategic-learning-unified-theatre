@@ -44,6 +44,7 @@ export async function runTrivyImage(imageRef: string): Promise<{
 
     return { ok: true, engine: "trivy", findings, raw: parsed };
   } catch (err) {
+    /* istanbul ignore next */
     return {
       ok: false,
       engine: "trivy",

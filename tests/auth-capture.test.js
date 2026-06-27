@@ -461,6 +461,40 @@ describe("captureAuthBlob()", () => {
         captureAuthBlob("github", { launchEditor: true, timeoutMs: 60 }),
       ).rejects.toThrow("Timed out waiting for auth blob change.");
     });
+
+    it("keeps waiting when the watcher fires but content is unchanged (line 48 fallthrough)", async () => {
+      // original token already exists; the watcher fires once with the SAME
+      // content (current === original), so checkCurrent falls through past
+      // both early returns to the bare `return null` at the end of the try
+      // block, and only resolves once the content actually changes.
+      stat.mockResolvedValue({});
+      let readCount = 0;
+      readFile.mockImplementation(() => {
+        readCount++;
+        // call 1: initial "original" read; call 2: first unchanged watch check
+        if (readCount <= 2) return Promise.resolve(OLD_TOKEN);
+        return Promise.resolve(TOKEN);
+      });
+
+      makeSpawnChild();
+      let watchCb;
+      watch.mockImplementation((_dir, cb) => {
+        watchCb = cb;
+        return makeWatcher();
+      });
+
+      const promise = captureAuthBlob("github", {
+        launchEditor: true,
+        timeoutMs: 5000,
+      });
+
+      await new Promise((r) => setTimeout(r, 10));
+      watchCb("change", path.basename(AUTH_PATH)); // unchanged content — no resolve
+      await new Promise((r) => setTimeout(r, 10));
+      watchCb("change", path.basename(AUTH_PATH)); // now changed — resolves
+
+      expect(await promise).toBe(TOKEN);
+    });
   });
 
   // ── agentType forwarding ──────────────────────────────────────────────────

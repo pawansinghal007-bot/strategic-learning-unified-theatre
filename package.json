@@ -11,7 +11,8 @@
   "scripts": {
     "start": "node ./src/cli.js",
     "test": "cross-env VSCODE_ROTATOR_MOCK_LLM=1 NODE_OPTIONS=--max-old-space-size=8192 vitest run",
-    "coverage": "cross-env VSCODE_ROTATOR_MOCK_LLM=1 NODE_OPTIONS=--max-old-space-size=8192 vitest run --coverage --exclude 'tests/sprint91*' --exclude 'tests/sprint92*'",
+    "coverage": "cross-env VSCODE_ROTATOR_MOCK_LLM=1 NODE_OPTIONS=--max-old-space-size=8192 vitest run --coverage; cp coverage/ts/lcov.info coverage/lcov.info; cp coverage/ts/coverage-summary.json coverage/coverage-summary.json",
+    "coverage:guarded": "npm run coverage && npx vitest run tests/sprint91-sonar-fix-guard.test.js tests/sprint92-thread-and-coverage-guard.test.js",
     "coverage:report": "vitest run --coverage --reporter=html",
     "test:ci": "vitest run --coverage --reporter=verbose",
     "test:integration": "cross-env VSCODE_ROTATOR_MOCK_LLM=0 NODE_OPTIONS=--max-old-space-size=8192 vitest -c vitest.integration.config.js run",

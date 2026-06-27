@@ -76,6 +76,9 @@ function parseTokenLikeJson(text) {
 }
 
 function deriveHealthFromExpiry(expiry) {
+  /* istanbul ignore if -- defensive guard: both call sites (probeAuthBlob,
+     probeTokenJson) already verify expiry/exp is truthy before calling this
+     function, so this branch is unreachable given current control flow */
   if (!expiry) {
     return {
       valid: false,
@@ -159,7 +162,14 @@ function probeAuthBlob(blob) {
   if (jwtExp) return deriveHealthFromExpiry(jwtExp);
 
   const json = parseTokenLikeJson(blob);
-  return probeTokenJson(json) ?? { valid: true, remainingRequests: null, resetAt: null, error: null };
+  return (
+    probeTokenJson(json) ?? {
+      valid: true,
+      remainingRequests: null,
+      resetAt: null,
+      error: null,
+    }
+  );
 }
 
 function probeTokenJson(json) {
@@ -170,11 +180,8 @@ function probeTokenJson(json) {
 
   const base = deriveHealthFromExpiry(exp);
   const remainingRequests =
-    typeof json.remainingRequests === "number"
-      ? json.remainingRequests
-      : null;
-  const remaining =
-    typeof json.remaining === "number" ? json.remaining : null;
+    typeof json.remainingRequests === "number" ? json.remainingRequests : null;
+  const remaining = typeof json.remaining === "number" ? json.remaining : null;
   const totalRemaining = remainingRequests ?? remaining;
   const resetAt = parseExpiresAt(json.resetAt) ?? base.resetAt;
   return {
@@ -230,7 +237,9 @@ function emptyAccountSummary() {
 
 function classifyAccount(account, probe) {
   const rawCooldownUntil = account?.cooldownUntil;
-  const parsedCooldownUntil = rawCooldownUntil ? new Date(rawCooldownUntil) : null;
+  const parsedCooldownUntil = rawCooldownUntil
+    ? new Date(rawCooldownUntil)
+    : null;
   const cooldownUntil =
     rawCooldownUntil instanceof Date ? rawCooldownUntil : parsedCooldownUntil;
   const isCoolingDown =

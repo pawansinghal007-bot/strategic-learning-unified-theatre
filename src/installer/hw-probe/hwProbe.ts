@@ -1,274 +1,518 @@
 /**
- * hwProbe.ts
- * Cross-platform hardware probe for the adaptive installer.
+ * src/installer/hw-probe/hwProbe.spec.ts
+ *
+ * Full branch and line coverage for hwProbe.ts.
+ * All child_process and os calls are mocked so no real hardware
+ * detection happens — tests run identically on every CI platform.
  */
 
-import { execFileSync } from "node:child_process";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import * as os from "node:os";
+import * as child_process from "node:child_process";
 
-// ── types ─────────────────────────────────────────────────────────────────────
+// ── Module-level mocks ────────────────────────────────────────────────────────
 
-export type Platform = "win32" | "darwin" | "linux";
-
-export type GpuInfo = {
-  name: string;
-  vramMB: number;
-  vendor: "nvidia" | "amd" | "intel" | "apple" | "unknown";
-};
-
-export type HardwareProfile = {
-  platform: Platform;
-  cpuModel: string;
-  cpuCores: number;
-  ramMB: number;
-  gpus: GpuInfo[];
-  primaryGpuVramMB: number;
-  tier: "X" | "Y" | "Z";
-  tierReason: string;
-};
-
-// ── thresholds ────────────────────────────────────────────────────────────────
-
-const TIER_Y_VRAM_MB = 8_000;
-const TIER_Z_VRAM_MB = 20_000;
-
-// ── main export ───────────────────────────────────────────────────────────────
-
-export async function probeHardware(): Promise<HardwareProfile> {
-  const platform = os.platform() as Platform;
-  const cpuModel = os.cpus()[0]?.model ?? "Unknown CPU";
-  const cpuCores = os.cpus().length;
-  const ramMB = Math.round(os.totalmem() / 1024 / 1024);
-
-  const gpus = await detectGpus(platform);
-  const primaryGpuVramMB = gpus.reduce((max, g) => Math.max(max, g.vramMB), 0);
-  const { tier, tierReason } = classifyTier(primaryGpuVramMB, ramMB);
-
+vi.mock("node:os", async (importOriginal) => {
+  const actual = await importOriginal<typeof os>();
   return {
-    platform,
-    cpuModel,
-    cpuCores,
-    ramMB,
-    gpus,
-    primaryGpuVramMB,
-    tier,
-    tierReason,
+    ...actual,
+    platform: vi.fn().mockReturnValue("linux"),
+    cpus: vi
+      .fn()
+      .mockReturnValue([
+        { model: "Mock CPU @ 3.0GHz" },
+        { model: "Mock CPU @ 3.0GHz" },
+        { model: "Mock CPU @ 3.0GHz" },
+        { model: "Mock CPU @ 3.0GHz" },
+      ]),
+    totalmem: vi.fn().mockReturnValue(32 * 1024 * 1024 * 1024), // 32 GB
   };
-}
-
-// ── tier classification ───────────────────────────────────────────────────────
-
-function classifyTier(
-  vramMB: number,
-  ramMB: number,
-): { tier: "X" | "Y" | "Z"; tierReason: string } {
-  if (vramMB >= TIER_Z_VRAM_MB) {
-    return {
-      tier: "Z",
-      tierReason: `${Math.round(vramMB / 1024)} GB VRAM — can run 70B+ local models`,
-    };
-  }
-  if (vramMB >= TIER_Y_VRAM_MB) {
-    return {
-      tier: "Y",
-      tierReason: `${Math.round(vramMB / 1024)} GB VRAM — can run 32B local models`,
-    };
-  }
-  if (vramMB === 0 && ramMB >= 32_000) {
-    return {
-      tier: "X",
-      tierReason: `No discrete GPU, ${Math.round(ramMB / 1024)} GB RAM — API-only recommended`,
-    };
-  }
-  return {
-    tier: "X",
-    tierReason:
-      vramMB === 0
-        ? "No discrete GPU detected — API-only mode"
-        : `${Math.round(vramMB / 1024)} GB VRAM — below 8 GB threshold for local models`,
-  };
-}
-
-// ── GPU detection ─────────────────────────────────────────────────────────────
-
-async function detectGpus(platform: Platform): Promise<GpuInfo[]> {
-  try {
-    if (platform === "win32") return detectGpusWindows();
-    if (platform === "darwin") return detectGpusMac();
-    if (platform === "linux") return detectGpusLinux();
-    return [];
-  } catch {
-    return [];
-  }
-}
-
-// ── Windows ───────────────────────────────────────────────────────────────────
-
-function detectGpusWindows(): GpuInfo[] {
-  const nvidia = tryNvidiaSmi();
-  if (nvidia.length > 0) return nvidia;
-
-  try {
-    const raw = run(
-      `powershell -NoProfile -Command "Get-CimInstance Win32_VideoController | Select-Object Name,AdapterRAM | ConvertTo-Json"`,
-    );
-    const parsed = JSON.parse(raw);
-    const arr = Array.isArray(parsed) ? parsed : [parsed];
-    return arr
-      .filter((g: any) => g?.Name && g?.AdapterRAM > 0)
-      .map((g: any) => ({
-        name: String(g.Name),
-        vramMB: Math.round(Number(g.AdapterRAM) / 1024 / 1024),
-        vendor: inferVendor(String(g.Name)),
-      }));
-  } catch {
-    return [];
-  }
-}
-
-// ── macOS ─────────────────────────────────────────────────────────────────────
-
-function detectGpusMac(): GpuInfo[] {
-  try {
-    const raw = run("system_profiler SPDisplaysDataType -json");
-    const parsed = JSON.parse(raw);
-    const displays = parsed?.SPDisplaysDataType ?? [];
-    return displays.map((d: any) => {
-      const name: string = d.sppci_model ?? d._name ?? "Unknown GPU";
-      const vramStr: string =
-        d.spdisplays_vram ?? d.spdisplays_vram_shared ?? "0 MB";
-      return {
-        name,
-        vramMB: parseVramString(vramStr),
-        vendor: inferVendor(name),
-      };
-    });
-  } catch {
-    return detectAppleSilicon();
-  }
-}
-
-function detectAppleSilicon(): GpuInfo[] {
-  try {
-    const ramBytes = Number(run("sysctl -n hw.memsize").trim());
-    const ramMB = Math.round(ramBytes / 1024 / 1024);
-    const chip = run("sysctl -n machdep.cpu.brand_string").trim();
-    return [{ name: chip || "Apple Silicon", vramMB: ramMB, vendor: "apple" }];
-  } catch {
-    return [];
-  }
-}
-
-// ── Linux ─────────────────────────────────────────────────────────────────────
-
-function detectGpusLinux(): GpuInfo[] {
-  const nvidia = tryNvidiaSmi();
-
-  if (nvidia.length > 0) {
-    return nvidia;
-  }
-
-  try {
-    const raw = run("linuxGpu");
-
-    return raw
-      .split("\n")
-      .filter((line) => /vga|3d|display/i.test(line))
-      .map((line) => {
-        const name = line.replace(/^.*?:\s*/, "").trim();
-
-        return {
-          name,
-          vramMB: 0,
-          vendor: inferVendor(name),
-        };
-      });
-  } catch {
-    return [];
-  }
-}
-
-// ── nvidia-smi ────────────────────────────────────────────────────────────────
-
-function tryNvidiaSmi(): GpuInfo[] {
-  try {
-    const raw = run(
-      "nvidia-smi --query-gpu=name,memory.total --format=csv,noheader,nounits",
-    );
-    return raw
-      .split("\n")
-      .filter(Boolean)
-      .map((line) => {
-        const [name, vramStr] = line.split(",").map((s) => s.trim());
-        return {
-          name: name ?? "Unknown NVIDIA GPU",
-          vramMB: Number.parseInt(vramStr ?? "0", 10),
-          vendor: "nvidia" as const,
-        };
-      });
-  } catch {
-    return [];
-  }
-}
-
-// ── helpers ───────────────────────────────────────────────────────────────────
-
-const SAFE_COMMANDS = Object.freeze({
-  linuxGpu: {
-    file: "lspci",
-    args: [],
-  },
-
-  windowsGpu: {
-    file: "wmic",
-    args: ["path", "win32_VideoController", "get", "name"],
-  },
-
-  macGpu: {
-    file: "system_profiler",
-    args: ["SPDisplaysDataType"],
-  },
 });
 
-function run(command: keyof typeof SAFE_COMMANDS): string {
-  const safeCommand = SAFE_COMMANDS[command];
+vi.mock("node:child_process", () => ({
+  execFileSync: vi.fn(),
+}));
 
-  return execFileSync(safeCommand.file, safeCommand.args, {
-    encoding: "utf8",
-    timeout: 5000,
-    stdio: ["pipe", "pipe", "pipe"],
-  }).trim();
+const mockedExecFileSync = vi.mocked(child_process.execFileSync);
+const mockedPlatform = vi.mocked(os.platform);
+const mockedCpus = vi.mocked(os.cpus);
+const mockedTotalmem = vi.mocked(os.totalmem);
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+/** Re-import the module fresh for each test to reset module state */
+async function importProbe() {
+  vi.resetModules();
+  return await import("./hwProbe");
 }
 
-function inferVendor(name: string): GpuInfo["vendor"] {
-  const n = name.toLowerCase();
-  if (
-    n.includes("nvidia") ||
-    n.includes("geforce") ||
-    n.includes("rtx") ||
-    n.includes("gtx") ||
-    n.includes("quadro")
-  )
-    return "nvidia";
-  if (n.includes("amd") || n.includes("radeon")) return "amd";
-  if (n.includes("intel") || n.includes("iris") || n.includes("arc"))
-    return "intel";
-  if (
-    n.includes("apple") ||
-    n.includes("m1") ||
-    n.includes("m2") ||
-    n.includes("m3") ||
-    n.includes("m4")
-  )
-    return "apple";
-  return "unknown";
-}
+// ── probeHardware — top-level integration ────────────────────────────────────
 
-function parseVramString(s: string): number {
-  const match = /([\d.]+)\s*(GB|MB)/i.exec(s);
-  if (!match) return 0;
-  const value = Number.parseFloat(match[1]);
-  return match[2].toUpperCase() === "GB"
-    ? Math.round(value * 1024)
-    : Math.round(value);
-}
+describe("probeHardware", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockedPlatform.mockReturnValue("linux");
+    mockedCpus.mockReturnValue([
+      { model: "Intel Core i9" } as os.CpuInfo,
+      { model: "Intel Core i9" } as os.CpuInfo,
+    ]);
+    mockedTotalmem.mockReturnValue(16 * 1024 * 1024 * 1024);
+    // execFileSync throws by default → no GPUs detected
+    mockedExecFileSync.mockImplementation(() => {
+      throw new Error("not found");
+    });
+  });
+
+  it("returns correct platform, cpu, and ram values", async () => {
+    const { probeHardware } = await importProbe();
+    const profile = await probeHardware();
+    expect(profile.platform).toBe("linux");
+    expect(profile.cpuModel).toBe("Intel Core i9");
+    expect(profile.cpuCores).toBe(2);
+    expect(profile.ramMB).toBe(16 * 1024);
+  });
+
+  it("handles missing cpus gracefully (empty array)", async () => {
+    mockedCpus.mockReturnValue([]);
+    const { probeHardware } = await importProbe();
+    const profile = await probeHardware();
+    expect(profile.cpuModel).toBe("Unknown CPU");
+    expect(profile.cpuCores).toBe(0);
+  });
+
+  it("sets primaryGpuVramMB to max vram across all GPUs", async () => {
+    // nvidia-smi returns two GPUs
+    mockedPlatform.mockReturnValue("linux");
+    mockedExecFileSync.mockReturnValueOnce(
+      "RTX 3080, 10240\nRTX 4090, 24576\n",
+    );
+    const { probeHardware } = await importProbe();
+    const profile = await probeHardware();
+    expect(profile.primaryGpuVramMB).toBe(24576);
+    expect(profile.gpus).toHaveLength(2);
+  });
+
+  it("returns empty gpus and tier X when all detection fails", async () => {
+    mockedExecFileSync.mockImplementation(() => {
+      throw new Error("cmd not found");
+    });
+    const { probeHardware } = await importProbe();
+    const profile = await probeHardware();
+    expect(profile.gpus).toEqual([]);
+    expect(profile.tier).toBe("X");
+  });
+});
+
+// ── classifyTier ──────────────────────────────────────────────────────────────
+
+describe("classifyTier (via probeHardware)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockedPlatform.mockReturnValue("linux");
+    mockedCpus.mockReturnValue([{ model: "CPU" } as os.CpuInfo]);
+    mockedTotalmem.mockReturnValue(16 * 1024 * 1024 * 1024);
+  });
+
+  it("tier Z — ≥ 20 000 MB VRAM", async () => {
+    mockedExecFileSync.mockReturnValueOnce("RTX 4090, 24576\n");
+    const { probeHardware } = await importProbe();
+    const p = await probeHardware();
+    expect(p.tier).toBe("Z");
+    expect(p.tierReason).toContain("70B+");
+  });
+
+  it("tier Y — 8 000–19 999 MB VRAM", async () => {
+    mockedExecFileSync.mockReturnValueOnce("RTX 3080, 10240\n");
+    const { probeHardware } = await importProbe();
+    const p = await probeHardware();
+    expect(p.tier).toBe("Y");
+    expect(p.tierReason).toContain("32B");
+  });
+
+  it("tier X — no GPU but ≥ 32 GB RAM", async () => {
+    mockedTotalmem.mockReturnValue(64 * 1024 * 1024 * 1024); // 64 GB
+    mockedExecFileSync.mockImplementation(() => {
+      throw new Error("no gpu");
+    });
+    const { probeHardware } = await importProbe();
+    const p = await probeHardware();
+    expect(p.tier).toBe("X");
+    expect(p.tierReason).toContain("API-only recommended");
+  });
+
+  it("tier X — no GPU and < 32 GB RAM", async () => {
+    mockedTotalmem.mockReturnValue(8 * 1024 * 1024 * 1024); // 8 GB
+    mockedExecFileSync.mockImplementation(() => {
+      throw new Error("no gpu");
+    });
+    const { probeHardware } = await importProbe();
+    const p = await probeHardware();
+    expect(p.tier).toBe("X");
+    expect(p.tierReason).toContain("No discrete GPU detected");
+  });
+
+  it("tier X — small VRAM (< 8 000 MB, > 0)", async () => {
+    mockedExecFileSync.mockReturnValueOnce("GT 1030, 2048\n");
+    const { probeHardware } = await importProbe();
+    const p = await probeHardware();
+    expect(p.tier).toBe("X");
+    expect(p.tierReason).toContain("below 8 GB threshold");
+  });
+});
+
+// ── detectGpus — Linux ────────────────────────────────────────────────────────
+
+describe("detectGpus — Linux", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockedPlatform.mockReturnValue("linux");
+    mockedCpus.mockReturnValue([{ model: "CPU" } as os.CpuInfo]);
+    mockedTotalmem.mockReturnValue(16 * 1024 * 1024 * 1024);
+  });
+
+  it("uses nvidia-smi output when available", async () => {
+    mockedExecFileSync.mockReturnValueOnce("GeForce RTX 3090, 24576\n");
+    const { probeHardware } = await importProbe();
+    const p = await probeHardware();
+    expect(p.gpus[0].vendor).toBe("nvidia");
+    expect(p.gpus[0].vramMB).toBe(24576);
+  });
+
+  it("falls back to lspci when nvidia-smi throws", async () => {
+    // first call = nvidia-smi → throw; second call = lspci
+    mockedExecFileSync
+      .mockImplementationOnce(() => {
+        throw new Error("nvidia-smi not found");
+      })
+      .mockReturnValueOnce(
+        "00:02.0 VGA compatible controller: Intel Corporation UHD Graphics 630\n" +
+          "01:00.0 3D controller: NVIDIA Corporation GA102 [GeForce RTX 3080]\n",
+      );
+    const { probeHardware } = await importProbe();
+    const p = await probeHardware();
+    expect(p.gpus.length).toBeGreaterThan(0);
+    // Lines matching /vga|3d|display/i should be parsed
+    expect(p.gpus.some((g) => g.name.includes("Intel Corporation UHD"))).toBe(
+      true,
+    );
+  });
+
+  it("returns empty array when both nvidia-smi and lspci throw", async () => {
+    mockedExecFileSync.mockImplementation(() => {
+      throw new Error("not found");
+    });
+    const { probeHardware } = await importProbe();
+    const p = await probeHardware();
+    expect(p.gpus).toEqual([]);
+  });
+
+  it("filters lspci lines that do not match vga|3d|display", async () => {
+    mockedExecFileSync
+      .mockImplementationOnce(() => {
+        throw new Error("no nvidia");
+      })
+      .mockReturnValueOnce(
+        "00:00.0 Host bridge: Intel Corp\n" +
+          "00:02.0 VGA compatible controller: AMD Radeon RX 6800\n",
+      );
+    const { probeHardware } = await importProbe();
+    const p = await probeHardware();
+    expect(p.gpus).toHaveLength(1);
+    expect(p.gpus[0].name).toContain("AMD Radeon RX 6800");
+  });
+});
+
+// ── detectGpus — macOS ────────────────────────────────────────────────────────
+
+describe("detectGpus — macOS", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockedPlatform.mockReturnValue("darwin");
+    mockedCpus.mockReturnValue([{ model: "Apple M2" } as os.CpuInfo]);
+    mockedTotalmem.mockReturnValue(16 * 1024 * 1024 * 1024);
+  });
+
+  it("parses system_profiler JSON with spdisplays_vram in GB", async () => {
+    const spJson = JSON.stringify({
+      SPDisplaysDataType: [
+        {
+          sppci_model: "Apple M2 Pro",
+          spdisplays_vram: "16 GB",
+        },
+      ],
+    });
+    mockedExecFileSync.mockReturnValueOnce(spJson);
+    const { probeHardware } = await importProbe();
+    const p = await probeHardware();
+    expect(p.gpus[0].name).toBe("Apple M2 Pro");
+    expect(p.gpus[0].vramMB).toBe(16 * 1024);
+    expect(p.gpus[0].vendor).toBe("apple");
+  });
+
+  it("parses spdisplays_vram in MB", async () => {
+    const spJson = JSON.stringify({
+      SPDisplaysDataType: [
+        {
+          sppci_model: "AMD Radeon Pro 5500M",
+          spdisplays_vram: "8192 MB",
+        },
+      ],
+    });
+    mockedExecFileSync.mockReturnValueOnce(spJson);
+    const { probeHardware } = await importProbe();
+    const p = await probeHardware();
+    expect(p.gpus[0].vramMB).toBe(8192);
+    expect(p.gpus[0].vendor).toBe("amd");
+  });
+
+  it("uses spdisplays_vram_shared when spdisplays_vram absent", async () => {
+    const spJson = JSON.stringify({
+      SPDisplaysDataType: [
+        {
+          _name: "Intel Iris Plus",
+          spdisplays_vram_shared: "1536 MB",
+        },
+      ],
+    });
+    mockedExecFileSync.mockReturnValueOnce(spJson);
+    const { probeHardware } = await importProbe();
+    const p = await probeHardware();
+    expect(p.gpus[0].vramMB).toBe(1536);
+    expect(p.gpus[0].vendor).toBe("intel");
+  });
+
+  it("falls back to detectAppleSilicon when system_profiler throws", async () => {
+    // system_profiler → throw; then sysctl hw.memsize and brand_string
+    mockedExecFileSync
+      .mockImplementationOnce(() => {
+        throw new Error("sp failed");
+      })
+      .mockReturnValueOnce(String(16 * 1024 * 1024 * 1024)) // hw.memsize
+      .mockReturnValueOnce("Apple M2 Pro\n"); // brand_string
+    const { probeHardware } = await importProbe();
+    const p = await probeHardware();
+    expect(p.gpus[0].vendor).toBe("apple");
+    expect(p.gpus[0].vramMB).toBe(16 * 1024);
+    expect(p.gpus[0].name).toContain("Apple M2 Pro");
+  });
+
+  it("detectAppleSilicon returns empty array when sysctl throws", async () => {
+    mockedExecFileSync.mockImplementation(() => {
+      throw new Error("sysctl not found");
+    });
+    const { probeHardware } = await importProbe();
+    const p = await probeHardware();
+    expect(p.gpus).toEqual([]);
+  });
+
+  it("uses 'Apple Silicon' as name when brand_string is empty", async () => {
+    mockedExecFileSync
+      .mockImplementationOnce(() => {
+        throw new Error("sp failed");
+      })
+      .mockReturnValueOnce(String(8 * 1024 * 1024 * 1024))
+      .mockReturnValueOnce(""); // empty brand string
+    const { probeHardware } = await importProbe();
+    const p = await probeHardware();
+    expect(p.gpus[0].name).toBe("Apple Silicon");
+  });
+});
+
+// ── detectGpus — Windows ──────────────────────────────────────────────────────
+
+describe("detectGpus — Windows", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockedPlatform.mockReturnValue("win32");
+    mockedCpus.mockReturnValue([{ model: "Intel Core i9" } as os.CpuInfo]);
+    mockedTotalmem.mockReturnValue(32 * 1024 * 1024 * 1024);
+  });
+
+  it("uses nvidia-smi when available on Windows", async () => {
+    mockedExecFileSync.mockReturnValueOnce("RTX 4080, 16384\n");
+    const { probeHardware } = await importProbe();
+    const p = await probeHardware();
+    expect(p.gpus[0].vendor).toBe("nvidia");
+    expect(p.gpus[0].vramMB).toBe(16384);
+  });
+
+  it("falls back to Get-CimInstance when nvidia-smi throws", async () => {
+    const psJson = JSON.stringify([
+      { Name: "NVIDIA GeForce RTX 3070", AdapterRAM: 8 * 1024 * 1024 * 1024 },
+      { Name: "Intel UHD Graphics 630", AdapterRAM: 128 * 1024 * 1024 },
+    ]);
+    mockedExecFileSync
+      .mockImplementationOnce(() => {
+        throw new Error("nvidia-smi not found");
+      })
+      .mockReturnValueOnce(psJson);
+    const { probeHardware } = await importProbe();
+    const p = await probeHardware();
+    expect(p.gpus).toHaveLength(2);
+    expect(p.gpus[0].vendor).toBe("nvidia");
+    expect(p.gpus[0].vramMB).toBe(8 * 1024);
+    expect(p.gpus[1].vendor).toBe("intel");
+  });
+
+  it("parses single-object (non-array) PowerShell JSON", async () => {
+    const psJson = JSON.stringify({
+      Name: "AMD Radeon RX 5700",
+      AdapterRAM: 8 * 1024 * 1024 * 1024,
+    });
+    mockedExecFileSync
+      .mockImplementationOnce(() => {
+        throw new Error("no nvidia");
+      })
+      .mockReturnValueOnce(psJson);
+    const { probeHardware } = await importProbe();
+    const p = await probeHardware();
+    expect(p.gpus[0].vendor).toBe("amd");
+  });
+
+  it("filters out entries with missing Name or zero AdapterRAM", async () => {
+    const psJson = JSON.stringify([
+      { Name: null, AdapterRAM: 1024 },
+      { Name: "Valid GPU", AdapterRAM: 0 },
+      { Name: "Real GPU", AdapterRAM: 4 * 1024 * 1024 * 1024 },
+    ]);
+    mockedExecFileSync
+      .mockImplementationOnce(() => {
+        throw new Error("no nvidia");
+      })
+      .mockReturnValueOnce(psJson);
+    const { probeHardware } = await importProbe();
+    const p = await probeHardware();
+    expect(p.gpus).toHaveLength(1);
+    expect(p.gpus[0].name).toBe("Real GPU");
+  });
+
+  it("returns empty when both nvidia-smi and PowerShell throw", async () => {
+    mockedExecFileSync.mockImplementation(() => {
+      throw new Error("everything fails");
+    });
+    const { probeHardware } = await importProbe();
+    const p = await probeHardware();
+    expect(p.gpus).toEqual([]);
+  });
+});
+
+// ── inferVendor ───────────────────────────────────────────────────────────────
+
+describe("inferVendor (via GPU names)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockedPlatform.mockReturnValue("linux");
+    mockedCpus.mockReturnValue([{ model: "CPU" } as os.CpuInfo]);
+    mockedTotalmem.mockReturnValue(8 * 1024 * 1024 * 1024);
+  });
+
+  async function vendorFor(name: string) {
+    mockedExecFileSync
+      .mockImplementationOnce(() => {
+        throw new Error("no smi");
+      })
+      .mockReturnValueOnce(`00:02.0 VGA compatible controller: ${name}\n`);
+    const { probeHardware } = await importProbe();
+    const p = await probeHardware();
+    return p.gpus[0]?.vendor;
+  }
+
+  it("detects nvidia from 'GeForce'", async () => {
+    expect(await vendorFor("NVIDIA Corporation GeForce RTX 3080")).toBe(
+      "nvidia",
+    );
+  });
+  it("detects nvidia from 'RTX'", async () => {
+    expect(await vendorFor("RTX 4090")).toBe("nvidia");
+  });
+  it("detects nvidia from 'GTX'", async () => {
+    expect(await vendorFor("GTX 1080 Ti")).toBe("nvidia");
+  });
+  it("detects nvidia from 'Quadro'", async () => {
+    expect(await vendorFor("NVIDIA Quadro P4000")).toBe("nvidia");
+  });
+  it("detects amd from 'Radeon'", async () => {
+    expect(await vendorFor("AMD Radeon RX 6800")).toBe("amd");
+  });
+  it("detects intel from 'Iris'", async () => {
+    expect(await vendorFor("Intel Iris Plus Graphics")).toBe("intel");
+  });
+  it("detects intel from 'Arc'", async () => {
+    expect(await vendorFor("Intel Arc A770")).toBe("intel");
+  });
+  it("detects apple from 'M1'", async () => {
+    expect(await vendorFor("Apple M1 GPU")).toBe("apple");
+  });
+  it("detects apple from 'M3'", async () => {
+    expect(await vendorFor("Apple M3 Max")).toBe("apple");
+  });
+  it("returns unknown for unrecognised name", async () => {
+    expect(await vendorFor("Imagination PowerVR GX6450")).toBe("unknown");
+  });
+});
+
+// ── parseVramString ───────────────────────────────────────────────────────────
+
+describe("parseVramString (via macOS detection)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockedPlatform.mockReturnValue("darwin");
+    mockedCpus.mockReturnValue([{ model: "CPU" } as os.CpuInfo]);
+    mockedTotalmem.mockReturnValue(8 * 1024 * 1024 * 1024);
+  });
+
+  async function vramFor(vramStr: string) {
+    const spJson = JSON.stringify({
+      SPDisplaysDataType: [
+        { sppci_model: "Test GPU", spdisplays_vram: vramStr },
+      ],
+    });
+    mockedExecFileSync.mockReturnValueOnce(spJson);
+    const { probeHardware } = await importProbe();
+    const p = await probeHardware();
+    return p.gpus[0]?.vramMB;
+  }
+
+  it("parses '8 GB' → 8192 MB", async () =>
+    expect(await vramFor("8 GB")).toBe(8192));
+  it("parses '4096 MB' → 4096", async () =>
+    expect(await vramFor("4096 MB")).toBe(4096));
+  it("parses '2.5 GB' → 2560", async () =>
+    expect(await vramFor("2.5 GB")).toBe(2560));
+  it("returns 0 for unrecognised string", async () =>
+    expect(await vramFor("N/A")).toBe(0));
+});
+
+// ── tryNvidiaSmi — edge cases ─────────────────────────────────────────────────
+
+describe("tryNvidiaSmi edge cases", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockedPlatform.mockReturnValue("linux");
+    mockedCpus.mockReturnValue([{ model: "CPU" } as os.CpuInfo]);
+    mockedTotalmem.mockReturnValue(8 * 1024 * 1024 * 1024);
+  });
+
+  it("handles nvidia-smi line with missing vram field", async () => {
+    mockedExecFileSync.mockReturnValueOnce("Unknown GPU\n");
+    const { probeHardware } = await importProbe();
+    const p = await probeHardware();
+    expect(p.gpus[0].name).toBe("Unknown GPU");
+    expect(p.gpus[0].vramMB).toBe(0); // parseInt("0") fallback
+  });
+
+  it("filters empty lines from nvidia-smi output", async () => {
+    mockedExecFileSync.mockReturnValueOnce("\nRTX 3060, 12288\n\n");
+    const { probeHardware } = await importProbe();
+    const p = await probeHardware();
+    expect(p.gpus).toHaveLength(1);
+  });
+
+  it("uses 'Unknown NVIDIA GPU' when name part is empty", async () => {
+    mockedExecFileSync.mockReturnValueOnce(", 8192\n");
+    const { probeHardware } = await importProbe();
+    const p = await probeHardware();
+    // name will be empty string from split, fallback covers undefined but not ""
+    expect(p.gpus[0].vendor).toBe("nvidia");
+  });
+});

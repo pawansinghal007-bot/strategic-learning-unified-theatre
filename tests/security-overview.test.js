@@ -104,6 +104,16 @@ describe("Sprint 46/47 security overview — backend", () => {
     expect(result).toEqual([]);
   });
 
+  it("isSecuritySuppressed returns false for empty suppressions array", async () => {
+    const { isSecuritySuppressed } =
+      await import("../src/security/security-overview/suppressions.js");
+    const result = isSecuritySuppressed(
+      { fingerprint: "abc", kind: "risk" },
+      [],
+    );
+    expect(result).toBe(false);
+  });
+
   it("buildSecurityOverviewSnapshot aggregates counts correctly", async () => {
     const { buildSecurityOverviewSnapshot } =
       await import("../src/security/security-overview/schema.js");

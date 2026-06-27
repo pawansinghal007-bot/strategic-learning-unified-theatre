@@ -6,6 +6,10 @@ import {
   tokenChunkSchema,
 } from "../src/shared/schemas/provider.schema.js";
 import {
+  ProviderBadResponseError,
+  ProviderAuthError,
+  ProviderTimeoutError,
+  ProviderUnavailableError,
   ProviderQuotaError,
   RoutingNoProviderError,
   MemoryNotFoundError,
@@ -60,6 +64,10 @@ describe("Sprint 18 smoke tests", () => {
 
   it("DomainError subclasses carry correct codes", () => {
     expect(new ProviderQuotaError().code).toBe("PROVIDER_QUOTA_EXCEEDED");
+    expect(new ProviderAuthError().code).toBe("PROVIDER_AUTH_FAILED");
+    expect(new ProviderTimeoutError().code).toBe("PROVIDER_TIMEOUT");
+    expect(new ProviderUnavailableError().code).toBe("PROVIDER_UNAVAILABLE");
+    expect(new ProviderBadResponseError().code).toBe("PROVIDER_BAD_RESPONSE");
     expect(new RoutingNoProviderError().code).toBe("ROUTING_NO_PROVIDER");
     expect(new MemoryNotFoundError().code).toBe("MEMORY_NOT_FOUND");
     expect(new ValidationFailedError().code).toBe("VALIDATION_FAILED");
@@ -67,6 +75,10 @@ describe("Sprint 18 smoke tests", () => {
 
   it("retryable flag is set correctly", () => {
     expect(new ProviderQuotaError().retryable).toBe(true);
+    expect(new ProviderAuthError().retryable).toBe(false);
+    expect(new ProviderTimeoutError().retryable).toBe(true);
+    expect(new ProviderUnavailableError().retryable).toBe(true);
+    expect(new ProviderBadResponseError().retryable).toBe(false);
     expect(new RoutingNoProviderError().retryable).toBe(false);
   });
 
@@ -75,5 +87,41 @@ describe("Sprint 18 smoke tests", () => {
     const err = new ProviderQuotaError("custom message", details);
     expect(err.details).toEqual(details);
     expect(err.message).toBe("custom message");
+  });
+
+  it("ProviderBadResponseError works with custom message and details", () => {
+    const details = { provider: "openai", status: "bad_response" };
+    const err = new ProviderBadResponseError("custom bad response", details);
+    expect(err.code).toBe("PROVIDER_BAD_RESPONSE");
+    expect(err.retryable).toBe(false);
+    expect(err.details).toEqual(details);
+    expect(err.message).toBe("custom bad response");
+  });
+
+  it("ProviderAuthError works with custom message and details", () => {
+    const details = { provider: "openai", status: "unauthorized" };
+    const err = new ProviderAuthError("custom auth error", details);
+    expect(err.code).toBe("PROVIDER_AUTH_FAILED");
+    expect(err.retryable).toBe(false);
+    expect(err.details).toEqual(details);
+    expect(err.message).toBe("custom auth error");
+  });
+
+  it("ProviderTimeoutError works with custom message and details", () => {
+    const details = { provider: "openai", status: "timeout" };
+    const err = new ProviderTimeoutError("custom timeout", details);
+    expect(err.code).toBe("PROVIDER_TIMEOUT");
+    expect(err.retryable).toBe(true);
+    expect(err.details).toEqual(details);
+    expect(err.message).toBe("custom timeout");
+  });
+
+  it("ProviderUnavailableError works with custom message and details", () => {
+    const details = { provider: "openai", status: "unavailable" };
+    const err = new ProviderUnavailableError("custom unavailable", details);
+    expect(err.code).toBe("PROVIDER_UNAVAILABLE");
+    expect(err.retryable).toBe(true);
+    expect(err.details).toEqual(details);
+    expect(err.message).toBe("custom unavailable");
   });
 });

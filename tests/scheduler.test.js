@@ -10,7 +10,9 @@ describe("Sprint 90 — scheduler.js", () => {
 
   beforeEach(async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "sprint90-scheduler-"));
-    scheduler = new CooldownScheduler({ filePath: path.join(tempDir, "cooldowns.json") });
+    scheduler = new CooldownScheduler({
+      filePath: path.join(tempDir, "cooldowns.json"),
+    });
   });
 
   afterEach(async () => {
@@ -23,11 +25,15 @@ describe("Sprint 90 — scheduler.js", () => {
     describe("constructor", () => {
       it("uses default path when no filePath provided", () => {
         const defaultScheduler = new CooldownScheduler();
-        expect(defaultScheduler.filePath).toContain(".vscode-rotator/cooldowns.json");
+        expect(defaultScheduler.filePath).toContain(
+          ".vscode-rotator/cooldowns.json",
+        );
       });
 
       it("uses provided filePath", () => {
-        const customScheduler = new CooldownScheduler({ filePath: "/custom/path.json" });
+        const customScheduler = new CooldownScheduler({
+          filePath: "/custom/path.json",
+        });
         expect(customScheduler.filePath).toBe("/custom/path.json");
       });
     });
@@ -35,7 +41,10 @@ describe("Sprint 90 — scheduler.js", () => {
     describe("load", () => {
       it("loads cooldowns from existing file", async () => {
         const filePath = scheduler.filePath;
-        const data = { "account-1": Date.now() + 10000, "account-2": Date.now() + 20000 };
+        const data = {
+          "account-1": Date.now() + 10000,
+          "account-2": Date.now() + 20000,
+        };
         await fs.mkdir(path.dirname(filePath), { recursive: true });
         await fs.writeFile(filePath, JSON.stringify(data));
 
@@ -66,6 +75,20 @@ describe("Sprint 90 — scheduler.js", () => {
         await scheduler.load();
         expect(scheduler.isOnCooldown("any-account")).toBe(false);
       });
+
+      it("skips entries whose value isn't a finite number (line 37)", async () => {
+        const filePath = scheduler.filePath;
+        const data = {
+          "account-1": "not-a-number",
+          "account-2": Date.now() + 10000,
+        };
+        await fs.mkdir(path.dirname(filePath), { recursive: true });
+        await fs.writeFile(filePath, JSON.stringify(data));
+
+        await scheduler.load();
+        expect(scheduler.map.has("account-1")).toBe(false);
+        expect(scheduler.isOnCooldown("account-2")).toBe(true);
+      });
     });
 
     describe("save", () => {
@@ -81,9 +104,37 @@ describe("Sprint 90 — scheduler.js", () => {
         expect(data["account-2"]).toBeDefined();
       });
 
+      it("recovers when the initial rename fails by unlinking and retrying (lines 50-53)", async () => {
+        scheduler.map.set("account-1", Date.now() + 5000);
+
+        // Force the first fs.rename to fail (e.g. as a cross-device rename
+        // would), exercising the catch block's unlink-then-retry recovery
+        // path. The destination doesn't exist yet on this first save, so
+        // the unlink itself also fails and is silently swallowed — the
+        // second (real, unmocked) rename then succeeds.
+        const renameSpy = vi
+          .spyOn(fs, "rename")
+          .mockImplementationOnce(async () => {
+            const err = new Error("cross-device link");
+            err.code = "EXDEV";
+            throw err;
+          });
+
+        await scheduler.save();
+
+        expect(renameSpy).toHaveBeenCalledTimes(2);
+        const content = await fs.readFile(scheduler.filePath, "utf8");
+        const data = JSON.parse(content);
+        expect(data["account-1"]).toBeDefined();
+
+        renameSpy.mockRestore();
+      });
+
       it("creates directory if it does not exist", async () => {
         const newDir = path.join(tempDir, "new-dir");
-        const newScheduler = new CooldownScheduler({ filePath: path.join(newDir, "cooldowns.json") });
+        const newScheduler = new CooldownScheduler({
+          filePath: path.join(newDir, "cooldowns.json"),
+        });
         newScheduler.map.set("account-1", Date.now() + 10000);
 
         await newScheduler.save();

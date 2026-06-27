@@ -4,25 +4,34 @@
  * Validates that plugin capabilities are merged safely without overwriting built-ins.
  */
 
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { registerPluginLlmProviders } from "../src/plugin-llm-registry.js";
 import { registerPluginBrowserPlatforms } from "../src/plugin-browser-registry.js";
 import { MODEL_REGISTRY, OLLAMA_MODEL_REGISTRY } from "../src/llm/local-llm.js";
 import { PLATFORM_URLS } from "../src/browser-pane.js";
 
 describe("Plugin LLM Registry", () => {
+  let originalModelKeys;
+  let originalOllamaKeys;
+
   beforeEach(() => {
     // Store original state to reset after each test
-    this.originalModelKeys = Object.keys(MODEL_REGISTRY).slice();
-    this.originalOllamaKeys = Object.keys(OLLAMA_MODEL_REGISTRY).slice();
+    originalModelKeys = Object.keys(MODEL_REGISTRY).slice();
+    originalOllamaKeys = Object.keys(OLLAMA_MODEL_REGISTRY).slice();
   });
 
   afterEach(() => {
     // Clean up any added keys from the plugin tests
     const currentKeys = Object.keys(MODEL_REGISTRY);
     for (const key of currentKeys) {
-      if (!this.originalModelKeys.includes(key)) {
+      if (!originalModelKeys.includes(key)) {
         delete MODEL_REGISTRY[key];
+      }
+    }
+    const currentOllamaKeys = Object.keys(OLLAMA_MODEL_REGISTRY);
+    for (const key of currentOllamaKeys) {
+      if (!originalOllamaKeys.includes(key)) {
+        delete OLLAMA_MODEL_REGISTRY[key];
       }
     }
   });
@@ -91,6 +100,29 @@ describe("Plugin LLM Registry", () => {
     expect(MODEL_REGISTRY["correct-provider-correct-model"]).toBeDefined();
   });
 
+  it("should not overwrite existing keys in OLLAMA_MODEL_REGISTRY", () => {
+    // Seed a key that exists ONLY in OLLAMA_MODEL_REGISTRY (not MODEL_REGISTRY),
+    // so the `||`'s second operand actually gets evaluated and is true.
+    const key = "test-ollama-provider-test-ollama-model";
+    OLLAMA_MODEL_REGISTRY[key] = { sentinel: true };
+
+    const providers = [
+      {
+        kind: "llm-provider",
+        name: "test-ollama-provider",
+        models: ["test-ollama-model"],
+      },
+    ];
+
+    registerPluginLlmProviders(providers);
+
+    // It should be skipped entirely, not added to MODEL_REGISTRY either.
+    expect(MODEL_REGISTRY[key]).toBeUndefined();
+    expect(OLLAMA_MODEL_REGISTRY[key]).toEqual({ sentinel: true });
+
+    delete OLLAMA_MODEL_REGISTRY[key];
+  });
+
   it("should skip entries with missing required fields", () => {
     const providers = [
       {
@@ -118,16 +150,18 @@ describe("Plugin LLM Registry", () => {
 });
 
 describe("Plugin Browser Registry", () => {
+  let originalPlatforms;
+
   beforeEach(() => {
     // Store original platform names to reset after each test
-    this.originalPlatforms = Object.keys(PLATFORM_URLS).slice();
+    originalPlatforms = Object.keys(PLATFORM_URLS).slice();
   });
 
   afterEach(() => {
     // Clean up any added platforms from the plugin tests
     const currentPlatforms = Object.keys(PLATFORM_URLS);
     for (const platform of currentPlatforms) {
-      if (!this.originalPlatforms.includes(platform)) {
+      if (!originalPlatforms.includes(platform)) {
         delete PLATFORM_URLS[platform];
       }
     }

@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { spawn } from "node:child_process";
+import * as childProcess from "node:child_process";
 import { Command } from "commander";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -21,7 +21,7 @@ async function pathExists(filePath) {
 
 async function runProcess(cmd, args, opts = {}) {
   return new Promise((resolve, reject) => {
-    const child = spawn(cmd, args, {
+    const child = childProcess.spawn(cmd, args, {
       stdio: ["ignore", "pipe", "pipe"],
       ...opts,
     });
@@ -510,11 +510,11 @@ program
         : await collectJsFiles(path.resolve(DEFAULT_BASE_DIR, "src"));
       const violations = await assertTddGate(
         files,
-        path.resolve(DEFAULT_BASE_DIR, "robot"),
         {
           strict: false,
           graceMs: Number(options.graceMs),
         },
+        path.resolve(DEFAULT_BASE_DIR, "robot"),
       );
       if (violations.length) {
         console.log(`TDD check found ${violations.length} violation(s)`);
@@ -556,6 +556,7 @@ program
     process.exitCode = 0;
   });
 
+/* v8 ignore next 3 */
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   program.parse(process.argv);
 }

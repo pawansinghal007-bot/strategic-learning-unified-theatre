@@ -14,7 +14,7 @@ const SAMPLE_SESSION = {
   conversation_key: "session-1",
   model_name: "browser-capture",
   created_at: "2026-05-01T00:00:00Z",
-  updated_at: "2026-05-01T00:00:00Z"
+  updated_at: "2026-05-01T00:00:00Z",
 };
 
 let tempDir;
@@ -45,13 +45,22 @@ beforeEach(async () => {
     );
   `);
   db.prepare(
-    "INSERT INTO chat_sessions (site, url, conversation_key, model_name, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)"
-  ).run(SAMPLE_SESSION.site, SAMPLE_SESSION.url, SAMPLE_SESSION.conversation_key, SAMPLE_SESSION.model_name, SAMPLE_SESSION.created_at, SAMPLE_SESSION.updated_at);
+    "INSERT INTO chat_sessions (site, url, conversation_key, model_name, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
+  ).run(
+    SAMPLE_SESSION.site,
+    SAMPLE_SESSION.url,
+    SAMPLE_SESSION.conversation_key,
+    SAMPLE_SESSION.model_name,
+    SAMPLE_SESSION.created_at,
+    SAMPLE_SESSION.updated_at,
+  );
 
-  db.prepare("INSERT INTO chat_messages (chat_session_id, role, text_content, ts) VALUES (?, ?, ?, ?)")
-    .run(1, "User", "Hello from browser capture.", "2026-05-01T12:00:00Z");
-  db.prepare("INSERT INTO chat_messages (chat_session_id, role, text_content, ts) VALUES (?, ?, ?, ?)")
-    .run(1, "Assistant", "Hello, how can I help?", "2026-05-01T12:01:00Z");
+  db.prepare(
+    "INSERT INTO chat_messages (chat_session_id, role, text_content, ts) VALUES (?, ?, ?, ?)",
+  ).run(1, "User", "Hello from browser capture.", "2026-05-01T12:00:00Z");
+  db.prepare(
+    "INSERT INTO chat_messages (chat_session_id, role, text_content, ts) VALUES (?, ?, ?, ?)",
+  ).run(1, "Assistant", "Hello, how can I help?", "2026-05-01T12:01:00Z");
   db.close();
 });
 
@@ -63,10 +72,16 @@ afterEach(async () => {
 
 describe("bc2-sync command", () => {
   it("should preview ingestion without writing when dry-run is enabled", async () => {
-    const result = await syncBc2Messages({ captureDbPath, baseDir, dryRun: true });
+    const result = await syncBc2Messages({
+      captureDbPath,
+      baseDir,
+      dryRun: true,
+    });
     expect(result.total).toBe(2);
     expect(result.inserted).toBe(2);
-    await expect(fs.access(path.join(baseDir, "experience.db"))).rejects.toThrow();
+    await expect(
+      fs.access(path.join(baseDir, "experience.db")),
+    ).rejects.toThrow();
   });
 
   it("should ingest Browser Capture messages into the experience database and preserve stable keys", async () => {
@@ -94,9 +109,316 @@ describe("bc2-sync command", () => {
   });
 
   it("should support the since filter", async () => {
-    const result = await syncBc2Messages({ captureDbPath, baseDir, since: "2026-05-01T12:00:30Z" });
+    const result = await syncBc2Messages({
+      captureDbPath,
+      baseDir,
+      since: "2026-05-01T12:00:30Z",
+    });
     expect(result.total).toBe(1);
     expect(result.inserted).toBe(1);
     expect(result.skipped).toBe(0);
+  });
+});
+
+import { vi } from "vitest";
+import {
+  bindBc2SyncCommand,
+  fetchBc2Messages,
+} from "../src/commands/bc2-sync.js";
+
+// ─── parseSince: invalid date throws (line 26) ───────────────────────────────
+
+describe("syncBc2Messages parseSince validation", () => {
+  it("throws TypeError for an invalid --since value", async () => {
+    await expect(
+      syncBc2Messages({ captureDbPath, baseDir, since: "not-a-date" }),
+    ).rejects.toThrow(TypeError);
+    await expect(
+      syncBc2Messages({ captureDbPath, baseDir, since: "not-a-date" }),
+    ).rejects.toThrow("Invalid --since value: not-a-date");
+  });
+});
+
+// ─── capture DB not found (line 84) ──────────────────────────────────────────
+
+describe("syncBc2Messages missing DB", () => {
+  it("throws when captureDbPath does not exist", async () => {
+    await expect(
+      syncBc2Messages({
+        captureDbPath: path.join(tempDir, "nonexistent.db"),
+        baseDir,
+      }),
+    ).rejects.toThrow("Capture DB not found");
+  });
+
+  it("uses default APPDATA path when captureDbPath is omitted and throws when absent", async () => {
+    // Default path won't exist in CI — should throw with 'Capture DB not found'
+    await expect(syncBc2Messages({ baseDir })).rejects.toThrow(
+      "Capture DB not found",
+    );
+  });
+});
+
+// ─── empty chunks early return (line 109) ────────────────────────────────────
+
+describe("syncBc2Messages empty chunks", () => {
+  it("returns zeros when all messages have empty content", async () => {
+    // Insert a message with blank content
+    const db = new Database(captureDbPath);
+    db.prepare(
+      "INSERT INTO chat_messages (chat_session_id, role, text_content, ts) VALUES (?, ?, ?, ?)",
+    ).run(1, "user", "   ", "2026-05-01T13:00:00Z");
+    db.close();
+
+    // Use since filter that picks up only the blank message
+    const result = await syncBc2Messages({
+      captureDbPath,
+      baseDir,
+      since: "2026-05-01T13:00:00Z",
+    });
+    expect(result.total).toBe(0);
+    expect(result.inserted).toBe(0);
+    expect(result.skipped).toBe(0);
+  });
+});
+
+// ─── platform filter (buildQuery / buildParams branch) ───────────────────────
+
+describe("fetchBc2Messages platform filter", () => {
+  it("filters by platform when provided", async () => {
+    const rows = await fetchBc2Messages(captureDbPath, { platform: "github" });
+    expect(rows.length).toBe(2);
+    rows.forEach((r) => expect(r.platform).toBe("github"));
+  });
+
+  it("returns empty array for unknown platform", async () => {
+    const rows = await fetchBc2Messages(captureDbPath, {
+      platform: "unknown-site",
+    });
+    expect(rows).toEqual([]);
+  });
+
+  it("filters by since date", async () => {
+    const rows = await fetchBc2Messages(captureDbPath, {
+      since: "2026-05-01T12:00:30Z",
+    });
+    expect(rows.length).toBe(1);
+  });
+
+  it("returns empty array when rows have unparseable timestamps", async () => {
+    // Insert a row with a bad ts
+    const db = new Database(captureDbPath);
+    db.prepare(
+      "INSERT INTO chat_messages (chat_session_id, role, text_content, ts) VALUES (?, ?, ?, ?)",
+    ).run(1, "user", "bad-ts message", "not-a-date");
+    db.close();
+    const rows = await fetchBc2Messages(captureDbPath, {
+      since: "2026-05-01T00:00:00Z",
+    });
+    // bad-ts row is excluded; only valid-ts rows remain
+    expect(rows.every((r) => r.content !== "bad-ts message")).toBe(true);
+  });
+});
+
+// ─── schedule mode (lines 149-178) ───────────────────────────────────────────
+
+describe("syncBc2Messages schedule mode", () => {
+  it("returns { scheduled: true } and starts interval without blocking", async () => {
+    vi.useFakeTimers();
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+
+    const resultP = syncBc2Messages({
+      captureDbPath,
+      baseDir,
+      schedule: true,
+      dryRun: true,
+    });
+
+    // Let the initial runOnce() resolve without draining the interval
+    await vi.advanceTimersByTimeAsync(0);
+    const result = await resultP;
+
+    expect(result.scheduled).toBe(true);
+
+    // Advance exactly one interval — fires the callback once
+    await vi.advanceTimersByTimeAsync(5 * 60 * 1000);
+
+    vi.useRealTimers();
+    consoleError.mockRestore();
+  });
+
+  it("catches errors thrown during scheduled runOnce and logs them", async () => {
+    vi.useFakeTimers();
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+
+    // Start schedule; first runOnce succeeds
+    const resultP = syncBc2Messages({
+      captureDbPath,
+      baseDir,
+      schedule: true,
+      dryRun: true,
+    });
+    // Let the initial runOnce() promise resolve without draining the interval
+    await vi.advanceTimersByTimeAsync(0);
+    const result = await resultP;
+    expect(result.scheduled).toBe(true);
+
+    // Delete the DB so the next interval callback throws
+    await fs.unlink(captureDbPath);
+    // Advance exactly one interval — fires the setInterval callback once
+    await vi.advanceTimersByTimeAsync(5 * 60 * 1000);
+
+    // Error should have been caught and logged
+    expect(consoleError).toHaveBeenCalled();
+
+    vi.useRealTimers();
+    consoleError.mockRestore();
+  });
+});
+
+// ─── bindBc2SyncCommand (lines 181-221) ──────────────────────────────────────
+
+describe("bindBc2SyncCommand", () => {
+  function makeProgram() {
+    const actionFn = { fn: null };
+    const optionDefs = [];
+    const command = {
+      description: () => command,
+      option: (...args) => {
+        optionDefs.push(args);
+        return command;
+      },
+      action: (fn) => {
+        actionFn.fn = fn;
+        return command;
+      },
+    };
+    const program = {
+      command: () => command,
+    };
+    return { program, command, actionFn };
+  }
+
+  it("registers the bc2-sync command with all expected options", () => {
+    const { program, actionFn } = makeProgram();
+    bindBc2SyncCommand(program);
+    expect(typeof actionFn.fn).toBe("function");
+  });
+
+  it("action: succeeds with dry-run and logs dry-run output", async () => {
+    const { program, actionFn } = makeProgram();
+    bindBc2SyncCommand(program);
+    const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    await actionFn.fn({
+      captureDb: captureDbPath,
+      baseDir,
+      dryRun: true,
+      schedule: false,
+    });
+    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining("dry-run"));
+    consoleSpy.mockRestore();
+  });
+
+  it("action: succeeds with normal run and logs ingestion summary", async () => {
+    const { program, actionFn } = makeProgram();
+    bindBc2SyncCommand(program);
+    const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    await actionFn.fn({
+      captureDb: captureDbPath,
+      baseDir,
+      dryRun: false,
+      schedule: false,
+    });
+    expect(consoleSpy).toHaveBeenCalledWith(
+      expect.stringContaining("ingested"),
+    );
+    consoleSpy.mockRestore();
+  });
+
+  it("action: logs scheduled message when schedule=true", async () => {
+    vi.useFakeTimers();
+    const { program, actionFn } = makeProgram();
+    bindBc2SyncCommand(program);
+    const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    const p = actionFn.fn({
+      captureDb: captureDbPath,
+      baseDir,
+      dryRun: true,
+      schedule: true,
+    });
+    await vi.runAllTimersAsync();
+    await p;
+
+    expect(consoleSpy).toHaveBeenCalledWith(
+      expect.stringContaining("scheduling enabled"),
+    );
+    consoleSpy.mockRestore();
+    vi.useRealTimers();
+  });
+
+  it("action: catches errors and sets process.exitCode = 1", async () => {
+    const { program, actionFn } = makeProgram();
+    bindBc2SyncCommand(program);
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    const origExitCode = process.exitCode;
+
+    await actionFn.fn({
+      captureDb: path.join(tempDir, "missing.db"),
+      baseDir,
+      dryRun: false,
+      schedule: false,
+    });
+
+    expect(process.exitCode).toBe(1);
+    expect(consoleError).toHaveBeenCalled();
+    process.exitCode = origExitCode;
+    consoleError.mockRestore();
+  });
+});
+
+// ─── SIGINT handler (lines 167-170) ──────────────────────────────────────────
+
+describe("syncBc2Messages schedule SIGINT handler", () => {
+  it("clears the interval, stops the spinner and exits on SIGINT", async () => {
+    vi.useFakeTimers();
+    const exitSpy = vi.spyOn(process, "exit").mockImplementation(() => {
+      throw new Error("process.exit called");
+    });
+    const consoleLog = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    const resultP = syncBc2Messages({
+      captureDbPath,
+      baseDir,
+      schedule: true,
+      dryRun: true,
+    });
+    await vi.advanceTimersByTimeAsync(0);
+    await resultP;
+
+    // Emit SIGINT — should call clearInterval + spinner.stop + console.log + process.exit
+    await expect(
+      new Promise((_, reject) => {
+        try {
+          process.emit("SIGINT");
+        } catch (e) {
+          reject(e);
+        }
+      }),
+    ).rejects.toThrow("process.exit called");
+
+    expect(consoleLog).toHaveBeenCalledWith(
+      "bc2-sync scheduled worker stopped.",
+    );
+
+    exitSpy.mockRestore();
+    consoleLog.mockRestore();
+    vi.useRealTimers();
   });
 });

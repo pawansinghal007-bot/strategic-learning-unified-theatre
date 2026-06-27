@@ -25,6 +25,16 @@ describe("assertPluginApiCompatible", () => {
     );
   });
 
+  it("throws on non-integer PLUGIN_API_VERSION", () => {
+    const plugin = { PLUGIN_API_VERSION: "1" };
+    expect(() =>
+      assertPluginApiCompatible(plugin, "non-integer-plugin"),
+    ).toThrow(/non-integer/i);
+    expect(() =>
+      assertPluginApiCompatible(plugin, "non-integer-plugin"),
+    ).toThrow(/non-integer-plugin/);
+  });
+
   it("passes silently on correct version", () => {
     const plugin = { PLUGIN_API_VERSION: PLUGIN_API_VERSION };
     expect(() => assertPluginApiCompatible(plugin, "ok-plugin")).not.toThrow();

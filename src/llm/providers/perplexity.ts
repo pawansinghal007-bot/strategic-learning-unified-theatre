@@ -14,7 +14,7 @@ export class PerplexityProviderAdapter extends BaseProviderAdapter {
 
   protected async execute(req: ProviderRequest): Promise<ProviderResponse> {
     if (!process.env.PERPLEXITY_API_KEY) {
-      throw new Error("Missing PERPLEXITY_API_KEY");
+      throw new Error("401 unauthorized: missing API key for perplexity");
     }
 
     return {

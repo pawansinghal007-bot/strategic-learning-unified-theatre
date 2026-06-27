@@ -167,4 +167,73 @@ describe("generateAutoHandoff()", () => {
 
     expect(payload.continuation_prompt).toContain("[REDACTED]");
   });
+
+  // ---------------------------------------------------------------------------
+  // NEW: cover the || 'unknown' fallback branches (lines 37-39)
+  // ---------------------------------------------------------------------------
+  it("falls back to 'unknown' for missing provider, model, and workspacePath", async () => {
+    // Controlled ephemeral test directory, not exposed to other users in CI. // NOSONAR javascript:S5443
+    const tmpBase = path.join(process.cwd(), "tmp-test-output");
+    try {
+      fs.mkdirSync(tmpBase, { recursive: true, mode: 0o700 });
+    } catch {}
+    const tempDir = fs.mkdtempSync(path.join(tmpBase, "handoff-"));
+    _testTempDirs.push(tempDir);
+
+    const mockCreateHandoff = vi
+      .fn()
+      .mockResolvedValue(path.join(tempDir, "handoff.json"));
+
+    vi.doMock("../src/agent-handoff.js", () => ({
+      createHandoff: mockCreateHandoff,
+    }));
+
+    const { generateAutoHandoff } = await import("../src/auto-handoff.js");
+
+    // Omit provider, model, and workspacePath so every || 'unknown' branch fires.
+    await generateAutoHandoff(
+      { currentTask: "do something", currentGoal: "achieve something" },
+      Date.now() + 3_600_000,
+    );
+
+    const payload = mockCreateHandoff.mock.calls[0][0];
+
+    expect(payload.provider).toBe("unknown");
+    expect(payload.model).toBe("unknown");
+    expect(payload.workspacePath).toBe("unknown");
+  });
+
+  // ---------------------------------------------------------------------------
+  // NEW: cover the sanitizedTask falsy branch in continuation_prompt (line 54)
+  // ---------------------------------------------------------------------------
+  it("omits 'Previous task' line from continuation_prompt when currentTask is absent", async () => {
+    // Controlled ephemeral test directory, not exposed to other users in CI. // NOSONAR javascript:S5443
+    const tmpBase = path.join(process.cwd(), "tmp-test-output");
+    try {
+      fs.mkdirSync(tmpBase, { recursive: true, mode: 0o700 });
+    } catch {}
+    const tempDir = fs.mkdtempSync(path.join(tmpBase, "handoff-"));
+    _testTempDirs.push(tempDir);
+
+    const mockCreateHandoff = vi
+      .fn()
+      .mockResolvedValue(path.join(tempDir, "handoff.json"));
+
+    vi.doMock("../src/agent-handoff.js", () => ({
+      createHandoff: mockCreateHandoff,
+    }));
+
+    const { generateAutoHandoff } = await import("../src/auto-handoff.js");
+
+    // No currentTask → sanitizedTask is '' (falsy) → line 54 takes the null branch.
+    await generateAutoHandoff(
+      { currentGoal: "Summarize results", provider: "anthropic" },
+      Date.now() + 3_600_000,
+    );
+
+    const payload = mockCreateHandoff.mock.calls[0][0];
+
+    expect(payload.continuation_prompt).toContain("Goal: Summarize results.");
+    expect(payload.continuation_prompt).not.toContain("Previous task:");
+  });
 });

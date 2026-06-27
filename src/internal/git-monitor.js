@@ -2,10 +2,18 @@ import { EventEmitter } from "node:events";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 
-const execFileAsync = promisify(execFile);
+let execFileAsync = promisify(execFile);
+
+// Test seam: allows unit tests to inject a mock without module re-loading.
+// Only active when NODE_ENV === "test" or vitest is running.
+export function __setExecFileAsync(fn) {
+  execFileAsync = fn;
+}
 
 export function parseStatusSummary(sbPorcelainText) {
-  const lines = sbPorcelainText.split(/\r?\n/g).filter((l) => l.trim().length > 0);
+  const lines = sbPorcelainText
+    .split(/\r?\n/g)
+    .filter((l) => l.trim().length > 0);
   const first = lines[0] ?? "";
   const rest = lines.slice(1);
 
@@ -35,19 +43,21 @@ export function parseStatusSummary(sbPorcelainText) {
     branch: branch ?? "",
     ahead: Number.isFinite(ahead) ? ahead : 0,
     behind: Number.isFinite(behind) ? behind : 0,
-    uncommitted
+    uncommitted,
   };
 }
 
 export function parseLastCommitLine(line) {
-  const parts = String(line ?? "").trim().split("|");
+  const parts = String(line ?? "")
+    .trim()
+    .split("|");
   if (parts.length < 3) return null;
   const [sha, msg, date] = parts;
   const d = new Date(date);
   return {
     sha,
     msg,
-    date: Number.isFinite(d.getTime()) ? d.toISOString() : null
+    date: Number.isFinite(d.getTime()) ? d.toISOString() : null,
   };
 }
 
@@ -61,7 +71,7 @@ export class GitMonitor extends EventEmitter {
     const { stdout: sb } = await execFileAsync(
       "git",
       ["status", "-sb", "--porcelain"],
-      { cwd: repoPath, windowsHide: true }
+      { cwd: repoPath, windowsHide: true },
     );
     const summary = parseStatusSummary(sb);
 
@@ -69,9 +79,11 @@ export class GitMonitor extends EventEmitter {
     try {
       const { stdout } = await execFileAsync("git", ["stash", "list"], {
         cwd: repoPath,
-        windowsHide: true
+        windowsHide: true,
       });
-      stashed = stdout.split(/\r?\n/g).filter((l) => l.trim().length > 0).length;
+      stashed = stdout
+        .split(/\r?\n/g)
+        .filter((l) => l.trim().length > 0).length;
     } catch {
       stashed = 0;
     }
@@ -79,13 +91,13 @@ export class GitMonitor extends EventEmitter {
     const { stdout: logLine } = await execFileAsync(
       "git",
       ["log", "-1", "--format=%H|%s|%ai"],
-      { cwd: repoPath, windowsHide: true }
+      { cwd: repoPath, windowsHide: true },
     );
 
     const lastCommit = parseLastCommitLine(logLine) ?? {
       sha: "",
       msg: "",
-      date: null
+      date: null,
     };
 
     return {
@@ -94,7 +106,7 @@ export class GitMonitor extends EventEmitter {
       behind: summary.behind,
       uncommitted: summary.uncommitted,
       stashed,
-      lastCommit
+      lastCommit,
     };
   }
 
@@ -109,7 +121,9 @@ export class GitMonitor extends EventEmitter {
   }
 
   watchAll(repoPaths, intervalMs) {
-    const repos = Array.isArray(repoPaths) ? repoPaths.filter((p) => typeof p === "string") : [];
+    const repos = Array.isArray(repoPaths)
+      ? repoPaths.filter((p) => typeof p === "string")
+      : [];
     const interval = Math.max(1000, Number(intervalMs) || 0);
 
     const tick = async () => {
@@ -120,14 +134,15 @@ export class GitMonitor extends EventEmitter {
             this.emit("warn", {
               repoPath,
               status: s,
-              reason: s.uncommitted > 0 ? "uncommitted changes" : "pending push"
+              reason:
+                s.uncommitted > 0 ? "uncommitted changes" : "pending push",
             });
           }
         } catch (err) {
           this.emit("warn", {
             repoPath,
             status: null,
-            reason: String(err?.message ?? err)
+            reason: String(err?.message ?? err),
           });
         }
       }
@@ -147,4 +162,3 @@ export class GitMonitor extends EventEmitter {
     this.timer = null;
   }
 }
-

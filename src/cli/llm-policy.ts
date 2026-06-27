@@ -70,7 +70,7 @@ export function registerLlmPolicy(program) {
     .command("llm:policy:mode <mode>")
     .description("Set routing mode: cloud | hybrid | local-only")
     .action((mode) => {
-      if (!VALID_MODES.includes(mode)) {
+      if (!VALID_MODES.has(mode)) {
         console.error(`Unknown routing mode: ${mode}`);
         process.exitCode = 1;
         return;
@@ -83,7 +83,7 @@ export function registerLlmPolicy(program) {
     .command("llm:policy:allow <provider>")
     .description("Allow a provider")
     .action((provider) => {
-      if (!VALID_PROVIDERS.includes(provider)) {
+      if (!VALID_PROVIDERS.has(provider)) {
         console.error(`Unknown provider: ${provider}`);
         process.exitCode = 1;
         return;
@@ -97,7 +97,7 @@ export function registerLlmPolicy(program) {
     .command("llm:policy:block <provider>")
     .description("Block a provider")
     .action((provider) => {
-      if (!VALID_PROVIDERS.includes(provider)) {
+      if (!VALID_PROVIDERS.has(provider)) {
         console.error(`Unknown provider: ${provider}`);
         process.exitCode = 1;
         return;
@@ -111,7 +111,7 @@ export function registerLlmPolicy(program) {
     .command("llm:policy:pin [provider]")
     .description("Pin a manual provider, or clear with no argument")
     .action((provider) => {
-      if (provider && !VALID_PROVIDERS.includes(provider)) {
+      if (provider && !VALID_PROVIDERS.has(provider)) {
         console.error(`Unknown provider: ${provider}`);
         process.exitCode = 1;
         return;

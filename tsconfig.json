@@ -10,6 +10,7 @@
     "types": []
   },
   "include": ["src/shared/**/*"],
+  "exclude": ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx"],
   "files": [
     "src/shared/contracts/provider.ts",
     "src/shared/schemas/provider.schema.ts",

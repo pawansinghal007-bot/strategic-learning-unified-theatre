@@ -1,4 +1,4 @@
-import fs from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 
 function getFingerprint(row: any): string | null {
   const value = row?.Fingerprint ?? row?.fingerprint ?? null;
@@ -10,7 +10,7 @@ export async function loadBaselineFingerprints(
 ): Promise<Set<string>> {
   if (!baselinePath) return new Set();
   try {
-    const raw = await fs.readFile(baselinePath, "utf8");
+    const raw = await readFile(baselinePath, "utf8");
     const parsed = JSON.parse(raw);
     let rows: unknown[] = [];
     if (Array.isArray(parsed)) {

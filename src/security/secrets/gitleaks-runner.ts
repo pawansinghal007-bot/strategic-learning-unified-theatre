@@ -1,4 +1,4 @@
-import fs from "node:fs/promises";
+import { readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { spawn } from "node:child_process";
@@ -184,12 +184,12 @@ export async function runSecretsScan(
 
   let parsed: any[] = [];
   try {
-    const raw = await fs.readFile(reportPath, "utf8");
+    const raw = await readFile(reportPath, "utf8");
     parsed = JSON.parse(raw);
   } catch {
     parsed = [];
   } finally {
-    await fs.rm(reportPath, { force: true });
+    await rm(reportPath, { force: true });
   }
 
   const baselineFingerprints = await loadBaselineFingerprints(

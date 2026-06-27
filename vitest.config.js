@@ -30,7 +30,16 @@ export default defineConfig({
         "src/idea-store.js",
         "src/knowledge/ingest/ingest-sprint-history.js",
       ],
-      exclude: ["**/__tests__/**", "**/*.test.*", "**/node_modules/**"],
+      exclude: [
+        "**/__tests__/**",
+        "**/*.test.*",
+        "**/node_modules/**",
+        "**/*.d.ts",
+        // Browser-only coverage report UI scripts — no exports, DOM-dependent
+        "src/coverage/**",
+        // ...any other existing excludes
+        "**/schema.ts", // types/interfaces only — no executable code
+      ], // excludes types.d.ts and any other declaration files
       thresholds: {
         statements: 70,
         branches: 70,

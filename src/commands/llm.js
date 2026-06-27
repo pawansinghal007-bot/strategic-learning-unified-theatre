@@ -787,7 +787,9 @@ export async function bindLlmCommands(program, { log: cliLog = null } = {}) {
       const spinner = ora("Importing sprint history...").start();
       try {
         const result = await importSprints({ baseDir: options.baseDir });
-        spinner.succeed(`Imported ${result.imported} sprints`);
+        const importedMessage = `Imported ${result.imported} sprints`;
+        spinner.succeed(importedMessage);
+        console.log(importedMessage);
         console.log(`Mistakes extracted: ${result.mistakes}`);
       } catch (err) {
         spinner.stop();

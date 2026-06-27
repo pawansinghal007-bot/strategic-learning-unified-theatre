@@ -30,12 +30,14 @@ function parseSprintNumberFromFilename(filePath) {
   const match = /sprint[-_ ]?(\d{1,3})/.exec(base);
   if (match) {
     const num = Number(match[1]);
+    /* v8 ignore next -- capture group is always \d{1,3}, so Number.isFinite is always true */
     if (Number.isFinite(num)) return num;
   }
 
   const leading = /^(\d{1,3})[_-]/.exec(base);
   if (leading) {
     const num = Number(leading[1]);
+    /* v8 ignore next -- capture group is always \d{1,3}, so Number.isFinite is always true */
     if (Number.isFinite(num)) return num;
   }
 
@@ -119,6 +121,8 @@ export async function ingestSprintHistory(options) {
 // ── CLI entry point (ESM top-level await) ─────────────────────────────────────
 async function main() {
   // Skip execution if running under test (Vitest sets VITEST env var)
+  /* v8 ignore next 3 -- VITEST is always set under the test runner; the
+     production CLI-execution path is exercised manually, not by Vitest */
   if (process.env.VITEST) {
     return;
   }

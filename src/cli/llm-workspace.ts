@@ -49,7 +49,7 @@ export function registerLlmWorkspace(program: Command) {
     .action((workspaceId, opts) => {
       const policy: Record<string, any> = {};
       if (opts.mode) {
-        if (!VALID_MODES.includes(opts.mode)) {
+        if (!VALID_MODES.has(opts.mode)) {
           console.error(`Unknown routing mode: ${opts.mode}`);
           process.exitCode = 1;
           return;
@@ -57,7 +57,7 @@ export function registerLlmWorkspace(program: Command) {
         policy.routingMode = opts.mode;
       }
       if (opts.provider) {
-        if (!VALID_PROVIDERS.includes(opts.provider)) {
+        if (!VALID_PROVIDERS.has(opts.provider)) {
           console.error(`Unknown provider: ${opts.provider}`);
           process.exitCode = 1;
           return;

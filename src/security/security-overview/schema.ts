@@ -55,6 +55,28 @@ export interface SecurityOverviewSnapshot {
   latestAt: number | null;
 }
 
+export const securityOverviewSchema = {
+  type: "object",
+  properties: {
+    total: { type: "number" },
+    critical: { type: "number" },
+    high: { type: "number" },
+    medium: { type: "number" },
+    low: { type: "number" },
+    info: { type: "number" },
+    unknown: { type: "number" },
+    secrets: { type: "number" },
+    risks: { type: "number" },
+    suppressed: { type: "number" },
+    baselineMatched: { type: "number" },
+    open: { type: "number" },
+    accepted: { type: "number" },
+    falsePositive: { type: "number" },
+    resolved: { type: "number" },
+    latestAt: { type: ["number", "null"] },
+  },
+};
+
 export function emptySecurityOverviewSnapshot(): SecurityOverviewSnapshot {
   return {
     total: 0,

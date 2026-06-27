@@ -1,10 +1,18 @@
 === GIT STATUS ===
  M dumps/project-status-dump.txt
+ M package.json
+ M sonar-project.properties
+ M src/ui/dashboard.js
+ M vitest.config.ts
+?? tests/ui/dashboard.test.js
 
 === GIT BRANCH ===
 main
 
 === RECENT COMMITS ===
+fb5a5cf docs(sprint-95): backfill Sprint 82-94 history, remove dead local-llm.js duplicate, exclude dead .ts spec companions from coverage, clean stray broken-paste artifacts
+3ad041e test(sprint-94): add watcher coverage tests for _appBaseDir, getConfig → loadConfig() path, getStoragePaths / normalizeStoragePath, maxAgeDays, readIndex / readSnapshot, pruneIndex , appendChanges, queueChange, flushPending, recentChanges, indexAll, watch, close, fileSize, storagePaths()
+6d8ba00 test(sprint-93): add watcher coverage tests for _tick branches, recover loop, git monitoring
 bd30f44 fix(sprint-93): remove unused truncateTextForMilvus import (S1128), wrap map callback (S7727)
 8bc3443 style(sprint-93): formatting-only change in sprint92 guard
 87d5e38 refactor(sprint-93): extract chunkToMilvusEntity and truncateTextForMilvus to milvus-client.js to eliminate S1192 duplication
@@ -22,9 +30,6 @@ e32c261 Sprint 82: Security Overview Coverage & Validation
 437023b Sprint 81: Update planning docs
 c2d674c Sprint 81: Fix Sonar new-code coverage reporting pipeline
 2147977 Sprint 80: Update planning docs
-7c17aaa Sprint 80: Add Sonar remediation and scope guard tests
-94b540c Sprint 80: Fix S6551/S7735/S3358/S6644 in security overview files
-6d10369 Sprint 79: Add Sonar issues report (14 new-code violations)
 
 === TRACKED FILES ===
 .continue/agents/new-config.yaml
@@ -367,6 +372,7 @@ key-files.txt
 lessons
 load-env.ps1
 main
+master-instructions-append-sprint82-95.md
 master_timeline_sprints_1_54.md
 memories/session/sprint90-todo.md
 package-lock.json
@@ -597,7 +603,6 @@ src/llm/routing-history.ts
 src/llm/status.ts
 src/llm/storage.ts
 src/llm/training-exporter.js
-src/local-llm.js
 src/lock.js
 src/logger.cjs
 src/logger.js
@@ -900,9 +905,11 @@ test_summary.txt
 tests/agent-handoff-quarantine.test.js
 tests/agent-handoff.test.js
 tests/ai-memory.test.js
+tests/auth-capture.test.js
 tests/auto-handoff.test.js
 tests/backwards-compat.test.js
 tests/bc2-sync.test.js
+tests/browser-bridge.coverage-additions.test.js
 tests/browser-bridge.test.js
 tests/browser-bridge.test.js.backup
 tests/capture-payload-validation.test.js
@@ -916,6 +923,7 @@ tests/ci-workflow.test.js
 tests/cli-validation.test.js
 tests/config-policy.test.js
 tests/config-validation.test.js
+tests/coverage-branch-gap.test.js
 tests/coverage-gate.test.js
 tests/coverage-thresholds.js
 tests/dashboard-loader.js
@@ -951,11 +959,13 @@ tests/internal/journal.test.js
 tests/internal/paths.test.js
 tests/knowledge-graph.test.js
 tests/knowledge/ingest/ingest-repository.test.ts
+tests/knowledge/ingest/milvus-client.test.ts
 tests/limit-detector.test.js
 tests/llm-training-exporter.test.js
 tests/llm/agent-loop-guard.test.js
 tests/llm/embeddings.test.js
 tests/llm/llm.test.js
+tests/llm/local-llm.coverage-additions.test.js
 tests/llm/local-provider.test.js
 tests/llm/ollama-inference.test.js
 tests/llm/related.test.js
@@ -1082,9 +1092,11 @@ tests/sprint87-gate-guard.test.js
 tests/sprint90-coverage-policy.test.js
 tests/sprint91-sonar-fix-guard.test.js
 tests/sprint92-thread-and-coverage-guard.test.js
+tests/sprint95-guard.test.js
 tests/startup-bootstrap.test.js
 tests/startup-plugins.test.js
 tests/storage/collector.test.js
+tests/storage/storage-monitor-coverage.test.js
 tests/storage/storage-monitor.test.js
 tests/storage/storageStatus.test.js
 tests/store.test.js
@@ -1098,6 +1110,7 @@ tests/ui/helpers/electronUi.js
 tests/ui/local-ai-status.spec.js
 tests/ui/theme-readability.spec.js
 tests/updater-config.test.js
+tests/watcher-coverage.test.js
 tests/watcher.test.js
 tests/window-security.test.js
 tests/workspace.test.js
@@ -1106,8 +1119,6 @@ tsconfig.json
 tsconfigs.txt
 v1.8c-active
 v2.0b-active
-vite-config.txt
-vite.config.js
 vitest.config.js
 vitest.config.ts
 vitest.integration.config.js
@@ -2766,7 +2777,7 @@ security-overview:compare-baseline
 
 === ACTIVE SNAPSHOT ===
 FILE: ./CURRENT_ACTIVE_SNAPSHOT.md
-strategic-learning-unified-theatre-ai-snapshot-sprint92-stable
+strategic-learning-unified-theatre-ai-snapshot-sprint95-stable
 
 === ALL SMOKE TEST FILES ===
 --- FILE: ./tests/run-tests-smoke.test.js ---
@@ -9535,35 +9546,35 @@ describe("test-runner scaffold", () => {
 });
 
 === TEST RESULTS ===
-    at [90mfile:///home/pawan/vscodeagent/Solution/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+[41m[1m FAIL [22m[49m tests/ui/dashboard.test.js[2m > [22mupdateSecurityMetrics[2m > [22mdefaults to '0' for keys absent from snapshot
+[41m[1m FAIL [22m[49m tests/ui/dashboard.test.js[2m > [22mupdateSecurityMetrics[2m > [22mhandles null snapshot without throwing
+[41m[1m FAIL [22m[49m tests/ui/dashboard.test.js[2m > [22mseverityOrder[2m > [22mmaps 'critical' → 5
+[41m[1m FAIL [22m[49m tests/ui/dashboard.test.js[2m > [22mseverityOrder[2m > [22mmaps 'high' → 4
+[41m[1m FAIL [22m[49m tests/ui/dashboard.test.js[2m > [22mseverityOrder[2m > [22mmaps 'medium' → 3
+[41m[1m FAIL [22m[49m tests/ui/dashboard.test.js[2m > [22mseverityOrder[2m > [22mmaps 'low' → 2
+[41m[1m FAIL [22m[49m tests/ui/dashboard.test.js[2m > [22mseverityOrder[2m > [22mmaps 'info' → 1
+[41m[1m FAIL [22m[49m tests/ui/dashboard.test.js[2m > [22mseverityOrder[2m > [22mmaps 'unknown' → 0
+[41m[1m FAIL [22m[49m tests/ui/dashboard.test.js[2m > [22mseverityOrder[2m > [22mmaps '' → 0
+[41m[1m FAIL [22m[49m tests/ui/dashboard.test.js[2m > [22mseverityOrder[2m > [22mmaps 'undefined' → 0
+[41m[1m FAIL [22m[49m tests/ui/dashboard.test.js[2m > [22mseverityOrder[2m > [22mis case-insensitive
+[41m[1m FAIL [22m[49m tests/ui/dashboard.test.js[2m > [22mlogNonFatalErrorUI[2m > [22mcalls console.warn without throwing
+[41m[1m FAIL [22m[49m tests/ui/dashboard.test.js[2m > [22mlogNonFatalErrorUI[2m > [22mconverts non-Error values to string
+[31m[1mTypeError[22m: Cannot read properties of null (reading 'addEventListener')[39m
+[36m [2m❯[22m src/ui/dashboard.js:[2m610:3[22m[39m
+    [90m608|[39m document
+    [90m609|[39m   [33m.[39m[34mgetElementById[39m([32m"load-unified-view"[39m)
+    [90m610|[39m   [33m.[39m[34maddEventListener[39m([32m"click"[39m[33m,[39m loadUnifiedView)[33m;[39m
+    [90m   |[39m   [31m^[39m
+    [90m611|[39m
+    [90m612|[39m document
 
-[90mstderr[2m | tests/startup-bootstrap.test.js
-[22m[39m[startup-bootstrap] bootstrap failed Error: Keychain locked
-    at [90m/home/pawan/vscodeagent/Solution/[39mtests/startup-bootstrap.test.js:21:7
-    at [90mfile:///home/pawan/vscodeagent/Solution/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
-    at [90mfile:///home/pawan/vscodeagent/Solution/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
-    at [90mfile:///home/pawan/vscodeagent/Solution/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
-    at new Promise (<anonymous>)
-    at runWithCancel [90m(file:///home/pawan/vscodeagent/Solution/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
-    at [90mfile:///home/pawan/vscodeagent/Solution/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
-    at new Promise (<anonymous>)
-    at runWithTimeout [90m(file:///home/pawan/vscodeagent/Solution/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2272:10[90m)[39m
-    at [90mfile:///home/pawan/vscodeagent/Solution/[39mnode_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2955:64
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/128]⎯[22m[39m
 
- [32m✓[39m tests/startup-bootstrap.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 4[2mms[22m[39m
- [32m✓[39m tests/chaos-slo.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
- [32m✓[39m tests/sprint86-hotspot-guard.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 4[2mms[22m[39m
- [32m✓[39m tests/llm/local-provider.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 3[2mms[22m[39m
- [32m✓[39m tests/test-runner.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
- [32m✓[39m tests/dashboard.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 4[2mms[22m[39m
- [32m✓[39m tests/window-security.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
- [32m✓[39m tests/thread.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
- [32m✓[39m tests/updater-config.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
 
-[2m Test Files [22m [1m[32m170 passed[39m[22m[90m (170)[39m
-[2m      Tests [22m [1m[32m1815 passed[39m[22m[90m (1815)[39m
-[2m   Start at [22m 04:51:07
-[2m   Duration [22m 7.55s[2m (transform 9.34s, setup 4.89s, import 14.02s, tests 16.74s, environment 107.29s)[22m
+[2m Test Files [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m180 passed[39m[22m[90m (182)[39m
+[2m      Tests [22m [1m[31m128 failed[39m[22m[2m | [22m[1m[32m2025 passed[39m[22m[90m (2153)[39m
+[2m   Start at [22m 13:16:29
+[2m   Duration [22m 7.97s[2m (transform 9.63s, setup 5.59s, import 14.24s, tests 19.71s, environment 111.15s)[22m
 
 
 === TYPECHECK ===
