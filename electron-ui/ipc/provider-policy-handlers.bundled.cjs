@@ -53,21 +53,21 @@ var init_logger = __esm({
 
 // src/llm/storage.ts
 function getAppDir() {
-  return process.env.UNIFIED_AI_DATA_DIR ?? (0, import_path.join)((0, import_os.homedir)(), ".unified-ai-workspace");
+  return process.env.UNIFIED_AI_DATA_DIR ?? (0, import_node_path.join)((0, import_node_os.homedir)(), ".unified-ai-workspace");
 }
 function ensureDir(path) {
-  (0, import_fs.mkdirSync)((0, import_path.dirname)(path), { recursive: true });
+  (0, import_node_fs.mkdirSync)((0, import_node_path.dirname)(path), { recursive: true });
 }
 function getStoragePath(fileName) {
-  return (0, import_path.join)(getAppDir(), fileName);
+  return (0, import_node_path.join)(getAppDir(), fileName);
 }
 function readJsonFile(fileName, fallback) {
   const filePath = getStoragePath(fileName);
   try {
-    if (!(0, import_fs.existsSync)(filePath)) {
+    if (!(0, import_node_fs.existsSync)(filePath)) {
       return fallback;
     }
-    const raw = (0, import_fs.readFileSync)(filePath, "utf-8");
+    const raw = (0, import_node_fs.readFileSync)(filePath, "utf-8");
     return JSON.parse(raw);
   } catch (error) {
     logger.warn("storage.read.failed", {
@@ -81,7 +81,7 @@ function writeJsonFile(fileName, value) {
   const filePath = getStoragePath(fileName);
   try {
     ensureDir(filePath);
-    (0, import_fs.writeFileSync)(filePath, JSON.stringify(value, null, 2), "utf-8");
+    (0, import_node_fs.writeFileSync)(filePath, JSON.stringify(value, null, 2), "utf-8");
   } catch (error) {
     logger.error("storage.write.failed", {
       fileName,
@@ -89,12 +89,12 @@ function writeJsonFile(fileName, value) {
     });
   }
 }
-var import_fs, import_path, import_os;
+var import_node_fs, import_node_path, import_node_os;
 var init_storage = __esm({
   "src/llm/storage.ts"() {
-    import_fs = require("fs");
-    import_path = require("path");
-    import_os = require("os");
+    import_node_fs = require("node:fs");
+    import_node_path = require("node:path");
+    import_node_os = require("node:os");
     init_logger();
   }
 });
@@ -118,11 +118,11 @@ function stableStringify(value) {
     return `[${value.map(stableStringify).join(",")}]`;
   }
   const obj = value;
-  const keys = Object.keys(obj).sort();
+  const keys = Object.keys(obj).sort((a, b) => a.localeCompare(b));
   return `{${keys.map((key) => `${JSON.stringify(key)}:${stableStringify(obj[key])}`).join(",")}}`;
 }
 function hashObject(value) {
-  return (0, import_crypto.createHash)("sha256").update(stableStringify(value), "utf8").digest("hex");
+  return (0, import_node_crypto.createHash)("sha256").update(stableStringify(value), "utf8").digest("hex");
 }
 function loadAuditStore() {
   const store = readJsonFile(AUDIT_FILE, DEFAULT_AUDIT_STORE);
@@ -247,7 +247,10 @@ function verifyAuditLogIntegrity(filter) {
   };
 }
 function escapeHtmlAudit(value) {
-  return String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
+  if (typeof value !== "string" || value === "") {
+    return "";
+  }
+  return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
 }
 function toHtmlReport(events, verification) {
   const rows = events.map((event) => {
@@ -309,8 +312,8 @@ function exportAuditLogJson(filter) {
   const events = listAuditEvents(void 0, filter).slice().reverse();
   const verification = verifyAuditLogIntegrity(filter);
   const suffix = filter?.workspaceId ? `-${filter.workspaceId}` : "";
-  const filePath = (0, import_path2.join)(process.cwd(), `audit-log${suffix}.json`);
-  (0, import_fs2.writeFileSync)(
+  const filePath = (0, import_node_path2.join)(process.cwd(), `audit-log${suffix}.json`);
+  (0, import_node_fs2.writeFileSync)(
     filePath,
     JSON.stringify(
       {
@@ -337,8 +340,8 @@ function exportAuditLogHtmlReport(filter) {
   const events = listAuditEvents(void 0, filter).slice().reverse();
   const verification = verifyAuditLogIntegrity(filter);
   const suffix = filter?.workspaceId ? `-${filter.workspaceId}` : "";
-  const filePath = (0, import_path2.join)(process.cwd(), `audit-log${suffix}.html`);
-  (0, import_fs2.writeFileSync)(filePath, toHtmlReport(events, verification), "utf8");
+  const filePath = (0, import_node_path2.join)(process.cwd(), `audit-log${suffix}.html`);
+  (0, import_node_fs2.writeFileSync)(filePath, toHtmlReport(events, verification), "utf8");
   return {
     ok: true,
     format: "html",
@@ -347,12 +350,12 @@ function exportAuditLogHtmlReport(filter) {
     verification
   };
 }
-var import_crypto, import_fs2, import_path2, AUDIT_FILE, DEFAULT_AUDIT_STORE;
+var import_node_crypto, import_node_fs2, import_node_path2, AUDIT_FILE, DEFAULT_AUDIT_STORE;
 var init_audit_log = __esm({
   "src/audit/audit-log.ts"() {
-    import_crypto = require("crypto");
-    import_fs2 = require("fs");
-    import_path2 = require("path");
+    import_node_crypto = require("node:crypto");
+    import_node_fs2 = require("node:fs");
+    import_node_path2 = require("node:path");
     init_storage();
     AUDIT_FILE = "audit-log.json";
     DEFAULT_AUDIT_STORE = {
@@ -685,8 +688,7 @@ function policyReducer(state2, action) {
         next.allowedProviders = ["local"];
         next.blockedProviders = [];
         next.manualProvider = "local";
-      }
-      if (action.mode === "cloud") {
+      } else if (action.mode === "cloud") {
         next.allowedProviders = [
           "groq",
           "gemini",
@@ -698,8 +700,7 @@ function policyReducer(state2, action) {
           (p) => p !== "local"
         );
         if (next.manualProvider === "local") next.manualProvider = null;
-      }
-      if (action.mode === "hybrid") {
+      } else if (action.mode === "hybrid") {
         next.allowedProviders = [...ALL_PROVIDERS2];
       }
       break;
@@ -788,13 +789,13 @@ function initPolicy(initial) {
   return state;
 }
 function dispatch(action) {
-  if (!state) state = getProviderPolicy();
+  state ??= getProviderPolicy();
   state = policyReducer(state, action);
   saveProviderPolicy(state);
   return state;
 }
 function getState() {
-  if (!state) state = getProviderPolicy();
+  state ??= getProviderPolicy();
   return state;
 }
 function applyPolicyPreset(name) {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { loadDashboardSurface } from './dashboard-loader.js';
+import { loadDashboardSurface } from "./dashboard-loader.js";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -87,9 +87,9 @@ describe("Sprint 53 smoke tests — test harness regression", () => {
     expect(sprintNum).toBeGreaterThanOrEqual(52);
   });
 
-  it("master_timeline_sprints_1_54.md exists and lists Sprint 52", () => {
-    expect(exists("master_timeline_sprints_1_54.md")).toBe(true);
-    const content = read("master_timeline_sprints_1_54.md");
+  it("master_timeline_sprints_1_97.md exists and lists Sprint 52", () => {
+    expect(exists("master_timeline_sprints_1_97.md")).toBe(true);
+    const content = read("master_timeline_sprints_1_97.md");
     expect(content).toContain("Sprint 52");
     expect(content).toContain("Bulk triage");
     expect(content).toContain("Sprint 53");

@@ -53,21 +53,21 @@ var init_logger = __esm({
 
 // src/llm/storage.ts
 function getAppDir() {
-  return process.env.UNIFIED_AI_DATA_DIR ?? (0, import_path.join)((0, import_os.homedir)(), ".unified-ai-workspace");
+  return process.env.UNIFIED_AI_DATA_DIR ?? (0, import_node_path.join)((0, import_node_os.homedir)(), ".unified-ai-workspace");
 }
 function ensureDir(path) {
-  (0, import_fs.mkdirSync)((0, import_path.dirname)(path), { recursive: true });
+  (0, import_node_fs.mkdirSync)((0, import_node_path.dirname)(path), { recursive: true });
 }
 function getStoragePath(fileName) {
-  return (0, import_path.join)(getAppDir(), fileName);
+  return (0, import_node_path.join)(getAppDir(), fileName);
 }
 function readJsonFile(fileName, fallback) {
   const filePath = getStoragePath(fileName);
   try {
-    if (!(0, import_fs.existsSync)(filePath)) {
+    if (!(0, import_node_fs.existsSync)(filePath)) {
       return fallback;
     }
-    const raw = (0, import_fs.readFileSync)(filePath, "utf-8");
+    const raw = (0, import_node_fs.readFileSync)(filePath, "utf-8");
     return JSON.parse(raw);
   } catch (error) {
     logger.warn("storage.read.failed", {
@@ -81,7 +81,7 @@ function writeJsonFile(fileName, value) {
   const filePath = getStoragePath(fileName);
   try {
     ensureDir(filePath);
-    (0, import_fs.writeFileSync)(filePath, JSON.stringify(value, null, 2), "utf-8");
+    (0, import_node_fs.writeFileSync)(filePath, JSON.stringify(value, null, 2), "utf-8");
   } catch (error) {
     logger.error("storage.write.failed", {
       fileName,
@@ -89,12 +89,12 @@ function writeJsonFile(fileName, value) {
     });
   }
 }
-var import_fs, import_path, import_os;
+var import_node_fs, import_node_path, import_node_os;
 var init_storage = __esm({
   "src/llm/storage.ts"() {
-    import_fs = require("fs");
-    import_path = require("path");
-    import_os = require("os");
+    import_node_fs = require("node:fs");
+    import_node_path = require("node:path");
+    import_node_os = require("node:os");
     init_logger();
   }
 });

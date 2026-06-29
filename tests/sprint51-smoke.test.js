@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { loadDashboardSurface } from './dashboard-loader.js';
+import { loadDashboardSurface } from "./dashboard-loader.js";
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 
@@ -23,8 +23,8 @@ describe("Sprint 51 smoke tests — timeline and snapshot files", () => {
     expect(text).toContain("Sprint 51 Complete");
   });
 
-  it("master_timeline_sprints_1_54.md exists and reflects Sprint 50 as complete", () => {
-    const filePath = join(root, "master_timeline_sprints_1_54.md");
+  it("master_timeline_sprints_1_97.md exists and reflects Sprint 50 as complete", () => {
+    const filePath = join(root, "master_timeline_sprints_1_97.md");
     expect(existsSync(filePath)).toBe(true);
     const text = readFileSync(filePath, "utf8");
     expect(text).toContain("Sprint 50");

@@ -29,6 +29,47 @@ test.describe("Human Tester 7 — executive compliance interactions", () => {
   });
 
   test("load drift history updates drift output", async () => {
+    // Manual probe: try calling the function directly if it's accessible
+    const _manual = await page.evaluate(() => {
+      try {
+        const el = document.querySelector(
+          '[data-testid="compliance-drift-value"]',
+        );
+        if (el) el.textContent = "MANUAL";
+        return { worked: el?.textContent };
+      } catch (e) {
+        return { error: e.message };
+      }
+    });
+
+    const result = await page.evaluate(() => {
+      const btn = document.querySelector(
+        '[data-testid="load-drift-history-btn"]',
+      );
+      if (!btn) return { found: false };
+      let fired = false;
+      let valDuringHandler = "NOT SET";
+      btn.addEventListener(
+        "click",
+        () => {
+          fired = true;
+          valDuringHandler = document.querySelector(
+            '[data-testid="compliance-drift-value"]',
+          )?.textContent;
+        },
+        { capture: false, once: true },
+      );
+      btn.click();
+      return {
+        found: true,
+        fired,
+        valDuringHandler,
+        valAfter: document.querySelector(
+          '[data-testid="compliance-drift-value"]',
+        )?.textContent,
+      };
+    });
+
     await page.locator('[data-testid="load-drift-history-btn"]').click();
     await expect(
       page.locator('[data-testid="compliance-drift-value"]'),

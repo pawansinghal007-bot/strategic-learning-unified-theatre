@@ -329,3 +329,57 @@ export class LocalLlmInference {
     return response;
   }
 }
+
+// ── OpenAI-compatible provider (e.g. llama.cpp server on port 8080) ──────────
+const OPENAI_COMPAT_URL =
+  process.env.LOCAL_LLM_OPENAI_URL ?? "http://localhost:8080";
+
+export async function isOpenAiCompatAvailable() {
+  try {
+    const res = await fetch(`${OPENAI_COMPAT_URL}/v1/models`, {
+      signal: AbortSignal.timeout(3000),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+export async function listOpenAiCompatModels() {
+  try {
+    const res = await fetch(`${OPENAI_COMPAT_URL}/v1/models`, {
+      signal: AbortSignal.timeout(3000),
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return (data.models ?? data.data ?? []).map(
+      (m) => m.name ?? m.id ?? String(m),
+    );
+  } catch {
+    return [];
+  }
+}
+
+export async function askOpenAiCompat(prompt, model) {
+  const modelsRes = await fetch(`${OPENAI_COMPAT_URL}/v1/models`);
+  const modelsData = await modelsRes.json();
+  const availableModel =
+    model ??
+    (modelsData.models ?? modelsData.data ?? [])[0]?.name ??
+    (modelsData.models ?? modelsData.data ?? [])[0]?.id;
+
+  const res = await fetch(`${OPENAI_COMPAT_URL}/v1/chat/completions`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: availableModel,
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.7,
+      max_tokens: 1024,
+    }),
+    signal: AbortSignal.timeout(120000),
+  });
+  if (!res.ok) throw new Error(`LLM request failed: ${res.status}`);
+  const data = await res.json();
+  return data.choices?.[0]?.message?.content ?? "";
+}

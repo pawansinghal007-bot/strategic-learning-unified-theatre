@@ -60,7 +60,7 @@ describe("Sprint 77 — build and scope guard", () => {
   });
 
   it("timeline contains Sprint 77 Complete marker", () => {
-    const text = read("master_timeline_sprints_1_54.md");
+    const text = read("master_timeline_sprints_1_97.md");
     expect(text).toContain("| 77");
     expect(text).toContain("Complete");
   });

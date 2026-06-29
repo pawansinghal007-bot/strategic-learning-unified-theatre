@@ -136,4 +136,18 @@ async function main() {
 }
 
 // Top-level await invocation
-await main();
+// const isMain =
+// process.argv[1] &&
+// (await import("url")).fileURLToPath(import.meta.url) === process.argv[1];
+// if (isMain) await main();
+
+// No top-level await — use synchronous module detection
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+if (process.argv[1] === __filename) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}
