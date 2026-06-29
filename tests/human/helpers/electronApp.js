@@ -63,3 +63,12 @@ export async function safeClickByText(window, text) {
     // Button may not exist in current dashboard state — skip gracefully.
   }
 }
+// Add to the bottom of tests/human/helpers/electronApp.js
+
+export async function launchElectronApp() {
+  return await launchHumanTester();
+}
+
+export async function closeElectronApp(app) {
+  return await closeHumanTester(app);
+}

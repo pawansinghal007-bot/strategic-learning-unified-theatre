@@ -68,7 +68,7 @@ export default function LocalLLM() {
           <p className="text-sm text-gray-500 dark:text-gray-400">Install and query a local model from the renderer.</p>
         </div>
         <div className="text-sm text-gray-600 dark:text-gray-300">
-          Status: {status.available ? 'Ready' : 'Not available'}
+          Status: {status.available ? `Ready (${(status.providers ?? []).join(', ') || 'local'})` : 'Not available'}
         </div>
       </div>
 
@@ -108,7 +108,7 @@ export default function LocalLLM() {
           className="w-full p-2 border rounded mb-3"
         />
         <div className="flex gap-2 flex-wrap">
-          <button onClick={handleAsk} disabled={loading || !status.available} className="px-4 py-2 bg-blue-600 text-white rounded">
+          <button onClick={handleAsk} disabled={loading} className="px-4 py-2 bg-blue-600 text-white rounded">
             {loading ? 'Asking...' : 'Ask model'}
           </button>
           <button onClick={refreshStatus} className="px-4 py-2 bg-gray-200 text-gray-900 rounded">Refresh status</button>

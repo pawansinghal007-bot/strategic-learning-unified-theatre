@@ -8,7 +8,7 @@ const p = (...parts) => path.join(root, ...parts);
 
 describe("Sprint 84 quality and scope guard", () => {
   it("master timeline file exists and is non-empty", () => {
-    const timelinePath = p("master_timeline_sprints_1_54.md");
+    const timelinePath = p("master_timeline_sprints_1_97.md");
     expect(fs.existsSync(timelinePath)).toBe(true);
     const content = fs.readFileSync(timelinePath, "utf8");
     expect(content.length).toBeGreaterThan(100);

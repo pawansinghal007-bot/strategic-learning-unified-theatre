@@ -53,21 +53,21 @@ var init_logger = __esm({
 
 // src/llm/storage.ts
 function getAppDir() {
-  return process.env.UNIFIED_AI_DATA_DIR ?? (0, import_path.join)((0, import_os.homedir)(), ".unified-ai-workspace");
+  return process.env.UNIFIED_AI_DATA_DIR ?? (0, import_node_path.join)((0, import_node_os.homedir)(), ".unified-ai-workspace");
 }
 function ensureDir(path) {
-  (0, import_fs.mkdirSync)((0, import_path.dirname)(path), { recursive: true });
+  (0, import_node_fs.mkdirSync)((0, import_node_path.dirname)(path), { recursive: true });
 }
 function getStoragePath(fileName) {
-  return (0, import_path.join)(getAppDir(), fileName);
+  return (0, import_node_path.join)(getAppDir(), fileName);
 }
 function readJsonFile(fileName, fallback) {
   const filePath = getStoragePath(fileName);
   try {
-    if (!(0, import_fs.existsSync)(filePath)) {
+    if (!(0, import_node_fs.existsSync)(filePath)) {
       return fallback;
     }
-    const raw = (0, import_fs.readFileSync)(filePath, "utf-8");
+    const raw = (0, import_node_fs.readFileSync)(filePath, "utf-8");
     return JSON.parse(raw);
   } catch (error) {
     logger.warn("storage.read.failed", {
@@ -81,7 +81,7 @@ function writeJsonFile(fileName, value) {
   const filePath = getStoragePath(fileName);
   try {
     ensureDir(filePath);
-    (0, import_fs.writeFileSync)(filePath, JSON.stringify(value, null, 2), "utf-8");
+    (0, import_node_fs.writeFileSync)(filePath, JSON.stringify(value, null, 2), "utf-8");
   } catch (error) {
     logger.error("storage.write.failed", {
       fileName,
@@ -89,12 +89,12 @@ function writeJsonFile(fileName, value) {
     });
   }
 }
-var import_fs, import_path, import_os;
+var import_node_fs, import_node_path, import_node_os;
 var init_storage = __esm({
   "src/llm/storage.ts"() {
-    import_fs = require("fs");
-    import_path = require("path");
-    import_os = require("os");
+    import_node_fs = require("node:fs");
+    import_node_path = require("node:path");
+    import_node_os = require("node:os");
     init_logger();
   }
 });
@@ -127,7 +127,7 @@ function saveHistory(records) {
   writeJsonFile(ROUTING_HISTORY_FILE, records.slice(0, MAX_HISTORY));
 }
 function nextId() {
-  return `route_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  return `route_${Date.now()}_${(0, import_node_crypto.randomBytes)(4).toString("hex")}`;
 }
 function round(value) {
   return Number(value.toFixed(2));
@@ -142,12 +142,18 @@ function toTimelineEntry(item) {
     item.errorMessage ? `error=${item.errorMessage}` : null
   ].filter(Boolean);
   const ts = item.timestamp ?? item.createdAt;
+  let severity = "warning";
+  if (item.success) {
+    severity = "info";
+  } else if (item.errorMessage) {
+    severity = "error";
+  }
   return {
     id: item.id,
     timestamp: ts,
     title,
     detail: detailParts.join(" | "),
-    severity: item.success ? "info" : item.errorMessage ? "error" : "warning",
+    severity,
     provider: String(item.provider),
     success: item.success,
     workspaceId: item.workspaceId ?? null
@@ -432,8 +438,11 @@ function createBarChartSvg(points, title, fill = "#36c") {
     const x = pad + index * (chartWidth / Math.max(points.length, 1)) + 8;
     const h = point.value / maxValue * chartHeight;
     const y = height - pad - h;
-    return `<rect x="${x}" y="${y}" width="${barWidth}" height="${h}" fill="${fill}"><title>${escapeHtml(`${point.label}: ${point.value}`)}</title></rect>
-<text x="${x + barWidth / 2}" y="${height - 10}" font-size="10" text-anchor="middle" fill="#555">${escapeHtml(point.label)}</text>`;
+    const titleText = `${point.label}: ${point.value}`;
+    const title2 = escapeHtml(titleText);
+    const label = escapeHtml(point.label);
+    return `<rect x="${x}" y="${y}" width="${barWidth}" height="${h}" fill="${fill}"><title>${title2}</title></rect>
+<text x="${x + barWidth / 2}" y="${height - 10}" font-size="10" text-anchor="middle" fill="#555">${label}</text>`;
   }).join("");
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeHtml(title)}">
   <rect width="100%" height="100%" fill="#ffffff"/>
@@ -529,9 +538,10 @@ function exportWorkspaceAnalyticsHtmlReport(workspaceId, filter) {
 </body>
 </html>`;
 }
-var ROUTING_HISTORY_FILE, MAX_HISTORY;
+var import_node_crypto, ROUTING_HISTORY_FILE, MAX_HISTORY;
 var init_routing_history = __esm({
   "src/llm/routing-history.ts"() {
+    import_node_crypto = require("node:crypto");
     init_storage();
     init_logger();
     ROUTING_HISTORY_FILE = "routing-history.json";

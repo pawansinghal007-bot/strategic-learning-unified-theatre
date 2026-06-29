@@ -9,7 +9,7 @@ const driftPath = path.resolve("src/security/security-overview/drift.ts");
 const instructionsPath = path.resolve(
   "strategic-learning-unified-theatre-master-instructions.md",
 );
-const timelinePath = path.resolve("master_timeline_sprints_1_54.md");
+const timelinePath = path.resolve("master_timeline_sprints_1_97.md");
 
 describe("Sprint 80 plan and scope guard", () => {
   it("normalizer uses helper-based string narrowing instead of direct object coercion", () => {

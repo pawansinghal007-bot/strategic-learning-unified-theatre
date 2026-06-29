@@ -191,70 +191,55 @@ module.exports = async function register({ ipcMain, dialog, watcher, app }) {
     return await switcher.switch(id, { dryRun: false });
   });
   ipcMain.handle("llm:status", async () => {
-    return await getLlmStatus();
+    const base = await getLlmStatus();
+    try {
+      const { isOpenAiCompatAvailable, listOpenAiCompatModels } = await import(resolveModule("../../src/llm/inference.js"));
+      if (await isOpenAiCompatAvailable()) {
+        const openAiModels = await listOpenAiCompatModels();
+        return {
+          ...base,
+          available: true,
+          models: [...base.models ?? [], ...openAiModels],
+          providers: [...base.providers ?? [], "openai-compat"]
+        };
+      }
+    } catch {
+    }
+    return base;
   });
   ipcMain.handle("llm:setup", async (e, payload) => {
     return await setupModel(payload);
   });
   ipcMain.handle("llm:ask", async (e, payload) => {
     const userQuery = String(payload?.prompt || payload?.question || "").trim();
-    if (!userQuery) {
-      throw new Error("Prompt is required");
-    }
+    if (!userQuery) throw new Error("Prompt is required");
     let knowledgeHits = [];
     try {
-      const knowledge = await import(resolveModule("../../src/knowledge/index.js"));
-      const { getMilvusClient, embedTextBatch } = knowledge;
+      const { embedTextBatch } = await import(resolveModule("../../src/knowledge/ingest/embedder.js"));
+      const { searchChunks } = await import(resolveModule("../../src/llm/qdrant-client.js"));
       const vectors = await embedTextBatch([userQuery]);
-      const client = getMilvusClient();
-      const result = await client.search({
-        collection_name: "knowledge_chunks",
-        data: vectors,
-        limit: 8,
-        output_fields: [
-          "chunk_id",
-          "doc_id",
-          "source_type",
-          "sprint",
-          "feature_area",
-          "path",
-          "section",
-          "importance",
-          "text"
-        ]
-      });
-      const hits = Array.isArray(result?.results) ? result.results : [];
-      knowledgeHits = hits.map((hit) => ({
-        chunk_id: hit.chunk_id ?? hit.chunkId ?? "",
-        doc_id: hit.doc_id ?? hit.docId ?? "",
-        source_type: hit.source_type ?? hit.sourceType ?? "",
-        sprint: Number(hit.sprint ?? 0),
-        feature_area: hit.feature_area ?? hit.featureArea ?? "",
-        path: hit.path ?? "",
-        section: hit.section ?? "",
-        importance: Number(hit.importance ?? 0),
-        score: Number(hit.score ?? hit.distance ?? hit.similarity ?? 0),
-        text: hit.text ?? ""
-      })).filter((hit) => hit.score >= 0.4).sort((a, b) => b.score - a.score).slice(0, 6);
+      knowledgeHits = await searchChunks(vectors[0], 6, 0.4);
     } catch (_err) {
       knowledgeHits = [];
     }
-    const contextBlock = knowledgeHits.length ? knowledgeHits.map(
-      (hit, idx) => `[${idx + 1}] sprint=${hit.sprint} area=${hit.feature_area} source=${hit.source_type} score=${hit.score}
-${hit.text}`
-    ).join("\n\n---\n\n") : "";
-    const askPayload = {
-      ...payload,
-      prompt: [
-        "You are answering using project knowledge.",
-        contextBlock ? `PROJECT CONTEXT:
+    const contextBlock = knowledgeHits.length ? knowledgeHits.map((hit, idx) => `[${idx + 1}] sprint=${hit.sprint} area=${hit.feature_area} source=${hit.source_type} score=${hit.score.toFixed(3)}
+${hit.content}`).join("\n\n---\n\n") : "";
+    const fullPrompt = [
+      "You are answering using project knowledge.",
+      contextBlock ? `PROJECT CONTEXT:
 ${contextBlock}` : "",
-        `USER QUESTION:
+      `USER QUESTION:
 ${userQuery}`
-      ].filter(Boolean).join("\n\n"),
-      knowledge: knowledgeHits
-    };
-    return await askLocalLlm(askPayload);
+    ].filter(Boolean).join("\n\n");
+    try {
+      const { isOpenAiCompatAvailable, askOpenAiCompat } = await import(resolveModule("../../src/llm/inference.js"));
+      if (await isOpenAiCompatAvailable()) {
+        const answer = await askOpenAiCompat(fullPrompt, payload?.model);
+        return { answer, knowledge: knowledgeHits, provider: "openai-compat" };
+      }
+    } catch (_err) {
+    }
+    return await askLocalLlm({ ...payload, prompt: fullPrompt, knowledge: knowledgeHits });
   });
   ipcMain.handle("browser:send", async (e, payload) => {
     return await browserBridge.sendPrompt(payload);

@@ -1,0 +1,5786 @@
+
+
+===== PACKAGE =====
+{
+  "name": "strategic-learning-unified-theatre",
+  "version": "0.1.0",
+  "description": "Strategic Learning Unified Theatre local project with screen capture, LLM ingestion, and adapter training.",
+  "type": "module",
+  "main": "./src/cli.js",
+  "electron": "./electron-tray/main.js",
+  "bin": {
+    "strategic-learning-unified-theatre": "./src/cli.js"
+  },
+  "scripts": {
+    "start": "node ./src/cli.js",
+    "test": "cross-env VSCODE_ROTATOR_MOCK_LLM=1 NODE_OPTIONS=--max-old-space-size=8192 vitest run",
+    "coverage": "cross-env VSCODE_ROTATOR_MOCK_LLM=1 NODE_OPTIONS=--max-old-space-size=8192 vitest run --coverage; cp coverage/ts/lcov.info coverage/lcov.info; cp coverage/ts/coverage-summary.json coverage/coverage-summary.json",
+    "coverage:guarded": "npm run coverage && npx vitest run tests/sprint91-sonar-fix-guard.test.js tests/sprint92-thread-and-coverage-guard.test.js",
+    "coverage:report": "vitest run --coverage --reporter=html",
+    "test:ci": "vitest run --coverage --reporter=verbose",
+    "test:integration": "cross-env VSCODE_ROTATOR_MOCK_LLM=0 NODE_OPTIONS=--max-old-space-size=8192 vitest -c vitest.integration.config.js run",
+    "test:serial": "node run-tests.cjs",
+    "test:chaos": "node ./scripts/chaos/run-chaos.js",
+    "test:chaos:kill-daemon": "node ./scripts/chaos/run-chaos.js --scenario kill-daemon",
+    "test:chaos:corrupt-config": "node ./scripts/chaos/run-chaos.js --scenario corrupt-config",
+    "test:chaos:burst-load": "node ./scripts/chaos/run-chaos.js --scenario burst-load",
+    "test:chaos:network-drop": "node ./scripts/chaos/run-chaos.js --scenario network-drop",
+    "test:chaos:disk-full": "node ./scripts/chaos/run-chaos.js --scenario disk-full",
+    "test:chaos:slow-llm": "node ./scripts/chaos/run-chaos.js --scenario slow-llm",
+    "test:chaos:crash-renderer": "node ./scripts/chaos/run-chaos.js --scenario crash-renderer",
+    "test:chaos:memory-leak": "node ./scripts/chaos/run-chaos.js --scenario memory-leak",
+    "test:chaos:zombie-process": "node ./scripts/chaos/run-chaos.js --scenario zombie-process",
+    "test:chaos:double-start": "node ./scripts/chaos/run-chaos.js --scenario double-start",
+    "test:robot": "robot --outputdir robot-results robot/",
+    "test:robot:functional": "robot --outputdir robot-results --suite functional robot/",
+    "test:robot:regression": "robot --outputdir robot-results --suite regression robot/",
+    "test:robot:nonfunc": "robot --outputdir robot-results --suite non-functional robot/",
+    "test:human": "npm run ui:build && npm run build:electron-main && npx playwright test -c playwright.human.config.cjs",
+    "test:human:headed": "npm run ui:build && npm run build:electron-main && npx playwright test -c playwright.human.config.cjs --headed",
+    "test:human:debug": "npm run ui:build && npm run build:electron-main && npx playwright test -c playwright.human.config.cjs --debug",
+    "test:human:smoke": "npm run ui:build && npm run build:electron-main && npx playwright test tests/human/launch.spec.js -c playwright.human.config.cjs",
+    "test:ui": "npm run ui:build && npm run build:electron-main && npx playwright test -c playwright.ui.config.cjs",
+    "test:ui:headed": "npm run ui:build && npm run build:electron-main && npx playwright test -c playwright.ui.config.cjs --headed",
+    "test:ui:theme": "npm run ui:build && npm run build:electron-main && npx playwright test tests/ui/theme-readability.spec.js -c playwright.ui.config.cjs",
+    "test:ui:layers": "npm run ui:build && npm run build:electron-main && npx playwright test tests/ui/browser-pane-overlap.spec.js tests/ui/browser-pane-hide.spec.js -c playwright.ui.config.cjs",
+    "test:tdd": "node ./src/test-runner.js tdd-check",
+    "tray": "electron ./electron-tray/main.js",
+    "install-service": "node ./scripts/install.js",
+    "ui:dev": "vite",
+    "ui:build": "vite build",
+    "electron:dev": "npm run ui:build && npm run build:electron-main && cross-env NODE_ENV=development electron ./electron-ui/main.bundled.cjs",
+    "electron:build": "npm run ui:build && electron-builder",
+    "dist:win": "electron-builder --win nsis",
+    "dist:linux": "electron-builder --linux AppImage",
+    "dist:all": "electron-builder -mwl",
+    "dist": "npm run dist:all",
+    "validate:governance": "node scripts/validate-governance-config.mjs",
+    "sonar:validate-waivers": "node scripts/validate-waivers.mjs",
+    "sonar:reconcile": "node scripts/reconcile-hotspot-register.mjs",
+    "sonar:check": "node scripts/check-sonar-readiness.mjs",
+    "sonar:preflight": "node scripts/check-sonar-preflight.mjs",
+    "sonar:scan": "npx sonar-scanner",
+    "sonar:qualitygate": "node scripts/check-sonar-quality-gate.mjs",
+    "sonar:issues": "node scripts/export-sonar-issues.mjs",
+    "test:sonar": "npm run sonar:preflight && npm run sonar:scan && npm run sonar:qualitygate && npm run sonar:issues",
+    "build:electron-main": "node scripts/build-electron-main.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "build": {
+    "appId": "com.strategiclearning.unifiedtheatre",
+    "productName": "UnifiedTheatre",
+    "extraMetadata": {
+      "main": "electron-ui/main.cjs"
+    },
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "electron-ui/dist/**/*",
+      "electron-ui/main.cjs",
+      "electron-ui/preload.cjs",
+      "electron-ui/ipc/**/*",
+      "src/**/*",
+      "package.json"
+    ],
+    "publish": [
+      {
+        "provider": "generic",
+        "url": "https://updates.example.com/unifiedtheatre"
+      }
+    ],
+    "generateUpdatesFilesForAllChannels": true,
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "publisherName": [
+        "Your Company, Inc."
+      ],
+      "artifactName": "${productName}-Setup-${version}.${ext}"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Utility",
+      "artifactName": "${productName}-${version}-${os}-${arch}.${ext}"
+    },
+    "icon": "build/icon.ico"
+  },
+  "dependencies": {
+    "@xenova/transformers": "^2.17.2",
+    "@zilliz/milvus2-sdk-node": "^3.0.3",
+    "ajv": "^8.12.0",
+    "better-sqlite3": "^12.10.0",
+    "chalk": "^5.6.2",
+    "chokidar": "^5.0.0",
+    "commander": "^14.0.3",
+    "electron-store": "^10.1.0",
+    "electron-updater": "^6.0.0",
+    "fflate": "^0.8.3",
+    "gray-matter": "^4.0.3",
+    "keytar": "^7.9.0",
+    "llama": "^2.2.0",
+    "marked": "^18.0.4",
+    "nanoid": "^5.1.11",
+    "ora": "^9.4.0",
+    "playwright": "^1.60.0",
+    "prop-types": "^15.8.1",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "yaml": "^2.9.0",
+    "zod": "^4.4.3"
+  },
+  "optionalDependencies": {
+    "mammoth": "^1.12.0",
+    "onnxruntime-node": "^1.26.0",
+    "pdf-parse": "^2.4.5"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.29.7",
+    "@playwright/test": "^1.60.0",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/babel__core": "^7.20.5",
+    "@types/jest": "^30.0.0",
+    "@vitejs/plugin-react": "^6.0.2",
+    "@vitest/coverage-v8": "^4.1.9",
+    "autoprefixer": "^10.5.0",
+    "cross-env": "^10.1.0",
+    "electron": "^42.2.0",
+    "electron-builder": "^24.0.0",
+    "esbuild": "^0.28.0",
+    "jsdom": "^29.1.1",
+    "tailwindcss": "^3.4.5",
+    "vite": "^8.0.14",
+    "vitest": "^4.1.7"
+  },
+  "author": "Pawan Singhal"
+}
+
+
+===== README =====
+# strategic-learning-unified-theatre
+
+Cross-platform account rotation for VS Code with secure OS secret storage, a tray UI, a background watcher daemon, and profile-driven workspace binding.
+
+## Sprint 28 — Policy presets & sensitive task rules
+
+Sprint 28 added reusable provider policy presets and prompt-sensitive routing rules to make provider routing safer and easier to manage.
+
+- Presets and sensitive-task rules: `docs/sprint-28-scope.md`
+- Closure checklist: `docs/sprint-28-checklist.md`
+- Integration notes: `docs/INTEGRATION.md`
+
+See the `docs/` folder for full details and smoke test instructions.
+
+## Requirements
+
+- Node.js 18+
+
+## Install
+
+```bash
+npm install
+npm test
+npm link
+```
+
+## Run
+
+- `npm start` — launch the CLI
+- `npm run tray` — launch the Electron tray app
+- `npm run install-service` — register the watcher daemon as a background service on login
+
+## CLI
+
+```bash
+npx strategic-learning-unified-theatre --help
+```
+
+Core commands:
+
+- `strategic-learning-unified-theatre add` — add an account and store its secret in the OS keychain
+- `strategic-learning-unified-theatre list` — list stored accounts
+- `strategic-learning-unified-theatre remove <id>` — delete an account and purge its OS secret
+- `strategic-learning-unified-theatre use <accountId> [--dry-run]` — switch to an account by writing its auth blob and launching VS Code
+- `strategic-learning-unified-theatre status` — show store status and account summary
+- `strategic-learning-unified-theatre health` — probe account health from stored secrets
+- `strategic-learning-unified-theatre daemon start|stop|status|watch` — manage the watcher daemon
+- `strategic-learning-unified-theatre handoff create|update|close|resume|list` — manage AI sprint handoff state locally
+- `strategic-learning-unified-theatre idea add|list|view|link|done|export` — manage structured ideas as Markdown files
+- `strategic-learning-unified-theatre browser send|compare|login|prompts|responses` — multi-LLM browser communicator
+- `strategic-learning-unified-theatre llm setup|ask|ingest|generate-prompt|mistake|rubric|import-sprints|rate-prompt` — local Dev-LLM experience capture and prompt generation
+- `strategic-learning-unified-theatre profile create|list|delete|link|apply|export|import` — manage VS Code profiles and workspace binding
+- `strategic-learning-unified-theatre log show|clear` — view or clear the progress journal
+- `strategic-learning-unified-theatre git-status [repoPath]` — inspect repo git status
+- `strategic-learning-unified-theatre report generate [--date YYYY-MM-DD]` — generate a daily summary log
+
+### Robot Framework Test Runner
+
+A new Robot Framework scaffold has been added for integration and regression testing. The initial runner entrypoint is `src/test-runner.js`.
+
+Use these npm scripts after installing Python and Robot Framework:
+
+- `npm run test:robot:functional`
+- `npm run test:robot:nonfunctional`
+- `npm run test:robot:regression`
+- `npm run test:robot:all`
+- `npm run test:tdd`
+
+## Testing & Quality Gates
+
+- `npm test` — runs Vitest unit + static analysis suite
+- `npm run coverage` — runs Vitest with V8 coverage; fails if any core module below 70%
+- `npm run test:robot` — runs Robot Framework functional + regression suites
+- `npm run test:ci` — full CI gate (coverage + verbose reporter)
+- Coverage thresholds: 70% statements/branches on core modules (see `docs/coverage-baseline.md`)
+- Enterprise flow dashboard: `docs/test-protection-dashboard.md`
+- Regression policy: `tests/regression/` files are permanent — never remove
+- CI: every push triggers `.github/workflows/test.yml`; release tags trigger `release.yml`
+
+### Chaos & Resilience
+
+- `npm run test:chaos` — full chaos suite (all three scenarios)
+- `npm run test:chaos:kill-daemon` — daemon crash scenario only
+- `npm run test:chaos:corrupt-config` — config corruption scenario only
+- `npm run test:chaos:burst-load` — Robot burst load scenario only
+- Nightly CI: `.github/workflows/chaos.yml` (02:00 UTC; also manually triggerable)
+- Runbook: `docs/chaos-resilience-runbook.md`
+- SLO definitions: `scripts/chaos/slo.js`
+
+## Release & Updates
+
+- Build installers with `npm run dist:win`, `npm run dist:linux`, or `npm run dist:all`.
+- Update channels are configured in `config/update.json`:
+  - `latest` = stable
+  - `beta` = pre-release
+- Health-check rollback is tracked through `health-state.json` in the user data folder.
+  - When a downloaded update is marked pending, a startup health check runs.
+  - If the check passes, the pending version becomes the new known good version.
+  - If the check fails, rollback is requested and the app exits to allow recovery.
+- Tagged releases matching `v*` trigger `.github/workflows/release.yml` automatically in CI.
+- Enterprise release guidance is available in `docs/release-checklist-enterprise.md`.
+- Update server is configured with the generic provider URL from `package.json` `build.publish`.
+
+## Documentation
+
+The full Sprint 2+ guide is available in `docs/README.md`.
+
+## Storage
+
+- Store path: `~/.vscode-rotator/accounts.enc`
+- Encryption: AES-256-GCM
+- Key derivation: `crypto.scryptSync(machineId, "strategic-learning-unified-theatre", 32)`
+
+## Secret storage
+
+- Uses OS keychain via `keytar`
+- Secrets are stored under `strategic-learning-unified-theatre` with account ID keys
+
+## Daemon
+
+- PID file: `~/.vscode-rotator/daemon.pid`
+- Log file: `~/.vscode-rotator/daemon.log`
+
+## Tray UI
+
+- Launch with `npm run tray`
+- Status icon colors:
+  - green = healthy
+  - amber = cooldown
+  - red = all accounts exhausted
+- Actions: active account display, switch submenu, open log, quit
+
+## IPC Contract
+
+- Contract version: `1`
+- Envelope format: `{ v, op, payload }`
+- Envelope-based Sprint 15.4 channels route through `registerIpcHandlers()` in `src/main/ipc/ipcAdapter.ts`.
+- `window.rotator` is the renderer surface; raw `ipcRenderer` is not exposed.
+
+| channel string            | key name                | ops/events                         | payload shape                             | route                  | added in sprint |
+| ------------------------- | ----------------------- | ---------------------------------- | ----------------------------------------- | ---------------------- | --------------- |
+| `ipc:capture-response`    | `captureResponse`       | `captureResponse`                  | `{ responsePath: string }`                | envelope adapter       | Sprint 15.4     |
+| `ipc:tray-command`        | `trayCommand`           | `trayCommand`                      | `{ command: string }`                     | envelope adapter       | Sprint 15.4     |
+| `ipc:log-view`            | `logView`               | `logView`                          | object payload, shape to be typed further | envelope adapter       | Sprint 15.4     |
+| `ipc:robot-runner-action` | `robotRunnerAction`     | `robotRunnerAction`                | `{ action: string }`                      | envelope adapter       | Sprint 15.4     |
+| `health:get`              | `healthGet`             | aggregate health request           | none                                      | legacy invoke          | Sprint 15.2     |
+| `log:event`               | `logEvent`              | structured log event               | log entry object                          | main-to-renderer event | Sprint 15.3     |
+| `browser:switchPlatform`  | `browserSwitchPlatform` | switch embedded browser platform   | platform name string                      | legacy invoke          | Sprint 11       |
+| `browser:setVisible`      | `browserSetVisible`     | toggle embedded browser visibility | boolean                                   | legacy invoke          | Sprint 11       |
+| `browser:navigate`        | `browserNavigate`       | navigate embedded browser          | URL string                                | legacy invoke          | Sprint 11       |
+
+## Config
+
+`~/.vscode-rotator/config.json` (optional):
+
+- `pollIntervalMs` (number): watcher poll interval
+- `cooldownMs` (number): default cooldown when no reset time is known
+- `remainingThreshold` (number): scorer threshold for quota bonus
+- `authPaths.other` (string): auth path when `agentType=other`
+- `watchedRepos` (string[]): repository paths to monitor for uncommitted/unpushed work
+- `gitPollIntervalMs` (number): git monitor polling interval
+
+## Agent Handoff Tracker
+
+Use `strategic-learning-unified-theatre handoff` to capture sprint state and generate a resume prompt for the next AI agent.
+
+Sprints are stored locally under `~/.vscode-rotator/sprints/` as JSON files named `<YYYY-MM-DD>-<sprintId>.json`.
+
+Supported commands:
+
+- `strategic-learning-unified-theatre handoff create --goal "..." [--agent <name>] [--model <string>] [--limit <n>]`
+- `strategic-learning-unified-theatre handoff update <sprintId> [--tokens-used <n>] [--tokens-limit <n>] [--add-task "desc" --priority 1] [--complete-task <id>] [--add-blocker "desc"]`
+- `strategic-learning-unified-theatre handoff close <sprintId> --status complete|paused|exhausted`
+- `strategic-learning-unified-theatre handoff resume <sprintId>`
+- `strategic-learning-unified-theatre handoff list`
+
+Examples:
+
+```bash
+strategic-learning-unified-theatre handoff create --goal "Capture sprint state for next agent" --agent chatgpt --model gpt-4 --limit 2000
+strategic-learning-unified-theatre handoff update 123e4567-e89b-12d3-a456-426614174000 --tokens-used 1800 --tokens-limit 2000 --add-task "Review current handoff tracker" --priority 1
+strategic-learning-unified-theatre handoff update 123e4567-e89b-12d3-a456-426614174000 --complete-task a1b2c3d4 --add-blocker "Needs failing test details"
+strategic-learning-unified-theatre handoff close 123e4567-e89b-12d3-a456-426614174000 --status paused
+strategic-learning-unified-theatre handoff resume 123e4567-e89b-12d3-a456-426614174000
+strategic-learning-unified-theatre handoff list
+```
+
+When a sprint is paused or exhausted, the resume prompt is generated automatically from completed tasks, pending tasks, blockers, changed files, and failing tests.
+
+## Local Dev-LLM
+
+The Local Dev-LLM module keeps an offline experience database at `~/.vscode-rotator/experience.db`. It ingests R1 storage snapshots, imports R2 sprint handoffs, reuses R3 ideas, tracks recurring mistakes, and generates structured prompts for browser agents.
+
+Core commands:
+
+- `strategic-learning-unified-theatre llm setup --model phi3` downloads/registers a local GGUF model and runs a smoke test.
+- `strategic-learning-unified-theatre llm ask "Hello"` runs local inference.
+- `strategic-learning-unified-theatre llm ingest [--force]` incrementally ingests ingestible files from `storage-snapshot.json`.
+- `strategic-learning-unified-theatre llm ingest <file-or-folder>` ingests a one-off document path.
+- `strategic-learning-unified-theatre llm generate-prompt --goal "Add REST endpoint for account health" --platform chatgpt`.
+- `strategic-learning-unified-theatre llm mistake add --description "Forgot to await async call" --category api-misuse --fix "Added await"`.
+- `strategic-learning-unified-theatre llm rubric list|enable <id>|disable <id>`.
+- `strategic-learning-unified-theatre llm import-sprints` imports sprint history and test failures.
+- `strategic-learning-unified-theatre llm rate-prompt <id> --rating 1-5`.
+
+Native model and embedding packages are loaded lazily. If the model or native runtime is missing, the CLI exits cleanly with setup guidance instead of breaking unrelated rotator commands.
+
+## Enterprise Configuration (Sprint 15.8)
+
+IT administrators can enforce fleet-wide policy by dropping a JSON or YAML file at one of the following locations (or by pointing the application at a custom path using the `UNIFIED_THEATRE_ENTERPRISE_CONFIG` environment variable):
+
+- `/etc/strategic-learning-unified-theatre/enterprise-policy.json`
+- `/etc/strategic-learning-unified-theatre/enterprise-policy.yaml`
+- Any path set via the `UNIFIED_THEATRE_ENTERPRISE_CONFIG` environment variable
+
+The enterprise file overrides user configuration and is applied at startup. It is validated against the enterprise `Policy` schema; when present and valid it takes precedence over per-user settings.
+
+Minimal JSON example:
+
+```json
+
+
+===== TOP TREE =====
+.
+./scripts
+./scripts/chaos
+./scripts/chaos/scenarios
+./.codex
+./.venv
+./.venv/bin
+./.venv/include
+./.venv/include/python3.11
+./.venv/lib
+./.venv/lib/python3.11
+./release
+./release/linux-unpacked
+./release/linux-unpacked/resources
+./release/linux-unpacked/locales
+./src
+./src/internal
+./src/cli
+./src/utils
+./src/__tests__
+./src/memory
+./src/audit
+./src/knowledge
+./src/knowledge/ingest
+./src/knowledge/schema
+./src/ui
+./src/profile-templates
+./src/commands
+./src/shared
+./src/shared/errors
+./src/shared/contracts
+./src/shared/ipc
+./src/shared/schemas
+./src/shared/logging
+./src/renderer
+./src/renderer/types
+./src/ai-memory
+./src/ai-memory/repositories
+./src/ai-memory/legacy
+./src/policies
+./src/daemon
+./src/domain
+./src/browser-adapters
+./src/llm
+./src/llm/providers
+./src/storage
+./src/installer
+./src/installer/hw-probe
+./src/security
+./src/security/security-overview
+./src/security/secrets
+./src/security/risks
+./src/governance
+./src/accounts
+./src/accounts/profile-templates
+./src/main
+./src/main/ipc
+./src/main/updater
+./src/coverage
+./src/coverage/ts
+./src/system
+./e2e
+./e2e/regression
+./e2e/smoke
+./config
+./.vscode
+./electron-ui
+./electron-ui/__tests__
+./electron-ui/dist
+./electron-ui/dist/assets
+./electron-ui/ipc
+./.scannerwork
+./.claude
+./.claude/worktrees
+./test-results
+./.github
+./.github/instructions
+./.github/workflows
+./.github/prompts
+./electron-tray
+./electron-tray/assets
+./tmp-test-output
+./tmp-test-output/handoff-aIeAaC
+./vscode-extension
+./robot
+./robot/functional
+./robot/suites
+./renderer
+./renderer/__tests__
+./renderer/screens
+./renderer/components
+./renderer/styles
+./playwright-report
+./playwright-report/data
+./playwright-report/trace
+./playwright-report/trace/assets
+./memories
+./memories/session
+./.git
+./.git/info
+./.git/objects
+./.git/objects/75
+./.git/objects/info
+./.git/objects/2f
+./.git/objects/4e
+./.git/objects/40
+./.git/objects/e1
+./.git/objects/10
+./.git/objects/08
+./.git/objects/31
+./.git/objects/f6
+./.git/objects/79
+./.git/objects/82
+./.git/objects/18
+./.git/objects/6b
+./.git/objects/ef
+./.git/objects/5f
+./.git/objects/be
+./.git/objects/20
+./.git/objects/c6
+./.git/objects/8f
+./.git/objects/19
+./.git/objects/ea
+./.git/objects/87
+./.git/objects/92
+./.git/objects/pack
+./.git/objects/a5
+./.git/objects/c4
+./.git/objects/a6
+./.git/objects/6c
+./.git/objects/3e
+./.git/objects/39
+./.git/objects/15
+./.git/objects/ce
+./.git/objects/99
+./.git/objects/5a
+./.git/objects/ee
+./.git/objects/dc
+./.git/objects/d4
+./.git/objects/64
+./.git/objects/55
+./.git/objects/c0
+./.git/objects/09
+./.git/objects/1c
+./.git/objects/b2
+./.git/objects/0c
+./.git/objects/37
+./.git/objects/e0
+./.git/objects/b0
+./.git/objects/dd
+./.git/objects/b6
+./.git/objects/16
+./.git/objects/97
+./.git/objects/85
+./.git/objects/bb
+./.git/objects/54
+./.git/objects/fd
+./.git/objects/ff
+./.git/objects/93
+./.git/objects/a4
+./.git/objects/7c
+./.git/objects/45
+./.git/objects/cc
+./.git/objects/fa
+./.git/objects/7e
+./.git/objects/ba
+./.git/objects/c7
+./.git/objects/b5
+./.git/objects/fc
+./.git/objects/4c
+./.git/objects/59
+./.git/objects/9b
+./.git/objects/50
+./.git/objects/1f
+./.git/objects/52
+./.git/objects/d8
+./.git/objects/d2
+./.git/objects/65
+./.git/objects/13
+./.git/objects/56
+./.git/objects/67
+./.git/objects/3b
+./.git/objects/e7
+./.git/objects/a8
+./.git/objects/23
+./.git/objects/26
+./.git/objects/5d
+./.git/objects/3a
+./.git/objects/71
+./.git/objects/0b
+./.git/objects/b3
+./.git/objects/25
+./.git/objects/04
+./.git/objects/77
+./.git/objects/96
+./.git/objects/e3
+./.git/objects/b7
+./.git/worktrees
+./.git/worktrees/copilot-worktree-2026-06-14T02-26-41
+./.git/refs
+./.git/refs/heads
+./.git/refs/remotes
+./.git/refs/tags
+./.git/refs/codex
+./.git/hooks
+./.git/logs
+./.git/logs/refs
+./.git/gk
+./dumps
+./dumps/tests
+./dumps/node_modules
+./dumps/node_modules/.vite
+./playwright-report-human
+./.continue
+./.continue/mcpServers
+./.continue/agents
+./build
+./build/icons
+./plugins
+./audit_chunks
+./e2e-design
+./sprint52-input-files.tar
+./test
+./snapshots
+./docs
+./docs/technical
+./docs/security
+./docs/security/hotspots
+./docs/archive
+./docs/archive/s6582-s6853-s7785
+./docs/archive/s2004
+./docs/archive/blueprints
+./docs/archive/s7764-s7781-s7763
+./docs/archive/s4123
+./docs/archive/s3358-s7778-s1128
+./docs/archive/historical
+./docs/archive/s7780-s2486-s1874
+./docs/archive/prompts
+./docs/archive/s4624-s7721-s7772-s7773
+./docs/archive/external
+./docs/archive/sprints
+./tests
+./tests/internal
+./tests/cli
+./tests/human
+./tests/human/helpers
+./tests/regression
+./tests/e2e
+./tests/helpers
+./tests/knowledge
+./tests/knowledge/ingest
+./tests/ui
+./tests/ui/helpers
+./tests/llm
+./tests/storage
+./tests/fixtures
+./tests/fixtures/plugins
+./tests/system
+./reports
+./reports/sonar
+./playwright-report-ui
+./node_modules
+./node_modules/extend-shallow
+./node_modules/json-schema-traverse
+./node_modules/json-schema-traverse/spec
+./node_modules/json-schema-traverse/.github
+./node_modules/dir-compare
+./node_modules/dir-compare/build
+./node_modules/dir-compare/node_modules
+./node_modules/tldts
+./node_modules/tldts/src
+./node_modules/tldts/bin
+./node_modules/tldts/dist
+./node_modules/lodash.defaults
+./node_modules/buffer-crc32
+./node_modules/anymatch
+./node_modules/anymatch/node_modules
+./node_modules/tinyglobby
+./node_modules/tinyglobby/dist
+./node_modules/zip-stream
+./node_modules/zip-stream/node_modules
+./node_modules/ini
+./node_modules/html-escaper
+./node_modules/html-escaper/cjs
+./node_modules/html-escaper/test
+./node_modules/html-escaper/esm
+./node_modules/minizlib
+./node_modules/minizlib/node_modules
+./node_modules/es-module-lexer
+./node_modules/es-module-lexer/dist
+./node_modules/es-module-lexer/types
+./node_modules/path-is-absolute
+./node_modules/jest-message-util
+./node_modules/jest-message-util/build
+./node_modules/jest-message-util/node_modules
+./node_modules/pdfjs-dist
+./node_modules/pdfjs-dist/web
+./node_modules/pdfjs-dist/cmaps
+./node_modules/pdfjs-dist/standard_fonts
+./node_modules/pdfjs-dist/wasm
+./node_modules/pdfjs-dist/legacy
+./node_modules/pdfjs-dist/iccs
+./node_modules/pdfjs-dist/types
+./node_modules/pdfjs-dist/build
+./node_modules/pdfjs-dist/image_decoders
+./node_modules/browserslist
+./node_modules/jszip
+./node_modules/jszip/vendor
+./node_modules/jszip/dist
+./node_modules/jszip/.github
+./node_modules/jszip/lib
+./node_modules/jszip/node_modules
+./node_modules/buffer-equal
+./node_modules/buffer-equal/.github
+./node_modules/buffer-equal/example
+./node_modules/buffer-equal/test
+./node_modules/expect
+./node_modules/expect/build
+./node_modules/ejs
+./node_modules/ejs/bin
+./node_modules/ejs/lib
+./node_modules/serialize-error
+./node_modules/serialize-error/node_modules
+./node_modules/minipass
+./node_modules/safe-buffer
+./node_modules/varint
+./node_modules/shebang-command
+./node_modules/yargs-parser
+./node_modules/yargs-parser/build
+./node_modules/brace-expansion
+./node_modules/brace-expansion/.github
+./node_modules/when-exit
+./node_modules/when-exit/dist
+./node_modules/mz
+./node_modules/shebang-regex
+./node_modules/dlv
+./node_modules/dlv/dist
+./node_modules/readdirp
+./node_modules/bl
+./node_modules/bl/test
+./node_modules/indent-string
+./node_modules/wrappy
+./node_modules/eastasianwidth
+./node_modules/streamx
+./node_modules/streamx/lib
+./node_modules/stackback
+./node_modules/cross-env
+./node_modules/cross-env/dist
+./node_modules/node-releases
+./node_modules/node-releases/data
+./node_modules/@aws-crypto
+./node_modules/@aws-crypto/sha1-browser
+./node_modules/@aws-crypto/crc32c
+./node_modules/@aws-crypto/util
+./node_modules/@aws-crypto/sha256-browser
+./node_modules/@aws-crypto/supports-web-crypto
+./node_modules/@aws-crypto/sha256-js
+./node_modules/@aws-crypto/crc32
+./node_modules/dotenv-expand
+./node_modules/dotenv-expand/lib
+./node_modules/function-bind
+./node_modules/function-bind/.github
+./node_modules/function-bind/test
+./node_modules/ts-interface-checker
+./node_modules/ts-interface-checker/dist
+./node_modules/electron
+./node_modules/electron/dist
+./node_modules/@so-ric
+./node_modules/@so-ric/colorspace
+./node_modules/fast-fifo
+./node_modules/chromium-pickle-js
+./node_modules/chromium-pickle-js/lib
+./node_modules/thenify-all
+./node_modules/lightningcss
+./node_modules/lightningcss/node
+./node_modules/electron-store
+./node_modules/lightningcss-linux-x64-gnu
+./node_modules/run-parallel
+./node_modules/simple-concat
+./node_modules/simple-concat/test
+./node_modules/any-promise
+./node_modules/any-promise/register
+./node_modules/fast-uri
+./node_modules/fast-uri/benchmark
+./node_modules/fast-uri/.github
+./node_modules/fast-uri/lib
+./node_modules/fast-uri/types
+./node_modules/fast-uri/test
+./node_modules/deep-extend
+./node_modules/deep-extend/lib
+./node_modules/chalk
+./node_modules/chalk/source
+./node_modules/color-convert
+./node_modules/why-is-node-running
+./node_modules/why-is-node-running/.github
+./node_modules/es-object-atoms
+./node_modules/es-object-atoms/.github
+./node_modules/es-object-atoms/test
+./node_modules/log-symbols
+./node_modules/is-ci
+./node_modules/jsonfile
+./node_modules/supports-color
+./node_modules/text-hex
+./node_modules/micromatch
+./node_modules/micromatch/node_modules
+./node_modules/fast-json-stable-stringify
+./node_modules/fast-json-stable-stringify/benchmark
+./node_modules/fast-json-stable-stringify/.github
+./node_modules/fast-json-stable-stringify/example
+./node_modules/fast-json-stable-stringify/test
+./node_modules/bindings
+./node_modules/onnx-proto
+./node_modules/onnx-proto/dist
+./node_modules/onnx-proto/node_modules
+./node_modules/eventemitter3
+./node_modules/eventemitter3/dist
+./node_modules/lightningcss-linux-x64-musl
+./node_modules/brotli-wasm
+./node_modules/brotli-wasm/pkg.web
+./node_modules/brotli-wasm/pkg.node
+./node_modules/brotli-wasm/pkg.bundler
+./node_modules/lodash.camelcase
+./node_modules/iconv-lite
+./node_modules/iconv-lite/.idea
+./node_modules/iconv-lite/.github
+./node_modules/iconv-lite/lib
+./node_modules/iconv-lite/encodings
+./node_modules/json5
+./node_modules/json5/dist
+./node_modules/json5/lib
+./node_modules/min-indent
+./node_modules/@zenfs
+./node_modules/@zenfs/core
+./node_modules/postcss-js
+./node_modules/immediate
+./node_modules/immediate/dist
+./node_modules/immediate/lib
+./node_modules/gray-matter
+./node_modules/gray-matter/lib
+./node_modules/gray-matter/node_modules
+./node_modules/cliui
+./node_modules/cliui/build
+./node_modules/postcss-import
+./node_modules/postcss-import/lib
+./node_modules/async
+./node_modules/async/internal
+./node_modules/async/dist
+./node_modules/aria-query
+./node_modules/aria-query/lib
+./node_modules/std-env
+./node_modules/std-env/dist
+./node_modules/teex
+./node_modules/fd-slicer
+./node_modules/fd-slicer/test
+./node_modules/async-exit-hook
+./node_modules/readable-stream
+./node_modules/readable-stream/lib
+./node_modules/memium
+./node_modules/memium/dist
+./node_modules/braces
+./node_modules/braces/lib
+./node_modules/is-fullwidth-code-point
+./node_modules/better-sqlite3
+./node_modules/better-sqlite3/src
+./node_modules/better-sqlite3/lib
+./node_modules/better-sqlite3/build
+./node_modules/better-sqlite3/deps
+./node_modules/bidi-js
+./node_modules/bidi-js/src
+./node_modules/bidi-js/dist
+./node_modules/string_decoder
+./node_modules/string_decoder/lib
+./node_modules/electron-builder
+./node_modules/electron-builder/out
+./node_modules/electron-builder/node_modules
+./node_modules/uint8array-extras
+./node_modules/fast-xml-builder
+./node_modules/fast-xml-builder/src
+./node_modules/fast-xml-builder/lib
+./node_modules/convert-source-map
+./node_modules/fast-glob
+./node_modules/fast-glob/out
+./node_modules/fast-glob/node_modules
+./node_modules/winston-transport
+./node_modules/winston-transport/dist
+./node_modules/winston-transport/.nyc_output
+./node_modules/dunder-proto
+./node_modules/dunder-proto/.github
+./node_modules/dunder-proto/test
+./node_modules/buffer-from
+./node_modules/signal-exit
+./node_modules/signal-exit/dist
+./node_modules/mime-db
+./node_modules/@opentelemetry
+./node_modules/@opentelemetry/api
+./node_modules/debug
+./node_modules/debug/src
+./node_modules/buffer
+./node_modules/events
+./node_modules/events/.github
+./node_modules/events/tests
+./node_modules/stat-mode
+./node_modules/stat-mode/dist
+./node_modules/jake
+./node_modules/jake/bin
+./node_modules/jake/lib
+./node_modules/jake/test
+./node_modules/define-data-property
+./node_modules/define-data-property/.github
+./node_modules/define-data-property/test
+./node_modules/ws
+./node_modules/ws/lib
+./node_modules/@szmarczak
+./node_modules/abort-controller
+./node_modules/abort-controller/dist
+./node_modules/lilconfig
+./node_modules/lilconfig/src
+./node_modules/gopd
+./node_modules/gopd/.github
+./node_modules/gopd/test
+./node_modules/lodash.isplainobject
+./node_modules/chokidar
+./node_modules/arg
+./node_modules/@dabh
+./node_modules/@dabh/diagnostics
+./node_modules/@bcoe
+./node_modules/@bcoe/v8-coverage
+./node_modules/pend
+./node_modules/jsdom
+./node_modules/jsdom/lib
+./node_modules/jsdom/node_modules
+./node_modules/nanoid
+./node_modules/nanoid/url-alphabet
+./node_modules/nanoid/bin
+./node_modules/nanoid/non-secure
+./node_modules/dayjs
+./node_modules/dayjs/locale
+./node_modules/dayjs/plugin
+./node_modules/dayjs/esm
+./node_modules/tr46
+./node_modules/tr46/lib
+./node_modules/onnxruntime-web
+./node_modules/onnxruntime-web/dist
+./node_modules/onnxruntime-web/lib
+./node_modules/onnxruntime-web/types
+./node_modules/onnxruntime-web/docs
+./node_modules/onnxruntime-web/node_modules
+./node_modules/at-least-node
+./node_modules/llama
+./node_modules/tar
+./node_modules/tar/lib
+./node_modules/tar/node_modules
+./node_modules/simple-get
+./node_modules/simple-get/.github
+./node_modules/jsesc
+./node_modules/jsesc/bin
+./node_modules/jsesc/man
+./node_modules/webidl-conversions
+./node_modules/webidl-conversions/lib
+./node_modules/logform
+./node_modules/logform/dist
+./node_modules/postcss
+./node_modules/postcss/lib
+./node_modules/postcss/node_modules
+./node_modules/caniuse-lite
+./node_modules/caniuse-lite/data
+./node_modules/caniuse-lite/dist
+./node_modules/semver
+./node_modules/semver/bin
+./node_modules/@vitest
+./node_modules/@vitest/utils
+./node_modules/@vitest/expect
+./node_modules/@vitest/runner
+./node_modules/@vitest/coverage-v8
+./node_modules/@vitest/mocker
+./node_modules/@vitest/pretty-format
+./node_modules/@vitest/snapshot
+./node_modules/@vitest/spy
+./node_modules/read-cache
+./node_modules/retry
+./node_modules/retry/lib
+./node_modules/retry/example
+./node_modules/retry/test
+./node_modules/saxes
+./node_modules/isomorphic-ws
+./node_modules/archiver-utils
+./node_modules/archiver-utils/node_modules
+./node_modules/bare-events
+./node_modules/bare-events/lib
+./node_modules/@sinclair
+./node_modules/@sinclair/typebox
+./node_modules/object-keys
+./node_modules/object-keys/test
+./node_modules/@xmldom
+./node_modules/@xmldom/xmldom
+./node_modules/electron-to-chromium
+./node_modules/ci-info
+./node_modules/option
+./node_modules/option/test
+./node_modules/jest-mock
+./node_modules/jest-mock/build
+./node_modules/cli-spinners
+./node_modules/dotenv
+./node_modules/dotenv/.github
+./node_modules/dotenv/lib
+./node_modules/dotenv/types
+./node_modules/progress
+./node_modules/progress/lib
+./node_modules/safer-buffer
+./node_modules/@protobufjs
+./node_modules/@protobufjs/fetch
+./node_modules/@protobufjs/inquire
+./node_modules/@protobufjs/utf8
+./node_modules/@protobufjs/aspromise
+./node_modules/@protobufjs/float
+./node_modules/@protobufjs/base64
+./node_modules/@protobufjs/codegen
+./node_modules/@protobufjs/pool
+./node_modules/@protobufjs/eventemitter
+./node_modules/@protobufjs/path
+./node_modules/tinybench
+./node_modules/tinybench/dist
+./node_modules/generic-pool
+./node_modules/generic-pool/lib
+./node_modules/@playwright
+./node_modules/@playwright/test
+./node_modules/ansi-regex
+./node_modules/temp-file
+./node_modules/temp-file/out
+./node_modules/tiny-typed-emitter
+./node_modules/tiny-typed-emitter/lib
+./node_modules/rc
+./node_modules/rc/lib
+./node_modules/rc/test
+./node_modules/fraction.js
+./node_modules/fraction.js/src
+./node_modules/fraction.js/dist
+./node_modules/fraction.js/examples
+./node_modules/fraction.js/tests
+./node_modules/package-json-from-dist
+./node_modules/package-json-from-dist/dist
+./node_modules/stdin-discarder
+./node_modules/xml-name-validator
+./node_modules/xml-name-validator/lib
+./node_modules/7zip-bin
+./node_modules/7zip-bin/mac
+./node_modules/7zip-bin/win
+./node_modules/7zip-bin/linux
+./node_modules/escape-string-regexp
+./node_modules/cssesc
+./node_modules/cssesc/bin
+./node_modules/cssesc/man
+./node_modules/@isaacs
+./node_modules/@isaacs/cliui
+./node_modules/stack-trace
+./node_modules/stack-trace/lib
+./node_modules/scheduler
+./node_modules/scheduler/cjs
+./node_modules/global-agent
+./node_modules/global-agent/dist
+./node_modules/global-agent/node_modules
+./node_modules/once
+./node_modules/ajv
+./node_modules/ajv/dist
+./node_modules/ajv/lib
+./node_modules/assertion-error
+./node_modules/picocolors
+./node_modules/onnxruntime-common
+./node_modules/onnxruntime-common/dist
+./node_modules/onnxruntime-common/lib
+./node_modules/gensync
+./node_modules/gensync/test
+./node_modules/commander
+./node_modules/commander/lib
+./node_modules/commander/typings
+./node_modules/ast-v8-to-istanbul
+./node_modules/ast-v8-to-istanbul/dist
+./node_modules/ast-v8-to-istanbul/node_modules
+./node_modules/chownr
+./node_modules/@smithy
+./node_modules/@smithy/signature-v4
+./node_modules/@smithy/util-utf8
+./node_modules/@smithy/core
+./node_modules/@smithy/node-http-handler
+./node_modules/@smithy/fetch-http-handler
+./node_modules/@smithy/credential-provider-imds
+./node_modules/@smithy/is-array-buffer
+./node_modules/@smithy/types
+./node_modules/@smithy/util-buffer-from
+./node_modules/zod
+./node_modules/zod/mini
+./node_modules/zod/src
+./node_modules/zod/v3
+./node_modules/zod/locales
+./node_modules/zod/v4
+./node_modules/zod/v4-mini
+./node_modules/dot-prop
+./node_modules/balanced-match
+./node_modules/balanced-match/.github
+./node_modules/section-matter
+./node_modules/promise-retry
+./node_modules/promise-retry/test
+./node_modules/concat-map
+./node_modules/concat-map/example
+./node_modules/concat-map/test
+./node_modules/decimal.js
+./node_modules/lop
+./node_modules/lop/lib
+./node_modules/lop/test
+./node_modules/@aws
+./node_modules/@aws/lambda-invoke-store
+./node_modules/lazy-val
+./node_modules/lazy-val/out
+./node_modules/bare-os
+./node_modules/bare-os/prebuilds
+./node_modules/bare-os/lib
+./node_modules/stubborn-fs
+./node_modules/stubborn-fs/dist
+./node_modules/tmp-promise
+./node_modules/tmp-promise/.circleci
+./node_modules/lodash
+./node_modules/lodash/fp
+./node_modules/has-flag
+./node_modules/data-urls
+./node_modules/data-urls/lib
+./node_modules/is-potential-custom-element-name
+./node_modules/archiver
+./node_modules/archiver/lib
+./node_modules/bare-fs
+./node_modules/bare-fs/prebuilds
+./node_modules/bare-fs/lib
+./node_modules/stubborn-utils
+./node_modules/stubborn-utils/dist
+./node_modules/universalify
+./node_modules/esprima
+./node_modules/esprima/bin
+./node_modules/esprima/dist
+./node_modules/css.escape
+./node_modules/is-number
+./node_modules/baseline-browser-mapping
+./node_modules/baseline-browser-mapping/dist
+./node_modules/yoctocolors
+./node_modules/@nodelib
+./node_modules/@nodelib/fs.scandir
+./node_modules/@nodelib/fs.stat
+./node_modules/@nodelib/fs.walk
+./node_modules/thenify
+./node_modules/istanbul-lib-coverage
+./node_modules/istanbul-lib-coverage/lib
+./node_modules/supports-preserve-symlinks-flag
+./node_modules/supports-preserve-symlinks-flag/.github
+./node_modules/supports-preserve-symlinks-flag/test
+./node_modules/string-width-cjs
+./node_modules/lz-string
+./node_modules/lz-string/bin
+./node_modules/lz-string/typings
+./node_modules/lz-string/tests
+./node_modules/lz-string/libs
+./node_modules/lz-string/reference
+./node_modules/kerium
+./node_modules/kerium/dist
+./node_modules/picomatch
+./node_modules/picomatch/lib
+./node_modules/rolldown
+./node_modules/rolldown/bin
+./node_modules/rolldown/dist
+./node_modules/source-map-support
+./node_modules/jest-regex-util
+./node_modules/jest-regex-util/build
+./node_modules/estree-walker
+./node_modules/estree-walker/src
+./node_modules/estree-walker/types
+./node_modules/extract-zip
+./node_modules/@grpc
+./node_modules/@grpc/proto-loader
+./node_modules/@grpc/grpc-js
+./node_modules/.bin
+./node_modules/tinyrainbow
+./node_modules/tinyrainbow/dist
+./node_modules/config-file-ts
+./node_modules/config-file-ts/src
+./node_modules/config-file-ts/dist
+./node_modules/config-file-ts/node_modules
+./node_modules/@npmcli
+./node_modules/strip-ansi-cjs
+./node_modules/@esbuild
+./node_modules/@esbuild/linux-x64
+./node_modules/form-data
+./node_modules/form-data/lib
+./node_modules/tar-stream
+./node_modules/chai
+./node_modules/ieee754
+./node_modules/source-map-js
+./node_modules/source-map-js/lib
+./node_modules/make-dir
+./node_modules/make-dir/node_modules
+./node_modules/bare-url
+./node_modules/bare-url/prebuilds
+./node_modules/bare-url/lib
+./node_modules/react-is-18
+./node_modules/react-is-18/umd
+./node_modules/react-is-18/cjs
+./node_modules/which
+./node_modules/which/bin
+./node_modules/is-interactive
+./node_modules/path-expression-matcher
+./node_modules/path-expression-matcher/src
+./node_modules/path-expression-matcher/lib
+./node_modules/mime-types
+./node_modules/@xterm
+./node_modules/@xterm/xterm
+./node_modules/adm-zip
+./node_modules/adm-zip/util
+./node_modules/adm-zip/methods
+./node_modules/adm-zip/headers
+./node_modules/platform
+./node_modules/bluebird-lst
+./node_modules/is-extendable
+./node_modules/update-browserslist-db
+./node_modules/q
+./node_modules/delayed-stream
+./node_modules/delayed-stream/lib
+./node_modules/fs.realpath
+./node_modules/sumchecker
+./node_modules/sumchecker/.github
+./node_modules/glob
+./node_modules/glob/node_modules
+./node_modules/tslib
+./node_modules/tslib/modules
+./node_modules/jest-diff
+./node_modules/jest-diff/build
+./node_modules/jest-diff/node_modules
+./node_modules/duck
+./node_modules/duck/test
+./node_modules/path-parse
+./node_modules/playwright
+./node_modules/playwright/lib
+./node_modules/playwright/types
+./node_modules/lodash.union
+./node_modules/dequal
+./node_modules/dequal/dist
+./node_modules/dequal/lite
+./node_modules/xmlbuilder
+./node_modules/xmlbuilder/perf
+./node_modules/xmlbuilder/.vscode
+./node_modules/xmlbuilder/lib
+./node_modules/xmlbuilder/typings
+./node_modules/@csstools
+./node_modules/@csstools/color-helpers
+./node_modules/@csstools/css-color-parser
+./node_modules/@csstools/css-syntax-patches-for-csstree
+./node_modules/@csstools/css-parser-algorithms
+./node_modules/@csstools/css-calc
+./node_modules/@csstools/css-tokenizer
+./node_modules/lie
+./node_modules/lie/dist
+./node_modules/lie/lib
+./node_modules/bson
+./node_modules/bson/vendor
+./node_modules/bson/src
+./node_modules/bson/etc
+./node_modules/bson/lib
+./node_modules/utf8-byte-length
+./node_modules/playwright-core
+./node_modules/playwright-core/bin
+./node_modules/playwright-core/lib
+./node_modules/playwright-core/types
+./node_modules/xml-naming
+./node_modules/xml-naming/src
+./node_modules/expand-template
+./node_modules/redent
+./node_modules/@petamoriken
+./node_modules/@petamoriken/float16
+./node_modules/pako
+./node_modules/pako/dist
+./node_modules/pako/lib
+./node_modules/bare-path
+./node_modules/bare-path/lib
+./node_modules/globalthis
+./node_modules/globalthis/test
+./node_modules/json-schema-typed
+./node_modules/is-extglob
+./node_modules/@pkgjs
+./node_modules/@pkgjs/parseargs
+./node_modules/truncate-utf8-bytes
+./node_modules/truncate-utf8-bytes/lib
+./node_modules/utilium
+./node_modules/utilium/scripts
+./node_modules/utilium/dist
+./node_modules/is-unicode-supported
+./node_modules/mimic-response
+./node_modules/tailwindcss
+./node_modules/tailwindcss/scripts
+./node_modules/tailwindcss/src
+./node_modules/tailwindcss/stubs
+./node_modules/tailwindcss/lib
+./node_modules/tailwindcss/types
+./node_modules/tailwindcss/peers
+./node_modules/tailwindcss/node_modules
+./node_modules/tailwindcss/nesting
+./node_modules/hasown
+./node_modules/hasown/.github
+./node_modules/base64-js
+./node_modules/one-time
+./node_modules/hosted-git-info
+./node_modules/hosted-git-info/node_modules
+./node_modules/strnum
+./node_modules/path-scurry
+./node_modules/path-scurry/dist
+./node_modules/path-scurry/node_modules
+./node_modules/istanbul-lib-report
+./node_modules/istanbul-lib-report/lib
+./node_modules/@nodable
+./node_modules/@nodable/entities
+./node_modules/bare-stream
+./node_modules/color-name
+./node_modules/didyoumean
+./node_modules/xmlchars
+./node_modules/xmlchars/xmlns
+./node_modules/xmlchars/xml
+./node_modules/core-util-is
+./node_modules/core-util-is/lib
+./node_modules/crc32-stream
+./node_modules/crc32-stream/lib
+./node_modules/isbinaryfile
+./node_modules/isbinaryfile/lib
+./node_modules/fast-deep-equal
+./node_modules/fast-deep-equal/es6
+./node_modules/long
+./node_modules/long/umd
+./node_modules/@malept
+./node_modules/@malept/flatpak-bundler
+./node_modules/@malept/cross-spawn-promise
+./node_modules/lodash.difference
+./node_modules/yaml
+./node_modules/yaml/dist
+./node_modules/yaml/browser
+./node_modules/int53
+./node_modules/camelcase-css
+./node_modules/cli-cursor
+./node_modules/strip-indent
+./node_modules/tough-cookie
+./node_modules/tough-cookie/dist
+./node_modules/fdir
+./node_modules/fdir/dist
+./node_modules/compress-commons
+./node_modules/compress-commons/lib
+./node_modules/js-tokens
+./node_modules/react-dom
+./node_modules/react-dom/cjs
+./node_modules/protobufjs
+./node_modules/protobufjs/scripts
+./node_modules/protobufjs/ext
+./node_modules/protobufjs/google
+./node_modules/protobufjs/src
+./node_modules/protobufjs/dist
+./node_modules/@asamuzakjp
+./node_modules/@asamuzakjp/dom-selector
+./node_modules/@asamuzakjp/css-color
+./node_modules/@asamuzakjp/nwsapi
+./node_modules/@asamuzakjp/generational-cache
+./node_modules/es-set-tostringtag
+./node_modules/es-set-tostringtag/test
+./node_modules/escalade
+./node_modules/escalade/dist
+./node_modules/escalade/sync
+./node_modules/@bramus
+./node_modules/@bramus/specificity
+./node_modules/get-caller-file
+./node_modules/has-tostringtag
+./node_modules/has-tostringtag/.github
+./node_modules/has-tostringtag/test
+./node_modules/lodash.escaperegexp
+./node_modules/env-paths
+./node_modules/siginfo
+./node_modules/jackspeak
+./node_modules/jackspeak/dist
+./node_modules/marked
+./node_modules/marked/bin
+./node_modules/marked/lib
+./node_modules/marked/man
+./node_modules/yargs
+./node_modules/yargs/helpers
+./node_modules/yargs/locales
+./node_modules/yargs/lib
+./node_modules/yargs/build
+./node_modules/keytar
+./node_modules/keytar/src
+./node_modules/keytar/lib
+./node_modules/keytar/build
+./node_modules/keytar/node_modules
+./node_modules/call-bind-apply-helpers
+./node_modules/call-bind-apply-helpers/.github
+./node_modules/call-bind-apply-helpers/test
+./node_modules/@shanghaikid
+./node_modules/@shanghaikid/parquetjs
+./node_modules/fast-xml-parser
+./node_modules/fast-xml-parser/src
+./node_modules/fast-xml-parser/lib
+./node_modules/builder-util-runtime
+./node_modules/builder-util-runtime/out
+./node_modules/https-proxy-agent
+./node_modules/https-proxy-agent/dist
+./node_modules/@jridgewell
+./node_modules/@jridgewell/gen-mapping
+./node_modules/@jridgewell/sourcemap-codec
+./node_modules/@jridgewell/resolve-uri
+./node_modules/@jridgewell/trace-mapping
+./node_modules/@jridgewell/remapping
+./node_modules/debounce-fn
+./node_modules/@standard-schema
+./node_modules/@standard-schema/spec
+./node_modules/type-fest
+./node_modules/type-fest/source
+./node_modules/emoji-regex
+./node_modules/emoji-regex/es2015
+./node_modules/glob-parent
+./node_modules/.vite-temp
+./node_modules/wrap-ansi
+./node_modules/wrap-ansi/node_modules
+./node_modules/fs-minipass
+./node_modules/fs-minipass/node_modules
+./node_modules/simple-update-notifier
+./node_modules/simple-update-notifier/src
+./node_modules/simple-update-notifier/build
+./node_modules/simple-update-notifier/node_modules
+./node_modules/asynckit
+./node_modules/asynckit/lib
+./node_modules/@colors
+./node_modules/@colors/colors
+./node_modules/fill-range
+./node_modules/y18n
+./node_modules/y18n/build
+./node_modules/get-stream
+./node_modules/sprintf-js
+./node_modules/sprintf-js/src
+./node_modules/sprintf-js/demo
+./node_modules/sprintf-js/dist
+./node_modules/sprintf-js/test
+./node_modules/@emnapi
+./node_modules/strip-json-comments
+./node_modules/color-string
+./node_modules/color-string/node_modules
+./node_modules/path-key
+./node_modules/electron-updater
+./node_modules/electron-updater/out
+./node_modules/electron-updater/node_modules
+./node_modules/ajv-formats
+./node_modules/ajv-formats/src
+./node_modules/ajv-formats/dist
+./node_modules/readdir-glob
+./node_modules/react-is-19
+./node_modules/react-is-19/cjs
+./node_modules/napi-build-utils
+./node_modules/napi-build-utils/.github
+./node_modules/magic-string
+./node_modules/magic-string/dist
+./node_modules/browser-or-node
+./node_modules/browser-or-node/src
+./node_modules/browser-or-node/lib
+./node_modules/argparse
+./node_modules/argparse/lib
+./node_modules/expect-type
+./node_modules/expect-type/dist
+./node_modules/onnxruntime-node
+./node_modules/onnxruntime-node/bin
+./node_modules/onnxruntime-node/dist
+./node_modules/onnxruntime-node/lib
+./node_modules/onnxruntime-node/script
+./node_modules/jest-util
+./node_modules/jest-util/build
+./node_modules/jest-util/node_modules
+./node_modules/pify
+./node_modules/lazystream
+./node_modules/lazystream/lib
+./node_modules/lazystream/test
+./node_modules/lazystream/node_modules
+./node_modules/@babel
+./node_modules/@babel/core
+./node_modules/@babel/generator
+./node_modules/@babel/helper-module-transforms
+./node_modules/@babel/runtime
+./node_modules/@babel/helpers
+./node_modules/@babel/template
+./node_modules/@babel/traverse
+./node_modules/@babel/types
+./node_modules/@babel/compat-data
+./node_modules/@babel/helper-module-imports
+./node_modules/@babel/helper-validator-identifier
+./node_modules/@babel/code-frame
+./node_modules/@babel/parser
+./node_modules/@babel/helper-validator-option
+./node_modules/@babel/helper-globals
+./node_modules/@babel/helper-string-parser
+./node_modules/@babel/helper-compilation-targets
+./node_modules/@gar
+./node_modules/symbol-tree
+./node_modules/symbol-tree/lib
+./node_modules/sharp
+./node_modules/sharp/vendor
+./node_modules/sharp/src
+./node_modules/sharp/lib
+./node_modules/sharp/install
+./node_modules/sharp/build
+./node_modules/sharp/node_modules
+./node_modules/process-nextick-args
+./node_modules/event-target-shim
+./node_modules/event-target-shim/dist
+./node_modules/@sindresorhus
+./node_modules/tinyexec
+./node_modules/tinyexec/dist
+./node_modules/prebuild-install
+./node_modules/pathe
+./node_modules/pathe/dist
+./node_modules/autoprefixer
+./node_modules/autoprefixer/data
+./node_modules/autoprefixer/bin
+./node_modules/autoprefixer/lib
+./node_modules/sax
+./node_modules/sax/lib
+./node_modules/undici
+./node_modules/undici/scripts
+./node_modules/undici/lib
+./node_modules/undici/types
+./node_modules/undici/docs
+./node_modules/process
+./node_modules/fflate
+./node_modules/fflate/umd
+./node_modules/fflate/lib
+./node_modules/fflate/esm
+./node_modules/parse5
+./node_modules/parse5/dist
+./node_modules/setimmediate
+./node_modules/underscore
+./node_modules/underscore/cjs
+./node_modules/underscore/amd
+./node_modules/underscore/modules
+./node_modules/pirates
+./node_modules/pirates/lib
+./node_modules/snappyjs
+./node_modules/node-int64
+./node_modules/flatbuffers
+./node_modules/flatbuffers/js
+./node_modules/@rolldown
+./node_modules/@rolldown/binding-linux-x64-musl
+./node_modules/@rolldown/binding-linux-x64-gnu
+./node_modules/@rolldown/pluginutils
+./node_modules/foreground-child
+./node_modules/foreground-child/dist
+./node_modules/w3c-xmlserializer
+./node_modules/w3c-xmlserializer/lib
+./node_modules/restore-cursor
+./node_modules/lodash.isequal
+./node_modules/winston
+./node_modules/winston/dist
+./node_modules/winston/lib
+./node_modules/vite
+./node_modules/vite/misc
+./node_modules/vite/bin
+./node_modules/vite/dist
+./node_modules/vite/types
+./node_modules/vite/node_modules
+./node_modules/css-tree
+./node_modules/css-tree/data
+./node_modules/css-tree/dist
+./node_modules/css-tree/lib
+./node_modules/css-tree/cjs
+./node_modules/builder-util
+./node_modules/builder-util/out
+./node_modules/builder-util/node_modules
+./node_modules/object-hash
+./node_modules/object-hash/dist
+./node_modules/ms
+./node_modules/source-map
+./node_modules/source-map/dist
+./node_modules/source-map/lib
+./node_modules/whatwg-mimetype
+./node_modules/whatwg-mimetype/lib
+./node_modules/undici-types
+./node_modules/postcss-value-parser
+./node_modules/postcss-value-parser/lib
+./node_modules/dom-accessibility-api
+./node_modules/dom-accessibility-api/dist
+./node_modules/postcss-selector-parser
+./node_modules/postcss-selector-parser/dist
+./node_modules/queue-microtask
+./node_modules/sanitize-filename
+./node_modules/es-errors
+./node_modules/es-errors/.github
+./node_modules/es-errors/test
+./node_modules/pdf-parse
+./node_modules/pdf-parse/bin
+./node_modules/pdf-parse/dist
+./node_modules/guid-typescript
+./node_modules/guid-typescript/dist
+./node_modules/js-yaml
+./node_modules/js-yaml/bin
+./node_modules/js-yaml/dist
+./node_modules/js-yaml/lib
+./node_modules/uuid
+./node_modules/uuid/dist
+./node_modules/uuid/dist-node
+./node_modules/slash
+./node_modules/inherits
+./node_modules/fn.name
+./node_modules/color
+./node_modules/color/node_modules
+./node_modules/postcss-load-config
+./node_modules/postcss-load-config/src
+./node_modules/atomically
+./node_modules/atomically/dist
+./node_modules/@tybys
+./node_modules/text-decoder
+./node_modules/text-decoder/lib
+./node_modules/resolve
+./node_modules/resolve/bin
+./node_modules/resolve/.claude
+./node_modules/resolve/.github
+./node_modules/resolve/lib
+./node_modules/resolve/example
+./node_modules/resolve/test
+./node_modules/yauzl
+./node_modules/is-binary-path
+./node_modules/fastq
+./node_modules/fastq/test
+./node_modules/@tootallnate
+./node_modules/@tootallnate/once
+./node_modules/b4a
+./node_modules/b4a/lib
+./node_modules/stack-utils
+./node_modules/stack-utils/node_modules
+./node_modules/@aws-sdk
+./node_modules/@aws-sdk/middleware-flexible-checksums
+./node_modules/@aws-sdk/core
+./node_modules/@aws-sdk/credential-provider-sso
+./node_modules/@aws-sdk/nested-clients
+./node_modules/@aws-sdk/util-locate-window
+./node_modules/@aws-sdk/credential-provider-http
+./node_modules/@aws-sdk/credential-provider-env
+./node_modules/@aws-sdk/token-providers
+./node_modules/@aws-sdk/credential-provider-ini
+./node_modules/@aws-sdk/signature-v4-multi-region
+./node_modules/@aws-sdk/credential-provider-web-identity
+./node_modules/@aws-sdk/middleware-sdk-s3
+./node_modules/@aws-sdk/types
+./node_modules/@aws-sdk/checksums
+./node_modules/@aws-sdk/client-s3
+./node_modules/@aws-sdk/xml-builder
+./node_modules/@aws-sdk/credential-provider-login
+./node_modules/@aws-sdk/credential-provider-process
+./node_modules/@aws-sdk/credential-provider-node
+./node_modules/react
+./node_modules/react/cjs
+./node_modules/safe-stable-stringify
+./node_modules/safe-stable-stringify/esm
+./node_modules/xxhash-wasm
+./node_modules/xxhash-wasm/umd
+./node_modules/xxhash-wasm/workerd
+./node_modules/xxhash-wasm/cjs
+./node_modules/xxhash-wasm/esm
+./node_modules/.vite
+./node_modules/.vite/vitest
+./node_modules/get-proto
+./node_modules/get-proto/.github
+./node_modules/get-proto/test
+./node_modules/mimic-function
+./node_modules/@exodus
+./node_modules/@exodus/bytes
+./node_modules/is-core-module
+./node_modules/is-core-module/test
+./node_modules/minimist
+./node_modules/minimist/.github
+./node_modules/minimist/example
+./node_modules/minimist/test
+./node_modules/@js-sdsl
+./node_modules/@js-sdsl/ordered-map
+./node_modules/electron-publish
+./node_modules/electron-publish/out
+./node_modules/electron-publish/node_modules
+./node_modules/detect-libc
+./node_modules/detect-libc/lib
+./node_modules/@napi-rs
+./node_modules/@napi-rs/canvas-linux-x64-musl
+./node_modules/@napi-rs/canvas-linux-x64-gnu
+./node_modules/@napi-rs/canvas
+./node_modules/bowser
+./node_modules/bowser/src
+./node_modules/ora
+./node_modules/ora/node_modules
+./node_modules/fecha
+./node_modules/fecha/src
+./node_modules/fecha/dist
+./node_modules/fecha/lib
+./node_modules/mammoth
+./node_modules/mammoth/bin
+./node_modules/mammoth/.github
+./node_modules/mammoth/lib
+./node_modules/mammoth/browser
+./node_modules/mammoth/test
+./node_modules/mammoth/node_modules
+./node_modules/normalize-path
+./node_modules/binary-extensions
+./node_modules/@develar
+./node_modules/@develar/schema-utils
+./node_modules/prop-types
+./node_modules/prop-types/lib
+./node_modules/prop-types/node_modules
+./node_modules/app-builder-lib
+./node_modules/app-builder-lib/templates
+./node_modules/app-builder-lib/out
+./node_modules/app-builder-lib/certs
+./node_modules/app-builder-lib/node_modules
+./node_modules/inflight
+./node_modules/read-config-file
+./node_modules/read-config-file/out
+./node_modules/read-config-file/node_modules
+./node_modules/pretty-format
+./node_modules/pretty-format/build
+./node_modules/sucrase
+./node_modules/sucrase/bin
+./node_modules/sucrase/register
+./node_modules/sucrase/dist
+./node_modules/sucrase/ts-node-plugin
+./node_modules/sucrase/node_modules
+./node_modules/util-deprecate
+./node_modules/tunnel-agent
+./node_modules/@epic-web
+./node_modules/@epic-web/invariant
+./node_modules/node-abi
+./node_modules/node-abi/node_modules
+./node_modules/electron-builder-squirrel-windows
+./node_modules/electron-builder-squirrel-windows/out
+./node_modules/end-of-stream
+./node_modules/esbuild
+./node_modules/esbuild/bin
+./node_modules/esbuild/lib
+./node_modules/get-intrinsic
+./node_modules/get-intrinsic/.github
+./node_modules/get-intrinsic/test
+./node_modules/whatwg-url
+./node_modules/whatwg-url/lib
+./node_modules/punycode
+./node_modules/cross-spawn
+./node_modules/cross-spawn/lib
+./node_modules/reusify
+./node_modules/reusify/.github
+./node_modules/reusify/benchmarks
+./node_modules/agent-base
+./node_modules/agent-base/src
+./node_modules/agent-base/dist
+./node_modules/obug
+./node_modules/obug/dist
+./node_modules/tar-fs
+./node_modules/tar-fs/test
+./node_modules/tar-fs/node_modules
+./node_modules/es-define-property
+./node_modules/es-define-property/.github
+./node_modules/es-define-property/test
+./node_modules/@oxc-project
+./node_modules/@oxc-project/types
+./node_modules/typescript
+./node_modules/typescript/bin
+./node_modules/typescript/lib
+./node_modules/file-uri-to-path
+./node_modules/file-uri-to-path/test
+./node_modules/err-code
+./node_modules/err-code/test
+./node_modules/wrap-ansi-cjs
+./node_modules/wrap-ansi-cjs/node_modules
+./node_modules/html-encoding-sniffer
+./node_modules/html-encoding-sniffer/lib
+./node_modules/combined-stream
+./node_modules/combined-stream/lib
+./node_modules/decompress-response
+./node_modules/matcher
+./node_modules/strip-bom-string
+./node_modules/graceful-fs
+./node_modules/events-universal
+./node_modules/is-glob
+./node_modules/tldts-core
+./node_modules/tldts-core/src
+./node_modules/tldts-core/dist
+./node_modules/@testing-library
+./node_modules/@testing-library/dom
+./node_modules/@testing-library/react
+./node_modules/@testing-library/jest-dom
+./node_modules/jest-matcher-utils
+./node_modules/jest-matcher-utils/build
+./node_modules/jest-matcher-utils/node_modules
+./node_modules/merge2
+./node_modules/istanbul-reports
+./node_modules/istanbul-reports/lib
+./node_modules/@types
+./node_modules/@types/yargs-parser
+./node_modules/@types/deep-eql
+./node_modules/@types/babel__template
+./node_modules/@types/aria-query
+./node_modules/@types/debug
+./node_modules/@types/estree
+./node_modules/@types/istanbul-lib-coverage
+./node_modules/@types/chai
+./node_modules/@types/q
+./node_modules/@types/jest
+./node_modules/@types/istanbul-lib-report
+./node_modules/@types/node
+./node_modules/@types/long
+./node_modules/@types/babel__traverse
+./node_modules/@types/yargs
+./node_modules/@types/node-int64
+./node_modules/@types/ms
+./node_modules/@types/yauzl
+./node_modules/@types/stack-utils
+./node_modules/@types/istanbul-reports
+./node_modules/@types/babel__generator
+./node_modules/@types/fs-extra
+./node_modules/@types/triple-beam
+./node_modules/@types/babel__core
+./node_modules/@types/thrift
+./node_modules/entities
+./node_modules/entities/src
+./node_modules/entities/dist
+./node_modules/compare-version
+./node_modules/fs-extra
+./node_modules/fs-extra/lib
+./node_modules/is-stream
+./node_modules/kind-of
+./node_modules/mkdirp-classic
+./node_modules/@huggingface
+./node_modules/@huggingface/jinja
+./node_modules/onetime
+./node_modules/require-from-string
+./node_modules/simple-swizzle
+./node_modules/@alloc
+./node_modules/@alloc/quick-lru
+./node_modules/object-assign
+./node_modules/require-directory
+./node_modules/mdn-data
+./node_modules/mdn-data/l10n
+./node_modules/mdn-data/api
+./node_modules/mdn-data/css
+./node_modules/loose-envify
+./node_modules/@jest
+./node_modules/@jest/pattern
+./node_modules/@jest/expect-utils
+./node_modules/@jest/schemas
+./node_modules/@jest/types
+./node_modules/@jest/get-type
+./node_modules/@jest/diff-sequences
+./node_modules/minimatch
+./node_modules/minimatch/lib
+./node_modules/is-arrayish
+./node_modules/yallist
+./node_modules/fs-constants
+./node_modules/crc-32
+./node_modules/crc-32/bin
+./node_modules/crc-32/types
+./node_modules/@electron
+./node_modules/@electron/universal
+./node_modules/@electron/get
+./node_modules/@electron/asar
+./node_modules/@electron/osx-sign
+./node_modules/@electron/notarize
+./node_modules/@zilliz
+./node_modules/@zilliz/milvus2-sdk-node
+./node_modules/lodash.flatten
+./node_modules/lru-cache
+./node_modules/@adobe
+./node_modules/@adobe/css-tools
+./node_modules/vitest
+./node_modules/vitest/dist
+./node_modules/vitest/browser
+./node_modules/has-symbols
+./node_modules/has-symbols/.github
+./node_modules/has-symbols/test
+./node_modules/@xenova
+./node_modules/@xenova/transformers
+./node_modules/mkdirp
+./node_modules/mkdirp/bin
+./node_modules/mkdirp/lib
+./node_modules/enabled
+./node_modules/uri-js
+./node_modules/uri-js/dist
+./node_modules/isexe
+./node_modules/isexe/test
+./node_modules/to-regex-range
+./node_modules/has-property-descriptors
+./node_modules/has-property-descriptors/.github
+./node_modules/has-property-descriptors/test
+./node_modules/async-limiter
+./node_modules/kuler
+./node_modules/math-intrinsics
+./node_modules/math-intrinsics/constants
+./node_modules/math-intrinsics/.github
+./node_modules/math-intrinsics/test
+./node_modules/triple-beam
+./node_modules/triple-beam/config
+./node_modules/triple-beam/.nyc_output
+./node_modules/conf
+./node_modules/conf/dist
+./node_modules/conf/node_modules
+./node_modules/string-width
+./node_modules/anynum
+./node_modules/define-properties
+./node_modules/define-properties/.github
+./node_modules/postcss-nested
+./node_modules/app-builder-bin
+./node_modules/app-builder-bin/mac
+./node_modules/app-builder-bin/win
+./node_modules/app-builder-bin/linux
+./node_modules/tmp
+./node_modules/tmp/lib
+./node_modules/strip-ansi
+./node_modules/@vitejs
+./node_modules/@vitejs/plugin-react
+./node_modules/get-east-asian-width
+./node_modules/react-is
+./node_modules/react-is/umd
+./node_modules/react-is/cjs
+./node_modules/plist
+./node_modules/plist/dist
+./node_modules/plist/.github
+./node_modules/plist/lib
+./node_modules/plist/examples
+./node_modules/plist/node_modules
+./node_modules/thrift
+./node_modules/thrift/lib
+./node_modules/magicast
+./node_modules/magicast/dist
+./node_modules/mime
+./node_modules/mime/types
+./node_modules/dmg-builder
+./node_modules/dmg-builder/templates
+./node_modules/dmg-builder/vendor
+./node_modules/dmg-builder/out
+./node_modules/jiti
+./node_modules/jiti/bin
+./node_modules/jiti/dist
+./node_modules/jiti/lib
+./node_modules/pump
+./node_modules/pump/.github
+./node_modules/bluebird
+./node_modules/bluebird/js
+./node_modules/filelist
+./node_modules/isarray
+./node_modules/ansi-styles
+./node_modules/github-from-package
+./node_modules/github-from-package/example
+./node_modules/github-from-package/test
+./node_modules/dingbat-to-unicode
+./node_modules/dingbat-to-unicode/dist
+./node_modules/http-proxy-agent
+./node_modules/http-proxy-agent/dist
+./node_modules/lines-and-columns
+./node_modules/lines-and-columns/build
+./sprints
+./coverage
+./coverage/ts
+./coverage/ts/src
+./coverage/ts/lcov-report
+./.tmp
+
+
+===== SRC DOMAINS =====
+src/internal/paths.js
+src/internal/config.js
+src/internal/reporter.js
+src/internal/journal.js
+src/internal/git-monitor.js
+src/vscode.js
+src/cli/llm-workspace.ts
+src/cli/llm-routing.ts
+src/cli/llm-usage.ts
+src/cli/llm-health.ts
+src/cli/llm-policy.ts
+src/utils/redactor.js
+src/plugin-browser-registry.js
+src/plugin-llm-registry.js
+src/idea-store.js
+src/startup-bootstrap.js
+src/preload.ts
+src/limit-detector.js
+src/scheduler.js
+src/__tests__/browser-selectors.test.js
+src/__tests__/capture-pipeline.integration.test.js
+src/browser-bridge.jsy
+src/cli.js
+src/logger.js
+src/memory/request-context.ts
+src/plugin-loader.js
+src/package.json
+src/logger.cjs
+src/audit/audit-log.ts
+src/knowledge/rag-dedup.js
+src/knowledge/index.ts
+src/knowledge/ingest/embedder.ts
+src/knowledge/ingest/chunking.ts
+src/knowledge/ingest/ingest-repository.js
+src/knowledge/ingest/ingest-sprint-history.ts
+src/knowledge/ingest/milvus-client.js
+src/knowledge/ingest/milvus-client.ts
+src/knowledge/ingest/ingest-sprint-history.js
+src/knowledge/schema/documents.ts
+src/knowledge/schema/metadata.ts
+src/error.js
+src/browser-bridge.js
+src/ui/dashboard.js
+src/ui/provider-dashboard.html
+src/ui/types.d.ts
+src/profile-templates/trae.json
+src/profile-templates/default.json
+src/profile-templates/codex.json
+src/commands/handoff.js
+src/commands/ai.js
+src/commands/llm.js
+src/commands/bc2-sync.js
+src/commands/browser.js
+src/commands/idea.js
+src/commands/storage.js
+src/auto-handoff.js
+src/shared/errors/provider-map.ts
+src/shared/errors/provider.error.ts
+src/shared/errors/index.ts
+src/shared/errors/provider-map.test.ts
+src/shared/errors/validation.error.ts
+src/shared/errors/routing.error.ts
+src/shared/errors/memory.error.ts
+src/shared/errors/base.ts
+src/shared/contracts/provider.ts
+src/shared/ipc/contract.ts
+src/shared/schemas/provider.schema.ts
+src/shared/logging/logger.ts
+src/test-runner.js
+src/renderer/types/electron.d.ts
+src/ai-memory/repositories/sprint-state-repo.js
+src/ai-memory/repositories/test-baseline-repo.js
+src/ai-memory/repositories/handoff-repo.js
+src/ai-memory/repositories/commands-repo.js
+src/ai-memory/repositories/decisions-repo.js
+src/ai-memory/repositories/lessons-repo.js
+src/ai-memory/memory.sql
+src/ai-memory/legacy/memory.pre-s3.backup.sql
+src/ai-memory/memory-db.js
+src/ai-memory/index.js
+src/policies/provider-policy.ts
+src/policies/workspace-policy.ts
+src/policies/provider-policy.ts.bak
+src/policies/policy-presets.ts
+src/policies/sensitive-task-rules.ts
+src/encrypt.js
+src/daemon/watcher.js
+src/daemon/daemon-runner.js
+src/daemon/daemonStatus.js
+src/domain/schemas.js
+src/domain/types.js
+src/browser-adapters/claude.js
+src/browser-adapters/chatgpt.js
+src/browser-adapters/perplexity.js
+src/browser-adapters/gemini.js
+src/llm/provider-usage.ts
+src/llm/inference.js
+src/llm/provider-health.ts
+src/llm/local-llm.js
+src/llm/gateway.ts
+src/llm/storage.ts
+src/llm/providers/perplexity.ts
+src/llm/providers/openai.ts
+src/llm/providers/grok.ts
+src/llm/providers/index.ts
+src/llm/providers/groq.ts
+src/llm/providers/local.ts
+src/llm/providers/gemini.ts
+src/llm/providers/base.ts
+src/llm/training-exporter.js
+src/llm/index.ts
+src/llm/routing-history.ts
+src/llm/mistake-tracker.js
+src/llm/embeddings.js
+src/llm/experience-db.js
+src/llm/document-ingester.js
+src/llm/status.ts
+src/llm/knowledge-graph.js
+src/llm/prompt-generator.js
+src/llm/agent-loop-guard.js
+src/llm/routing-explainer.ts
+src/storage/storageStatus.js
+src/storage/vscode-learn-utils.js
+src/storage/storage-monitor.js
+src/scorer.js
+src/installer/hw-probe/vitest.config.ts
+src/installer/hw-probe/tsconfig.json
+src/installer/hw-probe/package.json
+src/installer/hw-probe/test-probe.ts
+src/installer/hw-probe/hwProbe.ts
+src/installer/hw-probe/package-lock.json
+src/installer/hw-probe/hwProbe.spec.ts
+src/resume-scheduler.js
+src/security/security-overview/baseline.ts
+src/security/security-overview/drift.ts
+src/security/security-overview/schema.ts
+src/security/security-overview/normalizer.ts
+src/security/security-overview/index.ts
+src/security/security-overview/suppressions.ts
+src/security/security-overview/triage.ts
+src/security/security-overview/ai-explain.ts
+src/security/security-overview/auto-scan.ts
+src/security/security-overview/drift-history.ts
+src/security/secrets/baseline.ts
+src/security/secrets/schema.ts
+src/security/secrets/index.ts
+src/security/secrets/suppressions.ts
+src/security/secrets/gitleaks-runner.ts
+src/security/risks/baseline.ts
+src/security/risks/schema.ts
+src/security/risks/index.ts
+src/security/risks/parsers.ts
+src/security/risks/trivy-runner.ts
+src/security/risks/suppressions.ts
+src/security/risks/dependency-check-runner.ts
+src/governance/workspace-quotas.ts
+src/governance/workspace-approvals.ts
+src/governance/workspace-context.ts
+src/browser-selectors.js
+src/lock.js
+src/browser-pane.js
+src/auth-capture.js
+src/accounts/store.js
+src/accounts/profile-templates/trae.json
+src/accounts/profile-templates/default.json
+src/accounts/profile-templates/codex.json
+src/accounts/schema.js
+src/accounts/secret-store.js
+src/accounts/profile-manager.js
+src/accounts/workspace.js
+src/accounts/switcher.js
+src/accounts/health.js
+src/plugin-api.js
+src/session-supervisor.js
+src/main/ipc/ipcAdapter.ts
+src/coverage/ts/favicon.png
+src/coverage/ts/coverage-final.json
+src/coverage/ts/base.css
+src/coverage/ts/sorter.js
+src/coverage/ts/lcov.info
+src/coverage/ts/sort-arrow-sprite.png
+src/coverage/ts/cobertura-coverage.xml
+src/coverage/ts/block-navigation.js
+src/coverage/ts/prettify.css
+src/coverage/ts/coverage-summary.json
+src/coverage/ts/prettify.js
+src/coverage/ts/index.html
+src/system/systemHealth.js
+src/agent-handoff.js
+src/startup-plugins.js
+
+
+===== RENDERER FILES =====
+renderer/postcss.config.cjs
+renderer/TrainingStatus.jsx
+renderer/__tests__/Logs.test.jsx
+renderer/__tests__/TrainingStatus.test.jsx
+renderer/App.jsx
+renderer/screens/PromptTemplates.jsx
+renderer/screens/Settings.jsx
+renderer/screens/LiveFeed.jsx
+renderer/screens/Dashboard.jsx
+renderer/screens/LocalLLM.jsx
+renderer/screens/RobotFramework.jsx
+renderer/screens/GitMonitor.jsx
+renderer/screens/ProgressLog.jsx
+renderer/screens/BrowserAutomation.jsx
+renderer/screens/Accounts.jsx
+renderer/main.jsx
+renderer/components/StatusBar.jsx
+renderer/components/Sidebar.jsx
+renderer/styles/index.css
+renderer/Logs.jsx
+renderer/BrowserPanel.jsx
+renderer/index.html
+
+
+===== ELECTRON FILES =====
+electron-ui/preload-browser.cjs
+electron-ui/preload.cjs
+electron-ui/browser-pane.bundled.cjs
+electron-ui/__tests__/capture-handlers.test.js
+electron-ui/main.cjs
+electron-ui/dist/assets/index-B6Tv-O4K.js
+electron-ui/dist/assets/index-DDT9VRJM.css
+electron-ui/dist/index.html
+electron-ui/ipc/workspace-handlers.bundled.cjs
+electron-ui/ipc/workspace-routing-handlers.cjs
+electron-ui/ipc/provider-telemetry-handlers.bundled.cjs
+electron-ui/ipc/workspace-report-handlers.bundled.cjs
+electron-ui/ipc/handlers.bundled.cjs
+electron-ui/ipc/workspace-report-handlers.cjs
+electron-ui/ipc/security-overview-handlers.cjs
+electron-ui/ipc/secrets-handlers.cjs
+electron-ui/ipc/risks-handlers.cjs
+electron-ui/ipc/capture-handlers.bundled.cjs
+electron-ui/ipc/workspace-policy-handlers.cjs
+electron-ui/ipc/workspace-routing-handlers.bundled.cjs
+electron-ui/ipc/capture-handlers.cjs
+electron-ui/ipc/workspace-handlers.cjs
+electron-ui/ipc/handlers.cjs
+electron-ui/ipc/provider-telemetry-handlers.cjs
+electron-ui/ipc/provider-policy-handlers.bundled.cjs
+electron-ui/ipc/audit-handlers.cjs
+electron-ui/ipc/provider-policy-handlers.cjs
+electron-ui/ipc/audit-handlers.bundled.cjs
+electron-ui/ipc/knowledge-handlers.cjs
+electron-ui/main.bundled.cjs
+electron-ui/preload.bundled.cjs
+electron-ui/sharp-linux-x64-DQNVFNDI.node
+electron-ui/src-loader.cjs
+electron-ui/browser-pane.cjs
+
+
+===== TEST FILES =====
+tests/knowledge-graph.test.js
+tests/internal/paths.test.js
+tests/internal/journal.test.js
+tests/git-monitor-coverage.test.js
+tests/test-runner-coverage.test.js
+tests/feature-gates.test.js
+tests/sprint33-smoke.test.js.bak
+tests/domain-error.test.js
+tests/test-runner-cli-coverage.test.js
+tests/health.test.js
+tests/cli/llm-policy.test.js
+tests/cli/llm-routing.test.js
+tests/cli/llm-health.test.js
+tests/cli/llm-usage.test.js
+tests/cli/llm-workspace.test.js
+tests/sprint69-coverage-guard.test.js
+tests/human/executive-release.spec.js
+tests/human/executive-proof.spec.js
+tests/human/helpers/electronApp.js
+tests/human/executive-compliance.spec.js
+tests/human/executive-evidence.spec.js
+tests/human/launch.spec.js
+tests/human/quota-security.spec.js
+tests/human/analytics-audit.spec.js
+tests/human/executive-walkthrough.spec.js
+tests/human/executive-review.spec.js
+tests/simple-fs-test.test.js
+tests/shared-errors-barrel.test.js
+tests/cli_debug.test.js
+tests/perplexity.test.js
+tests/sprint39-smoke.test.js
+tests/sanitize-env-spawn.test.js
+tests/sprint92-thread-and-coverage-guard.test.js
+tests/browser-bridge.test.js.backup
+tests/sprint28-smoke.test.js
+tests/sprint53-cross-surface.test.js
+tests/sprint77-build-and-scope-guard.test.js
+tests/sprint62-sonar-wiring.test.js
+tests/logger-coverage.extra.test.js
+tests/sprint50-t1.test.js
+tests/sprint34-smoke.test.js.bak
+tests/sprint36-smoke.test.js
+tests/sprint32-smoke.test.js
+tests/storage.test.js
+tests/sprint70-coverage-pipeline-guard.test.js
+tests/sprint37-smoke.test.js.bak
+tests/sprint51-smoke.test.js
+tests/run-tests-smoke.test.js
+tests/sprint63-release-readiness.test.js
+tests/thread.test.js
+tests/chaos-utils.test.js
+tests/handoff.test.js
+tests/idea-validation.test.js
+tests/browser-bridge.coverage-additions.test.js
+tests/regression/ingestion-error-handling.test.js
+tests/regression/scoring-invariants.test.js
+tests/regression/health-edge-cases.test.js
+tests/regression/malformed-payloads.test.js
+tests/watcher-coverage.test.js
+tests/reference-plugins.test.js
+tests/sprint32-smoke.test.js.bak
+tests/store.test.js
+tests/e2e/response-feedback.test.js
+tests/e2e/rotation.test.js
+tests/e2e/enhance-schedule.test.js
+tests/security-overview-auto-scan.test.js
+tests/ci-workflow.test.js
+tests/sprint38-smoke.test.js.bak
+tests/browser.test.js
+tests/sprint49-smoke.test.js
+tests/security-risks-barrel.test.js
+tests/sprint80-security-overview-sonar-remediation.test.js
+tests/workspace.test.js
+tests/sprint48-smoke.test.js.bak
+tests/bc2-sync.test.js
+tests/sprint68-gate-path-guard.test.js
+tests/lockcoverage.test.js
+tests/providers.test.js
+tests/sprint40-smoke.test.js.bak
+tests/sprint48-smoke.test.js
+tests/memory-error.test.js
+tests/sprint35-smoke.test.js
+tests/git-monitor.test.js
+tests/sprint43-smoke.test.js
+tests/sprint25-smoke.test.js.bak
+tests/agent-handoff-quarantine.test.js
+tests/risks-runner.test.js
+tests/sprint51-security-overview.test.js
+tests/shared-errors-base.test.ts
+tests/logger-coverage.test.js
+tests/helpers/electronApp.js
+tests/sprint47-smoke.test.js
+tests/chaos-slo.test.js
+tests/tmp-cli-debug.test.js
+tests/sprint75-guard.test.js
+tests/knowledge/ingest/ingest-repository.test.ts
+tests/knowledge/ingest/milvus-client.test.ts
+tests/handoff-repo.test.js
+tests/sprint67-measured-cleanup.test.js
+tests/scorer.test.js
+tests/encrypt.test.js
+tests/switcher.test.js
+tests/security-overview-drift.test.js
+tests/ui/local-ai-status.spec.js
+tests/ui/helpers/electronUi.js
+tests/ui/browser-pane-overlap.spec.js
+tests/ui/theme-readability.spec.js
+tests/ui/browser-pane-hide.spec.js
+tests/ui/dashboard.test.js
+tests/sprint46-smoke.test.js
+tests/robot-suites.test.js
+tests/sprint90-coverage-policy.test.js
+tests/sprint64-dataset-migration.test.js
+tests/schema.test.js
+tests/sprint42-smoke.test.js.bak
+tests/sprint50-smoke.test.js
+tests/sprint31-smoke.test.js
+tests/sprint42-smoke.test.js
+tests/startup-bootstrap.coverage.test.js
+tests/sprint62-reporting-language.test.js
+tests/config-policy.test.js
+tests/sprint60-human-tester-7.test.js
+tests/sprint44-smoke.test.js
+tests/ci-test-workflow.test.js
+tests/sprint21-smoke.test.js
+tests/audit-log.test.js
+tests/ingest-sprint-history.test.js
+tests/plugin-api.test.js
+tests/config-validation.test.js
+tests/sprint56-human-tester-3.test.js
+tests/secret-store.test.js
+tests/sprint38-smoke.test.js
+tests/routing-error.test.js
+tests/secrets-runner.test.js
+tests/test-baseline-repo.test.js
+tests/sprint57-human-tester-4.test.js
+tests/sprint55-reconciliation.test.js
+tests/backwards-compat.test.js
+tests/llm-training-exporter.test.js
+tests/sprint54-smoke.test.js
+tests/experience-db-recovery.test.js
+tests/sprint52-smoke.test.js
+tests/sprint59-human-tester-6.test.js
+tests/sprint-validation.test.js
+tests/startup-plugins.coverage.test.js
+tests/browser-bridge.coverage-additions2.test.js
+tests/sprint79-sonar-scope-guard.test.js
+tests/sprint58-human-tester-5.test.js
+tests/sprint85-guard.test.js
+tests/watcher.test.js
+tests/gemini.test.js
+tests/dashboard-loader.js
+tests/startup-plugins.test.js
+tests/sprint31-smoke.test.js.bak
+tests/sprint71-newcode-scope-guard.test.js
+tests/chaos-runner.test.js
+tests/sprint39-smoke.test.js.bak
+tests/sprint69-coverage-expansion.test.js
+tests/chaos-runbook.test.js
+tests/sprint30-smoke.test.js
+tests/plugin-registries.test.js
+tests/startup-bootstrap.test.js
+tests/sprint45-smoke.test.js
+tests/daemon-status.test.js
+tests/capture-payload-validation.test.js
+tests/security-secrets-barrel.test.js
+tests/sprint74-violation-remediation.test.js
+tests/sprint25-smoke.test.js
+tests/cli-validation.test.js
+tests/sprint50-t2.test.js
+tests/llm-barrel.test.js
+tests/agent-handoff.test.js
+tests/profile-manager.test.js
+tests/logger-redaction.test.js
+tests/rag-dedup.test.js
+tests/sprint27-smoke.test.js
+tests/lock.test.js
+tests/preload-surface.test.js
+tests/idea-store-quarantine.test.js
+tests/llm/embeddings.test.js
+tests/llm/local-provider.test.js
+tests/llm/base-provider.test.js
+tests/llm/llm.test.js
+tests/llm/local-llm.coverage-additions.test.js
+tests/llm/agent-loop-guard.test.js
+tests/llm/related.test.js
+tests/llm/ollama-inference.test.js
+tests/sprint41-smoke.test.js.bak
+tests/sprint84-sonar-backlog-guard.test.js
+tests/sprint95-guard.test.js
+tests/sprint86-hotspot-guard.test.js
+tests/security-overview-ai-explain.test.js
+tests/storage/storage-monitor-coverage.test.js
+tests/storage/collector.test.js
+tests/storage/storage-monitor.test.js
+tests/storage/vscode-learn-utils.test.js
+tests/storage/storageStatus.test.js
+tests/storage/storage-monitor-coverage2.test.js
+tests/sprint19-smoke.test.js
+tests/fixtures/git-status-ahead-behind.txt
+tests/fixtures/git-log-line.txt
+tests/fixtures/config-pre-15.8.json
+tests/fixtures/plugins/bad-version.js
+tests/auth-capture.test.js
+tests/sprint35-smoke.test.js.bak
+tests/sprint26-smoke.test.js
+tests/test-probe-spec.test.js
+tests/claude.test.js
+tests/security-overview-barrel.test.js
+tests/updater-config.test.js
+tests/session-supervisor.test.js
+tests/sprint23-smoke.test.js
+tests/sprint22-smoke.test.js
+tests/sprint87-gate-guard.test.js
+tests/chatgpt.test.js
+tests/chaos-workflow.test.js
+tests/scheduler.test.js
+tests/sprint65-guard-only.test.js
+tests/window-security.test.js
+tests/sprint52-bulk-triage.test.js
+tests/sprint24-smoke.test.js
+tests/sprint54-drift-history.test.js
+tests/sprint84-quality-and-scope-guard.test.js
+tests/logger.test.js
+tests/coverage-branch-gap.test.js
+tests/idea-store.test.js
+tests/coverage-gate.test.js
+tests/sprint46-smoke.test.js.bak
+tests/idea-store-branch-coverage.test.js
+tests/sprint72-modified-newcode-boundary.test.js
+tests/security-overview.test.js
+tests/sprint33-smoke.test.js
+tests/sprint29-smoke.test.js
+tests/paths.test.js
+tests/llm-cli-commands.test.js
+tests/sprint62-coverage-config.test.js
+tests/auto-handoff.test.js
+tests/sprint66-remediation-guard.test.js
+tests/idea-store-extra-coverage.test.js
+tests/sprint36-smoke.test.js.bak
+tests/coverage-thresholds.js
+tests/sprint62-clean-tree-guard.test.js
+tests/test-runner.test.js
+tests/sprint40-smoke.test.js
+tests/idea.test.js
+tests/sprint73-boundary-confirmation.test.js
+tests/browser-bridge.test.js
+tests/setup.ts
+tests/sprint37-smoke.test.js
+tests/sprint41-smoke.test.js
+tests/preload.test.ts
+tests/sprint76-globalthis-guard.test.js
+tests/sprint53-smoke.test.js
+tests/sprint34-smoke.test.js
+tests/command-repo.test.js
+tests/ai-memory.test.js
+tests/browser-bridge.coverage-additions3.test.js
+tests/workspace-context.test.js
+tests/limit-detector.test.js
+tests/reporter.test.js
+tests/sprint-state-repo.test.js
+tests/sprint91-sonar-fix-guard.test.js
+tests/sprint61-human-tester-8.test.js
+tests/dashboard.test.js
+tests/sprint80-plan-and-scope-guard.test.js
+tests/ai.test.js
+tests/git-monitor-status.test.js
+tests/plugin-loader.test.js
+tests/system/systemHealth.test.js
+tests/sprint20-smoke.test.js
+tests/cli.test.js
+tests/sprint18-smoke.test.js
+tests/config-coverage.test.js
+
+
+===== E2E / PLAYWRIGHT / HUMAN =====
+./scripts/build-electron-main.mjs
+./playwright.ui.config.js
+./release/builder-debug.yml
+./release/builder-effective-config.yaml
+./playwright.human.config.js
+./src/ui/dashboard.js
+./src/ui/provider-dashboard.html
+./src/ui/types.d.ts
+./playwright.config.ts
+./e2e/accounts.spec.ts
+./e2e/regression/workspace-policy-context-routing.spec.ts
+./e2e/regression/approval-audit-compliance.spec.ts
+./e2e/smoke/account-rotation-ai-capture.spec.ts
+./e2e/git.spec.ts
+./e2e/llm.spec.ts
+./e2e/workspace-routing.spec.ts
+./e2e/provider-policy.spec.ts
+./e2e/journal.spec.ts
+./e2e/audit.spec.ts
+./e2e/browser-pane.e2e.js
+./e2e/base.ts
+./electron-ui/preload-browser.cjs
+./electron-ui/preload.cjs
+./electron-ui/browser-pane.bundled.cjs
+./electron-ui/__tests__/capture-handlers.test.js
+./electron-ui/main.cjs
+./electron-ui/dist/index.html
+./electron-ui/ipc/workspace-handlers.bundled.cjs
+./electron-ui/ipc/workspace-routing-handlers.cjs
+./electron-ui/ipc/provider-telemetry-handlers.bundled.cjs
+./electron-ui/ipc/workspace-report-handlers.bundled.cjs
+./electron-ui/ipc/handlers.bundled.cjs
+./electron-ui/ipc/workspace-report-handlers.cjs
+./electron-ui/ipc/security-overview-handlers.cjs
+./electron-ui/ipc/secrets-handlers.cjs
+./electron-ui/ipc/risks-handlers.cjs
+./electron-ui/ipc/capture-handlers.bundled.cjs
+./electron-ui/ipc/workspace-policy-handlers.cjs
+./electron-ui/ipc/workspace-routing-handlers.bundled.cjs
+./electron-ui/ipc/capture-handlers.cjs
+./electron-ui/ipc/workspace-handlers.cjs
+./electron-ui/ipc/handlers.cjs
+./electron-ui/ipc/provider-telemetry-handlers.cjs
+./electron-ui/ipc/provider-policy-handlers.bundled.cjs
+./electron-ui/ipc/audit-handlers.cjs
+./electron-ui/ipc/provider-policy-handlers.cjs
+./electron-ui/ipc/audit-handlers.bundled.cjs
+./electron-ui/ipc/knowledge-handlers.cjs
+./electron-ui/main.bundled.cjs
+./electron-ui/preload.bundled.cjs
+./electron-ui/sharp-linux-x64-DQNVFNDI.node
+./electron-ui/src-loader.cjs
+./electron-ui/browser-pane.cjs
+./.github/workflows/build.yml
+./playwright-config.txt
+./robot/suites/regression.robot
+./robot/suites/functional.robot
+./playwright-report/data/2d681c41aa45766451a7edf79a1c09b2f3e19562.zip
+./playwright-report/data/5fca69848e101f7fdecd96c5a95f24b02fa96f54.md
+./playwright-report/data/cf7853209fcedc9a7e6b9fa231354229323a8e25.zip
+./playwright-report/data/aa5bf6c4d33315f71d8ec5f57d6ffd1f225668c4.md
+./playwright-report/data/c24993b03ca07ff25de9f94a366a1cf6d7543146.md
+./playwright-report/data/eb4a0fab6adf38bd3c0129339b81b9ecdf262676.zip
+./playwright-report/data/1580afc123ae79695491b84866ec5edcf0ffb5e7.zip
+./playwright-report/data/c392447906fb435786f0adf5aa5b209f2b384b49.md
+./playwright-report/data/981fc4d4583a82abcf1c8fdbfc484a97f35c2a81.zip
+./playwright-report/data/37c051c000f0b890b272a71551ac73c85d0f77d9.md
+./playwright-report/data/9f7c3f40256f71756c046be00823901d06ede12c.zip
+./playwright-report/data/7316950aa744fa40d7c36b50d70e3c708e843bca.md
+./playwright-report/data/d6ac59b396a77547159454f893642af1ca73a183.md
+./playwright-report/data/3786e5d7a166145480ae875eaa3d94c82d31c01e.zip
+./playwright-report/data/b967d79a5f0e81760ed881723ffce664ab4aaeb9.md
+./playwright-report/data/62cc2a03ca1e6dff14f8151c506f62d9c28f5752.zip
+./playwright-report/data/560e813d0097cf62801d9add8724a59a28382953.zip
+./playwright-report/data/979e0eda5ece16fd324feac81864038a58b9c6f8.zip
+./playwright-report/data/75c9e719776e2b81f85216ed732d27bb4c669699.md
+./playwright-report/data/4b186f1700f41631a40c7f65a46d7c3186786f5b.zip
+./playwright-report/data/597ab0d66d72bf5bdea350349dfa95eb9f7e0eee.zip
+./playwright-report/data/8d55cb573678e1c79bf86aef5fd944e042f27a48.md
+./playwright-report/data/d1de7c0e858adf7148aafb01a8d785b45cf04f92.zip
+./playwright-report/data/1822e7656d702f45f67b60824425c5d279fef584.zip
+./playwright-report/data/8a4e3367036807c935bbffd79d85f19ce12c31cc.md
+./playwright-report/data/a2898dd3d732b5acc551b714ecb6e922246b6b60.zip
+./playwright-report/data/119a4a231eb7d966bc352c570fc371ba782da8f8.zip
+./playwright-report/data/a75e01c3d4a03228aee25a47cb242a0bd7420b17.zip
+./playwright-report/data/168fe186840876f118a4ca55104901905a42e287.zip
+./playwright-report/data/9db24a82f3c20e0871e1eae33aa890d95c6fa58b.md
+./playwright-report/data/70c3619bb669909e91aad2284983cb7689e7ec5c.zip
+./playwright-report/data/9b66db3dc249c6699f47fa05ca4657a234bc9e33.zip
+./playwright-report/data/46a773cb6bdd63521ba35fac4bf55750d1e99b2d.md
+./playwright-report/data/54a033722715aa0e5f8a8f4945637698d7927b65.zip
+./playwright-report/data/6ab01d50d77f04348487891cff20124459362d2d.md
+./playwright-report/data/7286b9bad6a1030b2a35d4a67097bd166ff9d6da.zip
+./playwright-report/data/bd0a3a262c2f796e18a397c37ca64e36ec090961.zip
+./playwright-report/data/1fc23866ca70890101270894ee7341ffd9fd1f00.zip
+./playwright-report/data/fa9f687c7a9bd56f4d099bcd7e4120e14327eab5.zip
+./playwright-report/data/b1b04e61cd15d3e278462599a0eaf516967c05d0.zip
+./playwright-report/data/637a4f2eb0a49489f5b52a02a452294f0d2112b7.md
+./playwright-report/data/0f65d0efc0125d02471ce565d11b957e24739f57.zip
+./playwright-report/data/2318384326f5b826f325e21e2c612e59b8473bbe.zip
+./playwright-report/data/8ac6d97379972425435e7dda3affcefe631cef36.md
+./playwright-report/data/a2de713c94bbe32e7d925f4f575b9f08ae5ba9e4.zip
+./playwright-report/data/61617f6c778892488abbbddc8f1d0593eee58904.zip
+./playwright-report/data/e654b5a3baf20cf611957c175058c94761995276.zip
+./playwright-report/data/88c31e1078d01bb43c5ef44fef460b5cd30e287b.zip
+./playwright-report/trace/manifest.webmanifest
+./playwright-report/trace/uiMode.C2Efnu2P.js
+./playwright-report/trace/uiMode.Btcz36p_.css
+./playwright-report/trace/defaultSettingsView.BDKsFU3c.css
+./playwright-report/trace/codicon.DCmgc-ay.ttf
+./playwright-report/trace/snapshot.v8KI4P3m.js
+./playwright-report/trace/snapshot.html
+./playwright-report/trace/index.BCnMPevh.js
+./playwright-report/trace/sw.bundle.js
+./playwright-report/trace/xtermModule.DYP7pi_n.css
+./playwright-report/trace/index.CzXZzn5A.css
+./playwright-report/trace/playwright-logo.svg
+./playwright-report/trace/codeMirrorModule.DYBRYzYX.css
+./playwright-report/trace/uiMode.html
+./playwright-report/trace/index.html
+./playwright-report/index.html
+./.git/.probe-20ce2e5a-0040-4bb3-84c8-1ccc2c1718eb
+./playwright-report-human/index.html
+./build/icon.ico
+./build/icons/32x32.png
+./build/icons/512x512.png
+./build/icons/16x16.png
+./build/icons/128x128.png
+./build/icons/64x64.png
+./build/icons/256x256.png
+./build/icons/48x48.png
+./e2e-design/06a-folder-and-config.md
+./e2e-design/05b-data-and-reset.md
+./e2e-design/02b-sprint-dependencies.md
+./e2e-design/09e-review-index.md
+./e2e-design/08b-github-actions.md
+./e2e-design/06b-page-objects-and-fixtures.md
+./e2e-design/02a-sprint-timeline.md
+./e2e-design/10a-spec1-notes.md
+./e2e-design/01b-technical-architecture.md
+./e2e-design/09c-sprint-journey-matrix.md
+./e2e-design/05a-startup-and-env.md
+./e2e-design/09d-missing-hooks-report.md
+./e2e-design/09b-coverage-matrix.md
+./e2e-design/08a-ci-contexts.md
+./e2e-design/01a-app-and-users.md
+./e2e-design/07a-smoke-suite.md
+./e2e-design/07b-regression-suite.md
+./e2e-design/10b-spec2-3-notes.md
+./e2e-design/04a-selectors-and-hooks.md
+./e2e-design/03-critical-journeys.md
+./e2e-design/04b-ipc-and-brittleness.md
+./e2e-design/07c-full-suite.md
+./e2e-design/09a-architecture-document.md
+./tests/human/executive-release.spec.js
+./tests/human/executive-proof.spec.js
+./tests/human/executive-compliance.spec.js
+./tests/human/executive-evidence.spec.js
+./tests/human/launch.spec.js
+./tests/human/quota-security.spec.js
+./tests/human/analytics-audit.spec.js
+./tests/human/executive-walkthrough.spec.js
+./tests/human/executive-review.spec.js
+./tests/sprint77-build-and-scope-guard.test.js
+./tests/e2e/response-feedback.test.js
+./tests/e2e/rotation.test.js
+./tests/e2e/enhance-schedule.test.js
+./tests/ui/local-ai-status.spec.js
+./tests/ui/browser-pane-overlap.spec.js
+./tests/ui/theme-readability.spec.js
+./tests/ui/browser-pane-hide.spec.js
+./tests/ui/dashboard.test.js
+./tests/robot-suites.test.js
+./tests/sprint60-human-tester-7.test.js
+./tests/sprint56-human-tester-3.test.js
+./tests/sprint57-human-tester-4.test.js
+./tests/sprint59-human-tester-6.test.js
+./tests/sprint58-human-tester-5.test.js
+./tests/sprint61-human-tester-8.test.js
+./playwright-report-ui/index.html
+./node_modules/es-object-atoms/RequireObjectCoercible.js
+./node_modules/es-object-atoms/RequireObjectCoercible.d.ts
+./node_modules/cliui/LICENSE.txt
+./node_modules/cliui/package.json
+./node_modules/cliui/CHANGELOG.md
+./node_modules/cliui/index.mjs
+./node_modules/cliui/README.md
+./node_modules/electron-builder/cli.js
+./node_modules/electron-builder/package.json
+./node_modules/electron-builder/LICENSE
+./node_modules/electron-builder/install-app-deps.js
+./node_modules/uint8array-extras/package.json
+./node_modules/uint8array-extras/index.d.ts
+./node_modules/uint8array-extras/license
+./node_modules/uint8array-extras/readme.md
+./node_modules/uint8array-extras/index.js
+./node_modules/fast-xml-builder/package.json
+./node_modules/fast-xml-builder/CHANGELOG.md
+./node_modules/fast-xml-builder/LICENSE
+./node_modules/fast-xml-builder/README.md
+./node_modules/source-map-support/register-hook-require.js
+./node_modules/playwright/jsx-runtime.js
+./node_modules/playwright/jsx-runtime.mjs
+./node_modules/playwright/test.js
+./node_modules/playwright/ThirdPartyNotices.txt
+./node_modules/playwright/cli.js
+./node_modules/playwright/package.json
+./node_modules/playwright/index.d.ts
+./node_modules/playwright/test.mjs
+./node_modules/playwright/test.d.ts
+./node_modules/playwright/index.mjs
+./node_modules/playwright/LICENSE
+./node_modules/playwright/NOTICE
+./node_modules/playwright/index.js
+./node_modules/playwright/README.md
+./node_modules/xmlbuilder/package.json
+./node_modules/xmlbuilder/CHANGELOG.md
+./node_modules/xmlbuilder/LICENSE
+./node_modules/xmlbuilder/.nycrc
+./node_modules/xmlbuilder/README.md
+./node_modules/playwright-core/ThirdPartyNotices.txt
+./node_modules/playwright-core/cli.js
+./node_modules/playwright-core/package.json
+./node_modules/playwright-core/index.d.ts
+./node_modules/playwright-core/index.mjs
+./node_modules/playwright-core/browsers.json
+./node_modules/playwright-core/LICENSE
+./node_modules/playwright-core/NOTICE
+./node_modules/playwright-core/index.js
+./node_modules/playwright-core/README.md
+./node_modules/builder-util-runtime/package.json
+./node_modules/builder-util-runtime/readme.md
+./node_modules/builder-util-runtime/LICENSE
+./node_modules/napi-build-utils/index.md
+./node_modules/napi-build-utils/package.json
+./node_modules/napi-build-utils/LICENSE
+./node_modules/napi-build-utils/index.js
+./node_modules/napi-build-utils/README.md
+./node_modules/prebuild-install/util.js
+./node_modules/prebuild-install/log.js
+./node_modules/prebuild-install/package.json
+./node_modules/prebuild-install/error.js
+./node_modules/prebuild-install/asset.js
+./node_modules/prebuild-install/CHANGELOG.md
+./node_modules/prebuild-install/help.txt
+./node_modules/prebuild-install/CONTRIBUTING.md
+./node_modules/prebuild-install/rc.js
+./node_modules/prebuild-install/proxy.js
+./node_modules/prebuild-install/bin.js
+./node_modules/prebuild-install/LICENSE
+./node_modules/prebuild-install/index.js
+./node_modules/prebuild-install/download.js
+./node_modules/prebuild-install/README.md
+./node_modules/builder-util/package.json
+./node_modules/builder-util/readme.md
+./node_modules/builder-util/LICENSE
+./node_modules/guid-typescript/package.json
+./node_modules/guid-typescript/README.md
+./node_modules/uuid/package.json
+./node_modules/uuid/LICENSE.md
+./node_modules/uuid/README.md
+./node_modules/app-builder-lib/package.json
+./node_modules/app-builder-lib/scheme.json
+./node_modules/electron-builder-squirrel-windows/package.json
+./node_modules/electron-builder-squirrel-windows/readme.md
+./node_modules/electron-builder-squirrel-windows/LICENSE
+./node_modules/esbuild/package.json
+./node_modules/esbuild/LICENSE.md
+./node_modules/esbuild/install.js
+./node_modules/esbuild/README.md
+./node_modules/require-from-string/package.json
+./node_modules/require-from-string/license
+./node_modules/require-from-string/readme.md
+./node_modules/require-from-string/index.js
+./node_modules/require-directory/.npmignore
+./node_modules/require-directory/.jshintrc
+./node_modules/require-directory/package.json
+./node_modules/require-directory/README.markdown
+./node_modules/require-directory/.travis.yml
+./node_modules/require-directory/LICENSE
+./node_modules/require-directory/index.js
+./node_modules/vitest/suite.d.ts
+./node_modules/app-builder-bin/package.json
+./node_modules/app-builder-bin/index.d.ts
+./node_modules/app-builder-bin/readme.md
+./node_modules/app-builder-bin/index.js
+./node_modules/react-is/build-info.json
+./node_modules/dmg-builder/package.json
+./node_modules/dmg-builder/readme.md
+./playwright.ui.config.cjs
+./playwright.human.config.cjs
+
+
+===== ROBOT =====
+./robot.config.json
+./robot/functional/comp.robot
+./robot/suites/regression.robot
+./robot/suites/functional.robot
+./robot/README.md
+./tests/robot-suites.test.js
+
+
+===== KEY ENTRY FILES =====
+
+--- FILE: src/cli.js ---
+import readline from "node:readline/promises";
+import { stdin as input, stdout as output } from "node:process";
+import os from "node:os";
+import path from "node:path";
+import fs from "node:fs/promises";
+import nodefs from "node:fs";
+import { fileURLToPath } from "node:url";
+
+import chalk from "chalk";
+import { Command } from "commander";
+import ora from "ora";
+import { nanoid } from "nanoid";
+
+import { AccountStore } from "./accounts/store.js";
+import { AgentTypeSchema } from "./accounts/schema.js";
+import { SwitcherService } from "./accounts/switcher.js";
+import { getSystemHealth } from "./accounts/health.js";
+import { ProfileManager } from "./accounts/profile-manager.js";
+import { bindProfile } from "./accounts/workspace.js";
+import { resolveVSCodeBin } from "./internal/paths.js";
+import { Journal } from "./internal/journal.js";
+import { GitMonitor } from "./internal/git-monitor.js";
+import { Reporter } from "./internal/reporter.js";
+import { SecretStore } from "./accounts/secret-store.js";
+import { bindHandoffCommands } from "./commands/handoff.js";
+import { bindIdeaCommands } from "./commands/idea.js";
+import { bindBrowserCommands } from "./commands/browser.js";
+import { bindStorageCommands } from "./commands/storage.js";
+import { bindLlmCommands } from "./commands/llm.js";
+import { bindBc2SyncCommand } from "./commands/bc2-sync.js";
+import { bindAiCommands } from "./commands/ai.js";
+import { registerLlmHealth } from "./cli/llm-health.js";
+import { registerLlmUsage } from "./cli/llm-usage.js";
+import { registerLlmRouting } from "./cli/llm-routing.js";
+import { registerLlmPolicy } from "./cli/llm-policy.js";
+import { registerLlmWorkspace } from "./cli/llm-workspace.js";
+import { createLogger } from "./logger.js";
+import { loadConfig } from "./internal/config.js";
+import { getSystemHealth as getSystemHealthSystem } from "./system/systemHealth.js";
+
+const log = createLogger("cli");
+const program = new Command();
+
+export function createPrompter() {
+  const rl = readline.createInterface({ input, output });
+  return {
+    async ask(label) {
+      const ans = await rl.question(label);
+      return ans.trim();
+    },
+    close() {
+      rl.close();
+    },
+  };
+}
+
+export function normalizeAgentType(inputValue) {
+  const value = inputValue.trim().toLowerCase();
+  const parsed = AgentTypeSchema.safeParse(value);
+  if (!parsed.success) {
+    throw new Error(
+      `Invalid agentType: ${inputValue} (expected ${AgentTypeSchema.options.join(", ")})`,
+    );
+  }
+  return parsed.data;
+}
+
+program
+  .name("strategic-learning-unified-theatre")
+  .description(
+    "Local development intelligence with OS secret storage and daemon-based workspace automation",
+  )
+  .version("0.1.0");
+
+program
+  .command("add")
+  .description("Add an account to the encrypted store")
+  .action(async () => {
+    const spinner = ora("Preparing...").start();
+    const store = new AccountStore();
+    let accountId = null;
+    spinner.stop();
+
+    const prompter = createPrompter();
+    try {
+      const email = await prompter.ask("Email: ");
+      const agentTypeRaw = await prompter.ask(
+        `Agent type (${AgentTypeSchema.options.join("/")}): `,
+      );
+      const authBlob = await prompter.ask("Auth blob (single line paste): ");
+
+      const agentType = normalizeAgentType(agentTypeRaw || "vscode");
+      const id = nanoid();
+      accountId = id;
+      log.info("account.add.start", {
+        correlationId: accountId,
+        email,
+        agentType,
+      });
+
+      spinner.start("Saving...");
+      const secretStore = new SecretStore();
+      await secretStore.set(id, authBlob);
+      const account = await store.add({
+        id,
+        email,
+        agentType,
+        authBlob: null,
+        profileName: null,
+        cooldownUntil: null,
+        lastUsed: null,
+        status: "active",
+      });
+      spinner.stop();
+
+      log.info("account.add.success", {
+        correlationId: account.id,
+        email: account.email,
+        agentType: account.agentType,
+      });
+      console.log(chalk.green("Added account:"), chalk.cyan(account.id));
+    } catch (err) {
+      spinner.stop();
+      log.error("account.add.failure", {
+        correlationId: accountId,
+        error: err,
+        code: err?.code || "ROTATOR_ACCOUNT_ADD_FAILED",
+      });
+      console.error(chalk.red(String(err?.message ?? err)));
+      process.exitCode = 1;
+    } finally {
+      prompter.close();
+    }
+  });
+
+program
+  .command("list")
+  .description("List accounts in the store")
+  .action(async () => {
+    const spinner = ora("Loading...").start();
+    const store = new AccountStore();
+    try {
+      const accounts = await store.list();
+      spinner.stop();
+
+      if (accounts.length === 0) {
+        console.log(chalk.yellow("No accounts found."));
+        return;
+      }
+
+      console.table(
+        accounts.map((a) => ({
+          id: a.id,
+          email: a.email,
+          agentType: a.agentType,
+          status: a.status,
+          cooldownUntil: a.cooldownUntil ? a.cooldownUntil.toISOString() : "",
+          lastUsed: a.lastUsed ? a.lastUsed.toISOString() : "",
+        })),
+      );
+    } catch (err) {
+      spinner.stop();
+      console.error(chalk.red(String(err?.message ?? err)));
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command("remove")
+  .description("Remove an account by id")
+  .argument("<id>", "Account id")
+  .action(async (id) => {
+    const spinner = ora("Removing...").start();
+    const store = new AccountStore();
+    try {
+      const secretStore = new SecretStore();
+      await secretStore.delete(id);
+      await store.remove(id);
+      spinner.stop();
+      console.log(chalk.green("Removed:"), chalk.cyan(id));
+    } catch (err) {
+      spinner.stop();
+      console.error(chalk.red(String(err?.message ?? err)));
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command("status")
+  .description("Show store status and current account summary")
+  .action(async () => {
+    const spinner = ora("Loading...").start();
+    const store = new AccountStore();
+    try {
+      const accounts = await store.list();
+      spinner.stop();
+
+      console.log(chalk.bold("Rotation status:"));
+      console.log(`Accounts: ${accounts.length}`);
+      console.log(
+        "Use 'daemon status' to check the watcher daemon and 'daemon watch' for live log streaming.",
+      );
+    } catch (err) {
+      spinner.stop();
+      console.error(chalk.red(String(err?.message ?? err)));
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command("use")
+  .description("Switch to an account by id (auth swap + VS Code restart)")
+  .argument("<accountId>", "Account id")
+  .option("--dry-run", "Print plan without executing")
+  .action(async (accountId, options) => {
+    const store = new AccountStore();
+    const svc = new SwitcherService({ store });
+    log.info("rotation.start", {
+      correlationId: accountId,
+      dryRun: Boolean(options?.dryRun),
+    });
+
+    let spinner = null;
+    const onStep = (evt) => {
+      if (evt.phase === "start") {
+        spinner = ora(evt.message).start();
+        return;
+      }
+
+      if (!spinner) {
+        spinner = ora().start();
+      }
+
+      if (evt.phase === "success") {
+        spinner.succeed(evt.message);
+        spinner = null;
+        return;
+      }
+
+      if (evt.phase === "skip") {
+        spinner.succeed(evt.message);
+        spinner = null;
+        return;
+      }
+
+      if (evt.phase === "fail") {
+        spinner.fail(evt.message);
+        spinner = null;
+      }
+    };
+
+    try {
+      const plan = await svc.switch(accountId, {
+        dryRun: Boolean(options?.dryRun),
+        onStep,
+      });
+
+      console.log(chalk.bold("Plan:"));
+      console.log(`Account: ${chalk.cyan(plan.accountId)}`);
+      console.log(`Agent: ${plan.agentType}`);
+
+--- FILE: src/ui/dashboard.js ---
+/**
+ * Non-fatal error handler for UI operations.
+ * Catches and logs errors that should not halt the UI flow.
+ */
+function logNonFatalErrorUI(error, context) {
+  console.warn("ui.non-fatal-error", {
+    context,
+    error: error instanceof Error ? error.message : String(error),
+  });
+}
+
+function setProofAction(action, detail) {
+  const lastActionEl = document.querySelector(
+    '[data-testid="proof-last-action-value"]',
+  );
+  const proofOutputEl = document.querySelector(
+    '[data-testid="proof-state-output"]',
+  );
+  const proofPanelEl = document.querySelector(
+    '[data-testid="executive-proof-panel"]',
+  );
+  if (lastActionEl) lastActionEl.textContent = action || "Idle";
+  if (proofOutputEl) {
+    proofOutputEl.textContent = detail || "No proof interaction captured yet.";
+    proofOutputEl.dataset.proofOutput = String(action || "idle")
+      .toLowerCase()
+      .replace(/\s+/g, "-");
+  }
+  if (proofPanelEl) {
+    proofPanelEl.dataset.lastProofAction = String(action || "idle")
+      .toLowerCase()
+      .replace(/\s+/g, "-");
+  }
+}
+
+function setLocalAiStatus(status, detail) {
+  const valueEl = document.querySelector(
+    '[data-testid="local-ai-status-value"]',
+  );
+  const detailEl = document.querySelector(
+    '[data-testid="local-ai-status-detail"]',
+  );
+  const evidenceEl = document.querySelector(
+    '[data-testid="evidence-local-ai-value"]',
+  );
+  if (valueEl) valueEl.textContent = status || "unknown";
+  if (detailEl) detailEl.textContent = detail || "";
+  if (evidenceEl) evidenceEl.textContent = status || "unknown";
+  const panel = document.querySelector('[data-testid="local-ai-status-panel"]');
+  if (panel) panel.dataset.localAiState = String(status);
+  setProofAction(
+    "Local AI Sync",
+    detail || "Local AI state synchronized to evidence surface.",
+  );
+  setWalkthroughState(
+    "Local AI Synced",
+    "Local AI state synchronized for executive walkthrough.",
+    "standby",
+  );
+}
+
+function normalizeStateToken(value, fallback = "idle") {
+  return String(value || fallback)
+    .toLowerCase()
+    .replace(/\s+/g, "-");
+}
+
+function setWalkthroughState(step, detail, mode = "standby") {
+  const stepEl = document.querySelector(
+    '[data-testid="walkthrough-step-value"]',
+  );
+  const demoEl = document.querySelector(
+    '[data-testid="walkthrough-demo-value"]',
+  );
+  const outputEl = document.querySelector('[data-testid="walkthrough-output"]');
+  const panelEl = document.querySelector(
+    '[data-testid="executive-walkthrough-panel"]',
+  );
+  const syncEl = document.querySelector(
+    '[data-testid="walkthrough-sync-value"]',
+  );
+  if (stepEl) stepEl.textContent = step || "Ready";
+  if (demoEl) demoEl.textContent = mode || "Standby";
+  if (syncEl) syncEl.textContent = "Aligned";
+  if (outputEl) {
+    outputEl.textContent = detail || "Executive walkthrough idle.";
+    outputEl.dataset.walkthroughOutput = normalizeStateToken(step, "idle");
+  }
+  if (panelEl) {
+    panelEl.dataset.demoMode = normalizeStateToken(mode, "standby");
+    panelEl.dataset.walkthroughStep = normalizeStateToken(step, "ready");
+  }
+}
+
+function buildProofSummary() {
+  const localAiState =
+    document.querySelector('[data-testid="local-ai-status-panel"]')?.dataset
+      .localAiState || "unknown";
+
+  return [
+    "Executive Proof Summary",
+    "Governance surface: ready",
+    "Security surface: ready",
+    "Knowledge surface: ready",
+    "Audit surface: ready",
+    "Timeline surface: ready",
+    `Local AI state: ${localAiState}`,
+    "Sprint 59 walkthrough export prepared.",
+  ].join("\n");
+}
+
+function setProofSummaryState(label, summaryText) {
+  const exportEl = document.querySelector(
+    '[data-testid="walkthrough-export-value"]',
+  );
+  const summaryEl = document.querySelector(
+    '[data-testid="proof-summary-output"]',
+  );
+  if (exportEl) exportEl.textContent = label || "Idle";
+  if (summaryEl) {
+    summaryEl.textContent =
+      summaryText || "No executive proof summary exported yet.";
+    summaryEl.dataset.proofSummaryState = normalizeStateToken(label, "idle");
+  }
+}
+
+function setComplianceState(state, detail) {
+  const outputEl = document.querySelector('[data-testid="compliance-output"]');
+  const panelEl = document.querySelector(
+    '[data-testid="executive-compliance-panel"]',
+  );
+  const summaryEl = document.querySelector(
+    '[data-testid="compliance-summary-value"]',
+  );
+  if (outputEl) {
+    outputEl.textContent = detail || "Compliance walkthrough idle.";
+    outputEl.dataset.complianceOutput = normalizeStateToken(state, "idle");
+  }
+  if (panelEl) {
+    panelEl.dataset.driftReviewState = normalizeStateToken(state, "idle");
+  }
+  if (summaryEl) summaryEl.textContent = state || "Ready";
+}
+
+function setDriftHistoryState(label, text) {
+  const driftEl = document.querySelector(
+    '[data-testid="drift-history-output"]',
+  );
+  const driftValueEl = document.querySelector(
+    '[data-testid="compliance-drift-value"]',
+  );
+  if (driftValueEl) driftValueEl.textContent = label || "Idle";
+  if (driftEl) {
+    driftEl.textContent = text || "No drift history loaded yet.";
+    driftEl.dataset.driftHistoryState = normalizeStateToken(label, "idle");
+  }
+}
+
+function setDemoPersistenceState(label, detail) {
+  const persistenceEl = document.querySelector(
+    '[data-testid="compliance-persistence-value"]',
+  );
+  const panelEl = document.querySelector(
+    '[data-testid="executive-compliance-panel"]',
+  );
+  if (persistenceEl) persistenceEl.textContent = label || "Standby";
+  if (panelEl) {
+    panelEl.dataset.demoPersistence = normalizeStateToken(label, "standby");
+  }
+  if (String(label || "").toLowerCase() !== "standby") {
+    setComplianceState(label, detail || "Demo persistence state updated.");
+  }
+}
+
+function buildDriftHistorySummary() {
+  return [
+    "Executive Drift Review",
+    "Auto-scan trigger path: available",
+    "Drift history storage: available",
+    "Timeline traceability surface: ready",
+    "Security drift surface: ready",
+    "Compliance benchmark mapping: ready",
+    "Sprint 60 compliance walkthrough prepared.",
+  ].join("\n");
+}
+
+function buildLiveReviewEvidence() {
+  const driftRaw =
+    document
+      .querySelector('[data-testid="drift-history-output"]')
+      ?.textContent?.trim() || "";
+  const driftText =
+    !driftRaw || driftRaw === "No drift history loaded yet."
+      ? "No drift history loaded yet."
+      : driftRaw;
+
+  const complianceRaw =
+    document
+      .querySelector('[data-testid="compliance-output"]')
+      ?.textContent?.trim() || "";
+  const complianceText =
+    !complianceRaw ||
+    /^Compliance walkthrough initialized for /.test(complianceRaw)
+      ? "Compliance walkthrough idle."
+      : complianceRaw;
+  const proofSummaryText =
+    document
+      .querySelector('[data-testid="proof-summary-output"]')
+      ?.textContent?.trim() || "No proof summary generated yet.";
+
+  return [
+    "Executive Review Evidence",
+    "--- Drift History ---",
+    driftText,
+    "--- Compliance ---",
+    complianceText,
+    "--- Proof Summary ---",
+    proofSummaryText,
+  ].join("\n");
+}
+
+function setReviewState(label, detail) {
+  const reviewOutput = document.querySelector('[data-testid="review-output"]');
+  const reviewPanel = document.querySelector(
+    '[data-testid="executive-review-panel"]',
+  );
+  const exportValue = document.querySelector(
+    '[data-testid="review-export-value"]',
+  );
+  if (reviewOutput) {
+    reviewOutput.textContent = detail || "Executive review idle.";
+    reviewOutput.dataset.reviewOutput = normalizeStateToken(label, "idle");
+  }
+  if (reviewPanel) {
+    reviewPanel.dataset.reviewExportState = normalizeStateToken(label, "idle");
+  }
+  if (exportValue && /export/i.test(String(label || ""))) {
+    exportValue.textContent = label;
+  }
+}
+
+function setReviewPersistenceState(label, detail) {
+  const persistenceValue = document.querySelector(
+    '[data-testid="review-persistence-value"]',
+  );
+  const reviewPanel = document.querySelector(
+    '[data-testid="executive-review-panel"]',
+  );
+  if (persistenceValue) persistenceValue.textContent = label || "Standby";
+  if (reviewPanel) {
+    reviewPanel.dataset.reviewPersistenceCheck = normalizeStateToken(
+      label,
+      "standby",
+    );
+  }
+  if (detail) {
+    const reviewOutput = document.querySelector(
+      '[data-testid="review-output"]',
+    );
+    if (reviewOutput) reviewOutput.textContent = detail;
+
+--- FILE: src/plugin-loader.js ---
+import fs from "node:fs/promises";
+import path from "node:path";
+import { assertPluginApiCompatible } from "./plugin-api.js";
+
+function applyCapabilities(caps, llmProviders, browserPlatforms, healthChecks) {
+  if (!caps) return;
+  if (caps.llmProviders && Array.isArray(caps.llmProviders)) {
+    llmProviders.push(...caps.llmProviders);
+  }
+  if (caps.browserPlatforms && Array.isArray(caps.browserPlatforms)) {
+    browserPlatforms.push(...caps.browserPlatforms);
+  }
+  if (caps.healthChecks && Array.isArray(caps.healthChecks)) {
+    healthChecks.push(...caps.healthChecks);
+  }
+}
+
+async function discoverPluginPaths() {
+  const { loadConfig } = await import("./internal/config.js");
+  const cfg = await loadConfig();
+  const roots =
+    Array.isArray(cfg?.policy?.pluginSearchPaths) &&
+    cfg.policy.pluginSearchPaths.length
+      ? cfg.policy.pluginSearchPaths
+      : [
+          path.resolve(process.cwd(), "plugins"),
+          "/etc/strategic-learning-unified-theatre/plugins",
+        ];
+
+  const results = [];
+  for (const root of roots) {
+    try {
+      const entries = await fs.readdir(root, { withFileTypes: true });
+      for (const e of entries) {
+        if (!e.isFile()) continue;
+        if (e.name.endsWith(".js") || e.name.endsWith(".mjs")) {
+          results.push(path.resolve(root, e.name));
+        }
+      }
+    } catch {
+      // silently ignore missing or unreadable directories
+      continue;
+    }
+  }
+  return results;
+}
+
+export async function loadPlugins() {
+  const paths = await discoverPluginPaths();
+  const llmProviders = [];
+  const browserPlatforms = [];
+  const healthChecks = [];
+  const errors = [];
+  for (const filePath of paths) {
+    const id = path.basename(filePath);
+    try {
+      const code = await fs.readFile(filePath, "utf8");
+      const mod = await import(
+        `data:text/javascript;charset=utf-8,${encodeURIComponent(code)}`
+      );
+      const plugin = mod.default ?? mod;
+      // validate API version against the normalized plugin object
+      assertPluginApiCompatible(plugin, id);
+      if (typeof plugin.getCapabilities === "function") {
+        const caps = await plugin.getCapabilities();
+        applyCapabilities(caps, llmProviders, browserPlatforms, healthChecks);
+      }
+    } catch (err) {
+      errors.push({ plugin: id, error: String(err) });
+      continue;
+    }
+  }
+
+  return { llmProviders, browserPlatforms, healthChecks, errors };
+}
+
+export { discoverPluginPaths };
+
+--- FILE: src/plugin-api.js ---
+/**
+ * Plugin API contract for Sprint 15.8
+ */
+
+/**
+ * @typedef {Object} LlmProviderCapability
+ * @property {"llm-provider"} kind
+ * @property {string} name
+ * @property {string[]} models
+ */
+
+/**
+ * @typedef {Object} BrowserPlatformCapability
+ * @property {"browser-platform"} kind
+ * @property {string} name
+ * @property {string} url
+ */
+
+/**
+ * @typedef {Object} HealthCheckCapability
+ * @property {"health-check"} kind
+ * @property {string} name
+ * @property {() => Promise<{ok:boolean, details?:string}>} run
+ */
+
+/**
+ * @typedef {Object} PluginCapabilities
+ * @property {LlmProviderCapability[]} [llmProviders]
+ * @property {BrowserPlatformCapability[]} [browserPlatforms]
+ * @property {HealthCheckCapability[]} [healthChecks]
+ */
+
+export const PLUGIN_API_VERSION = 1;
+
+/**
+ * Assert that a plugin module is compatible with the host plugin API.
+ * @param {any} pluginModule
+ * @param {string} pluginId
+ */
+export function assertPluginApiCompatible(pluginModule, pluginId) {
+  const found = pluginModule?.PLUGIN_API_VERSION;
+  if (found === undefined) {
+    throw new TypeError(
+      `Plugin "${pluginId}" missing PLUGIN_API_VERSION (expected ${PLUGIN_API_VERSION})`,
+    );
+  }
+  if (!Number.isInteger(found)) {
+    throw new TypeError(
+      `Plugin "${pluginId}" has non-integer PLUGIN_API_VERSION=${found} (expected integer ${PLUGIN_API_VERSION})`,
+    );
+  }
+  if (found !== PLUGIN_API_VERSION) {
+    throw new Error(
+      `Plugin "${pluginId}" PLUGIN_API_VERSION mismatch: plugin=${found} expected=${PLUGIN_API_VERSION}`,
+    );
+  }
+}
+
+--- FILE: src/knowledge/index.ts ---
+export { ingestSprintHistory } from "./ingest/ingest-sprint-history.js";
+export { chunkDocument } from "./ingest/chunking.js";
+export { embedTextBatch } from "./ingest/embedder.js";
+export {
+  getMilvusClient,
+  ensureKnowledgeCollection,
+  KNOWLEDGE_COLLECTION,
+} from "./ingest/milvus-client.js";
+export type { KnowledgeDocument, SourceType } from "./schema/documents.js";
+export type { KnowledgeChunk } from "./schema/metadata.js";
+
+export function buildKnowledgePromptBlock(
+  hits: Array<{
+    chunk_id: string;
+    doc_id: string;
+    source_type: string;
+    sprint: number;
+    feature_area: string;
+    path: string;
+    section: string;
+    importance: number;
+    score: number;
+    text?: string;
+  }>,
+  minScore = 0.4,
+  maxChunks = 6,
+): string {
+  return hits
+    .filter((h) => (h.score ?? 0) >= minScore)
+    .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+    .slice(0, maxChunks)
+    .map(
+      (h, i) =>
+        `[${i + 1}] sprint=${h.sprint} area=${h.feature_area} ` +
+        `source=${h.source_type} path=${h.path} section=${h.section}\n` +
+        `${h.text ?? ""}`.trim(),
+    )
+    .join("\n\n---\n\n");
+}
+
+--- FILE: src/llm/index.ts ---
+export * from "./gateway";
+export * from "./providers";
+
+--- FILE: src/security/security-overview/index.ts ---
+export {
+  emptySecurityOverviewSnapshot,
+  buildSecurityOverviewSnapshot,
+  TRIAGE_STATUSES,
+  securityOverviewSchema,
+} from "./schema.js";
+export {
+  loadSecurityBaseline,
+  saveSecurityBaseline,
+  loadSecurityBaseline as loadBaseline,
+} from "./baseline.js";
+export {
+  loadSecuritySuppressions,
+  saveSecuritySuppressions,
+  isSecuritySuppressed,
+  loadSecuritySuppressions as loadSuppressions,
+  isSecuritySuppressed as isSuppressed,
+} from "./suppressions.js";
+export {
+  flattenFindings,
+  normalizeTriageStatus,
+  flattenFindings as normalizeFinding,
+} from "./normalizer.js";
+export {
+  loadSecurityTriage,
+  saveSecurityTriage,
+  upsertSecurityTriageEntry,
+  getSecurityTriageStatus,
+  isTriageStatusFinal,
+  applyBulkTriage,
+  upsertSecurityTriageEntry as triageFinding,
+} from "./triage.js";
+export {
+  loadSecurityBaselineSnapshot,
+  buildFindingFingerprintSet,
+  compareSecurityOverviewWithBaseline,
+  compareSecurityOverviewWithBaseline as detectDrift,
+  classifyDriftSeverity,
+} from "./drift.js";
+export {
+  buildIntroducedFindingsPrompt,
+  parseExplainIntroducedFindingsAnswer,
+  explainIntroducedFindings,
+  explainIntroducedFindings as explainWithAI,
+} from "./ai-explain.js";
+export {
+  loadDriftHistory,
+  saveDriftHistory,
+  appendDriftHistory,
+} from "./drift-history.js";
+export {
+  runSecurityAutoScan,
+  runSecurityAutoScan as runAutoScan,
+} from "./auto-scan.js";
+
+--- FILE: src/governance/workspace-quotas.ts ---
+import { readJsonFile, writeJsonFile } from "../llm/storage.js";
+import { appendAuditEvent } from "../audit/audit-log.js";
+
+const QUOTA_FILE = "workspace-quotas.json";
+
+export type QuotaMode = "alert" | "fallback" | "block";
+
+export interface WorkspaceQuotaPolicy {
+  workspaceId: string;
+  dailyLimit: number | null;
+  weeklyLimit: number | null;
+  mode: QuotaMode;
+  fallbackProvider: string | null;
+  alertThresholdPct: number | null;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface WorkspaceQuotaUsage {
+  workspaceId: string;
+  dayCount: number;
+  weekCount: number;
+  dailyLimit: number | null;
+  weeklyLimit: number | null;
+  exceededDaily: boolean;
+  exceededWeekly: boolean;
+  exceeded: boolean;
+  thresholdReachedDaily: boolean;
+  thresholdReachedWeekly: boolean;
+  thresholdReached: boolean;
+  alertThresholdPct: number | null;
+  mode: "alert" | "fallback" | "block" | null;
+  fallbackProvider: string | null;
+}
+
+export interface WorkspaceQuotaEvaluation {
+  allowed: boolean;
+  shouldFallback: boolean;
+  shouldAlert: boolean;
+  blocked: boolean;
+  fallbackProvider: string | null;
+  thresholdReached: boolean;
+  usage: WorkspaceQuotaUsage;
+}
+
+interface QuotaRecord {
+  workspaceId: string;
+  timestamp: number;
+}
+
+export interface WorkspaceQuotaNotification {
+  workspaceId: string;
+  type: "threshold" | "exceeded" | "dailyReset";
+  timestamp: number;
+  dayCount: number;
+  weekCount: number;
+  source: "usage" | "scheduler" | "manual";
+}
+
+function pushQuotaNotification(
+  input: WorkspaceQuotaNotification,
+): WorkspaceQuotaNotification {
+  const store = loadStore();
+  store.notifications.push(input);
+  saveStore(store);
+  return input;
+}
+
+interface QuotaStore {
+  policies: WorkspaceQuotaPolicy[];
+  usage: QuotaRecord[];
+  notifications: WorkspaceQuotaNotification[];
+  lastDailyResetAt: number | null;
+}
+
+function loadStore(): QuotaStore {
+  const store = readJsonFile(QUOTA_FILE, {
+    policies: [],
+    usage: [],
+    notifications: [],
+    lastDailyResetAt: null,
+  });
+  return {
+    policies: Array.isArray(store?.policies) ? [...store.policies] : [],
+    usage: Array.isArray(store?.usage) ? [...store.usage] : [],
+    notifications: Array.isArray(store?.notifications)
+      ? [...store.notifications]
+      : [],
+    lastDailyResetAt:
+      typeof store?.lastDailyResetAt === "number"
+        ? store.lastDailyResetAt
+        : null,
+  };
+}
+
+function saveStore(store: QuotaStore): void {
+  writeJsonFile(QUOTA_FILE, store);
+}
+
+function dayKey(timestamp: number): string {
+  return new Date(timestamp).toISOString().slice(0, 10);
+}
+
+function weekKey(timestamp: number): string {
+  const d = new Date(timestamp);
+  const day = d.getUTCDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setUTCDate(d.getUTCDate() + diff);
+  return d.toISOString().slice(0, 10);
+}
+
+function thresholdReached(
+  count: number,
+  limit: number | null,
+  pct: number | null,
+): boolean {
+  if (typeof limit !== "number" || limit <= 0) return false;
+  if (typeof pct !== "number" || pct <= 0) return false;
+  return count >= Math.ceil(limit * (pct / 100));
+}
+
+export function setWorkspaceQuotaPolicy(input: {
+  workspaceId: string;
+  dailyLimit?: number | null;
+  weeklyLimit?: number | null;
+  mode?: "alert" | "fallback" | "block";
+  fallbackProvider?: string | null;
+  alertThresholdPct?: number | null;
+  requestedBy?: string | null;
+  reason?: string | null;
+}): WorkspaceQuotaPolicy {
+  const store = loadStore();
+  const now = Date.now();
+  const existingIndex = store.policies.findIndex(
+    (p) => p.workspaceId === input.workspaceId,
+  );
+
+  let alertThresholdPct: number | null = null;
+  if (typeof input.alertThresholdPct === "number") {
+    alertThresholdPct = input.alertThresholdPct;
+  } else if (existingIndex >= 0) {
+    alertThresholdPct = store.policies[existingIndex].alertThresholdPct;
+  }
+
+  const next: WorkspaceQuotaPolicy = {
+    workspaceId: input.workspaceId,
+    dailyLimit: typeof input.dailyLimit === "number" ? input.dailyLimit : null,
+    weeklyLimit:
+      typeof input.weeklyLimit === "number" ? input.weeklyLimit : null,
+    mode: input.mode ?? "alert",
+    fallbackProvider: input.fallbackProvider ?? null,
+    alertThresholdPct,
+    createdAt:
+      existingIndex >= 0 ? store.policies[existingIndex].createdAt : now,
+    updatedAt: now,
+  };
+
+  if (existingIndex >= 0) {
+    store.policies[existingIndex] = next;
+  } else {
+    store.policies.push(next);
+  }
+
+  saveStore(store);
+
+  appendAuditEvent({
+    action: "workspaceQuota.set",
+    actor: { type: "renderer", id: input.requestedBy ?? undefined },
+    targetType: "workspaceQuota",
+    workspaceId: input.workspaceId,
+    details: {
+      dailyLimit: next.dailyLimit,
+      weeklyLimit: next.weeklyLimit,
+      mode: next.mode,
+      fallbackProvider: next.fallbackProvider,
+      alertThresholdPct: next.alertThresholdPct,
+      reason: input.reason ?? null,
+    },
+  });
+
+  return next;
+}
+
+export function getWorkspaceQuotaPolicy(
+  workspaceId: string,
+): WorkspaceQuotaPolicy | null {
+  const store = loadStore();
+  return store.policies.find((p) => p.workspaceId === workspaceId) ?? null;
+}
+
+export function listWorkspaceQuotaPolicies(): WorkspaceQuotaPolicy[] {
+  const store = loadStore();
+  return store.policies.sort((a, b) =>
+    a.workspaceId.localeCompare(b.workspaceId),
+  );
+}
+
+export function clearWorkspaceQuotaPolicy(
+  workspaceId: string,
+  requestedBy?: string | null,
+): { ok: true } {
+  const store = loadStore();
+  store.policies = store.policies.filter((p) => p.workspaceId !== workspaceId);
+  saveStore(store);
+
+  appendAuditEvent({
+    action: "workspaceQuota.clear",
+    actor: { type: "renderer", id: requestedBy ?? undefined },
+    targetType: "workspaceQuota",
+    workspaceId,
+    details: {},
+  });
+
+  return { ok: true };
+}
+
+export function clearWorkspaceQuotaUsage(workspaceId?: string): { ok: true } {
+  const store = loadStore();
+  store.usage = workspaceId
+    ? store.usage.filter((r) => r.workspaceId !== workspaceId)
+    : [];
+  saveStore(store);
+  return { ok: true };
+}
+
+export function getWorkspaceQuotaUsage(
+  workspaceId: string,
+  now = Date.now(),
+): WorkspaceQuotaUsage {
+  const store = loadStore();
+  const policy = getWorkspaceQuotaPolicy(workspaceId);
+  const today = dayKey(now);
+  const thisWeek = weekKey(now);
+
+  const records = store.usage.filter((r) => r.workspaceId === workspaceId);
+  const dayCount = records.filter((r) => dayKey(r.timestamp) === today).length;
+  const weekCount = records.filter(
+    (r) => weekKey(r.timestamp) === thisWeek,
+  ).length;
+
+  const exceededDaily =
+    typeof policy?.dailyLimit === "number"
+      ? dayCount > policy.dailyLimit
+      : false;
+  const exceededWeekly =
+    typeof policy?.weeklyLimit === "number"
+      ? weekCount > policy.weeklyLimit
+      : false;
+  const thresholdReachedDaily = thresholdReached(
+    dayCount,
+    policy?.dailyLimit ?? null,
+    policy?.alertThresholdPct ?? null,
+  );
+  const thresholdReachedWeekly = thresholdReached(
+    weekCount,
+    policy?.weeklyLimit ?? null,
+    policy?.alertThresholdPct ?? null,
+  );
+
+  return {
+
+--- FILE: src/governance/workspace-approvals.ts ---
+import { readJsonFile, writeJsonFile } from "../llm/storage";
+import { appendAuditEvent } from "../audit/audit-log";
+
+const APPROVALS_FILE = "workspace-approvals.json";
+const MAX_APPROVALS = 2000;
+
+export type ApprovalStatus = "pending" | "approved" | "rejected";
+
+export interface WorkspaceApprovalRequestInput {
+  workspaceId: string;
+  policyChange: Record<string, unknown>;
+  requestedBy?: string | null;
+  reason?: string | null;
+  timestamp?: number;
+}
+
+export interface WorkspaceApprovalRecord {
+  id: string;
+  workspaceId: string;
+  status: ApprovalStatus;
+  policyChange: Record<string, unknown>;
+  requestedBy: string | null;
+  reviewedBy: string | null;
+  reason: string | null;
+  reviewNote: string | null;
+  createdAt: number;
+  updatedAt: number;
+}
+
+interface WorkspaceApprovalStore {
+  approvals: WorkspaceApprovalRecord[];
+}
+
+const DEFAULT_STORE: WorkspaceApprovalStore = { approvals: [] };
+
+function loadStore(): WorkspaceApprovalStore {
+  return readJsonFile(APPROVALS_FILE, DEFAULT_STORE);
+}
+
+function saveStore(store: WorkspaceApprovalStore): WorkspaceApprovalStore {
+  writeJsonFile(APPROVALS_FILE, store);
+  return store;
+}
+
+export function createWorkspaceApprovalRequest(
+  input: WorkspaceApprovalRequestInput,
+): WorkspaceApprovalRecord {
+  const store = loadStore();
+  const now = input.timestamp ?? Date.now();
+  const record: WorkspaceApprovalRecord = {
+    id: `approval-${store.approvals.length + 1}-${now}`,
+    workspaceId: input.workspaceId,
+    status: "pending",
+    policyChange: input.policyChange,
+    requestedBy: input.requestedBy ?? null,
+    reviewedBy: null,
+    reason: input.reason ?? null,
+    reviewNote: null,
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  store.approvals.push(record);
+  if (store.approvals.length > MAX_APPROVALS) {
+    store.approvals = store.approvals.slice(
+      store.approvals.length - MAX_APPROVALS,
+    );
+  }
+  saveStore(store);
+
+  appendAuditEvent({
+    action: "workspaceApproval.requested",
+    actor: { type: "renderer", id: input.requestedBy ?? undefined },
+    targetType: "workspaceApproval",
+    workspaceId: input.workspaceId,
+    details: {
+      approvalId: record.id,
+      policyChange: input.policyChange,
+      reason: input.reason ?? null,
+    },
+  });
+
+  return record;
+}
+
+export function listWorkspaceApprovalRequests(
+  workspaceId?: string,
+  status?: ApprovalStatus,
+): WorkspaceApprovalRecord[] {
+  const store = loadStore();
+  return store.approvals
+    .filter((item) => (workspaceId ? item.workspaceId === workspaceId : true))
+    .filter((item) => (status ? item.status === status : true))
+    .slice()
+    .reverse();
+}
+
+export function getWorkspaceApprovalRequest(
+  approvalId: string,
+): WorkspaceApprovalRecord | null {
+  const store = loadStore();
+  return store.approvals.find((item) => item.id === approvalId) ?? null;
+}
+
+export function resolveWorkspaceApprovalRequest(
+  approvalId: string,
+  status: "approved" | "rejected",
+  reviewedBy?: string | null,
+  reviewNote?: string | null,
+): WorkspaceApprovalRecord | null {
+  const store = loadStore();
+  const record = store.approvals.find((item) => item.id === approvalId);
+  if (!record) return null;
+
+  record.status = status;
+  record.reviewedBy = reviewedBy ?? null;
+  record.reviewNote = reviewNote ?? null;
+  record.updatedAt = Date.now();
+  saveStore(store);
+
+  appendAuditEvent({
+    action:
+      status === "approved"
+        ? "workspaceApproval.approved"
+        : "workspaceApproval.rejected",
+    actor: { type: "renderer", id: reviewedBy ?? undefined },
+    targetType: "workspaceApproval",
+    workspaceId: record.workspaceId,
+    details: {
+      approvalId: record.id,
+      reviewNote: reviewNote ?? null,
+      policyChange: record.policyChange,
+    },
+  });
+
+  return record;
+}
+
+export function clearWorkspaceApprovals(): boolean {
+  const store = loadStore();
+  const hadAny = store.approvals.length > 0;
+  saveStore({ approvals: [] });
+  return hadAny;
+}
+
+--- FILE: electron-ui/main.cjs ---
+const { app, BrowserWindow, ipcMain, dialog, session } = require("electron");
+const { autoUpdater } = require("electron-updater");
+const fs = require("node:fs");
+const path = require("node:path");
+const { getSystemHealth } = require("../src/accounts/health.js");
+const os = require("node:os");
+const { pathToFileURL } = require("node:url");
+const { readFile } = require("node:fs/promises");
+const ElectronStore = require("electron-store");
+const Store = ElectronStore.default || ElectronStore;
+const { BrowserPane } = require("./browser-pane.cjs");
+const { registerCaptureHandlers } = require("./ipc/capture-handlers.cjs");
+const {
+  registerProviderTelemetryHandlers,
+} = require("./ipc/provider-telemetry-handlers.cjs");
+const {
+  registerProviderPolicyHandlers,
+} = require("./ipc/provider-policy-handlers.cjs");
+const { registerWorkspaceHandlers } = require("./ipc/workspace-handlers.cjs");
+const {
+  registerWorkspaceRoutingHandlers,
+} = require("./ipc/workspace-routing-handlers.cjs");
+const {
+  registerWorkspaceReportHandlers,
+} = require("./ipc/workspace-report-handlers.cjs");
+const { registerAuditHandlers } = require("./ipc/audit-handlers.cjs");
+const { registerKnowledgeHandlers } = require("./ipc/knowledge-handlers.cjs");
+const { registerSecretsHandlers } = require("./ipc/secrets-handlers.cjs");
+const { registerRisksHandlers } = require("./ipc/risks-handlers.cjs");
+const {
+  registerSecurityOverviewHandlers,
+} = require("./ipc/security-overview-handlers.cjs");
+const {
+  registerWorkspacePolicyHandlers,
+  broadcastQuotaNotification,
+} = require("./ipc/workspace-policy-handlers.cjs");
+const { createLogger } = require("../src/logger.js");
+const { registerIpcHandlers } = require("../src/main/ipc/ipcAdapter");
+const { IPC_CHANNELS } = require("../src/shared/ipc/contract");
+
+function quotaService() {
+  return require("../src/governance/workspace-quotas.js");
+}
+
+function readUpdateConfig() {
+  const packagedPath = path.join(
+    process.resourcesPath || "",
+    "config",
+    "update.json",
+  );
+  const fallbackPath = path.join(__dirname, "..", "config", "update.json");
+  const configPath = fs.existsSync(packagedPath) ? packagedPath : fallbackPath;
+
+  try {
+    const raw = fs.readFileSync(configPath, "utf8");
+    const parsed = JSON.parse(raw);
+
+    return {
+      channel: typeof parsed.channel === "string" ? parsed.channel : "latest",
+      healthCheckTimeoutMs:
+        typeof parsed.healthCheckTimeoutMs === "number"
+          ? parsed.healthCheckTimeoutMs
+          : 30000,
+    };
+  } catch {
+    return { channel: "latest", healthCheckTimeoutMs: 30000 };
+  }
+}
+
+const healthStatePath = path.join(app.getPath("userData"), "health-state.json");
+
+function readHealthState() {
+  try {
+    const raw = fs.readFileSync(healthStatePath, "utf8");
+    const parsed = JSON.parse(raw);
+    return {
+      lastKnownGoodVersion:
+        typeof parsed.lastKnownGoodVersion === "string"
+          ? parsed.lastKnownGoodVersion
+          : undefined,
+      pendingVersion:
+        typeof parsed.pendingVersion === "string"
+          ? parsed.pendingVersion
+          : undefined,
+      rollbackRequested: parsed.rollbackRequested === true,
+    };
+  } catch {
+    return {};
+  }
+}
+
+function writeHealthState(state) {
+  fs.writeFileSync(
+    healthStatePath,
+    JSON.stringify(state || {}, null, 2),
+    "utf8",
+  );
+}
+
+function markPendingVersion(current, next) {
+  const state = readHealthState();
+  if (!state.lastKnownGoodVersion) {
+    state.lastKnownGoodVersion = current;
+  }
+  state.pendingVersion = next;
+  writeHealthState(state);
+}
+
+function clearPendingVersionAsGood(current) {
+  const state = readHealthState();
+  state.lastKnownGoodVersion = current;
+  delete state.pendingVersion;
+  writeHealthState(state);
+}
+
+function markRollbackRequested() {
+  const state = readHealthState();
+  state.rollbackRequested = true;
+  writeHealthState(state);
+}
+
+async function registerMainIpcHandlers() {
+  try {
+    const handlersPath = path.join(__dirname, "ipc", "handlers.bundled.cjs");
+    mainLogger.info("ipc.handlers.load.start", {
+      correlationId: "ipc",
+      handlersPath,
+    });
+    const register = require(handlersPath);
+    if (typeof register === "function") {
+      await register({ ipcMain, dialog, watcher, app });
+      mainLogger.info("ipc.handlers.register.success", {
+        correlationId: "ipc",
+      });
+    } else {
+      mainLogger.error("ipc.handlers.register.failure", {
+        correlationId: "ipc",
+        code: "ROTATOR_IPC_HANDLER_EXPORT_INVALID",
+        error: new Error("IPC handlers module did not export a function"),
+      });
+    }
+  } catch (err) {
+    mainLogger.error("ipc.handlers.register.failure", {
+      correlationId: "ipc",
+      error: err,
+      code: err?.code || "ROTATOR_IPC_REGISTER_FAILED",
+    });
+  }
+}
+
+function runHealthChecks(timeoutMs) {
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => resolve(false), timeoutMs);
+    process.nextTick(() => {
+      clearTimeout(timer);
+      resolve(true);
+    });
+  });
+}
+
+async function handleStartupHealth() {
+  const config = readUpdateConfig();
+  const state = readHealthState();
+  const currentVersion = app.getVersion();
+
+  if (state.pendingVersion === currentVersion) {
+    const passed = await runHealthChecks(config.healthCheckTimeoutMs);
+    if (passed) {
+      clearPendingVersionAsGood(currentVersion);
+    } else {
+      markRollbackRequested();
+      dialog.showErrorBox(
+        "Startup Health Check Failed",
+        "The application failed its startup health check and will exit so a rollback can occur.",
+      );
+      app.exit(1);
+    }
+  } else if (!state.lastKnownGoodVersion) {
+    clearPendingVersionAsGood(currentVersion);
+  }
+}
+
+function setupAutoUpdater() {
+  const config = readUpdateConfig();
+  autoUpdater.channel = config.channel;
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = false;
+
+  autoUpdater.on("checking-for-update", () => {
+    mainWindow?.webContents.send("update:checking-for-update");
+  });
+
+  autoUpdater.on("update-available", (info) => {
+    mainWindow?.webContents.send("update:update-available", info);
+  });
+
+  autoUpdater.on("update-not-available", (info) => {
+    mainWindow?.webContents.send("update:update-not-available", info);
+  });
+
+  autoUpdater.on("error", (err) => {
+    mainWindow?.webContents.send("update:error", {
+      message: err?.message || String(err),
+    });
+  });
+
+  autoUpdater.on("download-progress", (progress) => {
+    mainWindow?.webContents.send("update:download-progress", progress);
+  });
+
+  autoUpdater.on("update-downloaded", (info) => {
+    markPendingVersion(app.getVersion(), info.version);
+    const result = dialog.showMessageBoxSync(mainWindow, {
+      type: "info",
+      buttons: ["Install and Restart", "Later"],
+      defaultId: 0,
+      cancelId: 1,
+      title: "Update Ready",
+      message: "A new update is ready to install.",
+      detail: `Version ${info.version} has been downloaded. Install now?`,
+    });
+    if (result === 0) {
+      autoUpdater.quitAndInstall(false, true);
+    }
+  });
+
+  autoUpdater.checkForUpdates().catch(() => {});
+  setInterval(
+    () => {
+      autoUpdater.checkForUpdates().catch(() => {});
+    },
+    30 * 60 * 1000,
+  );
+}
+
+let mainLogger = null;
+let quotaResetTimer = null;
+
+app.setPath(
+  "cache",
+  path.join(os.tmpdir(), "strategic-learning-unified-theatre-cache"),
+);
+app.commandLine.appendSwitch(
+  "disk-cache-dir",
+  path.join(os.tmpdir(), "strategic-learning-unified-theatre-cache"),
+);
+
+const isDev = !!process.env.VITE_DEV_SERVER_URL;
+
+function isObjectPayload(payload) {
+  return (
+    typeof payload === "object" && payload !== null && !Array.isArray(payload)
+  );
+}
+
+function hasStringField(field) {
+  return (payload) =>
+    isObjectPayload(payload) && typeof payload[field] === "string";
+}
+
+
+--- FILE: electron-ui/preload.cjs ---
+const { contextBridge, ipcRenderer } = require("electron");
+const {
+  IPC_CHANNELS,
+  IPC_CONTRACT_VERSION,
+} = require("../src/shared/ipc/contract");
+
+function invoke(channel, op, payload) {
+  return ipcRenderer.invoke(channel, { v: IPC_CONTRACT_VERSION, op, payload });
+}
+
+contextBridge.exposeInMainWorld("rotator", {
+  accounts: {
+    list: () => ipcRenderer.invoke("accounts:list"),
+    listDetails: () => ipcRenderer.invoke("accounts:listDetails"),
+    info: (id) => ipcRenderer.invoke("accounts:info", id),
+    add: (a) => ipcRenderer.invoke("accounts:add", a),
+    capture: (payload) => ipcRenderer.invoke("accounts:capture", payload),
+    update: (id, p) => ipcRenderer.invoke("accounts:update", id, p),
+    remove: (id) => ipcRenderer.invoke("accounts:remove", id),
+    health: (id) => ipcRenderer.invoke("accounts:health", id),
+  },
+  switcher: {
+    switch: (id) => ipcRenderer.invoke("switcher:switch", id),
+  },
+  daemon: {
+    status: () => ipcRenderer.invoke("daemon:status"),
+    pause: () => ipcRenderer.invoke("daemon:pause"),
+    resume: () => ipcRenderer.invoke("daemon:resume"),
+    onEvent: (cb) => ipcRenderer.on("daemon:event", (_, d) => cb(d)),
+    offEvent: (cb) => ipcRenderer.removeListener("daemon:event", cb),
+  },
+  git: {
+    status: (p) => ipcRenderer.invoke("git:status", p),
+    watchedRepos: () => ipcRenderer.invoke("git:watchedRepos"),
+    addRepo: (p) => ipcRenderer.invoke("git:addRepo", p),
+    removeRepo: (p) => ipcRenderer.invoke("git:removeRepo", p),
+    pickDir: () => ipcRenderer.invoke("git:pickDir"),
+  },
+  journal: {
+    tail: (n) => ipcRenderer.invoke("journal:tail", n),
+    rawMd: () => ipcRenderer.invoke("journal:rawMd"),
+  },
+  config: {
+    get: () => ipcRenderer.invoke("config:get"),
+    set: (p) => ipcRenderer.invoke("config:set", p),
+  },
+  llm: {
+    status: () => ipcRenderer.invoke("llm:status"),
+    setup: (opts) => ipcRenderer.invoke("llm:setup", opts),
+    ask: (opts) => ipcRenderer.invoke("llm:ask", opts),
+  },
+  browser: {
+    send: (opts) => ipcRenderer.invoke("browser:send", opts),
+    login: (opts) => ipcRenderer.invoke("browser:login", opts),
+    listResponses: (opts) => ipcRenderer.invoke("browser:listResponses", opts),
+    getResponse: (filename) =>
+      ipcRenderer.invoke("browser:getResponse", filename),
+    clearResponses: (opts) =>
+      ipcRenderer.invoke("browser:clearResponses", opts),
+    listPrompts: () => ipcRenderer.invoke("browser:listPrompts"),
+    addPrompt: (prompt) => ipcRenderer.invoke("browser:addPrompt", prompt),
+    updatePrompt: (id, updates) =>
+      ipcRenderer.invoke("browser:updatePrompt", id, updates),
+    deletePrompt: (id) => ipcRenderer.invoke("browser:deletePrompt", id),
+    runPrompt: (opts) => ipcRenderer.invoke("browser:runPrompt", opts),
+    // Sprint 11 Embedded browser pane APIs
+    switchPlatform: (name) =>
+      ipcRenderer.invoke("browser:switchPlatform", name),
+    navigate: (url) => ipcRenderer.invoke("browser:navigate", url),
+    setVisible: (visible) => ipcRenderer.invoke("browser:setVisible", visible),
+    onCapture: (cb) =>
+      ipcRenderer.on("capture:done", (_, payload) => cb(payload)),
+    offCapture: (cb) => ipcRenderer.removeListener("capture:done", cb),
+    onNavigation: (cb) =>
+      ipcRenderer.on("browser:navigation", (_, payload) => cb(payload)),
+    offNavigation: (cb) => ipcRenderer.removeListener("browser:navigation", cb),
+  },
+  robot: {
+    runSuite: (opts) => ipcRenderer.invoke("robot:runSuite", opts),
+    runFile: (filePath, opts) =>
+      ipcRenderer.invoke("robot:runFile", filePath, opts),
+    listFiles: () => ipcRenderer.invoke("robot:listFiles"),
+    readFile: (filePath) => ipcRenderer.invoke("robot:readFile", filePath),
+    openFile: (filePath) => ipcRenderer.invoke("robot:openFile", filePath),
+    tddCheck: (opts) => ipcRenderer.invoke("robot:tddCheck", opts),
+    generateSkeleton: (filePath) =>
+      ipcRenderer.invoke("robot:generateSkeleton", filePath),
+    pickSourceFile: () => ipcRenderer.invoke("robot:pickSourceFile"),
+    pickRobotFile: () => ipcRenderer.invoke("robot:pickRobotFile"),
+  },
+  app: {
+    version: () => ipcRenderer.invoke("app:version"),
+    openUrl: (url) => ipcRenderer.invoke("app:openUrl", url),
+  },
+  logs: {
+    onEvent(handler) {
+      if (typeof handler !== "function") return () => {};
+      const wrapped = (_event, payload) => handler(payload);
+      ipcRenderer.on("log:event", wrapped);
+      return () => ipcRenderer.removeListener("log:event", wrapped);
+    },
+  },
+  health: {
+    aggregate() {
+      return ipcRenderer.invoke("health:get");
+    },
+  },
+  captureResponse: (payload) =>
+    invoke(IPC_CHANNELS.captureResponse, "captureResponse", payload),
+  trayCommand: (payload) =>
+    invoke(IPC_CHANNELS.trayCommand, "trayCommand", payload),
+  logView: (payload) => invoke(IPC_CHANNELS.logView, "logView", payload),
+  robotRunnerAction: (payload) =>
+    invoke(IPC_CHANNELS.robotRunnerAction, "robotRunnerAction", payload),
+});
+
+contextBridge.exposeInMainWorld("providerTelemetry", {
+  getStatus: () => ipcRenderer.invoke("providerTelemetry:getStatus"),
+  getUsage: () => ipcRenderer.invoke("providerTelemetry:getUsage"),
+  resetHealth: (provider) =>
+    ipcRenderer.invoke("providerTelemetry:resetHealth", provider),
+  resetUsage: (provider) =>
+    ipcRenderer.invoke("providerTelemetry:resetUsage", provider),
+  resetAll: (provider) =>
+    ipcRenderer.invoke("providerTelemetry:resetAll", provider),
+  getRoutingHistory: (limit) =>
+    ipcRenderer.invoke("providerTelemetry:getRoutingHistory", limit),
+  resetRoutingHistory: () =>
+    ipcRenderer.invoke("providerTelemetry:resetRoutingHistory"),
+});
+
+contextBridge.exposeInMainWorld("providerPolicy", {
+  get: () => ipcRenderer.invoke("providerPolicy:get"),
+  listPresets: () => ipcRenderer.invoke("providerPolicy:listPresets"),
+  applyPreset: (name) => ipcRenderer.invoke("providerPolicy:applyPreset", name),
+  setMode: (mode) => ipcRenderer.invoke("providerPolicy:setMode", mode),
+  allow: (provider) => ipcRenderer.invoke("providerPolicy:allow", provider),
+  block: (provider) => ipcRenderer.invoke("providerPolicy:block", provider),
+  setManualProvider: (provider) =>
+    ipcRenderer.invoke("providerPolicy:setManualProvider", provider),
+  reset: () => ipcRenderer.invoke("providerPolicy:reset"),
+});
+
+contextBridge.exposeInMainWorld("workspacePolicy", {
+  get: (workspaceId) => ipcRenderer.invoke("workspacePolicy:get", workspaceId),
+  set: (workspaceId, policyPatch, options) =>
+    ipcRenderer.invoke(
+      "workspacePolicy:set",
+      workspaceId,
+      policyPatch,
+      options,
+    ),
+  clear: (workspaceId) =>
+    ipcRenderer.invoke("workspacePolicy:clear", workspaceId),
+  list: () => ipcRenderer.invoke("workspacePolicy:list"),
+  resolve: (workspaceId) =>
+    ipcRenderer.invoke("workspacePolicy:resolve", workspaceId),
+});
+contextBridge.exposeInMainWorld("workspaceContext", {
+  get: (workspaceId) => ipcRenderer.invoke("workspaceContext:get", workspaceId),
+  set: (workspaceId, payload) =>
+    ipcRenderer.invoke("workspaceContext:set", workspaceId, payload),
+  clear: (workspaceId) =>
+    ipcRenderer.invoke("workspaceContext:clear", workspaceId),
+  buildPrompt: (workspaceId) =>
+    ipcRenderer.invoke("workspaceContext:prompt", workspaceId),
+});
+
+contextBridge.exposeInMainWorld("workspaceRouting", {
+  list: (workspaceId, limit, filter) =>
+    ipcRenderer.invoke("workspaceRouting:list", workspaceId, limit, filter),
+  summary: (workspaceId, filter) =>
+    ipcRenderer.invoke("workspaceRouting:summary", workspaceId, filter),
+  trends: (workspaceId, filter) =>
+    ipcRenderer.invoke("workspaceRouting:trends", workspaceId, filter),
+  timeline: (workspaceId, limit, filter) =>
+    ipcRenderer.invoke("workspaceRouting:timeline", workspaceId, limit, filter),
+  analytics: (workspaceId, filter) =>
+    ipcRenderer.invoke("workspaceRouting:analytics", workspaceId, filter),
+  buckets: (workspaceId, bucket, filter) =>
+    ipcRenderer.invoke("workspaceRouting:buckets", workspaceId, bucket, filter),
+  globalAnalytics: (filter) =>
+    ipcRenderer.invoke("workspaceRouting:globalAnalytics", filter),
+  exportJson: (workspaceId, filter) =>
+    ipcRenderer.invoke("workspaceRouting:exportJson", workspaceId, filter),
+  exportCsv: (workspaceId, filter) =>
+    ipcRenderer.invoke("workspaceRouting:exportCsv", workspaceId, filter),
+  providerComparison: (filter) =>
+    ipcRenderer.invoke("workspaceRouting:providerComparison", filter),
+  bucketChartSvg: (workspaceId, bucket, filter) =>
+    ipcRenderer.invoke(
+      "workspaceRouting:bucketChartSvg",
+      workspaceId,
+      bucket,
+      filter,
+    ),
+  providerComparisonChartSvg: (filter) =>
+    ipcRenderer.invoke("workspaceRouting:providerComparisonChartSvg", filter),
+  exportHtmlReport: (workspaceId, filter) =>
+    ipcRenderer.invoke(
+      "workspaceRouting:exportHtmlReport",
+      workspaceId,
+      filter,
+    ),
+  clear: (workspaceId) =>
+    ipcRenderer.invoke("workspaceRouting:clear", workspaceId),
+});
+
+contextBridge.exposeInMainWorld("workspaceReport", {
+  save: (workspaceId, format, filter) =>
+    ipcRenderer.invoke("workspaceReport:save", workspaceId, format, filter),
+});
+
+contextBridge.exposeInMainWorld("audit", {
+  list: (limit, filter) => ipcRenderer.invoke("audit:list", limit, filter),
+  verify: (filter) => ipcRenderer.invoke("audit:verify", filter),
+  latest: (filter) => ipcRenderer.invoke("audit:latest", filter),
+  exportJson: (filter) => ipcRenderer.invoke("audit:exportJson", filter),
+  exportHtmlReport: (filter) =>
+    ipcRenderer.invoke("audit:exportHtmlReport", filter),
+});
+
+contextBridge.exposeInMainWorld("workspaceApproval", {
+  list: (workspaceId, status) =>
+    ipcRenderer.invoke("workspaceApproval:list", workspaceId, status),
+  resolve: (approvalId, status, reviewedBy, reviewNote) =>
+    ipcRenderer.invoke(
+      "workspaceApproval:resolve",
+      approvalId,
+      status,
+      reviewedBy,
+      reviewNote,
+    ),
+});
+
+contextBridge.exposeInMainWorld("workspaceQuota", {
+  get: (workspaceId) => ipcRenderer.invoke("workspaceQuota:get", workspaceId),
+  list: () => ipcRenderer.invoke("workspaceQuota:list"),
+  set: (workspaceId, quotaPatch, options) =>
+    ipcRenderer.invoke("workspaceQuota:set", workspaceId, quotaPatch, options),
+  clear: (workspaceId, requestedBy) =>
+    ipcRenderer.invoke("workspaceQuota:clear", workspaceId, requestedBy),
+  recordUsage: (workspaceId, payload) =>
+    ipcRenderer.invoke("workspaceQuota:recordUsage", workspaceId, payload),
+  usage: (workspaceId, now) =>
+    ipcRenderer.invoke("workspaceQuota:usage", workspaceId, now),
+  evaluate: (workspaceId, now) =>
+    ipcRenderer.invoke("workspaceQuota:evaluate", workspaceId, now),
+  clearUsage: (workspaceId) =>
+    ipcRenderer.invoke("workspaceQuota:clearUsage", workspaceId),
+  rollup: (now) => ipcRenderer.invoke("workspaceQuota:rollup", now),
+  latestNotification: (workspaceId) =>
+    ipcRenderer.invoke("workspaceQuota:latestNotification", workspaceId),
+  notifications: (workspaceId) =>
+    ipcRenderer.invoke("workspaceQuota:notifications", workspaceId),
+  resetDaily: (now) => ipcRenderer.invoke("workspaceQuota:resetDaily", now),
+  onNotification(handler) {
+    if (typeof handler !== "function") return () => {};
+    const wrapped = (_event, payload) => handler(payload);
+    ipcRenderer.on("workspaceQuota:notification", wrapped);
+
+--- FILE: electron-ui/ipc/handlers.cjs ---
+const fs = require("node:fs/promises");
+const os = require("node:os");
+const path = require("node:path");
+const { pathToFileURL } = require("node:url");
+const { shell } = require("electron");
+
+function resolveModule(relPath) {
+  return pathToFileURL(path.resolve(__dirname, relPath)).href;
+}
+
+module.exports = async function register({ ipcMain, dialog, watcher, app }) {
+  const { AccountStore } = await import(
+    resolveModule("../../src/accounts/store.js")
+  );
+  const { SecretStore: SecretStoreClass } = await import(
+    resolveModule("../../src/accounts/secret-store.js")
+  );
+  const { captureAuthBlob } = await import(
+    resolveModule("../../src/auth-capture.js")
+  );
+  const { SwitcherService } = await import(
+    resolveModule("../../src/accounts/switcher.js")
+  );
+  const { resolveAuthPath } = await import(
+    resolveModule("../../src/internal/paths.js")
+  );
+  const { GitMonitor } = await import(
+    resolveModule("../../src/internal/git-monitor.js")
+  );
+  const { Journal } = await import(
+    resolveModule("../../src/internal/journal.js")
+  );
+  const { loadConfig, saveConfig } = await import(
+    resolveModule("../../src/internal/config.js")
+  );
+  const { probeAccount } = await import(
+    resolveModule("../../src/accounts/health.js")
+  );
+  const { getLlmStatus, setupModel, askLocalLlm } = await import(
+    resolveModule("../../src/llm/local-llm.js")
+  );
+  const browserBridge = await import(
+    resolveModule("../../src/browser-bridge.js")
+  );
+  const testRunner = await import(resolveModule("../../src/test-runner.js"));
+
+  const store = watcher?.store ?? new AccountStore();
+  const secretStore = new SecretStoreClass();
+  const switcher = watcher?.switcher ?? new SwitcherService({ store });
+  const journal = new Journal();
+  const gitMonitor = new GitMonitor();
+
+  const LOGIN_TARGETS = {
+    vscode: "https://code.visualstudio.com/",
+    github: "https://github.com/features/copilot",
+    codex: "https://app.codex.com/login",
+    trae: "https://trae.ai/",
+  };
+
+  const pathExists = async (filePath) => {
+    try {
+      await fs.stat(filePath);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const getAccountAuthInfo = async (account) => {
+    try {
+      const authPath = await resolveAuthPath(account.agentType, {
+        profileName: account.profileName ?? null,
+        preferExisting: true,
+      });
+      const loginQuery = `login ${account.agentType}`;
+      return {
+        authPath,
+        authPathExists: await pathExists(authPath),
+        loginUrl:
+          LOGIN_TARGETS[account.agentType] ||
+          `https://www.google.com/search?q=${encodeURIComponent(loginQuery)}`,
+        supportsVsCodeAuth: ["vscode", "github", "codex", "trae"].includes(
+          account.agentType,
+        ),
+      };
+    } catch {
+      const loginQuery = `login ${account.agentType}`;
+      return {
+        authPath: null,
+        authPathExists: false,
+        loginUrl:
+          LOGIN_TARGETS[account.agentType] ||
+          `https://www.google.com/search?q=${encodeURIComponent(loginQuery)}`,
+        supportsVsCodeAuth: ["vscode", "github", "codex", "trae"].includes(
+          account.agentType,
+        ),
+      };
+    }
+  };
+
+  ipcMain.handle("accounts:list", async () => {
+    await secretStore.migrateLegacy({ storePath: store.storePath });
+    return await store.list();
+  });
+
+  ipcMain.handle("accounts:add", async (e, account) => {
+    const id = String(account?.id || account?.email || `acct-${Date.now()}`);
+    const email = String(account?.email || "").trim();
+    const agentType = String(account?.agentType || "vscode").trim();
+    const authBlob = String(account?.authBlob || "").trim();
+    const profileName = account?.profileName
+      ? String(account.profileName).trim()
+      : null;
+
+    if (!email) {
+      throw new Error("Email is required");
+    }
+    if (!authBlob) {
+      throw new Error("Auth blob is required");
+    }
+
+    await secretStore.set(id, authBlob);
+    const added = await store.add({
+      id,
+      email,
+      agentType,
+      authBlob: null,
+      profileName,
+      cooldownUntil: null,
+      lastUsed: null,
+      status: "active",
+    });
+    return structuredClone(added);
+  });
+
+  ipcMain.handle("accounts:capture", async (e, payload) => {
+    try {
+      const email = String(payload?.email || "").trim();
+      const agentType = String(payload?.agentType || "vscode").trim();
+      const profileName = payload?.profileName
+        ? String(payload.profileName).trim()
+        : null;
+      const timeoutMs = Number(payload?.timeoutMs || 120000);
+      const launchEditor = Boolean(payload?.launchEditor);
+
+      if (!email) {
+        throw new Error("Email is required for capture");
+      }
+
+      const authBlob = await captureAuthBlob(agentType, {
+        timeoutMs,
+        launchEditor,
+        profileName,
+      });
+
+      const id = `captured-${Date.now()}`;
+      await secretStore.set(id, authBlob);
+      const added = await store.add({
+        id,
+        email,
+        agentType,
+        authBlob: null,
+        profileName,
+        cooldownUntil: null,
+        lastUsed: null,
+        status: "active",
+      });
+      return structuredClone(added);
+    } catch (err) {
+      throw new Error(String(err?.message ?? err));
+    }
+  });
+
+  // Backwards-compatible alias: some callers used a different channel name
+  ipcMain.handle("account capture", async (e, payload) => {
+    return await ipcMain
+      .invoke?.("accounts:capture", payload)
+      .catch(async () => {
+        // Fallback: run same logic inline if invoke isn't available
+        const email = String(payload?.email || "").trim();
+        const agentType = String(payload?.agentType || "vscode").trim();
+        const profileName = payload?.profileName
+          ? String(payload.profileName).trim()
+          : null;
+        const timeoutMs = Number(payload?.timeoutMs || 120000);
+        const launchEditor = Boolean(payload?.launchEditor);
+
+        if (!email) {
+          throw new Error("Email is required for capture");
+        }
+
+        const authBlob = await captureAuthBlob(agentType, {
+          timeoutMs,
+          launchEditor,
+          profileName,
+        });
+
+        const id = `captured-${Date.now()}`;
+        await secretStore.set(id, authBlob);
+        const added = await store.add({
+          id,
+          email,
+          agentType,
+          authBlob: null,
+          profileName,
+          cooldownUntil: null,
+          lastUsed: null,
+          status: "active",
+        });
+        return structuredClone(added);
+      });
+  });
+
+  ipcMain.handle("accounts:update", async (e, id, patch) => {
+    return await store.update(id, patch);
+  });
+
+  ipcMain.handle("accounts:remove", async (e, id) => {
+    return await store.remove(id);
+  });
+
+  ipcMain.handle("accounts:listDetails", async () => {
+    await secretStore.migrateLegacy({ storePath: store.storePath });
+    const list = await store.list();
+    const details = await Promise.all(
+      list.map(async (account) => ({
+        ...account,
+        ...(await getAccountAuthInfo(account)),
+      })),
+    );
+    return details;
+  });
+
+  ipcMain.handle("accounts:info", async (e, id) => {
+    const account = await store.get(id);
+    return {
+      ...account,
+      ...(await getAccountAuthInfo(account)),
+    };
+  });
+
+  ipcMain.handle("accounts:health", async (e, id) => {
+    const acct = await store.get(id);
+    return await probeAccount(acct);
+  });
+
+  ipcMain.handle("switcher:switch", async (e, id) => {
+    return await switcher.switch(id, { dryRun: false });
+  });
+
+  ipcMain.handle("llm:status", async () => {
+    return await getLlmStatus();
+  });
+
+  ipcMain.handle("llm:setup", async (e, payload) => {
+    return await setupModel(payload);
+  });
+
+  ipcMain.handle("llm:ask", async (e, payload) => {
+    const userQuery = String(payload?.prompt || payload?.question || "").trim();
+
+--- FILE: electron-ui/ipc/knowledge-handlers.cjs ---
+"use strict";
+
+const { ipcMain } = require("electron");
+
+function knowledge() {
+  return require("../../src/knowledge/index.js");
+}
+
+function toScoreNumber(v) {
+  if (typeof v === "number" && Number.isFinite(v)) return v;
+  return 0;
+}
+
+function normalizeHit(hit) {
+  return {
+    chunk_id: hit.chunk_id ?? hit.chunkId ?? "",
+    doc_id: hit.doc_id ?? hit.docId ?? "",
+    source_type: hit.source_type ?? hit.sourceType ?? "",
+    sprint: Number(hit.sprint ?? 0),
+    feature_area: hit.feature_area ?? hit.featureArea ?? "",
+    path: hit.path ?? "",
+    section: hit.section ?? "",
+    importance: Number(hit.importance ?? 0),
+    score: toScoreNumber(hit.score ?? hit.distance ?? hit.similarity),
+    text: hit.text ?? "",
+  };
+}
+
+function registerKnowledgeHandlers() {
+  ipcMain.handle("knowledge:ingest", async (_event, baseDir, featureArea) => {
+    const { ingestSprintHistory } = knowledge();
+    await ingestSprintHistory({
+      baseDir: baseDir ?? "./docs/sprints",
+      defaultFeatureArea: featureArea ?? undefined,
+    });
+    return { ok: true };
+  });
+
+  ipcMain.handle("knowledge:search", async (_event, queryText, options) => {
+    const { getMilvusClient, embedTextBatch } = knowledge();
+    const vectors = await embedTextBatch([queryText]);
+    const client = getMilvusClient();
+
+    const result = await client.search({
+      collection_name: "knowledge_chunks",
+      data: vectors,
+      limit: options?.limit ?? 5,
+      output_fields: [
+        "chunk_id",
+        "doc_id",
+        "source_type",
+        "sprint",
+        "feature_area",
+        "path",
+        "section",
+        "importance",
+        "text",
+      ],
+      filter: options?.filter ?? undefined,
+    });
+
+    const hits = Array.isArray(result?.results) ? result.results : [];
+    const normalized = hits.map(normalizeHit);
+
+    if (typeof options?.minScore === "number") {
+      return normalized.filter((hit) => hit.score >= options.minScore);
+    }
+
+    return normalized;
+  });
+}
+
+module.exports = { registerKnowledgeHandlers };
+
+--- FILE: electron-ui/ipc/security-overview-handlers.cjs ---
+"use strict";
+
+const { ipcMain } = require("electron");
+
+const {
+  loadSecurityTriage,
+  saveSecurityTriage,
+  upsertSecurityTriageEntry,
+  getSecurityTriageStatus,
+} = require("../../src/security/security-overview/triage");
+
+function securityOverview() {
+  return require("../../src/security/security-overview/index.js");
+}
+
+function registerSecurityOverviewHandlers() {
+  ipcMain.handle("security-overview:summarize", async (_event, payload) => {
+    const {
+      flattenFindings,
+      loadSecurityBaseline,
+      loadSecuritySuppressions,
+      isSecuritySuppressed,
+      buildSecurityOverviewSnapshot,
+    } = securityOverview();
+
+    const baseline = loadSecurityBaseline(payload?.baselinePath ?? "");
+    const suppressions = loadSecuritySuppressions(
+      payload?.suppressionsPath ?? "",
+    );
+    const triageEntries = loadSecurityTriage(payload?.triagePath ?? "");
+
+    const secretFindings = flattenFindings(payload?.secrets ?? [], "secret");
+    const riskFindings = flattenFindings(payload?.risks ?? [], "risk");
+
+    const findings = [...secretFindings, ...riskFindings].map((f) => {
+      const suppressed = isSecuritySuppressed(f, suppressions);
+      const triageStatus = suppressed
+        ? "suppressed"
+        : getSecurityTriageStatus(f.fingerprint, triageEntries);
+
+      return {
+        ...f,
+        suppressed,
+        baselineMatched:
+          typeof f.fingerprint === "string"
+            ? baseline.has(f.fingerprint)
+            : false,
+        triageStatus,
+      };
+    });
+
+    return {
+      ok: true,
+      findings,
+      snapshot: buildSecurityOverviewSnapshot(findings),
+    };
+  });
+
+  ipcMain.handle(
+    "security-overview:save-baseline",
+    async (_event, baselinePath, fingerprints) => {
+      const { saveSecurityBaseline } = securityOverview();
+      return saveSecurityBaseline(
+        baselinePath,
+        Array.isArray(fingerprints) ? fingerprints : [],
+      );
+    },
+  );
+
+  ipcMain.handle(
+    "security-overview:load-suppressions",
+    async (_event, suppressionsPath) => {
+      const { loadSecuritySuppressions } = securityOverview();
+      return {
+        ok: true,
+        suppressions: loadSecuritySuppressions(suppressionsPath ?? ""),
+      };
+    },
+  );
+
+  ipcMain.handle(
+    "security-overview:save-suppressions",
+    async (_event, suppressionsPath, suppressions) => {
+      const { saveSecuritySuppressions } = securityOverview();
+      return saveSecuritySuppressions(
+        suppressionsPath,
+        Array.isArray(suppressions) ? suppressions : [],
+      );
+    },
+  );
+
+  ipcMain.handle(
+    "security-overview:load-triage",
+    async (_event, triagePath) => {
+      const {
+        loadSecurityTriage,
+      } = require("../../src/security/security-overview/triage");
+      return {
+        ok: true,
+        entries: loadSecurityTriage(triagePath || ""),
+      };
+    },
+  );
+
+  ipcMain.handle(
+    "security-overview:set-triage",
+    async (_event, triagePath, fingerprint, status, reason, updatedBy) => {
+      const {
+        loadSecurityTriage,
+        saveSecurityTriage,
+        upsertSecurityTriageEntry,
+      } = require("../../src/security/security-overview/triage");
+      const entries = loadSecurityTriage(triagePath || "");
+      const {
+        normalizeTriageStatus,
+      } = require("../../src/security/security-overview/index.js");
+      status = normalizeTriageStatus(status);
+      const next = upsertSecurityTriageEntry(entries, {
+        fingerprint: String(fingerprint),
+        status,
+        reason: reason ?? undefined,
+        updatedAt: Date.now(),
+        updatedBy: updatedBy ?? undefined,
+      });
+      return saveSecurityTriage(triagePath, next);
+    },
+  );
+
+  ipcMain.handle(
+    "security-overview:set-triage-bulk",
+    async (_event, triagePath, fingerprints, status, reason, updatedBy) => {
+      try {
+        const {
+          loadSecurityTriage,
+          saveSecurityTriage,
+          applyBulkTriage,
+        } = require("../../src/security/security-overview/triage.js");
+        const {
+          normalizeTriageStatus,
+        } = require("../../src/security/security-overview/index.js");
+
+        const entries = loadSecurityTriage(triagePath ?? "");
+        const normalizedStatus = normalizeTriageStatus(status);
+        const safeFingerprints = Array.isArray(fingerprints)
+          ? fingerprints
+          : [];
+        const now = Date.now();
+
+        const next = applyBulkTriage(
+          entries,
+          safeFingerprints,
+          normalizedStatus,
+          reason ?? undefined,
+          updatedBy ?? undefined,
+          now,
+        );
+
+        return saveSecurityTriage(triagePath, next);
+      } catch (err) {
+        return { ok: false, error: String(err?.message ?? err) };
+      }
+    },
+  );
+
+  ipcMain.handle(
+    "security-overview:compare-baseline",
+    async (_event, currentSnapshot, baselinePath) => {
+      if (currentSnapshot == null || typeof currentSnapshot !== "object") {
+        return {
+          ok: false,
+          error: "compare-baseline: currentSnapshot missing or invalid",
+        };
+      }
+      const {
+        loadSecurityBaselineSnapshot,
+        compareSecurityOverviewWithBaseline,
+      } = require("../../src/security/security-overview/drift.js");
+      const baselineSnapshot = loadSecurityBaselineSnapshot(
+        baselinePath ?? null,
+      );
+      return compareSecurityOverviewWithBaseline(
+        currentSnapshot,
+        baselineSnapshot,
+      );
+    },
+  );
+
+  ipcMain.handle(
+    "security-overview:explain-introduced",
+    async (_event, payload) => {
+      try {
+        const {
+          explainIntroducedFindings,
+        } = require("../../src/security/security-overview/index.js");
+        const input = payload && typeof payload === "object" ? payload : {};
+
+        return await explainIntroducedFindings({
+          drift:
+            input.drift && typeof input.drift === "object" ? input.drift : {},
+          workspaceId:
+            typeof input.workspaceId === "string"
+              ? input.workspaceId
+              : undefined,
+          maxFindings:
+            typeof input.maxFindings === "number"
+              ? input.maxFindings
+              : undefined,
+          model: typeof input.model === "string" ? input.model : undefined,
+          includeKnowledge: input.includeKnowledge !== false,
+          knowledgeQuery:
+            typeof input.knowledgeQuery === "string"
+              ? input.knowledgeQuery
+              : undefined,
+          minScore:
+            typeof input.minScore === "number" ? input.minScore : undefined,
+        });
+      } catch (err) {
+        return {
+          ok: false,
+          workspaceId: null,
+          analyzedCount: 0,
+          knowledgeUsed: false,
+          prompt: "",
+          answer: "",
+          items: [],
+          error: err?.message || String(err),
+        };
+      }
+    },
+  );
+
+  ipcMain.handle(
+    "security-overview:get-drift-classification",
+    async (_event, payload) => {
+      try {
+        if (!payload || typeof payload !== "object") {
+          return {
+            ok: false,
+            error: "get-drift-classification: payload missing",
+          };
+        }
+        const {
+          classifyDriftSeverity,
+        } = require("../../src/security/security-overview/index.js");
+        const introduced = Array.isArray(payload.introduced)
+          ? payload.introduced
+          : [];
+        const resolved = Array.isArray(payload.resolved)
+          ? payload.resolved
+          : [];
+        const persistent = Array.isArray(payload.persistent)
+          ? payload.persistent
+          : [];
+        const classification = classifyDriftSeverity({
+          introduced,
+          resolved,
+          persistent,
+        });
+        return { ok: true, classification };
+      } catch (err) {
+
+--- FILE: electron-ui/ipc/workspace-routing-handlers.cjs ---
+"use strict";
+
+const { ipcMain } = require("electron");
+
+function routingHistory() {
+  return require("../../src/llm/routing-history.js");
+}
+
+function registerWorkspaceRoutingHandlers() {
+  ipcMain.handle(
+    "workspaceRouting:list",
+    async (_event, workspaceId, limit = 50) => {
+      if (!workspaceId || typeof workspaceId !== "string") {
+        throw new Error("workspaceId is required");
+      }
+      return routingHistory().listRoutingHistoryForWorkspace(
+        workspaceId,
+        limit,
+      );
+    },
+  );
+
+  ipcMain.handle("workspaceRouting:summary", async (_event, workspaceId) => {
+    if (!workspaceId || typeof workspaceId !== "string") {
+      throw new Error("workspaceId is required");
+    }
+    return routingHistory().getWorkspaceRoutingSummary(workspaceId);
+  });
+
+  ipcMain.handle("workspaceRouting:trends", async (_event, workspaceId) => {
+    if (!workspaceId || typeof workspaceId !== "string") {
+      throw new Error("workspaceId is required");
+    }
+    return routingHistory().getWorkspaceProviderTrends(workspaceId);
+  });
+
+  ipcMain.handle(
+    "workspaceRouting:timeline",
+    async (_event, workspaceId, limit = 50) => {
+      if (!workspaceId || typeof workspaceId !== "string") {
+        throw new Error("workspaceId is required");
+      }
+      return routingHistory().getWorkspaceRoutingTimeline(workspaceId, limit);
+    },
+  );
+
+  ipcMain.handle("workspaceRouting:analytics", async (_event, workspaceId) => {
+    if (!workspaceId || typeof workspaceId !== "string") {
+      throw new Error("workspaceId is required");
+    }
+    return routingHistory().getWorkspaceAnalytics(workspaceId);
+  });
+
+  ipcMain.handle("workspaceRouting:clear", async (_event, workspaceId) => {
+    if (!workspaceId || typeof workspaceId !== "string") {
+      throw new Error("workspaceId is required");
+    }
+    return routingHistory().clearRoutingHistoryForWorkspace(workspaceId);
+  });
+
+  // ── Sprint 33 ────────────────────────────────────────────────────────
+  ipcMain.handle(
+    "workspaceRouting:buckets",
+    async (_event, workspaceId, granularity = "day") => {
+      if (!workspaceId || typeof workspaceId !== "string") {
+        throw new Error("workspaceId is required");
+      }
+      return routingHistory().getWorkspaceTimeBuckets(workspaceId, granularity);
+    },
+  );
+
+  ipcMain.handle("workspaceRouting:globalAnalytics", async (_event) => {
+    return routingHistory().getGlobalWorkspaceAnalytics();
+  });
+
+  ipcMain.handle("workspaceRouting:exportJson", async (_event, workspaceId) => {
+    if (!workspaceId || typeof workspaceId !== "string") {
+      throw new Error("workspaceId is required");
+    }
+    return routingHistory().exportWorkspaceAnalyticsJson(workspaceId);
+  });
+
+  ipcMain.handle("workspaceRouting:exportCsv", async (_event, workspaceId) => {
+    if (!workspaceId || typeof workspaceId !== "string") {
+      throw new Error("workspaceId is required");
+    }
+    return routingHistory().exportWorkspaceAnalyticsCsv(workspaceId);
+  });
+
+  // ── Sprint 34 ────────────────────────────────────────────────────────
+  ipcMain.handle("workspaceRouting:providerComparison", async (_event) => {
+    return routingHistory().getProviderComparisonAcrossWorkspaces();
+  });
+
+  ipcMain.handle(
+    "workspaceRouting:bucketChartSvg",
+    async (_event, workspaceId, granularity = "day") => {
+      if (!workspaceId || typeof workspaceId !== "string") {
+        throw new Error("workspaceId is required");
+      }
+      return routingHistory().getWorkspaceBucketChartSvg(
+        workspaceId,
+        granularity,
+      );
+    },
+  );
+
+  ipcMain.handle(
+    "workspaceRouting:providerComparisonChartSvg",
+    async (_event) => {
+      return routingHistory().getProviderComparisonChartSvg();
+    },
+  );
+
+  ipcMain.handle(
+    "workspaceRouting:exportHtmlReport",
+    async (_event, workspaceId) => {
+      if (!workspaceId || typeof workspaceId !== "string") {
+        throw new Error("workspaceId is required");
+      }
+      return routingHistory().exportWorkspaceAnalyticsHtmlReport(workspaceId);
+    },
+  );
+}
+
+module.exports = { registerWorkspaceRoutingHandlers };
+
+--- FILE: electron-ui/ipc/provider-policy-handlers.cjs ---
+"use strict";
+
+const { ipcMain } = require("electron");
+const { appendAuditEvent } = require("../../src/audit/audit-log.js");
+
+const VALID_PROVIDERS = ["groq", "gemini", "openai", "perplexity", "local"];
+const VALID_MODES = ["cloud", "hybrid", "local-only"];
+
+function policy() {
+  return require("../../src/policies/provider-policy.js");
+}
+
+function presets() {
+  return require("../../src/policies/policy-presets.js");
+}
+
+function registerProviderPolicyHandlers() {
+  ipcMain.handle("providerPolicy:get", async () => {
+    return policy().getProviderPolicy();
+  });
+
+  ipcMain.handle("providerPolicy:listPresets", async () => {
+    return presets().listPolicyPresets();
+  });
+
+  ipcMain.handle("providerPolicy:applyPreset", async (_event, name) => {
+    if (!presets().isPolicyPresetName(name)) {
+      throw new Error(`Unknown preset: ${name}`);
+    }
+
+    const result = policy().applyPolicyPreset(name);
+
+    appendAuditEvent({
+      action: "policy.applyPreset",
+      actor: { type: "renderer" },
+      targetType: "providerPolicy",
+      details: { preset: name },
+    });
+
+    return result;
+  });
+
+  ipcMain.handle("providerPolicy:setMode", async (_event, mode) => {
+    if (!VALID_MODES.includes(mode)) {
+      throw new Error(`Unknown routing mode: ${mode}`);
+    }
+
+    const result = policy().setRoutingMode(mode);
+
+    appendAuditEvent({
+      action: "policy.setRoutingMode",
+      actor: { type: "renderer" },
+      targetType: "providerPolicy",
+      details: { mode },
+    });
+
+    return result;
+  });
+
+  ipcMain.handle("providerPolicy:allow", async (_event, provider) => {
+    if (!VALID_PROVIDERS.includes(provider)) {
+      throw new Error(`Unknown provider: ${provider}`);
+    }
+
+    const result = policy().allowProvider(provider);
+
+    appendAuditEvent({
+      action: "policy.allowProvider",
+      actor: { type: "renderer" },
+      targetType: "providerPolicy",
+      details: { provider },
+    });
+
+    return result;
+  });
+
+  ipcMain.handle("providerPolicy:block", async (_event, provider) => {
+    if (!VALID_PROVIDERS.includes(provider)) {
+      throw new Error(`Unknown provider: ${provider}`);
+    }
+
+    const result = policy().blockProvider(provider);
+
+    appendAuditEvent({
+      action: "policy.blockProvider",
+      actor: { type: "renderer" },
+      targetType: "providerPolicy",
+      details: { provider },
+    });
+
+    return result;
+  });
+
+  ipcMain.handle(
+    "providerPolicy:setManualProvider",
+    async (_event, provider) => {
+      if (provider && !VALID_PROVIDERS.includes(provider)) {
+        throw new Error(`Unknown provider: ${provider}`);
+      }
+
+      const result = policy().setManualProvider(provider ?? null);
+
+      appendAuditEvent({
+        action: "policy.setManualProvider",
+        actor: { type: "renderer" },
+        targetType: "providerPolicy",
+        details: {
+          provider: provider ?? null,
+        },
+      });
+
+      return result;
+    },
+  );
+
+  ipcMain.handle("providerPolicy:reset", async () => {
+    const result = policy().resetProviderPolicy();
+
+    appendAuditEvent({
+      action: "policy.reset",
+      actor: { type: "renderer" },
+      targetType: "providerPolicy",
+    });
+
+    return result;
+  });
+}
+
+module.exports = { registerProviderPolicyHandlers };
+
+--- FILE: electron-ui/ipc/provider-telemetry-handlers.cjs ---
+"use strict";
+
+const { ipcMain } = require("electron");
+
+const VALID_PROVIDERS = ["groq", "gemini", "openai", "perplexity", "local"];
+
+function isValidProvider(provider) {
+  if (!provider) return true;
+  return VALID_PROVIDERS.includes(provider);
+}
+
+function registerProviderTelemetryHandlers() {
+  // Lazy require to avoid loading at startup before app is ready
+  function getStatus() {
+    return require("../../src/llm/status.js").getProviderStatus();
+  }
+
+  function getUsage() {
+    return require("../../src/llm/provider-usage.js").getProviderUsage();
+  }
+
+  function resetHealth(provider) {
+    return require("../../src/llm/status.js").resetProviderStatus(provider);
+  }
+
+  function resetUsage(provider) {
+    return require("../../src/llm/provider-usage.js").resetProviderUsage(
+      provider,
+    );
+  }
+
+  function resetAll(provider) {
+    return require("../../src/llm/status.js").resetAllProviderTelemetry(
+      provider,
+    );
+  }
+
+  ipcMain.handle("providerTelemetry:getStatus", async () => {
+    return getStatus();
+  });
+
+  ipcMain.handle("providerTelemetry:getUsage", async () => {
+    return getUsage();
+  });
+
+  ipcMain.handle("providerTelemetry:resetHealth", async (_event, provider) => {
+    if (!isValidProvider(provider))
+      throw new Error(`Unknown provider: ${provider}`);
+    resetHealth(provider);
+    return { ok: true };
+  });
+
+  ipcMain.handle("providerTelemetry:resetUsage", async (_event, provider) => {
+    if (!isValidProvider(provider))
+      throw new Error(`Unknown provider: ${provider}`);
+    resetUsage(provider);
+    return { ok: true };
+  });
+
+  ipcMain.handle("providerTelemetry:resetAll", async (_event, provider) => {
+    if (!isValidProvider(provider))
+      throw new Error(`Unknown provider: ${provider}`);
+    resetAll(provider);
+    return { ok: true };
+  });
+
+  ipcMain.handle(
+    "providerTelemetry:getRoutingHistory",
+    async (_event, limit) => {
+      const { getRoutingHistory } = require("../../src/llm/routing-history.js");
+      return getRoutingHistory(limit || 50);
+    },
+  );
+
+  ipcMain.handle("providerTelemetry:resetRoutingHistory", async () => {
+    const { resetRoutingHistory } = require("../../src/llm/routing-history.js");
+    resetRoutingHistory();
+    return { ok: true };
+  });
+}
+
+module.exports = { registerProviderTelemetryHandlers };
+
+--- FILE: electron-ui/ipc/workspace-policy-handlers.cjs ---
+"use strict";
+
+const { ipcMain, BrowserWindow } = require("electron");
+
+function audit() {
+  return require("../../src/audit/audit-log.js");
+}
+
+function workspacePolicy() {
+  return require("../../src/policies/workspace-policy.js");
+}
+
+function approvals() {
+  return require("../../src/governance/workspace-approvals.js");
+}
+
+function quotas() {
+  return require("../../src/governance/workspace-quotas.js");
+}
+
+function isSensitivePolicyPatch(policyPatch) {
+  if (!policyPatch || typeof policyPatch !== "object") return false;
+  return Boolean(
+    policyPatch.routingMode === "local-only" ||
+    policyPatch.manualProvider ||
+    (Array.isArray(policyPatch.blockedProviders) &&
+      policyPatch.blockedProviders.length > 0),
+  );
+}
+
+function broadcastQuotaNotification(payload) {
+  const windows = BrowserWindow.getAllWindows();
+  for (const win of windows) {
+    if (!win.isDestroyed()) {
+      win.webContents.send("workspaceQuota:notification", payload);
+    }
+  }
+}
+
+function registerWorkspacePolicyHandlers() {
+  ipcMain.handle("workspacePolicy:get", async (_event, workspaceId) => {
+    return workspacePolicy().getWorkspacePolicyOverride(workspaceId);
+  });
+
+  ipcMain.handle(
+    "workspacePolicy:set",
+    async (_event, workspaceId, policyPatch, requestedBy, reason) => {
+      const result = workspacePolicy().setWorkspacePolicyOverride(
+        workspaceId,
+        policyPatch,
+      );
+
+      audit().appendAuditEvent({
+        action: "workspacePolicy.set",
+        actor: { type: "renderer", id: requestedBy ?? undefined },
+        targetType: "workspacePolicy",
+        workspaceId,
+        details: {
+          policyChange: policyPatch,
+          reason: reason ?? null,
+        },
+      });
+
+      let approval = null;
+      if (isSensitivePolicyPatch(policyPatch)) {
+        approval = approvals().createWorkspaceApprovalRequest({
+          workspaceId,
+          policyChange: policyPatch,
+          requestedBy: requestedBy ?? null,
+          reason: reason ?? null,
+          // Emits audit action "workspaceApproval.requested" via appendAuditEvent
+        });
+      }
+
+      return { result, approval };
+    },
+  );
+
+  ipcMain.handle(
+    "workspacePolicy:clear",
+    async (_event, workspaceId, requestedBy) => {
+      const result =
+        workspacePolicy().clearWorkspacePolicyOverride(workspaceId);
+
+      audit().appendAuditEvent({
+        action: "workspacePolicy.clear",
+        actor: { type: "renderer", id: requestedBy ?? undefined },
+        targetType: "workspacePolicy",
+        workspaceId,
+        details: {},
+      });
+
+      return result;
+    },
+  );
+
+  ipcMain.handle("workspacePolicy:list", async () => {
+    return workspacePolicy().listWorkspacePolicyOverrides();
+  });
+
+  ipcMain.handle("workspacePolicy:resolve", async (_event, workspaceId) => {
+    return workspacePolicy().resolveWorkspacePolicyState(workspaceId);
+  });
+
+  ipcMain.handle(
+    "workspaceApproval:list",
+    async (_event, workspaceId, status) => {
+      return approvals().listWorkspaceApprovalRequests(
+        workspaceId || undefined,
+        status || undefined,
+      );
+    },
+  );
+
+  ipcMain.handle(
+    "workspaceApproval:resolve",
+    async (_event, approvalId, status, reviewedBy, reviewNote) => {
+      return approvals().resolveWorkspaceApprovalRequest(
+        approvalId,
+        status,
+        reviewedBy ?? null,
+        reviewNote ?? null,
+      );
+    },
+  );
+
+  ipcMain.handle("workspaceQuota:get", async (_event, workspaceId) => {
+    const {
+      getWorkspaceQuotaPolicy,
+    } = require("../../src/governance/workspace-quotas.js");
+    return getWorkspaceQuotaPolicy(workspaceId);
+  });
+
+  ipcMain.handle("workspaceQuota:list", async () => {
+    const {
+      listWorkspaceQuotaPolicies,
+    } = require("../../src/governance/workspace-quotas.js");
+    return listWorkspaceQuotaPolicies();
+  });
+
+  ipcMain.handle(
+    "workspaceQuota:set",
+    async (_event, workspaceId, quotaPatch, options) => {
+      const {
+        setWorkspaceQuotaPolicy,
+      } = require("../../src/governance/workspace-quotas.js");
+      return setWorkspaceQuotaPolicy({
+        workspaceId,
+        dailyLimit: quotaPatch?.dailyLimit ?? null,
+        weeklyLimit: quotaPatch?.weeklyLimit ?? null,
+        mode: quotaPatch?.mode ?? "alert",
+        fallbackProvider: quotaPatch?.fallbackProvider ?? null,
+        alertThresholdPct: quotaPatch?.alertThresholdPct ?? null, // ← add this
+        requestedBy: options?.requestedBy ?? null,
+        reason: options?.reason ?? null,
+      });
+    },
+  );
+
+  ipcMain.handle(
+    "workspaceQuota:clear",
+    async (_event, workspaceId, requestedBy) => {
+      const {
+        clearWorkspaceQuotaPolicy,
+      } = require("../../src/governance/workspace-quotas.js");
+      return clearWorkspaceQuotaPolicy(workspaceId, requestedBy ?? null);
+    },
+  );
+
+  ipcMain.handle(
+    "workspaceQuota:recordUsage",
+    async (_event, workspaceId, payload) => {
+      const usage = quotas().recordWorkspaceQuotaUsage({
+        workspaceId,
+        timestamp: payload?.timestamp,
+        provider: payload?.provider ?? null,
+      });
+      const latest = quotas().getLatestWorkspaceQuotaNotification(workspaceId);
+      if (
+        latest &&
+        latest.workspaceId === workspaceId &&
+        (latest.type === "threshold" || latest.type === "exceeded")
+      ) {
+        broadcastQuotaNotification(latest);
+      }
+      return usage;
+    },
+  );
+
+  ipcMain.handle("workspaceQuota:usage", async (_event, workspaceId, now) => {
+    const {
+      getWorkspaceQuotaUsage,
+    } = require("../../src/governance/workspace-quotas.js");
+    return getWorkspaceQuotaUsage(workspaceId, now);
+  });
+
+  ipcMain.handle(
+    "workspaceQuota:evaluate",
+    async (_event, workspaceId, now) => {
+      const {
+        evaluateWorkspaceQuotaStatus,
+      } = require("../../src/governance/workspace-quotas.js");
+      return evaluateWorkspaceQuotaStatus(workspaceId, now);
+    },
+  );
+
+  ipcMain.handle("workspaceQuota:clearUsage", async (_event, workspaceId) => {
+    const {
+      clearWorkspaceQuotaUsage,
+    } = require("../../src/governance/workspace-quotas.js");
+    return clearWorkspaceQuotaUsage(workspaceId);
+  });
+
+  ipcMain.handle(
+    "workspaceQuota:latestNotification",
+    async (_event, workspaceId) => {
+      const {
+        getLatestWorkspaceQuotaNotification,
+      } = require("../../src/governance/workspace-quotas.js");
+      return getLatestWorkspaceQuotaNotification(workspaceId);
+    },
+  );
+
+  ipcMain.handle(
+    "workspaceQuota:notifications",
+    async (_event, workspaceId) => {
+      const {
+        listWorkspaceQuotaNotifications,
+      } = require("../../src/governance/workspace-quotas.js");
+      return listWorkspaceQuotaNotifications(workspaceId);
+    },
+  );
+
+  ipcMain.handle("workspaceQuota:resetDaily", async (_event, now) => {
+    const {
+      resetWorkspaceQuotaDaily,
+      getLatestWorkspaceQuotaNotification,
+    } = require("../../src/governance/workspace-quotas.js");
+    const result = resetWorkspaceQuotaDaily(now, "manual");
+    const latest = getLatestWorkspaceQuotaNotification();
+    if (latest && latest.type === "dailyReset") {
+      broadcastQuotaNotification(latest);
+    }
+    return result;
+  });
+
+  ipcMain.handle("workspaceQuota:rollup", async (_event, now) => {
+    return quotas().getWorkspaceQuotaRollup(now);
+  });
+}
+
+module.exports = {
+  registerWorkspacePolicyHandlers,
+  broadcastQuotaNotification,
+};
+
+--- FILE: electron-ui/ipc/audit-handlers.cjs ---
+"use strict";
+
+const { ipcMain } = require("electron");
+
+function registerAuditHandlers() {
+  const {
+    listAuditEvents,
+    verifyAuditLogIntegrity,
+    getLatestAuditEvent,
+  } = require("../../src/audit/audit-log.js");
+
+  ipcMain.handle("audit:list", async (_event, limit, filter) => {
+    return listAuditEvents(limit ?? 50, filter);
+  });
+
+  ipcMain.handle("audit:verify", async () => {
+    return verifyAuditLogIntegrity();
+  });
+
+  ipcMain.handle("audit:latest", async () => {
+    return getLatestAuditEvent();
+  });
+
+  ipcMain.handle("audit:exportJson", async (_event, filter) => {
+    const { exportAuditLogJson } = require("../../src/audit/audit-log.js");
+    return exportAuditLogJson(filter || undefined);
+  });
+
+  ipcMain.handle("audit:exportHtmlReport", async (_event, filter) => {
+    const {
+      exportAuditLogHtmlReport,
+    } = require("../../src/audit/audit-log.js");
+    return exportAuditLogHtmlReport(filter || undefined);
+  });
+}
+
+module.exports = { registerAuditHandlers };
+
+--- FILE: electron-ui/ipc/secrets-handlers.cjs ---
+"use strict";
+
+const { ipcMain } = require("electron");
+
+function secrets() {
+  return require("../../src/security/secrets/index.js");
+}
+
+function registerSecretsHandlers() {
+  ipcMain.handle("secrets:scan", async (_event, options) => {
+    const { runSecretsScan } = secrets();
+    return await runSecretsScan({
+      repoPath: options?.repoPath,
+      baselinePath: options?.baselinePath ?? null,
+      suppressionsPath: options?.suppressionsPath ?? null,
+      configPath: options?.configPath ?? null,
+      redact: options?.redact !== false,
+    });
+  });
+}
+
+module.exports = { registerSecretsHandlers };
+
+--- FILE: electron-ui/ipc/risks-handlers.cjs ---
+"use strict";
+
+const { ipcMain } = require("electron");
+
+function risks() {
+  return require("../../src/security/risks/index.js");
+}
+
+function registerRisksHandlers() {
+  ipcMain.handle("risks:scan:dependency",
+    async (_event, scanTarget, options) => {
+      try {
+        const { runDependencyCheck } = risks();
+        const result = await runDependencyCheck(scanTarget, options ?? {});
+        return { ok: true, engine: "dependency-check", result };
+      } catch (err) {
+        return {
+          ok: false,
+          engine: "dependency-check",
+          error: String(err),
+        };
+      }
+    },
+  );
+
+  ipcMain.handle("risks:scan:image", async (_event, imageRef) => {
+    try {
+      const { runTrivyImage } = risks();
+      const result = await runTrivyImage(imageRef);
+      return { ok: true, engine: "trivy", result };
+    } catch (err) {
+      return { ok: false, engine: "trivy", error: String(err) };
+    }
+  });
+}
+
+module.exports = { registerRisksHandlers };
+
+
+===== DONE =====

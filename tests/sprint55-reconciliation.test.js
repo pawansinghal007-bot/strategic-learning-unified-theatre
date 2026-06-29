@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { loadDashboardSurface } from './dashboard-loader.js';
+import { loadDashboardSurface } from "./dashboard-loader.js";
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 
@@ -15,14 +15,14 @@ function exists(rel) {
 
 describe("Sprint 55 — timeline reconciliation and Playwright scaffold guard", () => {
   it("master timeline marks Sprint 54 and Sprint 55 as Complete", () => {
-    const text = read("master_timeline_sprints_1_54.md");
+    const text = read("master_timeline_sprints_1_97.md");
     expect(text).toContain("54");
     expect(text).toContain("55");
     expect(text).toContain("Complete");
   });
 
   it("master timeline lists Sprint 56 as the next active sprint", () => {
-    const text = read("master_timeline_sprints_1_54.md");
+    const text = read("master_timeline_sprints_1_97.md");
     expect(text).toContain("56");
     expect(text).toContain("Selector hardening");
   });

@@ -24,8 +24,8 @@ describe("Sprint 79 — Sonar scope guard", () => {
     expect(text).not.toContain("})();");
   });
 
-  it("master_timeline_sprints_1_54.md has Sprint 79 Complete row", () => {
-    const text = read("master_timeline_sprints_1_54.md");
+  it("master_timeline_sprints_1_97.md has Sprint 79 Complete row", () => {
+    const text = read("master_timeline_sprints_1_97.md");
     expect(text).toContain("| 79     |");
     expect(text).toContain("S7785 async IIFE remediation");
     expect(text).toContain("sprint-79-complete");

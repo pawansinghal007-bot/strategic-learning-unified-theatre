@@ -2,7 +2,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const timelinePath = path.resolve("master_timeline_sprints_1_54.md");
+const timelinePath = path.resolve("master_timeline_sprints_1_97.md");
 const instructionsPath = path.resolve(
   "strategic-learning-unified-theatre-master-instructions.md",
 );
