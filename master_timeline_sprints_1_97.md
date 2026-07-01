@@ -169,6 +169,11 @@ branches / 93.22% functions / 95.11% lines. Untracked scratch/generated items
 `.kiro/`, `.github/copilot-instructions.md`) remain outside this sprint's
 commit scope pending triage.
 
+## Sprint 100
+
+Sprint 100 (Docs-only sprint contract and harness alignment) is complete.
+It created the repo operating contract files (`AGENTS.md`, `docs/standing-rules.md`, and `docs/build-state.md`), reconciled `.github/copilot-instructions.md`, added the llama.cpp harness prefix at `docs/llama-harness-prefix.md`, refreshed the architecture context summary, updated the active snapshot pointer and Sprint 100 prompt, and verified the repository state with the full Vitest suite. Snapshot: `strategic-learning-unified-theatre-ai-snapshot-sprint100-stable`. Tag: `sprint-100-docs-contract-complete`.
+
 ## Next
 
 Sprint 89 is the only remaining undocumented sprint in this timeline — no commit, doc, test, or JSON artifact under any naming convention references it anywhere in git history (all branches, reflog, stashes, and dangling objects checked). Backfill it if source material ever surfaces; otherwise record it permanently as a skipped/no-op sprint number.
