@@ -1,0 +1,164 @@
+# Strategic Learning Unified Theatre AI Snapshot Sprint 99
+
+- Date: 2026-07-01
+- Session: Sprint 99 — MCP SDK migration (Server → McpServer) + broad Vitest
+  coverage expansion
+- Repository: /home/pawan/vscodeagent/Solution
+- Snapshot tag: sprint-99-complete
+- Snapshot purpose: Lock Sprint 99 state after migrating the MCP server off
+  the deprecated `Server` class and landing a large wave of coverage-focused
+  test additions across the codebase.
+- Previous snapshot: strategic-learning-unified-theatre-ai-snapshot-sprint98-stable
+
+## Summary
+
+Sprint 99 combines two workstreams that landed together in the working tree:
+
+1. **MCP SDK migration** (tracked since the Sonar remediation rounds as a
+   deferred `typescript:S1874` item, see `mcp-server-migration-prompt.md`) —
+   `src/mcp/server.ts` and `src/mcp/tool-handlers.ts` were modified, and a new
+   `src/mcp/schemas.ts` plus a `tests/mcp/` suite were added, consistent with
+   the planned move from the deprecated `Server` + `setRequestHandler`
+   dispatch pattern to `McpServer` + per-tool `.tool(...)` registration with
+   Zod input schemas.
+2. **Coverage expansion pass** — a large batch of new/expanded Vitest suites
+   landed under `tests/llm/`, `tests/agents/`, `tests/commands/`,
+   `tests/memory/`, `tests/policies/`, plus top-level additions
+   (`tests/accounts-schema.test.js`, `tests/ai-memory-index.test.js`,
+   `tests/browser-selectors-branch-coverage.test.js`,
+   `tests/test-runner-branch-gaps.test.js`, `tests/vscode.test.js`), lifting
+   coverage substantially over the Sprint 91 baseline (75.35% / 64.16% /
+   81.58% stmts/branch/funcs).
+3. Generated/derivative artifacts were cleaned from tracking:
+   `reports/gitleaks.json`, `sonar-issues.json`, and `sonar_issues.csv` were
+   removed from the index, with `sonar-duplicates-by-file.json` and
+   `sonar-issues-open.json` left untracked as fresher working exports.
+4. `src/llm/_child-process.js` was added, alongside the existing
+   `hwProbe.ts`, `security/security-overview/*`, and provider/account files
+   carrying forward modifications from adjacent in-flight work.
+
+## Validation Results
+
+Full suite run:
+
+```
+Test Files  299 passed (299)
+      Tests  4943 passed (4943)
+   Start at  15:59:28
+   Duration  29.05s (transform 27.74s, setup 11.91s, import 39.28s, tests 80.53s, environment 268.58s)
+```
+
+Coverage (v8):
+
+| Metric     | %     |
+| ---------- | ----- |
+| Statements | 94.96 |
+| Branches   | 92.58 |
+| Functions  | 93.22 |
+| Lines      | 95.11 |
+
+This is up from the Sprint 98 baseline of 243 files / 3838 tests (no
+coverage percentage tracked at that snapshot) and the Sprint 91 baseline of
+75.35% / 64.16% / 81.58% (stmts/branch/funcs) — a net gain of **+56 test
+files / +1105 tests** since Sprint 98, with coverage now above the 90% mark
+on all four v8 metrics.
+
+## Files Changed (tracked, modified)
+
+`.gitignore`, `electron-ui/ipc/handlers.bundled.cjs`, `logs/agent-session.ndjson`,
+`src/accounts/health.js`, `src/accounts/profile-manager.js`, `src/agents/cli.ts`,
+`src/agents/memory/session-log.ts`, `src/agents/orchestrator.ts`,
+`src/agents/pipeline.ts`, `src/agents/sub-agent.ts`,
+`src/agents/tools/read-file.ts`, `src/browser-bridge.js`, `src/cli.js`,
+`src/commands/ai.js`, `src/commands/bc2-sync.js`,
+`src/installer/hw-probe/hwProbe.ts`,
+`src/knowledge/ingest/ingest-sprint-history.js`, `src/llm/inference.js`,
+`src/llm/qdrant-client.ts`, `src/mcp/server.ts`, `src/mcp/tool-handlers.ts`,
+`src/security/security-overview/auto-scan.ts`,
+`src/security/security-overview/index.ts`, `src/test-runner.js`,
+`src/ui/dashboard.js`, `src/vscode.js`, `vitest.config.ts`, and the
+corresponding test files (`tests/ai-memory.test.js`, `tests/ai.test.js`,
+`tests/audit-log.test.js`, `tests/bc2-sync.test.js`,
+`tests/browser-bridge.coverage-additions2.test.js`, `tests/browser.test.js`,
+`tests/cli.test.js`, `tests/cli_debug.test.js`, `tests/handoff.test.js`,
+`tests/health.test.js`, `tests/profile-manager.test.js`,
+`tests/secret-store.test.js`, `tests/storage/storage-monitor-coverage.test.js`,
+`tests/store.test.js`, `tests/switcher.test.js`, `tests/ui/dashboard.test.js`,
+`tests/watcher-coverage.test.js`, `tests/watcher.test.js`).
+
+## Files Deleted (staged/unstaged)
+
+- `reports/gitleaks.json`
+- `sonar-issues.json`
+- `sonar_issues.csv`
+
+## Files Added (untracked, this sprint's scope)
+
+- `src/llm/_child-process.js`
+- `src/mcp/schemas.ts`
+- `tests/accounts-schema.test.js`
+- `tests/agents/` (new directory)
+- `tests/ai-memory-index.test.js`
+- `tests/browser-selectors-branch-coverage.test.js`
+- `tests/commands/` (new directory)
+- `tests/llm/agent-loop-guard-branches.test.js`
+- `tests/llm/document-ingester-branches.test.js`
+- `tests/llm/document-ingester-coverage.test.js`
+- `tests/llm/embeddings-branches.test.js`
+- `tests/llm/embeddings-coverage.test.js`
+- `tests/llm/experience-db-branches.test.js`
+- `tests/llm/experience-db-coverage.test.js`
+- `tests/llm/gateway-coverage.test.ts`
+- `tests/llm/inference-branches.test.js`
+- `tests/llm/inference-coverage.test.js`
+- `tests/llm/inference-windows.test.js`
+- `tests/llm/knowledge-graph-branches.test.js`
+- `tests/llm/knowledge-graph-coverage.test.js`
+- `tests/llm/llm-index.test.ts`
+- `tests/llm/local-llm-branches.test.js`
+- `tests/llm/mistake-tracker-coverage.test.js`
+- `tests/llm/prompt-generator-coverage.test.js`
+- `tests/llm/provider-health-coverage.test.ts`
+- `tests/llm/provider-usage-coverage.test.ts`
+- `tests/llm/qdrant-client-coverage.test.ts`
+- `tests/llm/routing-explainer-coverage.test.ts`
+- `tests/llm/routing-history-coverage.test.ts`
+- `tests/llm/status-coverage.test.ts`
+- `tests/llm/storage-coverage.test.ts`
+- `tests/llm/training-exporter-coverage.test.js`
+- `tests/mcp/` (new directory)
+- `tests/memory/` (new directory)
+- `tests/policies/` (new directory)
+- `tests/security-overview-ai-explain-coverage.test.ts`
+- `tests/security-overview-coverage.test.ts`
+- `tests/test-runner-branch-gaps.test.js`
+- `tests/vscode.test.js`
+
+## Excluded from this sprint's commit (untriaged, carried forward)
+
+The following untracked items remain outside the Sprint 99 scope and should
+be triaged separately:
+
+- `.github/copilot-instructions.md` — scope unclear, review before committing
+- `.kiro/` — unknown tool directory, verify origin before committing
+- `coverage-tmp/`, `coverage-tmp2/`, `coverage-tmp3/` — generated coverage
+  scratch directories, should be gitignored, not committed
+- `sonar-duplicates-by-file.json`, `sonar-issues-open.json` — generated Sonar
+  exports, same category as the deleted `sonar-issues.json` /
+  `sonar_issues.csv` — candidates for `.gitignore` rather than tracking
+
+## Handoff
+
+- Sprint 99 is locked as
+  `strategic-learning-unified-theatre-ai-snapshot-sprint99-stable`.
+- Git tag to apply: `sprint-99-complete`
+- Commit scope: the tracked modifications and deletions listed above, the
+  new `tests/` and `src/mcp/schemas.ts` files, `master_timeline_sprints_1_99.md`,
+  `CURRENT_ACTIVE_SNAPSHOT.md`, and this snapshot file.
+- Recommended next-sprint triage: decide whether `coverage-tmp*/`,
+  `sonar-duplicates-by-file.json`, `sonar-issues-open.json`, and `.kiro/`
+  belong in `.gitignore` or in the repo; confirm the MCP SDK migration
+  (`src/mcp/server.ts` / `tool-handlers.ts` / `schemas.ts`) passes a live
+  stdio smoke test per `mcp-server-migration-prompt.md` Step 3, since a
+  green Vitest suite does not by itself confirm the protocol handshake.
+- Sprint 89 remains the one permanently undocumented gap in the timeline.
