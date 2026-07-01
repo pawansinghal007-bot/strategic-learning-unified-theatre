@@ -1144,7 +1144,9 @@ describe("CLI commands via program.parseAsync", () => {
       // daemon start uses fileURLToPath(new URL(..., import.meta.url)) which may
       // not resolve in jsdom — action runs and either spawns or catches the error
       await program.parseAsync(["node", "cli", "daemon", "start"]);
-      // No assertion — just ensures lines 674-691 are instrumented by coverage
+      // In jsdom environment, fileURLToPath fails, so process.exitCode should be set to 1
+      // This test verifies that the error handling path is executed and the exit code is set
+      expect(process.exitCode).toBe(1);
     });
   });
 
@@ -1501,6 +1503,7 @@ describe("Branch coverage: ternary and nullish alternates", () => {
     const spy = vi.spyOn(console, "log").mockImplementation(() => {});
     const errSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     await program.parseAsync(["node", "cli", "daemon", "start"]);
+    expect(process.exitCode).toBe(1);
     spy.mockRestore();
     errSpy.mockRestore();
   });
@@ -1715,6 +1718,8 @@ describe("Branch coverage: remaining gaps", () => {
     const spy = vi.spyOn(console, "log").mockImplementation(() => {});
     const errSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     await program.parseAsync(["node", "cli", "daemon", "start"]);
+    // Verify that the error was handled and logged
+    expect(errSpy).toHaveBeenCalled();
     spy.mockRestore();
     errSpy.mockRestore();
   });

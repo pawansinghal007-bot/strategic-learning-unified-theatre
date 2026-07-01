@@ -200,7 +200,7 @@ function buildLiveReviewEvidence() {
       ?.textContent?.trim() || "";
   const complianceText =
     !complianceRaw ||
-    /^Compliance walkthrough initialized for /.test(complianceRaw)
+    complianceRaw.startsWith("Compliance walkthrough initialized for ")
       ? "Compliance walkthrough idle."
       : complianceRaw;
   const proofSummaryText =
@@ -289,7 +289,7 @@ function buildReleaseReadinessEvidence() {
       .querySelector('[data-testid="review-output"]')
       ?.textContent?.trim() || "";
   const reviewText =
-    !reviewRaw || /^Executive review initialized for /.test(reviewRaw)
+    !reviewRaw || reviewRaw.startsWith("Executive review initialized for ")
       ? "Executive review idle."
       : reviewRaw;
   const blockersText =

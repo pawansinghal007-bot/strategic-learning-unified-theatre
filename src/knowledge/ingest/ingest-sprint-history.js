@@ -142,12 +142,14 @@ async function main() {
 // if (isMain) await main();
 
 // No top-level await — use synchronous module detection
-import { fileURLToPath } from "url";
+import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 if (process.argv[1] === __filename) {
-  main().catch((err) => {
+  try {
+    await main();
+  } catch (err) {
     console.error(err);
     process.exit(1);
-  });
+  }
 }

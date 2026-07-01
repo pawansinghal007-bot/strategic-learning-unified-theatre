@@ -1,9 +1,12 @@
-import { execFile } from "node:child_process";
+import * as childProcess from "node:child_process";
 import { promisify } from "node:util";
 
 import { resolveVSCodeBin } from "./internal/paths.js";
 
-const execFileAsync = promisify(execFile);
+// Lazily promisify so tests can replace childProcess.execFile after import.
+function execFileAsync(...args) {
+  return promisify(childProcess.execFile)(...args);
+}
 
 function parsePidsFromText(text) {
   return text
@@ -84,9 +87,8 @@ export async function gracefulClose(pid) {
 }
 
 export async function launchWithProfile(profileName) {
-  const { spawn } = await import("node:child_process");
   const codeBin = await resolveVSCodeBin();
-  const child = spawn(codeBin, ["--profile", profileName], {
+  const child = childProcess.spawn(codeBin, ["--profile", profileName], {
     detached: true,
     stdio: "ignore"
   });

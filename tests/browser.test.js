@@ -51,7 +51,7 @@ vi.mock("../src/domain/schemas.js", () => ({
   },
   BrowserTypeSchema: {
     safeParse: (v) =>
-      ["chrome", "safari", "firefox"].includes(v)
+      ["chrome", "safari", "firefox", "brave", "edge"].includes(v)
         ? { success: true, data: v }
         : {
             success: false,
@@ -1193,5 +1193,107 @@ describe("formatValidationError (via error paths)", () => {
       expect.stringContaining("plain error"),
     );
     consoleError.mockRestore();
+  });
+});
+
+// ─── accumulate helper (line 57) ─────────────────────────────────────────────
+
+describe("accumulate helper (line 57)", () => {
+  it("collects repeated --tag values into an array via prompts add", async () => {
+    // The accumulate fn is the Commander coercion callback for multi-value
+    // options; it is invoked for every repeated flag. Using the real Commander
+    // (via buildAndExtractActions which wires up .option(flag, desc, accumulate, []))
+    // means we need Commander to actually call the coercion. Commander only
+    // invokes the coercion when it parses raw argv, not when we call the
+    // action directly. So we exercise accumulate by importing it indirectly
+    // through a direct module call and verifying it concatenates correctly.
+    //
+    // The cleanest way without exposing the private function is to rely on the
+    // fact that Commander *does* invoke the coercion during real parse. Since
+    // bindBrowserCommands is wired to a real Commander in browser.test.js we
+    // can verify the side-effect: addPrompt receives merged arrays.
+    const { Command } = await import("commander");
+    const { bindBrowserCommands: bind } = await import(
+      "../src/commands/browser.js"
+    );
+    addPrompt.mockResolvedValue({ id: "newid12345" });
+    const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    const prog = new Command();
+    prog.exitOverride();
+    bind(prog);
+
+    await prog.parseAsync([
+      "node",
+      "cli",
+      "browser",
+      "prompts",
+      "add",
+      "--name",
+      "MyPrompt",
+      "--template",
+      "Hello",
+      "--tag",
+      "alpha",
+      "--tag",
+      "beta",
+      "--platform",
+      "claude",
+      "--platform",
+      "chatgpt",
+    ]);
+
+    // accumulate was invoked for each repeated flag → arrays have both values
+    expect(addPrompt).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tags: ["alpha", "beta"],
+        platforms: ["claude", "chatgpt"],
+      }),
+    );
+    consoleSpy.mockRestore();
+  });
+});
+
+// ─── parseBrowserEngine: line 109 (non-chrome/safari BrowserType) ─────────────
+
+describe("parseBrowserEngine line 109 — BrowserType pass-through", () => {
+  it("passes 'brave' straight through when BrowserPlatformSchema rejects it", async () => {
+    // 'brave' is NOT in BrowserPlatformSchema mock (chromium/firefox/webkit),
+    // so it falls to BrowserTypeSchema. The mock now includes 'brave', and
+    // since it is neither 'chrome' nor 'safari' it hits the return-typeResult.data
+    // branch (line 109).
+    const actions = buildAndExtractActions();
+    sendPrompt.mockResolvedValue({ dryRun: true, message: "ok" });
+    const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    await actions["send"]?.({
+      platform: "claude",
+      prompt: "hi",
+      browser: "brave",
+      timeout: "60000",
+      headless: false,
+      dryRun: false,
+    });
+    expect(sendPrompt).toHaveBeenCalledWith(
+      expect.objectContaining({ browserType: "brave" }),
+    );
+    consoleSpy.mockRestore();
+  });
+
+  it("passes 'edge' straight through when BrowserPlatformSchema rejects it", async () => {
+    const actions = buildAndExtractActions();
+    sendPrompt.mockResolvedValue({ dryRun: true, message: "ok" });
+    const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    await actions["send"]?.({
+      platform: "claude",
+      prompt: "hi",
+      browser: "edge",
+      timeout: "60000",
+      headless: false,
+      dryRun: false,
+    });
+    expect(sendPrompt).toHaveBeenCalledWith(
+      expect.objectContaining({ browserType: "edge" }),
+    );
+    consoleSpy.mockRestore();
   });
 });

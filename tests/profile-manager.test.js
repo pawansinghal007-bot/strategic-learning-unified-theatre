@@ -364,6 +364,27 @@ describe("profile-manager.js", () => {
       const pm = new ProfileManager({ profilesDir });
       await expect(pm.delete(123)).resolves.toBeUndefined();
     });
+
+    it("calls fs.rm with recursive+force so nested files are removed (lines 140-141 explicit rm call)", async () => {
+      vi.restoreAllMocks();
+      const dir = path.join(profilesDir, "nested-delete");
+      await fs.mkdir(path.join(dir, "sub"), { recursive: true });
+      await fs.writeFile(path.join(dir, "settings.json"), "{}");
+      await fs.writeFile(path.join(dir, "sub", "keybindings.json"), "{}");
+
+      const rmSpy = vi.spyOn(fs, "rm");
+      const pm = new ProfileManager({ profilesDir });
+      await pm.delete("nested-delete");
+
+      // Confirm fs.rm was called with the right path and options
+      expect(rmSpy).toHaveBeenCalledWith(
+        path.join(profilesDir, "nested-delete"),
+        { recursive: true, force: true },
+      );
+      // Confirm the directory is actually gone
+      await expect(fs.stat(dir)).rejects.toThrow();
+      vi.restoreAllMocks();
+    });
   });
 
   // ── ProfileManager.link() ─────────────────────────────────────────────────
@@ -558,5 +579,72 @@ describe("profile-manager.js", () => {
       expect(pm.store).toBeDefined();
       expect(pm.profilesDir).toBeTruthy();
     });
+  });
+});
+
+
+// ── Targeted coverage gap: lines 140-141 ─────────────────────────────────
+// create() swallows ENOENT errors from installExtension but re-throws any
+// other error.  Lines 140-141 are the `if (err?.code !== "ENOENT") { throw err; }`
+// branch that only fires for non-ENOENT failures.
+
+describe("ProfileManager.create() — non-ENOENT extension install error (lines 140-141)", () => {
+  let tempDir;
+  let profilesDir;
+
+  beforeEach(async () => {
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "pm-gap-test-"));
+    profilesDir = path.join(tempDir, "profiles");
+  });
+
+  afterEach(async () => {
+    vi.restoreAllMocks();
+    await fs.rm(tempDir, { recursive: true, force: true });
+  });
+  it("re-throws a non-ENOENT error from installExtension", async () => {
+    // Arrange: template has one extension so installExtension is called once.
+    const origReadFile = fs.readFile.bind(fs);
+    vi.spyOn(fs, "readFile").mockImplementation(async (p, enc) => {
+      if (String(p).includes("profile-templates")) {
+        return JSON.stringify({ extensions: ["some.extension"] });
+      }
+      return origReadFile(p, enc);
+    });
+
+    // Make execFile fire the callback with a non-ENOENT error.
+    const { execFile } = await import("node:child_process");
+    execFile.mockImplementationOnce((_bin, _args, _opts, cb) => {
+      const err = new Error("permission denied");
+      err.code = "EACCES"; // not ENOENT → must be re-thrown
+      cb(err);
+    });
+
+    const pm = new ProfileManager({ profilesDir });
+    await expect(pm.create("fail-ext", "default")).rejects.toThrow(
+      "permission denied",
+    );
+  });
+
+  it("swallows an ENOENT error from installExtension (guard: the passing branch)", async () => {
+    // Confirm the inverse — ENOENT is silently ignored and create() resolves.
+    const origReadFile = fs.readFile.bind(fs);
+    vi.spyOn(fs, "readFile").mockImplementation(async (p, enc) => {
+      if (String(p).includes("profile-templates")) {
+        return JSON.stringify({ extensions: ["some.extension"] });
+      }
+      return origReadFile(p, enc);
+    });
+
+    const { execFile } = await import("node:child_process");
+    execFile.mockImplementationOnce((_bin, _args, _opts, cb) => {
+      const err = new Error("code binary not found");
+      err.code = "ENOENT"; // swallowed — create() should still succeed
+      cb(err);
+    });
+
+    const pm = new ProfileManager({ profilesDir });
+    await expect(pm.create("enoent-ext", "default")).resolves.toBe(
+      "enoent-ext",
+    );
   });
 });

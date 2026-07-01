@@ -15,7 +15,7 @@ async function installExtension(codeBin, profileName, extensionName) {
       ["--profile", profileName, "--install-extension", extensionName],
       { windowsHide: true },
       (error) => {
-        if (error) reject(error);
+        if (error) reject(error instanceof Error ? error : new Error(String(error)));
         else resolve();
       },
     );

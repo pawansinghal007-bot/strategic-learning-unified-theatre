@@ -46,6 +46,31 @@ async function importProbe() {
   return await import("./hwProbe");
 }
 
+/** Build a macOS system_profiler response for a given VRAM string and probe hardware */
+async function vramFor(vramStr: string) {
+  const spJson = JSON.stringify({
+    SPDisplaysDataType: [
+      { sppci_model: "Test GPU", spdisplays_vram: vramStr },
+    ],
+  });
+  mockedExecFileSync.mockReturnValueOnce(spJson);
+  const { probeHardware } = await importProbe();
+  const p = await probeHardware();
+  return p.gpus[0]?.vramMB;
+}
+
+/** Run a Linux lspci probe with the given GPU name and return the detected vendor */
+async function vendorFor(name: string) {
+  mockedExecFileSync
+    .mockImplementationOnce(() => {
+      throw new Error("no smi");
+    })
+    .mockReturnValueOnce(`00:02.0 VGA compatible controller: ${name}\n`);
+  const { probeHardware } = await importProbe();
+  const p = await probeHardware();
+  return p.gpus[0]?.vendor;
+}
+
 // ── probeHardware — top-level integration ────────────────────────────────────
 
 describe("probeHardware", () => {
@@ -406,17 +431,6 @@ describe("inferVendor (via GPU names)", () => {
     mockedTotalmem.mockReturnValue(8 * 1024 * 1024 * 1024);
   });
 
-  async function vendorFor(name: string) {
-    mockedExecFileSync
-      .mockImplementationOnce(() => {
-        throw new Error("no smi");
-      })
-      .mockReturnValueOnce(`00:02.0 VGA compatible controller: ${name}\n`);
-    const { probeHardware } = await importProbe();
-    const p = await probeHardware();
-    return p.gpus[0]?.vendor;
-  }
-
   it("detects nvidia from 'GeForce'", async () => {
     expect(await vendorFor("NVIDIA Corporation GeForce RTX 3080")).toBe(
       "nvidia",
@@ -460,18 +474,6 @@ describe("parseVramString (via macOS detection)", () => {
     mockedCpus.mockReturnValue([{ model: "CPU" } as os.CpuInfo]);
     mockedTotalmem.mockReturnValue(8 * 1024 * 1024 * 1024);
   });
-
-  async function vramFor(vramStr: string) {
-    const spJson = JSON.stringify({
-      SPDisplaysDataType: [
-        { sppci_model: "Test GPU", spdisplays_vram: vramStr },
-      ],
-    });
-    mockedExecFileSync.mockReturnValueOnce(spJson);
-    const { probeHardware } = await importProbe();
-    const p = await probeHardware();
-    return p.gpus[0]?.vramMB;
-  }
 
   it("parses '8 GB' → 8192 MB", async () =>
     expect(await vramFor("8 GB")).toBe(8192));

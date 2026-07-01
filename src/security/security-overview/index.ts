@@ -1,3 +1,4 @@
+/* v8 ignore file -- pure re-export barrel; no executable statements to instrument */
 export {
   emptySecurityOverviewSnapshot,
   buildSecurityOverviewSnapshot,

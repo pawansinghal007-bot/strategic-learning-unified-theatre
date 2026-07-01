@@ -13,6 +13,14 @@ vi.mock("chokidar", () => ({
   watch: vi.fn(() => fakeWatcher),
 }));
 
+// Mock loadConfig for getConfig test
+vi.mock("../../src/internal/config.js", () => ({
+  loadConfig: vi.fn(() => ({
+    storagePaths: [],
+    storageIndexMaxAgeDays: 30,
+  })),
+}));
+
 import chokidar from "chokidar";
 import {
   INGESTIBLE_EXTENSIONS,
@@ -100,6 +108,9 @@ describe("getConfig()", () => {
     } catch {
       // expected in CI without a config file — branch was hit
     }
+    // Verify that loadConfig was called when no inline config is set
+    const configModule = await import("../../src/internal/config.js");
+    expect(vi.mocked(configModule.loadConfig)).toHaveBeenCalled();
   });
 });
 
@@ -730,9 +741,32 @@ describe("watch()", () => {
     });
 
     const watcher = await monitor.watch();
-    // We can't easily assert on chokidar's ignored logic without waiting for
-    // events, but opening the watcher without throwing already exercises the
-    // ignored() function construction and the labelFor() branches.
+
+    // Get the ignored function from chokidar options and verify it ignores subdirectory files
+    const chokidarWatchSpy = vi.mocked(chokidar.watch);
+    let options;
+    for (const callArgs of chokidarWatchSpy.mock.calls) {
+      const roots = callArgs[0];
+      const callOptions = callArgs[1];
+      if (Array.isArray(roots) && roots.includes(watched) && callOptions && callOptions.ignored) {
+        options = callOptions;
+        break;
+      }
+    }
+    
+    if (!options) {
+      throw new Error("Could not find chokidar watch call with the expected options");
+    }
+    
+    const ignoredFn = options.ignored;
+
+    // Test that files in subdirectories are ignored (non-recursive behavior)
+    // For a non-recursive path, files in subdirectories should be ignored
+    expect(ignoredFn(path.join(subDir, "nested.md"))).toBe(true);
+
+    // Test that files in the watched directory are not ignored
+    expect(ignoredFn(path.join(watched, "top.md"))).toBe(false);
+
     await new Promise((resolve) => setTimeout(resolve, 200));
     await watcher.close();
     await monitor.close();

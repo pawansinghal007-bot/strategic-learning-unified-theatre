@@ -1,0 +1,26 @@
+{
+  "enabled": true,
+  "name": "Sync Docs on Source Change",
+  "description": "Watches all source files (TypeScript, JavaScript, JSX, CJS) across src/, renderer/, electron-ui/, and electron-tray/. When any source file changes, asks the agent to reflect those changes in the README or the /docs folder.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "src/**/*.ts",
+      "src/**/*.js",
+      "src/**/*.cjs",
+      "renderer/**/*.jsx",
+      "renderer/**/*.js",
+      "electron-ui/**/*.cjs",
+      "electron-ui/**/*.js",
+      "electron-tray/**/*.js",
+      "electron-tray/**/*.cjs",
+      "plugins/**/*.js",
+      "plugins/**/*.ts"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A source file was just edited. Review the change and determine if any documentation needs to be updated to reflect it. Check the /docs folder first (docs/*.md, sprints/, e2e-design/) and update the relevant doc there. If no specific doc covers the change, update the README.md instead. Focus only on what actually changed — don't rewrite docs wholesale, just keep them accurate and current."
+  }
+}

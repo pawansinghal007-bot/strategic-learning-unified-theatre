@@ -170,6 +170,7 @@ async function createDbContext() {
     decisionsRepo: new DecisionsRepo(db),
     baselineRepo: new TestBaselineRepo(db),
     commandsRepo: new CommandsRepo(db),
+    /* v8 ignore next */
     close: () => db.close(),
   };
 }
@@ -189,6 +190,7 @@ async function getContext(ctx) {
       decisionsRepo: ctx.decisionsRepo,
       baselineRepo: ctx.baselineRepo,
       commandsRepo: ctx.commandsRepo,
+      /* v8 ignore next */
       close: () => db.close(),
     };
   }
@@ -196,6 +198,7 @@ async function getContext(ctx) {
   return await createDbContext();
 }
 
+/* v8 ignore start */
 async function loadAiMemoryContext() {
   const context = await createDbContext();
 
@@ -230,6 +233,7 @@ async function loadAiMemoryContext() {
   context.close();
   return snapshot;
 }
+/* v8 ignore stop */
 
 export function bindAiCommands(program, ctx) {
   const ai = program

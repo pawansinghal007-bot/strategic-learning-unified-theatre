@@ -29,11 +29,22 @@ vi.mock("ora", () => ({
 // conditions since it swallows malformed-manifest errors internally).
 vi.mock("../src/agent-handoff.js", async () => {
   const actual = await vi.importActual("../src/agent-handoff.js");
-  return { ...actual, listSprints: vi.fn(actual.listSprints) };
+  return {
+    ...actual,
+    createSprint: vi.fn(actual.createSprint),
+    loadSprint: vi.fn(actual.loadSprint),
+    closeSprint: vi.fn(actual.closeSprint),
+    listSprints: vi.fn(actual.listSprints),
+  };
 });
 
 import { bindHandoffCommands } from "../src/commands/handoff.js";
-import { createSprint, listSprints } from "../src/agent-handoff.js";
+import {
+  createSprint,
+  loadSprint,
+  closeSprint,
+  listSprints,
+} from "../src/agent-handoff.js";
 
 // Helper: fresh program per call — commander cannot be reused across parseAsync calls
 function makeProgram() {
@@ -383,5 +394,192 @@ describe("handoff CLI commands", () => {
       expect(process.exitCode).toBe(1);
       expect(errorText()).toContain("listSprints exploded");
     });
+  });
+});
+
+
+// ─── Branch coverage for err?.message ?? err (non-Error throws) ──────────────
+//
+// The catch blocks in every handoff action contain:
+//   console.error(chalk.red(String(err?.message ?? err)))
+// The ?? operator has two branches:
+//   • branch 0 (covered): err has a .message property  → use err.message
+//   • branch 1 (uncovered): err?.message is undefined  → use err itself
+// We cover branch 1 by forcing a throw of a non-Error value (plain string or
+// plain object without .message). The top-level vi.mock wraps listSprints as a
+// vi.fn so we can call mockRejectedValueOnce on it. For the other commands we
+// supply an invalid sprintId whose shape causes the real loadSprint to throw
+// a DomainError — but we need it to throw a plain non-Error. The cleanest
+// approach is to inject via the already-mocked agent-handoff module.
+
+describe("err?.message ?? err branch (non-Error throws) — handoff commands", () => {
+  let tempDir;
+  let originalHome;
+  let errorSpy;
+
+  beforeEach(async () => {
+    tempDir = await fs.mkdtemp(
+      path.join(os.tmpdir(), "handoff-branch-test-"),
+    );
+    originalHome = process.env.HOME;
+    process.env.HOME = tempDir;
+    process.exitCode = undefined;
+    // Reset any queued mock return values from other describe blocks so that
+    // this suite's mockRejectedValueOnce calls are the first ones consumed.
+    vi.clearAllMocks();
+    errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "table").mockImplementation(() => {});
+    vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+  });
+
+  afterEach(async () => {
+    if (originalHome == null) delete process.env.HOME;
+    else process.env.HOME = originalHome;
+    vi.restoreAllMocks();
+    await fs.rm(tempDir, { recursive: true, force: true });
+  });
+
+  it("create — logs the raw thrown value when error has no .message (line 113)", async () => {
+    createSprint.mockRejectedValueOnce({ code: "NO_MESSAGE_ERR" });
+
+    await makeProgram().parseAsync([
+      "node",
+      "cli",
+      "handoff",
+      "create",
+      "--goal",
+      "test",
+    ]);
+
+    expect(process.exitCode).toBe(1);
+    // String({ code: "NO_MESSAGE_ERR" }) → "[object Object]"
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.stringMatching(/\[object Object\]/),
+    );
+  });
+
+  it("update — logs the raw thrown value when error has no .message (line 172)", async () => {
+    loadSprint.mockRejectedValueOnce("raw string error");
+
+    await makeProgram().parseAsync([
+      "node",
+      "cli",
+      "handoff",
+      "update",
+      "fake-sprint-id",
+    ]);
+
+    expect(process.exitCode).toBe(1);
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.stringContaining("raw string error"),
+    );
+  });
+
+  it("close — logs the raw thrown value when error has no .message (line 196)", async () => {
+    // The close action calls closeSprint directly — it does NOT call loadSprint.
+    // So we only need to mock closeSprint.
+    closeSprint.mockRejectedValueOnce("close failed raw");
+
+    await makeProgram().parseAsync([
+      "node",
+      "cli",
+      "handoff",
+      "close",
+      "any-sprint-id",
+      "--status",
+      "complete",
+    ]);
+
+    expect(process.exitCode).toBe(1);
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.stringContaining("close failed raw"),
+    );
+  });
+
+  it("resume — logs the raw thrown value when error has no .message (line 212)", async () => {
+    loadSprint.mockRejectedValueOnce("resume failed raw");
+
+    await makeProgram().parseAsync([
+      "node",
+      "cli",
+      "handoff",
+      "resume",
+      "fake-sprint-id",
+    ]);
+
+    expect(process.exitCode).toBe(1);
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.stringContaining("resume failed raw"),
+    );
+  });
+
+  it("list — logs the raw thrown value when error has no .message (line 239)", async () => {
+    listSprints.mockRejectedValueOnce("list failed raw");
+
+    await makeProgram().parseAsync(["node", "cli", "handoff", "list"]);
+
+    expect(process.exitCode).toBe(1);
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.stringContaining("list failed raw"),
+    );
+  });
+});
+
+// ─── truncate: falsy value branch (line 58) ───────────────────────────────────
+//
+// The || branch in `const text = String(value || "")` is only hit when
+// sprint.goal is a falsy value (null, undefined, empty string, 0). We force
+// that by returning a sprint with goal: null from listSprints.
+
+describe("truncate: falsy goal branch (line 58)", () => {
+  let tempDir;
+  let originalHome;
+
+  beforeEach(async () => {
+    tempDir = await fs.mkdtemp(
+      path.join(os.tmpdir(), "handoff-truncate-test-"),
+    );
+    originalHome = process.env.HOME;
+    process.env.HOME = tempDir;
+    process.exitCode = undefined;
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "table").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+  });
+
+  afterEach(async () => {
+    if (originalHome == null) delete process.env.HOME;
+    else process.env.HOME = originalHome;
+    vi.restoreAllMocks();
+    await fs.rm(tempDir, { recursive: true, force: true });
+  });
+
+  it("handles a sprint with a null goal without throwing (hits value || '' path)", async () => {
+    listSprints.mockResolvedValueOnce([
+      {
+        sprintId: "sprint-null-goal",
+        date: "2026-07-01T00:00:00.000Z",
+        agent: "claude",
+        model: "claude-4",
+        goal: null, // falsy — exercises the `|| ""` branch in truncate
+        status: "active",
+        tokensUsed: 0,
+        tokensLimit: 100,
+      },
+    ]);
+
+    const tableSpy = vi.spyOn(console, "table").mockImplementation(() => {});
+
+    await makeProgram().parseAsync(["node", "cli", "handoff", "list"]);
+
+    expect(process.exitCode).toBeUndefined();
+    expect(tableSpy).toHaveBeenCalledOnce();
+    const rows = tableSpy.mock.calls[0][0];
+    // null goal → truncate(null, 30) → String(null || "") = "" → returns ""
+    expect(rows[0].goal).toBe("");
   });
 });

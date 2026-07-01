@@ -363,9 +363,10 @@ describe("Browser Bridge — coverage additions 2", () => {
         timestamp: "t",
       });
 
-      await expect(
-        comparePrompts({ prompt: "hi", platforms: ["chatgpt"], dryRun: false }),
-      ).resolves.toMatchObject({ prompt: "hi" });
+      const result = await comparePrompts({ prompt: "hi", platforms: ["chatgpt"], dryRun: false });
+      expect(result).toMatchObject({ prompt: "hi" });
+      // Verify that the function properly handled malformed JSON by checking that it didn't throw
+      expect(result.prompt).toBe("hi");
     });
   });
 
@@ -401,11 +402,14 @@ describe("Browser Bridge — coverage additions 2", () => {
         return realSetTimeout(cb, 0);
       });
 
-      await comparePrompts({
+      const result = await comparePrompts({
         prompt: "hi",
         platforms: ["chatgpt"],
         dryRun: false,
       });
+      // sendPrompt was called (delay branch executed) and result carries the platform response
+      expect(result.prompt).toBe("hi");
+      expect(result.platforms).toContain("chatgpt");
     });
   });
 

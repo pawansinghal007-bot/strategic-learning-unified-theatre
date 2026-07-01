@@ -56,6 +56,8 @@ function parseJwtExp(token) {
 
 function parseExpiresAt(value) {
   if (!value) return null;
+  /* istanbul ignore next -- defensive guard: callers pass values from
+     JSON.parse which never produces Date instances */
   if (value instanceof Date) return value;
   if (typeof value === "number") return new Date(value);
   if (typeof value === "string") {
@@ -216,6 +218,8 @@ async function readPid(pidPath) {
 }
 
 function isPidAlive(pid) {
+  /* istanbul ignore next -- defensive guard: readPid() already returns null
+     for non-positive values so pid <= 0 is unreachable via computeDaemonHealth */
   if (!Number.isInteger(pid) || pid <= 0) return false;
   try {
     process.kill(pid, 0);

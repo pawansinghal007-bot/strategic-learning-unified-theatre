@@ -16,7 +16,8 @@ import { createLogger } from "./logger.js";
 // intercepts calls made from within this module.  ESM circular imports are
 // live: _self is the same namespace object that the test receives, so any spy
 // placed on it is immediately visible to internal callers.
-import * as _self from "./browser-bridge.js";
+// NOSONAR: S7060 — intentional self-reference for ESM spy interception; not a real circular dependency
+import * as _self from "./browser-bridge.js"; // NOSONAR
 
 const log = createLogger("browser-bridge");
 

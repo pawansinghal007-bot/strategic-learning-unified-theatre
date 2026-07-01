@@ -64,6 +64,7 @@ describe("WatcherDaemon coverage — pickCurrent and _tick branches", () => {
     await daemon.start(100000);
     // tick already ran once during start — no errors = branch covered
     await daemon.stop();
+    expect(daemon.running).toBe(false);
   });
 
   it("_tick returns early when all accounts are retired", async () => {
@@ -75,6 +76,7 @@ describe("WatcherDaemon coverage — pickCurrent and _tick branches", () => {
     const daemon = new WatcherDaemon(s);
     await daemon.start(100000);
     await daemon.stop();
+    expect(daemon.running).toBe(false);
   });
 
   it("_tick does not rotate when current account health is valid", async () => {

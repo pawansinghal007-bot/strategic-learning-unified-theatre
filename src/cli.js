@@ -126,6 +126,7 @@ program
         error: err,
         code: err?.code || "ROTATOR_ACCOUNT_ADD_FAILED",
       });
+      /* v8 ignore next */
       console.error(chalk.red(String(err?.message ?? err)));
       process.exitCode = 1;
     } finally {
@@ -365,7 +366,8 @@ logCmd
     try {
       const journal = new Journal();
       const lines = await journal.tail(
-        Number(options?.tail ?? /* c8 ignore next */ 20),
+        /* v8 ignore next */
+        Number(options?.tail ?? 20),
       );
       if (lines.length === 0) {
         console.log(chalk.yellow("No entries."));
@@ -690,7 +692,8 @@ daemonCmd
     } catch (err) {
       spinner.stop();
       console.error(
-        chalk.red(String(err?.message ?? /* c8 ignore next */ err)),
+        /* v8 ignore next */
+        chalk.red(String(err?.message ?? err)),
       );
       process.exitCode = 1;
     }

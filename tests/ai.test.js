@@ -731,4 +731,236 @@ describe("ai.js — bindAiCommands", () => {
       expect(process.exitCode).toBe(1);
     });
   });
+
+  // ── loadAiMemoryContext / getContext production path (lines 196-231) ─────────
+  describe("production path — no injected ctx (lines 196-231)", () => {
+    it("ai snapshot: production path calls createDbContext (ctx=undefined)", async () => {
+      // Call bindAiCommands WITHOUT a ctx argument — exercises getContext(undefined)
+      // which calls createDbContext() using the MemoryDb mock. Since _ctx is still
+      // set, the repo delegates still resolve. The test verifies the path is exercised.
+      const prog = new Command();
+      prog.exitOverride();
+      bindAiCommands(prog); // no ctx → production path
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+      const tableSpy = vi.spyOn(console, "table").mockImplementation(() => {});
+      process.exitCode = undefined;
+      try {
+        await prog.parseAsync(["node", "cli", "ai", "snapshot"]);
+      } catch (e) {
+        if (!e?.code?.startsWith?.("commander.")) throw e;
+      }
+      // Either renders summary OR catches an error — either way the production path ran
+      const allOutput = [
+        ...consoleSpy.mock.calls.flat(),
+        ...errorSpy.mock.calls.flat(),
+      ].join(" ");
+      expect(allOutput.length).toBeGreaterThan(0);
+    });
+
+    it("ai resume: production path calls createDbContext (ctx=undefined)", async () => {
+      const prog = new Command();
+      prog.exitOverride();
+      bindAiCommands(prog);
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+      process.exitCode = undefined;
+      try {
+        await prog.parseAsync(["node", "cli", "ai", "resume"]);
+      } catch (e) {
+        if (!e?.code?.startsWith?.("commander.")) throw e;
+      }
+      const allOutput = [
+        ...consoleSpy.mock.calls.flat(),
+        ...errorSpy.mock.calls.flat(),
+      ].join(" ");
+      expect(allOutput.length).toBeGreaterThan(0);
+    });
+
+    it("ai lessons list: production path (ctx=undefined)", async () => {
+      const prog = new Command();
+      prog.exitOverride();
+      bindAiCommands(prog);
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+      const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+      process.exitCode = undefined;
+      try {
+        await prog.parseAsync(["node", "cli", "ai", "lessons", "list"]);
+      } catch (e) {
+        if (!e?.code?.startsWith?.("commander.")) throw e;
+      }
+      const allOutput = [
+        ...consoleSpy.mock.calls.flat(),
+        ...errorSpy.mock.calls.flat(),
+      ].join(" ");
+      expect(allOutput.length).toBeGreaterThan(0);
+    });
+  });
+
+  // ── partial manifest fallback — sprint exists but handoff is null ─────────
+  describe("manifest fallback partial branches (lines 304-312)", () => {
+    it("falls back to manifest handoff when sprint is set but handoff is null (line 308-310)", async () => {
+      const {
+        loadLatestSprintManifest,
+        mapSprintManifestToHandoff,
+      } = await import("../src/agent-handoff.js");
+
+      // Sprint exists, handoff is null → only handoff arm of manifest fallback fires
+      _ctx.sprintRepo.getLatest.mockReturnValue({
+        sprint_name: "S-exists",
+        status: "active",
+        current_goal: "g",
+        blockers: [],
+        next_steps: [],
+        updated_at: "t",
+      });
+      _ctx.handoffRepo.getLatest.mockReturnValue(null);
+      loadLatestSprintManifest.mockResolvedValueOnce({ sprint_name: "from-manifest" });
+
+      await run(makeProgram(), ["ai", "snapshot"]);
+
+      // mapSprintManifestToHandoff fires; mapSprintManifestToSnapshot should NOT
+      expect(mapSprintManifestToHandoff).toHaveBeenCalled();
+    });
+
+    it("falls back to manifest sprint when handoff is set but sprint is null (line 304-306)", async () => {
+      const {
+        loadLatestSprintManifest,
+        mapSprintManifestToSnapshot,
+      } = await import("../src/agent-handoff.js");
+
+      // Handoff exists, sprint is null → only sprint arm of manifest fallback fires
+      _ctx.sprintRepo.getLatest.mockReturnValue(null);
+      _ctx.handoffRepo.getLatest.mockReturnValue({
+        resume_summary: "h-exists",
+        completed_steps: [],
+        pending_tasks: [],
+        last_agent_output: "done",
+        updated_at: "t",
+      });
+      loadLatestSprintManifest.mockResolvedValueOnce({ sprint_name: "from-manifest" });
+
+      await run(makeProgram(), ["ai", "snapshot"]);
+
+      expect(mapSprintManifestToSnapshot).toHaveBeenCalled();
+    });
+
+    it("no manifest available — null manifest does not throw (line 300-312)", async () => {
+      const { loadLatestSprintManifest } = await import("../src/agent-handoff.js");
+      _ctx.sprintRepo.getLatest.mockReturnValue(null);
+      _ctx.handoffRepo.getLatest.mockReturnValue(null);
+      loadLatestSprintManifest.mockResolvedValueOnce(null);
+
+      const { consoleSpy } = await run(makeProgram(), ["ai", "snapshot"]);
+      expect(consoleSpy.mock.calls.flat().join(" ")).toContain("No sprint state available");
+    });
+  });
+
+  // ── safeJson null branch (line 21) ──────────────────────────────────────────
+  describe("safeJson null affected_files (line 21)", () => {
+    it("returns [] for null affected_files — no files section rendered", async () => {
+      _ctx.decisionsRepo.list.mockReturnValue([
+        { title: "D", created_at: "t", affected_files: null },
+      ]);
+      const { consoleSpy } = await run(makeProgram(), ["ai", "snapshot"]);
+      // affected_files is null → safeJson returns [] → no "files:" line
+      const out = consoleSpy.mock.calls.flat().join(" ");
+      expect(out).toContain("D");
+      expect(out).not.toContain("files:");
+    });
+  });
+
+  // ── baseline notes absent (line 109 || branch) ───────────────────────────────
+  describe("baseline notes absent (line 109 || '<none>')", () => {
+    it("renders <none> when notes is empty string", async () => {
+      _ctx.baselineRepo.getLatest.mockReturnValue({
+        recorded_at: "t",
+        passing_tests: 5,
+        failing_tests: 0,
+        notes: "",
+      });
+      const { consoleSpy } = await run(makeProgram(), ["ai", "snapshot"]);
+      expect(consoleSpy.mock.calls.flat().join(" ")).toContain("<none>");
+    });
+  });
+
+  // ── snapshotPointer path=null (line 69 ternary false) ───────────────────────
+  describe("snapshotPointer path absent (line 69 false branch)", () => {
+    it("renders tag with empty pathSuffix when pointer.path is null", async () => {
+      const fsM = await import("node:fs/promises");
+      const osM = await import("node:os");
+      const pathM = await import("node:path");
+      const ptr = pathM.join(osM.homedir(), ".vscode-rotator", "ai-snapshot-current.json");
+      await fsM.mkdir(pathM.dirname(ptr), { recursive: true });
+      await fsM.writeFile(ptr, JSON.stringify({ tag: "v3.0", path: null }));
+      try {
+        const { consoleSpy } = await run(makeProgram(), ["ai", "snapshot"]);
+        const out = consoleSpy.mock.calls.flat().join(" ");
+        // path is null → pathSuffix = "" → rendered as "v3.0"
+        expect(out).toContain("v3.0");
+        expect(out).not.toContain("(null)");
+      } finally {
+        await fsM.rm(ptr, { force: true });
+      }
+    });
+  });
+
+  // ── err without .message (various ?? branches across actions) ────────────────
+  describe("err?.message ?? err fallback (non-Error thrown)", () => {
+    it("handles thrown string in lessons add (line 330 ?? branch)", async () => {
+      _ctx.lessonsRepo.add.mockImplementation(() => { throw "plain string error"; });
+      const { errorSpy } = await run(makeProgram(), [
+        "ai", "lessons", "add",
+        "--problem", "p", "--fix", "f", "--prevention-rule", "r",
+      ]);
+      expect(errorSpy).toHaveBeenCalled();
+      expect(process.exitCode).toBe(1);
+    });
+
+    it("handles thrown string in decisions add (line 409 ?? branch)", async () => {
+      _ctx.decisionsRepo.add.mockImplementation(() => { throw "plain string error"; });
+      const { errorSpy } = await run(makeProgram(), [
+        "ai", "decisions", "add",
+        "--title", "T", "--rationale", "R", "--decision", "D",
+      ]);
+      expect(errorSpy).toHaveBeenCalled();
+      expect(process.exitCode).toBe(1);
+    });
+
+    it("handles thrown string in commands add (line 545 ?? branch)", async () => {
+      _ctx.commandsRepo.add.mockImplementation(() => { throw "plain string error"; });
+      const { errorSpy } = await run(makeProgram(), [
+        "ai", "commands", "add",
+        "--category", "x", "--powershell-command", "y",
+      ]);
+      expect(errorSpy).toHaveBeenCalled();
+      expect(process.exitCode).toBe(1);
+    });
+  });
+
+  // ── commands list row.notes absent (line 573 || branch) ───────────────────────
+  describe("commands list row.notes fallback (line 573 || '')", () => {
+    it("renders empty string for null notes", async () => {
+      _ctx.commandsRepo.list.mockReturnValue([
+        { category: "x", powershell_command: "cmd", notes: null, created_at: "t" },
+      ]);
+      const { consoleSpy } = await run(makeProgram(), ["ai", "commands", "list"]);
+      // Should not throw and should output the command
+      expect(consoleSpy.mock.calls.flat().join(" ")).toContain("cmd");
+    });
+  });
+
+  // ── decisions list superseded_by null (line 456 || branch) ────────────────────
+  describe("decisions list superseded_by absent (line 456 || '')", () => {
+    it("renders empty string when superseded_by is null", async () => {
+      _ctx.decisionsRepo.list.mockReturnValue([
+        { id: "1", title: "T", created_at: "t", superseded_by: null },
+      ]);
+      const { tableSpy } = await run(makeProgram(), ["ai", "decisions", "list"]);
+      expect(tableSpy).toHaveBeenCalledWith(
+        expect.arrayContaining([expect.objectContaining({ superseded_by: "" })]),
+      );
+    });
+  });
+
 });

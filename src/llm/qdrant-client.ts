@@ -10,7 +10,7 @@ export async function ensureKnowledgeCollection(): Promise<void> {
   const res = await fetch(`${QDRANT_URL}/collections/${KNOWLEDGE_COLLECTION}`);
   if (res.ok) return;
   const body = await res.json().catch(() => ({}));
-  if ((body as any)?.status?.error?.includes("doesn't exist") === false && res.status !== 404) return;
+  if ((body as { status?: { error?: string } })?.status?.error?.includes("doesn't exist") === false && res.status !== 404) return;
   await fetch(`${QDRANT_URL}/collections/${KNOWLEDGE_COLLECTION}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },

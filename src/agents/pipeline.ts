@@ -13,6 +13,80 @@ export interface Pipeline {
   steps: PipelineStep[];
 }
 
+// ─── private helpers ─────────────────────────────────────────────────────────
+
+/** Try to parse an input-schema string as JSON; fall back to empty object. */
+function parseInputSchemaJson(raw: string): Record<string, string> {
+  try {
+    return JSON.parse(raw) as Record<string, string>;
+  } catch (e) {
+    /* istanbul ignore next -- defensive guard: JSON.parse only ever throws
+       SyntaxError, so this re-throw branch is unreachable in practice */
+    if (!(e instanceof SyntaxError)) throw e;
+    // Non-JSON schema strings are treated as an empty schema
+    return {};
+  }
+}
+
+/**
+ * Collects indented prompt lines starting at `startIndex` in `lines`,
+ * stopping at the next section header or a non-indented non-blank line.
+ * Returns `{ promptTemplate, nextIndex }`.
+ */
+function collectPromptLines(
+  lines: string[],
+  startIndex: number,
+): { promptTemplate: string; nextIndex: number } {
+  const promptLines: string[] = [];
+  let i = startIndex;
+  while (
+    i < lines.length &&
+    !lines[i].startsWith("## Step ") &&
+    !lines[i].startsWith("Input: ")
+  ) {
+    if (lines[i].trim() === "" || lines[i].startsWith("  ")) {
+      promptLines.push(lines[i]);
+      i++;
+    } else {
+      break;
+    }
+  }
+  return { promptTemplate: promptLines.join("\n").trim(), nextIndex: i };
+}
+
+/**
+ * Applies a single line's property to the current step being built.
+ * Returns the updated index (may advance past a prompt block).
+ */
+function applyStepProperty(
+  line: string,
+  lineIndex: number,
+  lines: string[],
+  step: Partial<PipelineStep>,
+): number {
+  if (line.startsWith("agent: ")) {
+    step.agentName = line.substring(7).trim();
+  } else if (line.startsWith("maxIterations: ")) {
+    const iterations = Number.parseInt(line.substring(15).trim(), 10);
+    if (!Number.isNaN(iterations)) {
+      step.maxIterations = iterations;
+    }
+  } else if (line.startsWith("doneMarker: ")) {
+    step.doneMarker = line.substring(12).trim();
+  } else if (line === "prompt: |") {
+    const { promptTemplate, nextIndex } = collectPromptLines(
+      lines,
+      lineIndex + 1,
+    );
+    step.promptTemplate = promptTemplate;
+    // Return nextIndex - 1 because the outer loop will do i++ after this call
+    return nextIndex - 1;
+  }
+  return lineIndex;
+}
+
+// ─── public API ──────────────────────────────────────────────────────────────
+
 /**
  * Parses a pipeline markdown file into a structured Pipeline object.
  *
@@ -22,19 +96,13 @@ export interface Pipeline {
  * @throws If the markdown format is invalid
  */
 export function parsePipeline(commandName: string, markdown: string): Pipeline {
-  // Split markdown into lines
   const lines = markdown.split("\n");
 
-  // Find command name and input schema
-  let commandNameLine = lines.find((line) => line.startsWith("# "));
+  // Validate and extract command-name header
+  const commandNameLine = lines.find((line) => line.startsWith("# "))?.trim();
   if (!commandNameLine) {
     throw new Error("Missing command name in pipeline definition");
   }
-  commandNameLine = commandNameLine.trim();
-  if (!commandNameLine.startsWith("# ")) {
-    throw new Error("Invalid command name format");
-  }
-
   const commandNameFromHeader = commandNameLine.substring(2).trim();
   if (commandNameFromHeader !== commandName) {
     throw new Error(
@@ -42,158 +110,54 @@ export function parsePipeline(commandName: string, markdown: string): Pipeline {
     );
   }
 
-  // Find input schema
-  let inputSchemaLine = lines.find((line) => line.startsWith("Input: "));
+  // Extract and parse input schema
+  const inputSchemaLine = lines
+    .find((line) => line.startsWith("Input: "))
+    ?.trim();
   if (!inputSchemaLine) {
     throw new Error("Missing input schema in pipeline definition");
   }
-  inputSchemaLine = inputSchemaLine.trim();
-  if (!inputSchemaLine.startsWith("Input: ")) {
-    throw new Error("Invalid input schema format");
-  }
-
-  const inputSchemaStr = inputSchemaLine.substring(7).trim();
-  let inputSchema: Record<string, string>;
-  try {
-    // Try to parse as JSON
-    inputSchema = JSON.parse(inputSchemaStr);
-  } catch (e) {
-    // If not valid JSON, treat as empty object
-    inputSchema = {};
-  }
+  const inputSchema = parseInputSchemaJson(inputSchemaLine.substring(7).trim());
 
   // Parse steps
   const steps: PipelineStep[] = [];
   let currentStep: Partial<PipelineStep> | null = null;
   let stepNumber = 1;
 
-  for (let i = 0; i < lines.length; i++) {
+  let i = 0;
+  while (i < lines.length) {
     const line = lines[i].trim();
 
-    // Check for step header
     if (line.startsWith("## Step ")) {
-      // Save previous step if exists
-      if (currentStep && currentStep.stepNumber) {
+      if (currentStep?.stepNumber) {
         steps.push(currentStep as PipelineStep);
       }
-
-      // Start new step
       currentStep = {
         stepNumber: stepNumber++,
-        stepName: line.substring(9).trim(), // Remove "## Step "
+        stepName: line.substring(9).trim(),
         agentName: "",
         promptTemplate: "",
         maxIterations: 5,
       };
-
+      i++;
       continue;
     }
 
-    // Parse step properties
-    if (currentStep && line.startsWith("agent: ")) {
-      currentStep.agentName = line.substring(7).trim();
-    } else if (currentStep && line.startsWith("maxIterations: ")) {
-      const iterations = parseInt(line.substring(13).trim(), 10);
-      if (!isNaN(iterations)) {
-        currentStep.maxIterations = iterations;
-      }
-    } else if (currentStep && line.startsWith("doneMarker: ")) {
-      currentStep.doneMarker = line.substring(10).trim();
-    } else if (currentStep && line === "prompt: |") {
-      // Collect the prompt content (next lines until next section or end)
-      let promptLines: string[] = [];
-      i++; // Skip the "prompt: |" line
-      while (
-        i < lines.length &&
-        !lines[i].startsWith("## Step ") &&
-        !lines[i].startsWith("Input: ")
-      ) {
-        // Check if we have a line that starts with spaces (indicating continuation)
-        if (lines[i].trim() === "" || lines[i].startsWith("  ")) {
-          promptLines.push(lines[i]);
-          i++;
-        } else {
-          break;
-        }
-      }
-      // Join the prompt lines, removing the first line (which was just "prompt: |")
-      currentStep.promptTemplate = promptLines.join("\n").trim();
+    if (currentStep) {
+      i = applyStepProperty(line, i, lines, currentStep);
     }
+    i++;
   }
 
-  // Save the last step
-  if (currentStep && currentStep.stepNumber) {
+  if (currentStep?.stepNumber) {
     steps.push(currentStep as PipelineStep);
   }
 
-  // Validate that we have at least one step
   if (steps.length === 0) {
     throw new Error("No steps found in pipeline definition");
   }
 
-  return {
-    commandName,
-    inputSchema,
-    steps,
-  };
-}
-
-/**
- * Parses input schema from a line like: { fieldName: type, ... }
- */
-function parseInputSchema(
-  content: string,
-  schema: Record<string, string>,
-): void {
-  // Remove braces and split by comma
-  const cleaned = content.replace(/^\{|\}$/g, "").trim();
-  if (!cleaned) return;
-
-  // Simple parsing - split by comma and extract key-value pairs
-  const pairs = cleaned.split(",");
-  for (const pair of pairs) {
-    const [key, value] = pair.split(":").map((s) => s.trim());
-    if (key && value) {
-      schema[key] = value;
-    }
-  }
-}
-
-/**
- * Validates the parsed pipeline structure.
- */
-function validatePipeline(pipeline: Pipeline): void {
-  if (!pipeline.commandName) {
-    throw new Error("Pipeline must have a command name");
-  }
-
-  if (pipeline.steps.length === 0) {
-    throw new Error(
-      `Pipeline '${pipeline.commandName}' must have at least one step`,
-    );
-  }
-
-  for (let i = 0; i < pipeline.steps.length; i++) {
-    const step = pipeline.steps[i];
-
-    if (!step.agentName) {
-      throw new Error(
-        `Step ${step.stepNumber} in pipeline '${pipeline.commandName}' must specify an agent`,
-      );
-    }
-
-    if (!step.promptTemplate) {
-      throw new Error(
-        `Step ${step.stepNumber} in pipeline '${pipeline.commandName}' must have a prompt`,
-      );
-    }
-
-    if (step.stepNumber !== i + 1) {
-      throw new Error(
-        `Step numbers in pipeline '${pipeline.commandName}' must be sequential, found step ${step.stepNumber} at index ${i}`,
-      );
-    }
-  }
+  return { commandName, inputSchema, steps };
 }
 
 /**
@@ -209,10 +173,6 @@ export function interpolate(
   vars: Record<string, string>,
 ): string {
   return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
-    if (key in vars) {
-      return vars[key];
-    }
-    // Leave unknown keys as-is
-    return match;
+    return key in vars ? vars[key] : match;
   });
 }

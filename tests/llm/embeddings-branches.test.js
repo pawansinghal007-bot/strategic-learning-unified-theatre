@@ -1,0 +1,174 @@
+/**
+ * embeddings-branches.test.js
+ *
+ * Targets remaining branch gaps in src/llm/embeddings.js:
+ *   Line 188 — updateCentroids: empty-cluster reassignment (counts[j] === 0)
+ *   Line 245 — cosineSimilarity: individual null element coercion via Number(a[i] ?? 0)
+ *
+ * The existing embeddings-coverage.test.js already covers most paths.
+ * These tests focus on the specific branches that remain uncovered.
+ */
+
+import { describe, it, expect } from "vitest";
+import {
+  kMeans,
+  cosineSimilarity,
+  encodeEmbedding,
+  decodeEmbedding,
+  EMBEDDING_DIMENSIONS,
+  EmbeddingProvider,
+} from "../../src/llm/embeddings.js";
+
+// ── updateCentroids empty-cluster branch (line 188) ────────────────────────
+
+describe("kMeans updateCentroids — empty cluster reassignment (line 188)", () => {
+  it("reassigns empty cluster centroid when k > distinct clusters after first assignment", () => {
+    // Force empty cluster: use 3 identical vectors with k=2.
+    // After first assignment all 3 go to the same centroid, leaving one cluster empty.
+    // updateCentroids must handle counts[j] === 0 by picking a random vector.
+    const same = Array.from({ length: 3 }, () => [1, 0, 0]);
+    const result = kMeans(same, 2);
+    // Should produce 2 cluster entries (Math.min(k, n) = 2)
+    expect(result.clusters).toHaveLength(2);
+    const allIndices = result.clusters.flatMap((c) => c.indices);
+    // All 3 indices should be accounted for
+    expect(allIndices.sort((a, b) => a - b)).toEqual([0, 1, 2]);
+  });
+
+  it("handles k equal to n (each vector gets its own cluster)", () => {
+    const vectors = [
+      [1, 0, 0, 0],
+      [0, 1, 0, 0],
+      [0, 0, 1, 0],
+    ];
+    const result = kMeans(vectors, 3);
+    expect(result.clusters).toHaveLength(3);
+    // Each cluster should have exactly 1 vector
+    for (const cluster of result.clusters) {
+      expect(cluster.indices).toHaveLength(1);
+    }
+  });
+
+  it("converges when k=1 (all vectors in one cluster)", () => {
+    const vectors = [[1, 0], [0, 1], [1, 1]];
+    const result = kMeans(vectors, 1);
+    expect(result.clusters).toHaveLength(1);
+    expect(result.clusters[0].indices).toHaveLength(3);
+  });
+
+  it("handles Float32Array inputs directly", () => {
+    const vectors = [
+      new Float32Array([1, 0, 0]),
+      new Float32Array([0, 1, 0]),
+      new Float32Array([0, 0, 1]),
+    ];
+    const result = kMeans(vectors, 2, 20);
+    expect(result.clusters).toHaveLength(2);
+  });
+
+  it("runs to maxIter without crashing when assignments never stabilise", () => {
+    // Use random-like vectors to exercise the full iteration loop
+    const vectors = Array.from({ length: 10 }, (_, i) =>
+      Array.from({ length: 4 }, (__, j) => (i + j) % 3 === 0 ? 1 : 0),
+    );
+    const result = kMeans(vectors, 3, 3); // only 3 iterations
+    expect(result.clusters.length).toBeGreaterThan(0);
+  });
+});
+
+// ── cosineSimilarity null element coercion (line 245) ─────────────────────
+
+describe("cosineSimilarity — null element coercion (line 245)", () => {
+  it("treats null elements as 0 via Number(a[i] ?? 0)", () => {
+    // Arrays with null elements — coerced to 0
+    const a = [1, null, 0];
+    const b = [1, 0, 0];
+    // null → 0, so effectively [1,0,0] · [1,0,0] = 1
+    const sim = cosineSimilarity(a, b);
+    expect(sim).toBeCloseTo(1, 5);
+  });
+
+  it("treats undefined elements as 0", () => {
+    const a = [undefined, 1, 0];
+    const b = [0, 1, 0];
+    const sim = cosineSimilarity(a, b);
+    expect(sim).toBeCloseTo(1, 5);
+  });
+
+  it("returns 0 when both vectors are all-null (norms are 0)", () => {
+    const a = [null, null, null];
+    const b = [null, null, null];
+    expect(cosineSimilarity(a, b)).toBe(0);
+  });
+
+  it("handles mixed null and numeric values correctly", () => {
+    const a = [1, null, 1];
+    const b = [1, 0, 1];
+    // [1,0,1] · [1,0,1] = 2, ||[1,0,1]|| = sqrt(2)
+    const sim = cosineSimilarity(a, b);
+    expect(sim).toBeCloseTo(1, 5);
+  });
+
+  it("handles a.length !== b.length guard (returns 0)", () => {
+    expect(cosineSimilarity([1, 2], [1, 2, 3])).toBe(0);
+  });
+
+  it("handles empty arrays (returns 0 — an guard fires first)", () => {
+    // length 0 but identical lengths — dot=0, an=0, bn=0 → returns 0
+    expect(cosineSimilarity([], [])).toBe(0);
+  });
+});
+
+// ── decodeEmbedding — base64 round-trip ────────────────────────────────────
+
+describe("encodeEmbedding / decodeEmbedding round-trip", () => {
+  it("round-trips a full-dimension float vector", () => {
+    const original = Array.from({ length: EMBEDDING_DIMENSIONS }, (_, i) => i / EMBEDDING_DIMENSIONS);
+    const encoded = encodeEmbedding(original);
+    const decoded = decodeEmbedding(encoded);
+    expect(decoded).toHaveLength(EMBEDDING_DIMENSIONS);
+    // Values should be close (Float32 precision)
+    expect(decoded[0]).toBeCloseTo(original[0], 3);
+    expect(decoded[EMBEDDING_DIMENSIONS - 1]).toBeCloseTo(original[EMBEDDING_DIMENSIONS - 1], 3);
+  });
+
+  it("decodeEmbedding returns [] for falsy non-array", () => {
+    expect(decodeEmbedding(undefined)).toEqual([]);
+    expect(decodeEmbedding(false)).toEqual([]);
+    expect(decodeEmbedding(0)).toEqual([]);
+  });
+
+  it("decodeEmbedding returns array directly when already an array", () => {
+    const arr = [1, 2, 3];
+    expect(decodeEmbedding(arr)).toBe(arr);
+  });
+});
+
+// ── EmbeddingProvider.embedMany ────────────────────────────────────────────
+
+describe("EmbeddingProvider.embedMany — coverage", () => {
+  it("returns one vector per input (includes initialize path)", async () => {
+    process.env.VSCODE_ROTATOR_MOCK_LLM = "1";
+    try {
+      const provider = new EmbeddingProvider();
+      await provider.initialize();
+      const result = await provider.embedMany(["hello", "world", "foo"]);
+      expect(result).toHaveLength(3);
+      result.forEach((v) => expect(v).toHaveLength(EMBEDDING_DIMENSIONS));
+    } finally {
+      delete process.env.VSCODE_ROTATOR_MOCK_LLM;
+    }
+  });
+
+  it("handles empty text gracefully in embedMany", async () => {
+    process.env.VSCODE_ROTATOR_MOCK_LLM = "1";
+    try {
+      const provider = new EmbeddingProvider();
+      await provider.initialize();
+      const result = await provider.embedMany(["", "  ", "abc"]);
+      expect(result).toHaveLength(3);
+    } finally {
+      delete process.env.VSCODE_ROTATOR_MOCK_LLM;
+    }
+  });
+});

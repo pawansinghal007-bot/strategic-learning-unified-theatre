@@ -1,1 +1,13 @@
 {"timestamp":"2026-06-29T11:22:54.198Z","command":"test","taskId":"123","stepNumber":1,"stepName":"test-step","agentName":"test-agent","success":true,"durationMs":42,"outputPreview":"hello"}
+{"timestamp":"2026-06-30T21:55:30.824Z","command":"test-cmd","taskId":"task-default","stepNumber":1,"stepName":"step","agentName":"agent","success":true,"durationMs":1,"outputPreview":"ok"}
+{"timestamp":"2026-06-30T21:56:13.424Z","command":"test-cmd","taskId":"task-default","stepNumber":1,"stepName":"step","agentName":"agent","success":true,"durationMs":1,"outputPreview":"ok"}
+{"timestamp":"2026-06-30T22:09:17.835Z","command":"test-cmd","taskId":"task-default","stepNumber":1,"stepName":"step","agentName":"agent","success":true,"durationMs":1,"outputPreview":"ok"}
+{"timestamp":"2026-06-30T22:18:27.239Z","command":"test-cmd","taskId":"task-default","stepNumber":1,"stepName":"step","agentName":"agent","success":true,"durationMs":1,"outputPreview":"ok"}
+{"timestamp":"2026-06-30T22:21:25.386Z","command":"test-cmd","taskId":"task-default","stepNumber":1,"stepName":"step","agentName":"agent","success":true,"durationMs":1,"outputPreview":"ok"}
+{"timestamp":"2026-06-30T22:26:18.255Z","command":"test-cmd","taskId":"task-default","stepNumber":1,"stepName":"step","agentName":"agent","success":true,"durationMs":1,"outputPreview":"ok"}
+{"timestamp":"2026-06-30T22:27:59.155Z","command":"test-cmd","taskId":"task-default","stepNumber":1,"stepName":"step","agentName":"agent","success":true,"durationMs":1,"outputPreview":"ok"}
+{"timestamp":"2026-06-30T23:12:48.092Z","command":"test-cmd","taskId":"task-default","stepNumber":1,"stepName":"step","agentName":"agent","success":true,"durationMs":1,"outputPreview":"ok"}
+{"timestamp":"2026-06-30T23:25:37.244Z","command":"test-cmd","taskId":"task-default","stepNumber":1,"stepName":"step","agentName":"agent","success":true,"durationMs":1,"outputPreview":"ok"}
+{"timestamp":"2026-06-30T23:47:35.893Z","command":"test-cmd","taskId":"task-default","stepNumber":1,"stepName":"step","agentName":"agent","success":true,"durationMs":1,"outputPreview":"ok"}
+{"timestamp":"2026-07-01T10:29:39.239Z","command":"test-cmd","taskId":"task-default","stepNumber":1,"stepName":"step","agentName":"agent","success":true,"durationMs":1,"outputPreview":"ok"}
+{"timestamp":"2026-07-01T16:38:53.171Z","command":"test-cmd","taskId":"task-default","stepNumber":1,"stepName":"step","agentName":"agent","success":true,"durationMs":1,"outputPreview":"ok"}

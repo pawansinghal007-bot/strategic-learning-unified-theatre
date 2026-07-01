@@ -424,6 +424,21 @@ describe("exportAuditLogJson", () => {
   });
 });
 
+// ─── loadAuditStore — non-array events fallback (line 55) ────────────────────
+
+describe("loadAuditStore non-array events fallback (line 55)", () => {
+  it("treats a store whose events is not an array as empty", () => {
+    // Return a store where `events` is not an array — exercises the `[]` branch
+    readJsonFile.mockReturnValue({ events: null });
+    expect(listAuditEvents()).toHaveLength(0);
+  });
+
+  it("treats a store whose events is a plain object as empty", () => {
+    readJsonFile.mockReturnValue({ events: { notAnArray: true } });
+    expect(listAuditEvents()).toHaveLength(0);
+  });
+});
+
 // ─── exportAuditLogHtmlReport ─────────────────────────────────────────────────
 
 describe("exportAuditLogHtmlReport", () => {
@@ -484,5 +499,22 @@ describe("exportAuditLogHtmlReport", () => {
     const html = wfsHolder.calls[0][1];
     expect(html).not.toContain("<script>");
     expect(html).toContain("&lt;script&gt;");
+  });
+
+  it("renders empty string for actor type when actor has no type (line 264 ?? branch)", () => {
+    // Inject a tampered event with actor.type missing to hit the `?? ""` fallback
+    const e = appendAuditEvent({
+      action: "z",
+      actor: { type: "user" },
+      targetType: "t",
+    });
+    // Replace actor to have no type property — exercises `event.actor?.type ?? ""`
+    readJsonFile.mockReturnValue({
+      events: [{ ...e, actor: { id: "no-type" } }],
+    });
+    exportAuditLogHtmlReport();
+    const html = wfsHolder.calls[0][1];
+    // The actor-type cell should be present but empty
+    expect(html).toContain("<td></td>");
   });
 });

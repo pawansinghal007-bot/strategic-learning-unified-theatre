@@ -1,8 +1,8 @@
 import { runSubAgent } from "./sub-agent";
 import { parsePipeline, interpolate } from "./pipeline";
 import { logger } from "../shared/logging/logger";
-import * as fs from "fs";
-import * as path from "path";
+import * as fs from "node:fs";
+import * as path from "node:path";
 import { appendSessionLog, SessionLogEntry } from "./memory/session-log";
 
 const CLAUDE_DIR = path.resolve(process.cwd(), ".claude");
@@ -27,6 +27,48 @@ export interface StepSummary {
   durationMs: number;
   error?: string;
 }
+
+// ─── helpers extracted to reduce cognitive complexity ────────────────────────
+
+/** Reads the agent system-prompt file, returning the content or an error string. */
+function loadAgentPrompt(
+  agentFilePath: string,
+): { ok: true; content: string } | { ok: false; error: string } {
+  if (!fs.existsSync(agentFilePath)) {
+    return { ok: false, error: `Agent file not found: ${agentFilePath}` };
+  }
+  try {
+    return { ok: true, content: fs.readFileSync(agentFilePath, "utf-8") };
+  } catch (err) {
+    return {
+      ok: false,
+      error: `Failed to read agent file: ${err instanceof Error ? err.message : String(err)}`,
+    };
+  }
+}
+
+/** Appends a single step result to the persistent session log. */
+function logStepToSession(
+  summary: StepSummary,
+  command: string,
+  stepId: string,
+): void {
+  const entry: SessionLogEntry = {
+    timestamp: new Date().toISOString(),
+    command,
+    taskId: stepId,
+    stepNumber: summary.stepNumber,
+    stepName: summary.stepName,
+    agentName: summary.agentName,
+    success: summary.success,
+    durationMs: summary.durationMs,
+    outputPreview: summary.output.slice(0, 200),
+    error: summary.error,
+  };
+  appendSessionLog(entry);
+}
+
+// ─── main orchestrator ───────────────────────────────────────────────────────
 
 /**
  * Runs an orchestrator pipeline for a given command.
@@ -101,58 +143,28 @@ export async function runOrchestrator(
   for (const step of pipeline.steps) {
     const stepStartTime = Date.now();
     const stepId = `${command}-step-${step.stepNumber}`;
-
-    // Load agent system prompt
     const agentFilePath = path.join(AGENTS_DIR, `${step.agentName}.md`);
-    let systemPrompt: string;
 
-    if (!fs.existsSync(agentFilePath)) {
-      const error = `Agent file not found: ${agentFilePath}`;
+    const promptLoad = loadAgentPrompt(agentFilePath);
+    if (!promptLoad.ok) {
       logger.error("orchestrator.agent-not-found", {
         command,
         step: step.stepName,
         agent: step.agentName,
-        error,
+        error: promptLoad.error,
       });
-
-      stepResults.push({
+      const failedStep: StepSummary = {
         stepNumber: step.stepNumber,
         stepName: step.stepName,
         agentName: step.agentName,
         success: false,
         output: "",
         durationMs: Date.now() - stepStartTime,
-        error,
-      });
-
+        error: promptLoad.error,
+      };
+      stepResults.push(failedStep);
       overallSuccess = false;
-      finalError = error;
-      break;
-    }
-
-    try {
-      systemPrompt = fs.readFileSync(agentFilePath, "utf-8");
-    } catch (err) {
-      const error = `Failed to read agent file: ${err instanceof Error ? err.message : String(err)}`;
-      logger.error("orchestrator.agent-read-error", {
-        command,
-        step: step.stepName,
-        agent: step.agentName,
-        error,
-      });
-
-      stepResults.push({
-        stepNumber: step.stepNumber,
-        stepName: step.stepName,
-        agentName: step.agentName,
-        success: false,
-        output: "",
-        durationMs: Date.now() - stepStartTime,
-        error,
-      });
-
-      overallSuccess = false;
-      finalError = error;
+      finalError = promptLoad.error;
       break;
     }
 
@@ -164,14 +176,13 @@ export async function runOrchestrator(
     const agentResult = await runSubAgent({
       taskId: stepId,
       agentName: step.agentName,
-      systemPrompt,
+      systemPrompt: promptLoad.content,
       userPrompt: resolvedPrompt,
       workspaceId,
       maxIterations: step.maxIterations,
       doneMarker: step.doneMarker,
     });
 
-    // Record step result
     const stepSummary: StepSummary = {
       stepNumber: step.stepNumber,
       stepName: step.stepName,
@@ -190,7 +201,6 @@ export async function runOrchestrator(
     stepResults.push(stepSummary);
     lastOutput = agentResult.output;
 
-    // Log step completion
     logger.info("orchestrator.step", {
       command,
       step: step.stepName,
@@ -198,28 +208,13 @@ export async function runOrchestrator(
       agent: step.agentName,
     });
 
-    // Append to session log
-    const sessionLogEntry: SessionLogEntry = {
-      timestamp: new Date().toISOString(),
-      command,
-      taskId: stepId,
-      stepNumber: step.stepNumber,
-      stepName: step.stepName,
-      agentName: step.agentName,
-      success: agentResult.success,
-      durationMs: Date.now() - stepStartTime,
-      outputPreview: agentResult.output.slice(0, 200),
-      error: agentResult.error,
-    };
-    appendSessionLog(stepSummary);
+    logStepToSession(stepSummary, command, stepId);
 
-    // Stop on failure
     if (!agentResult.success) {
       break;
     }
   }
 
-  // Log completion
   logger.info("orchestrator.complete", {
     command,
     totalSteps: pipeline.steps.length,
@@ -227,8 +222,8 @@ export async function runOrchestrator(
     executedSteps: stepResults.length,
   });
 
-  // Append final orchestrator result to session log
-  const orchestratorSummary: SessionLogEntry = {
+  // Append final orchestrator summary to session log
+  appendSessionLog({
     timestamp: new Date().toISOString(),
     command,
     taskId: command,
@@ -239,8 +234,7 @@ export async function runOrchestrator(
     durationMs: Date.now() - startTime,
     outputPreview: lastOutput.slice(0, 200),
     error: finalError,
-  };
-  appendSessionLog(orchestratorSummary);
+  });
 
   return {
     command,

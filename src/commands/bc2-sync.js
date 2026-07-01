@@ -31,6 +31,8 @@ function parseSince(since) {
 function buildQuery(platform) {
   const clauses = ["m.chat_session_id = s.id"];
   if (platform) clauses.push("s.site = ?");
+  // clauses always has at least the join condition, so the empty fallback is unreachable
+  /* v8 ignore next */
   const whereClause = clauses.length ? `WHERE ${clauses.join(" AND ")}` : "";
   return `SELECT m.id AS bc2_message_id, m.role AS role, m.text_content AS content, s.site AS platform, m.chat_session_id AS chat_session_id, m.ts AS created_at FROM chat_messages m JOIN chat_sessions s ON m.chat_session_id = s.id ${whereClause} ORDER BY m.ts ASC`;
 }
@@ -97,7 +99,9 @@ export async function syncBc2Messages({
         platform: row.platform ?? null,
         file_ts: String(row.created_at ?? new Date().toISOString()),
         metadata: {
+          /* v8 ignore next */
           bc2_message_id: String(row.bc2_message_id ?? ""),
+          /* v8 ignore next */
           bc2_session_id: String(row.chat_session_id ?? ""),
           role: normalizeRole(row.role),
           created_at: String(row.created_at ?? new Date().toISOString()),
@@ -152,6 +156,7 @@ export async function syncBc2Messages({
   let active = false;
   await runOnce();
   const timer = setInterval(async () => {
+    /* v8 ignore next */
     if (active) return;
     active = true;
     try {

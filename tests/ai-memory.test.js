@@ -412,3 +412,388 @@ describe("AI Memory Foundation", () => {
     db.close();
   });
 });
+
+
+// ── Targeted coverage gap tests ───────────────────────────────────────────
+// Covers:
+//   commands-repo.js  lines 14-15: `created_at ?? new Date()...` and
+//                                  `category ?? "general"` right-hand sides
+//   decisions-repo.js lines 14-15: `rationale ?? ""`, `decision ?? ""`,
+//                                  `affected_files ?? []`, `superseded_by ?? null`
+//                                  right-hand sides
+//   decisions-repo.js lines 26-32: list() `affected_files` null/false branch,
+//                                  getById() not-found `null` branch,
+//                                  getById() `affected_files` null branch
+
+import fs from "node:fs/promises";
+import { CommandsRepo } from "../src/ai-memory/repositories/commands-repo.js";
+
+describe("CommandsRepo — coverage gaps (lines 14-15)", () => {
+  let tempDir;
+  let db;
+
+  beforeEach(async () => {
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "commands-repo-gap-"));
+    process.env.HOME = tempDir;
+    db = new MemoryDb();
+    await db.init();
+  });
+
+  afterEach(async () => {
+    db.close();
+    await fs.rm(tempDir, { recursive: true, force: true });
+  });
+
+  it("uses new Date().toISOString() when created_at is absent (line 14 ?? right-hand)", () => {
+    // Omit created_at → triggers `entry.created_at ?? new Date().toISOString()`
+    const repo = new CommandsRepo(db);
+    const result = repo.add({
+      powershell_command: "Get-Date",
+      // no created_at field
+    });
+    expect(result).toBeDefined();
+    expect(result.created_at).toBeTruthy();
+    // Should be a valid ISO string generated at call time
+    expect(() => new Date(result.created_at)).not.toThrow();
+  });
+
+  it("uses 'general' when category is absent (line 14 ?? right-hand)", () => {
+    // Omit category → triggers `entry.category ?? "general"`
+    const repo = new CommandsRepo(db);
+    const result = repo.add({
+      powershell_command: "Get-Process",
+      // no category field
+    });
+    expect(result.category).toBe("general");
+  });
+
+  it("uses '' when notes is absent (line 15 ?? right-hand)", () => {
+    // Omit notes → triggers `entry.notes ?? ""`
+    const repo = new CommandsRepo(db);
+    const result = repo.add({
+      powershell_command: "Get-Item",
+      category: "util",
+      // no notes field
+    });
+    expect(result.notes).toBe("");
+  });
+
+  it("uses all defaults together when only powershell_command is provided", () => {
+    const repo = new CommandsRepo(db);
+    const result = repo.add({ powershell_command: "ls" });
+    expect(result.category).toBe("general");
+    expect(result.notes).toBe("");
+    expect(result.created_at).toBeTruthy();
+  });
+});
+
+describe("DecisionsRepo — coverage gaps (lines 14-15, 26-32)", () => {
+  let tempDir;
+  let db;
+
+  beforeEach(async () => {
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "decisions-repo-gap-"));
+    process.env.HOME = tempDir;
+    db = new MemoryDb();
+    await db.init();
+  });
+
+  afterEach(async () => {
+    db.close();
+    await fs.rm(tempDir, { recursive: true, force: true });
+  });
+
+  // ── lines 14-15: ?? right-hand fallbacks in add() ────────────────────────
+
+  it("uses '' when rationale is absent (line 14 ?? right-hand)", () => {
+    const repo = new DecisionsRepo(db);
+    const result = repo.add({ title: "Use SQLite" }); // no rationale
+    expect(result.rationale).toBe("");
+  });
+
+  it("uses '' when decision is absent (line 14 ?? right-hand)", () => {
+    const repo = new DecisionsRepo(db);
+    const result = repo.add({ title: "Use SQLite", rationale: "Fast" }); // no decision
+    expect(result.decision).toBe("");
+  });
+
+  it("uses [] when affected_files is absent (line 15 ?? right-hand)", () => {
+    const repo = new DecisionsRepo(db);
+    const result = repo.add({ title: "Use Redis" }); // no affected_files
+    // affected_files stored as JSON.stringify([]) → getById parses it back
+    expect(result.affected_files).toEqual([]);
+  });
+
+  it("uses null when superseded_by is absent (line 15 ?? right-hand)", () => {
+    const repo = new DecisionsRepo(db);
+    const result = repo.add({ title: "Use Postgres" }); // no superseded_by
+    expect(result.superseded_by).toBeNull();
+  });
+
+  it("uses new Date().toISOString() when created_at is absent (line 13 ?? right-hand)", () => {
+    const repo = new DecisionsRepo(db);
+    const result = repo.add({ title: "Decision A" }); // no created_at
+    expect(result.created_at).toBeTruthy();
+    expect(() => new Date(result.created_at)).not.toThrow();
+  });
+
+  // ── lines 26-32: list() affected_files null/false branch ─────────────────
+
+  it("list() returns [] for affected_files when stored value is null (line 26-27 false branch)", () => {
+    // Insert a row with affected_files = NULL directly via raw SQL so we can
+    // test the `row.affected_files ? JSON.parse(...) : []` false branch.
+    const rawDb = db.getDb();
+    rawDb
+      .prepare(
+        `INSERT INTO architectural_decisions
+         (title, rationale, decision, affected_files, superseded_by, created_at)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+      )
+      .run("Raw insert", "", "", null, null, new Date().toISOString());
+
+    const repo = new DecisionsRepo(db);
+    const entries = repo.list();
+
+    const entry = entries.find((e) => e.title === "Raw insert");
+    expect(entry).toBeDefined();
+    // affected_files was NULL in the DB → the false branch returns []
+    expect(entry.affected_files).toEqual([]);
+  });
+
+  // ── lines 29-32: getById() branches ──────────────────────────────────────
+
+  it("getById() returns null when no row matches the given id (line 29 false branch)", () => {
+    const repo = new DecisionsRepo(db);
+    // Pass an id that doesn't exist
+    const result = repo.getById(99999);
+    expect(result).toBeNull();
+  });
+
+  it("getById() returns [] for affected_files when stored value is null (line 29-31 false branch)", () => {
+    const rawDb = db.getDb();
+    const info = rawDb
+      .prepare(
+        `INSERT INTO architectural_decisions
+         (title, rationale, decision, affected_files, superseded_by, created_at)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+      )
+      .run("Direct null", "", "", null, null, new Date().toISOString());
+
+    const repo = new DecisionsRepo(db);
+    const result = repo.getById(info.lastInsertRowid);
+
+    expect(result).not.toBeNull();
+    // affected_files is NULL in DB → getById's `row.affected_files ? ... : []` false branch
+    expect(result.affected_files).toEqual([]);
+  });
+
+  it("getById() parses affected_files JSON when present (line 29-31 true branch — companion guard)", () => {
+    const repo = new DecisionsRepo(db);
+    const added = repo.add({
+      title: "With files",
+      affected_files: ["src/a.ts", "src/b.ts"],
+    });
+
+    const fetched = repo.getById(added.id);
+    expect(fetched.affected_files).toEqual(["src/a.ts", "src/b.ts"]);
+  });
+});
+
+
+// ── Targeted coverage gap tests ───────────────────────────────────────────
+// Covers:
+//   lessons-repo.js      lines 14-15:  `fix ?? ""`, `prevention_rule ?? ""`,
+//                                      `related_files ?? []`, `created_at ?? now`
+//                                      right-hand sides
+//                        lines 25-31:  list() `related_files` null false branch,
+//                                      getById() not-found null branch,
+//                                      getById() `related_files` null false branch
+//   sprint-state-repo.js lines 48-49:  _normalize() `blockers` null false branch,
+//                                      `next_steps` null false branch
+
+import { LessonsRepo } from "../src/ai-memory/repositories/lessons-repo.js";
+import { SprintStateRepo } from "../src/ai-memory/repositories/sprint-state-repo.js";
+
+describe("LessonsRepo — coverage gaps (lines 14-15, 25-31)", () => {
+  let tempDir;
+  let db;
+
+  beforeEach(async () => {
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "lessons-repo-gap-"));
+    process.env.HOME = tempDir;
+    db = new MemoryDb();
+    await db.init();
+  });
+
+  afterEach(async () => {
+    db.close();
+    await fs.rm(tempDir, { recursive: true, force: true });
+  });
+
+  // ── lines 14-15: ?? right-hand fallbacks in add() ────────────────────────
+
+  it("uses '' when fix is absent (line 14 ?? right-hand)", () => {
+    const repo = new LessonsRepo(db);
+    const result = repo.add({ problem: "missing tests" }); // no fix
+    expect(result.fix).toBe("");
+  });
+
+  it("uses '' when prevention_rule is absent (line 14 ?? right-hand)", () => {
+    const repo = new LessonsRepo(db);
+    const result = repo.add({ problem: "slow queries", fix: "add index" }); // no prevention_rule
+    expect(result.prevention_rule).toBe("");
+  });
+
+  it("uses [] when related_files is absent (line 15 ?? right-hand)", () => {
+    const repo = new LessonsRepo(db);
+    const result = repo.add({ problem: "crash on startup" }); // no related_files
+    expect(result.related_files).toEqual([]);
+  });
+
+  it("uses new Date().toISOString() when created_at is absent (line 14 ?? right-hand)", () => {
+    const repo = new LessonsRepo(db);
+    const result = repo.add({ problem: "no timestamp" }); // no created_at
+    expect(result.created_at).toBeTruthy();
+    expect(() => new Date(result.created_at)).not.toThrow();
+  });
+
+  it("uses all defaults together when only problem is provided", () => {
+    const repo = new LessonsRepo(db);
+    const result = repo.add({ problem: "minimal entry" });
+    expect(result.fix).toBe("");
+    expect(result.prevention_rule).toBe("");
+    expect(result.related_files).toEqual([]);
+    expect(result.created_at).toBeTruthy();
+  });
+
+  // ── lines 25-31: list() and getById() null-related_files branches ─────────
+
+  it("list() returns [] for related_files when stored value is null (line 25 false branch)", () => {
+    // Insert directly with related_files = NULL to bypass add()'s JSON.stringify([])
+    db.getDb()
+      .prepare(
+        `INSERT INTO ai_lessons_learned
+         (problem, fix, prevention_rule, related_files, created_at)
+         VALUES (?, ?, ?, ?, ?)`,
+      )
+      .run("Raw lesson", "", "", null, new Date().toISOString());
+
+    const repo = new LessonsRepo(db);
+    const entries = repo.list();
+    const entry = entries.find((e) => e.problem === "Raw lesson");
+    expect(entry).toBeDefined();
+    // related_files was NULL → the false branch returns []
+    expect(entry.related_files).toEqual([]);
+  });
+
+  it("getById() returns null when no row matches (line 29 false branch)", () => {
+    const repo = new LessonsRepo(db);
+    expect(repo.getById(99999)).toBeNull();
+  });
+
+  it("getById() returns [] for related_files when stored value is null (line 29-31 false branch)", () => {
+    const info = db.getDb()
+      .prepare(
+        `INSERT INTO ai_lessons_learned
+         (problem, fix, prevention_rule, related_files, created_at)
+         VALUES (?, ?, ?, ?, ?)`,
+      )
+      .run("Null files lesson", "", "", null, new Date().toISOString());
+
+    const repo = new LessonsRepo(db);
+    const result = repo.getById(info.lastInsertRowid);
+    expect(result).not.toBeNull();
+    // related_files is NULL in DB → getById's false branch returns []
+    expect(result.related_files).toEqual([]);
+  });
+
+  it("getById() parses related_files JSON when present (companion true-branch guard)", () => {
+    const repo = new LessonsRepo(db);
+    const added = repo.add({
+      problem: "with files",
+      related_files: ["src/a.ts", "src/b.ts"],
+    });
+    const fetched = repo.getById(added.id);
+    expect(fetched.related_files).toEqual(["src/a.ts", "src/b.ts"]);
+  });
+});
+
+describe("SprintStateRepo — coverage gaps (lines 48-49)", () => {
+  let tempDir;
+  let db;
+
+  beforeEach(async () => {
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "sprint-state-gap-"));
+    process.env.HOME = tempDir;
+    db = new MemoryDb();
+    await db.init();
+  });
+
+  afterEach(async () => {
+    db.close();
+    await fs.rm(tempDir, { recursive: true, force: true });
+  });
+
+  // ── lines 48-49: _normalize() null false branches for blockers/next_steps ─
+
+  it("_normalize() returns [] for blockers when stored value is null (line 48 false branch)", () => {
+    // Insert directly with blockers = NULL to bypass upsert()'s JSON.stringify
+    db.getDb()
+      .prepare(
+        `INSERT INTO sprint_state
+         (sprint_name, status, current_goal, blockers, next_steps, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+      )
+      .run("sprint-null-blockers", "active", "goal", null, "[]", new Date().toISOString());
+
+    const repo = new SprintStateRepo(db);
+    const result = repo.getBySprint("sprint-null-blockers");
+    expect(result).not.toBeNull();
+    // blockers was NULL → _normalize's false branch returns []
+    expect(result.blockers).toEqual([]);
+  });
+
+  it("_normalize() returns [] for next_steps when stored value is null (line 49 false branch)", () => {
+    db.getDb()
+      .prepare(
+        `INSERT INTO sprint_state
+         (sprint_name, status, current_goal, blockers, next_steps, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+      )
+      .run("sprint-null-steps", "active", "goal", "[]", null, new Date().toISOString());
+
+    const repo = new SprintStateRepo(db);
+    const result = repo.getBySprint("sprint-null-steps");
+    expect(result).not.toBeNull();
+    // next_steps was NULL → _normalize's false branch returns []
+    expect(result.next_steps).toEqual([]);
+  });
+
+  it("_normalize() returns [] for both when both blockers and next_steps are null", () => {
+    db.getDb()
+      .prepare(
+        `INSERT INTO sprint_state
+         (sprint_name, status, current_goal, blockers, next_steps, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+      )
+      .run("sprint-both-null", "active", "goal", null, null, new Date().toISOString());
+
+    const repo = new SprintStateRepo(db);
+    const result = repo.getBySprint("sprint-both-null");
+    expect(result.blockers).toEqual([]);
+    expect(result.next_steps).toEqual([]);
+  });
+
+  // ── line 42: list() ────────────────────────────────────────────────────────
+
+  it("list() returns all sprint rows normalized (line 42)", () => {
+    const repo = new SprintStateRepo(db);
+    repo.upsert({ sprint_name: "sprint-list-1", status: "active", current_goal: "g1" });
+    repo.upsert({ sprint_name: "sprint-list-2", status: "done",   current_goal: "g2" });
+
+    const all = repo.list();
+    expect(all.length).toBeGreaterThanOrEqual(2);
+    expect(all.every((r) => Array.isArray(r.blockers))).toBe(true);
+    expect(all.every((r) => Array.isArray(r.next_steps))).toBe(true);
+  });
+});

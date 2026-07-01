@@ -1,5 +1,5 @@
-import * as fs from "fs";
-import * as path from "path";
+import * as fs from "node:fs";
+import * as path from "node:path";
 import { Tool, ToolResult } from "./base";
 
 const PROJECT_ROOT = process.env.PROJECT_ROOT ?? path.resolve(process.cwd());

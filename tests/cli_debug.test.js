@@ -786,6 +786,7 @@ describe("CLI commands via program.parseAsync", () => {
       console.error("DEBUG exitCode:", process.exitCode);
       console.error("DEBUG console.error calls:", errSpy.mock.calls);
       mockPm.create = origCreate;
+      expect(createCalled).toBe(true);
     });
 
     it("calls pm.create with name and default template", async () => {

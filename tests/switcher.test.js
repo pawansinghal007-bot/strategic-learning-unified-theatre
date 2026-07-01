@@ -6,6 +6,8 @@ import { describe, expect, it } from "vitest";
 import { atomicWriteFile, SwitcherService } from "../src/accounts/switcher.js";
 import { AccountStore } from "../src/accounts/store.js";
 
+// ─── atomicWriteFile ──────────────────────────────────────────────────────────
+
 describe("atomicWriteFile", () => {
   it("writes full content to destination", async () => {
     const dir = await fs.mkdtemp(
@@ -15,7 +17,80 @@ describe("atomicWriteFile", () => {
     await atomicWriteFile(target, "hello");
     expect(await fs.readFile(target, "utf8")).toBe("hello");
   });
+
+  it("tryFsyncDir body runs open/sync/close on the parent directory (lines 17-23)", async () => {
+    // atomicWriteFile calls tryFsyncDir(dir) after the rename succeeds.
+    // Spy on fs.open to confirm it is called with the parent dir path.
+    const dir = await fs.mkdtemp(
+      path.join(os.tmpdir(), "strategic-learning-unified-theatre-fsync-"),
+    );
+    const target = path.join(dir, "auth.json");
+
+    const openCalls = [];
+    const realOpen = fs.open.bind(fs);
+    vi.spyOn(fs, "open").mockImplementation(async (p, flags, ...rest) => {
+      openCalls.push(p);
+      return realOpen(p, flags, ...rest);
+    });
+
+    await atomicWriteFile(target, "fsync-test");
+
+    // tryFsyncDir opens the directory itself (not the tmp file)
+    expect(openCalls).toContain(dir);
+    expect(await fs.readFile(target, "utf8")).toBe("fsync-test");
+
+    vi.restoreAllMocks();
+    await fs.rm(dir, { recursive: true, force: true });
+  });
+
+  it("tryFsyncDir swallows errors silently when dir open fails", async () => {
+    const dir = await fs.mkdtemp(
+      path.join(os.tmpdir(), "strategic-learning-unified-theatre-fsync-err-"),
+    );
+    const target = path.join(dir, "auth.json");
+
+    const realOpen = fs.open.bind(fs);
+    vi.spyOn(fs, "open").mockImplementation(async (p, flags, mode) => {
+      // First open is for the tmp file write (flags "w") — allow it.
+      // Second open is tryFsyncDir opening the dir (flags "r") — fail it.
+      if (flags === "r") throw new Error("cannot open dir for sync");
+      return realOpen(p, flags, mode);
+    });
+
+    // Must not throw despite the fsync dir open failing
+    await expect(atomicWriteFile(target, "content")).resolves.toBeUndefined();
+    expect(await fs.readFile(target, "utf8")).toBe("content");
+
+    vi.restoreAllMocks();
+    await fs.rm(dir, { recursive: true, force: true });
+  });
 });
+
+// ─── SwitcherService constructor defaults (lines 71-73) ──────────────────────
+
+describe("SwitcherService constructor defaults (lines 71-73)", () => {
+  it("uses default AccountStore when no options provided (line 71: ?? new AccountStore())", () => {
+    const svc = new SwitcherService();
+    expect(svc.store).toBeDefined();
+    expect(typeof svc.resolveAuthPath).toBe("function");
+    expect(svc.vscode).toBeDefined();
+  });
+
+  it("uses default resolveAuthPath when not provided (line 72: ?? defaultResolveAuthPath)", () => {
+    const svc = new SwitcherService({ store: { get: vi.fn() } });
+    expect(typeof svc.resolveAuthPath).toBe("function");
+  });
+
+  it("uses default vscodeController when not provided (line 73: ?? defaultVSCodeController)", () => {
+    const svc = new SwitcherService({
+      store: { get: vi.fn() },
+      resolveAuthPath: vi.fn(),
+    });
+    expect(svc.vscode).toBeDefined();
+  });
+});
+
+// ─── SwitcherService dry-run ──────────────────────────────────────────────────
 
 describe("SwitcherService", () => {
   it("dry-run returns a plan without writing", async () => {
@@ -53,10 +128,10 @@ describe("SwitcherService", () => {
     const plan = await svc.switch("acct_1", { dryRun: true });
     expect(plan.authPath).toBe(authPath);
     await expect(fs.readFile(authPath, "utf8")).rejects.toThrow();
-  }, 15000); // Increased timeout: SecretStore initialization can take time
+  }, 15000);
 });
 
-// ─── atomicWriteFile: rename-fallback path (lines 43-46) ─────────────────────
+// ─── atomicWriteFile: rename-fallback path (EXDEV) ───────────────────────────
 
 describe("atomicWriteFile rename-fallback", () => {
   it("falls back to unlink+rename when first rename throws", async () => {
@@ -289,6 +364,35 @@ describe("SwitcherService.switch — non-dryRun paths", () => {
     await fs.rm(dir, { recursive: true, force: true });
   }, 15000);
 
+  it("emit.fail uses String(err) directly when thrown value has no .message (line 150: ?? err)", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "sw-fail-raw-"));
+    const authPath = path.join(dir, "auth.json");
+    const store = await makeStore(dir);
+
+    const { SecretStore } = await import("../src/accounts/secret-store.js");
+    vi.spyOn(SecretStore.prototype, "get").mockRejectedValue("raw string error");
+
+    const steps = [];
+    const svc = new SwitcherService({
+      store,
+      resolveAuthPath: () => authPath,
+      vscodeController: makeVscode(),
+      lockBaseDir: dir,
+    });
+
+    await expect(
+      svc.switch("acct_1", { onStep: (evt) => steps.push(evt) }),
+    ).rejects.toBe("raw string error");
+
+    // emit.fail was called with String("raw string error")
+    const failStep = steps.find((s) => s.phase === "fail");
+    expect(failStep).toBeDefined();
+    expect(failStep.message).toBe("raw string error");
+
+    vi.restoreAllMocks();
+    await fs.rm(dir, { recursive: true, force: true });
+  }, 15000);
+
   it("no onStep handler does not throw (optional chaining safety)", async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), "sw-noop-"));
     const authPath = path.join(dir, "auth.json");
@@ -305,6 +409,49 @@ describe("SwitcherService.switch — non-dryRun paths", () => {
     });
 
     await expect(svc.switch("acct_1")).resolves.toBeDefined();
+
+    vi.restoreAllMocks();
+    await fs.rm(dir, { recursive: true, force: true });
+  }, 15000);
+
+  it("updates lastUsed on the account after a successful switch (line 150)", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "sw-lastused-"));
+    const authPath = path.join(dir, "auth.json");
+    const storePath = path.join(dir, "accounts.enc");
+
+    // Use the real AccountStore (not mocked) so we can verify the persisted value
+    const { AccountStore: AS } = await import("../src/accounts/store.js");
+    const store = new AS({ storePath });
+    await store.add({
+      id: "acct_1",
+      email: "a@example.com",
+      agentType: "vscode",
+      authBlob: null,
+      profileName: null,
+      cooldownUntil: null,
+      lastUsed: null,
+      status: "active",
+    });
+
+    const { SecretStore } = await import("../src/accounts/secret-store.js");
+    vi.spyOn(SecretStore.prototype, "get").mockResolvedValue("auth-blob");
+    vi.spyOn(SecretStore.prototype, "set").mockResolvedValue(undefined);
+
+    const beforeSwitch = Date.now();
+
+    const svc = new SwitcherService({
+      store,
+      resolveAuthPath: () => authPath,
+      vscodeController: makeVscode(),
+      lockBaseDir: dir,
+    });
+
+    await svc.switch("acct_1");
+
+    // lastUsed must have been written to the store (line 150 executed)
+    const updated = await store.get("acct_1");
+    expect(updated.lastUsed).toBeInstanceOf(Date);
+    expect(updated.lastUsed.getTime()).toBeGreaterThanOrEqual(beforeSwitch);
 
     vi.restoreAllMocks();
     await fs.rm(dir, { recursive: true, force: true });

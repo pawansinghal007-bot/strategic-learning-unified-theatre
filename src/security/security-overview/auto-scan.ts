@@ -1,5 +1,4 @@
 import fs from "node:fs";
-import path from "node:path";
 import {
   appendDriftHistory,
   type DriftHistoryEntry,
@@ -32,7 +31,7 @@ export interface AutoScanResult {
   error?: string;
 }
 
-function tryLoadJson(filePath: string): unknown | null {
+function tryLoadJson(filePath: string): unknown {
   try {
     const raw = fs.readFileSync(filePath, "utf8");
     return JSON.parse(raw);
@@ -42,7 +41,7 @@ function tryLoadJson(filePath: string): unknown | null {
 }
 
 function fingerprint(f: Record<string, unknown>): string {
-  return `${f["path"] ?? ""}|${f["type"] ?? ""}|${f["message"] ?? f["title"] ?? ""}`;
+  return `${String(f["path"] ?? "")}|${String(f["type"] ?? "")}|${String(f["message"] ?? f["title"] ?? "")}`;
 }
 
 export async function runSecurityAutoScan(
@@ -139,7 +138,7 @@ export async function runSecurityAutoScan(
           introduced: drift.introduced,
           resolved: drift.resolved,
           persistent: drift.unchanged,
-        }) as DriftClassification;
+        });
       const entry: DriftHistoryEntry = {
         id: `drift-${Date.now()}`,
         createdAt: Date.now(),
@@ -161,12 +160,12 @@ export async function runSecurityAutoScan(
 
     return {
       ok: true,
-      ...(workspaceId !== undefined ? { workspaceId } : {}),
+      ...(workspaceId === undefined ? {} : { workspaceId }),
       secretsResult,
       risksDependencyResult,
       risksImageResult,
-      ...(drift !== undefined ? { drift } : {}),
-      ...(driftHistoryAppend !== null ? { driftHistoryAppend } : {}),
+      ...(drift === undefined ? {} : { drift }),
+      ...(driftHistoryAppend === null ? {} : { driftHistoryAppend }),
     };
   } catch (err) {
     return {

@@ -1,5 +1,5 @@
-import * as fs from 'fs'
-import * as path from 'path'
+import * as fs from 'node:fs'
+import * as path from 'node:path'
 
 const LOG_PATH = process.env.SESSION_LOG_PATH
   ?? path.resolve(process.cwd(), 'logs', 'agent-session.ndjson')
@@ -38,7 +38,7 @@ export function readSessionLog(limit = 20): SessionLogEntry[] {
     const data = fs.readFileSync(LOG_PATH, 'utf8')
     const lines = data.split('\n').filter(line => line.trim() !== '')
     const entries: SessionLogEntry[] = []
-    
+
     for (let i = lines.length - 1; i >= Math.max(0, lines.length - limit); i--) {
       try {
         const entry = JSON.parse(lines[i])
@@ -47,7 +47,7 @@ export function readSessionLog(limit = 20): SessionLogEntry[] {
         // Skip malformed lines silently
       }
     }
-    
+
     return entries
   } catch {
     // Return empty array if file doesn't exist

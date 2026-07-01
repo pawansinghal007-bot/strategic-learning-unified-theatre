@@ -222,8 +222,11 @@ module.exports = async function register({ ipcMain, dialog, watcher, app }) {
     } catch (_err) {
       knowledgeHits = [];
     }
-    const contextBlock = knowledgeHits.length ? knowledgeHits.map((hit, idx) => `[${idx + 1}] sprint=${hit.sprint} area=${hit.feature_area} source=${hit.source_type} score=${hit.score.toFixed(3)}
-${hit.content}`).join("\n\n---\n\n") : "";
+    const knowledge_chunks = knowledgeHits;
+    const contextBlock = knowledgeHits.length ? knowledgeHits.map(
+      (hit, idx) => `[${idx + 1}] sprint=${hit.sprint} area=${hit.feature_area} source=${hit.source_type} score=${hit.score.toFixed(3)}
+${hit.content}`
+    ).join("\n\n---\n\n") : "";
     const fullPrompt = [
       "You are answering using project knowledge.",
       contextBlock ? `PROJECT CONTEXT:
@@ -239,7 +242,11 @@ ${userQuery}`
       }
     } catch (_err) {
     }
-    return await askLocalLlm({ ...payload, prompt: fullPrompt, knowledge: knowledgeHits });
+    return await askLocalLlm({
+      ...payload,
+      prompt: fullPrompt,
+      knowledge: knowledgeHits
+    });
   });
   ipcMain.handle("browser:send", async (e, payload) => {
     return await browserBridge.sendPrompt(payload);

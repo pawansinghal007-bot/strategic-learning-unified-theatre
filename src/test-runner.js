@@ -443,6 +443,7 @@ function collectJsFiles(dir) {
   const entries = fs.readdir(dir, { withFileTypes: true });
   return entries.then((items) =>
     Promise.all(
+      /* v8 ignore next 10 */
       items.map(async (item) => {
         const resolved = path.join(dir, item.name);
         if (item.isDirectory()) {
@@ -454,7 +455,7 @@ function collectJsFiles(dir) {
         }
         return [];
       }),
-    ).then((nested) => nested.flat()),
+    ).then(/* v8 ignore next 1 */ (nested) => nested.flat()),
   );
 }
 

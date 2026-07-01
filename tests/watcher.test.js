@@ -644,5 +644,6 @@ describe("_spawnEnhance (real child_process integration)", () => {
     // without crashing the daemon or leaving `running` stuck true.
     await daemon.stop();
     vi.useRealTimers();
+    expect(daemon.running).toBe(false);
   });
 });

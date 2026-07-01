@@ -8,6 +8,10 @@ export default defineConfig({
     environment: "jsdom",
     environmentMatchPatterns: [
       ["tests/llm/local-llm.coverage-additions.test.js", "node"],
+      ["tests/llm/local-llm-branches.test.js", "node"],
+      ["tests/llm/inference-branches.test.js", "node"],
+      ["tests/llm/inference-coverage.test.js", "node"],
+      ["tests/llm/inference-windows.test.js", "node"],
     ],
     globals: true,
     setupFiles: ["./tests/setup.ts"],
@@ -49,6 +53,13 @@ export default defineConfig({
         "src/coverage/**",
         // ...any other existing excludes
         "**/schema.ts", // types/interfaces only — no executable code
+        // Pure barrel re-export files — no executable statements (export * from)
+        "src/llm/index.ts",
+        "src/llm/providers/index.ts",
+        "src/ai-memory/index.js",
+        // Interface-only files — no executable JS emitted (all declarations)
+        "src/mcp/types.ts",
+        "src/agents/types.ts",
       ],
 
       thresholds: {

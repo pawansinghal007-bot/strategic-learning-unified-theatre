@@ -1,11 +1,22 @@
 import { gateway } from "../llm/gateway.ts";
 import { runOrchestrator } from "../agents/orchestrator.ts";
 import { logger } from "../shared/logging/logger.ts";
-import { McpToolResult, AskLocalInput, CodeReviewInput } from "./types";
-import * as crypto from "crypto";
+import type { McpToolResult } from "./types";
+import type { AskLocalSchema, CodeReviewSchema } from "./schemas.ts";
+import type { z } from "zod";
+import * as crypto from "node:crypto";
+
+// Derive argument types directly from the Zod schemas so handler signatures
+// stay in sync with what McpServer will pass after validation.
+type AskLocalArgs = {
+  [K in keyof typeof AskLocalSchema]: z.infer<(typeof AskLocalSchema)[K]>;
+};
+type CodeReviewArgs = {
+  [K in keyof typeof CodeReviewSchema]: z.infer<(typeof CodeReviewSchema)[K]>;
+};
 
 export async function handleAskLocal(
-  input: AskLocalInput,
+  input: AskLocalArgs,
 ): Promise<McpToolResult> {
   try {
     const requestId = crypto.randomUUID();
@@ -36,7 +47,7 @@ export async function handleAskLocal(
 }
 
 export async function handleCodeReview(
-  input: CodeReviewInput,
+  input: CodeReviewArgs,
 ): Promise<McpToolResult> {
   try {
     const result = await runOrchestrator(

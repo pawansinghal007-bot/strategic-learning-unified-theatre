@@ -2,10 +2,12 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { execFile } from "node:child_process";
+import { execFile } from "./_child-process.js";
 import { promisify } from "node:util";
 
-const execFileAsync = promisify(execFile);
+function getExecFileAsync() {
+  return promisify(execFile);
+}
 const projectRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "../..",
@@ -71,7 +73,7 @@ async function findOllamaBinary() {
 export async function verifyOllamaInstalled() {
   const binary = await findOllamaBinary();
   try {
-    await execFileAsync(binary, ["--version"], { timeout: 10000 });
+    await getExecFileAsync()(binary, ["--version"], { timeout: 10000 });
     return true;
   } catch (error) {
     throw new Error(
@@ -129,6 +131,10 @@ export async function verifyNodeLlamaCppInstalled() {
 
 function parseOllamaOutput(output) {
   const lines = output.replaceAll("\r", "").split(/\n/);
+  // Strip trailing blank lines first, then trailing --- separator lines
+  while (lines.length > 0 && lines[lines.length - 1].trim() === "") {
+    lines.pop();
+  }
   while (lines.length > 0 && lines[lines.length - 1].trim() === "---") {
     lines.pop();
   }
@@ -164,14 +170,14 @@ function parseOllamaListOutput(output) {
 export async function listOllamaModels() {
   const binary = await findOllamaBinary();
   try {
-    const { stdout } = await execFileAsync(binary, ["list", "--json"], {
+    const { stdout } = await getExecFileAsync()(binary, ["list", "--json"], {
       timeout: 10000,
       maxBuffer: 50 * 1024 * 1024,
     });
     return parseOllamaListOutput(stdout);
   } catch {
     try {
-      const { stdout } = await execFileAsync(binary, ["list"], {
+      const { stdout } = await getExecFileAsync()(binary, ["list"], {
         timeout: 10000,
         maxBuffer: 50 * 1024 * 1024,
       });
@@ -185,7 +191,7 @@ export async function listOllamaModels() {
 export async function installOllamaModel(modelName) {
   const binary = await findOllamaBinary();
   try {
-    await execFileAsync(binary, ["pull", modelName], {
+    await getExecFileAsync()(binary, ["pull", modelName], {
       timeout: 600000,
       maxBuffer: 50 * 1024 * 1024,
     });
@@ -206,7 +212,7 @@ async function runOllama({
   const modelArg = modelPath ?? DEFAULT_OLLAMA_MODEL;
 
   try {
-    const { stdout } = await execFileAsync(binary, ["run", modelArg, prompt], {
+    const { stdout } = await getExecFileAsync()(binary, ["run", modelArg, prompt], {
       timeout,
       maxBuffer: 50 * 1024 * 1024,
     });
