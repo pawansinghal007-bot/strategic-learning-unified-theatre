@@ -76,9 +76,14 @@ function checkContextFile() {
 }
 
 function checkBaselineFile() {
-  const path = join(ROOT, "PROJECT_ARCHITECTURE_BASELINE.md");
+  const path = join(
+    ROOT,
+    "docs/archive/baselines/PROJECT_ARCHITECTURE_BASELINE.md",
+  );
   if (!existsSync(path)) {
-    console.warn("WARNING: PROJECT_ARCHITECTURE_BASELINE.md not found.");
+    console.warn(
+      "WARNING: docs/archive/baselines/PROJECT_ARCHITECTURE_BASELINE.md not found.",
+    );
     return false;
   }
   return true;
@@ -87,7 +92,7 @@ function checkBaselineFile() {
 function getLatestBaselineTimestamp() {
   try {
     const files = execSync(
-      "ls PROJECT_ARCHITECTURE_BASELINE-*.md 2>/dev/null",
+      "ls docs/archive/baselines/PROJECT_ARCHITECTURE_BASELINE-*.md 2>/dev/null",
       {
         encoding: "utf8",
       },
@@ -193,12 +198,15 @@ function main() {
 
   if (structural) {
     const ts = timestamp.replace(/[:.]/g, "-").slice(0, 19);
-    const newBaseline = `PROJECT_ARCHITECTURE_BASELINE-${ts}.md`;
-    const baselinePath = join(ROOT, "PROJECT_ARCHITECTURE_BASELINE.md");
+    const newBaseline = `docs/archive/baselines/PROJECT_ARCHITECTURE_BASELINE-${ts}.md`;
+    const baselinePath = join(
+      ROOT,
+      "docs/archive/baselines/PROJECT_ARCHITECTURE_BASELINE.md",
+    );
 
     if (baselineOk) {
       const baselineContent = readFileSync(baselinePath, "utf8");
-      writeFileSync(join(ROOT, newBaseline), baselineContent);
+      writeFileSync(newBaseline, baselineContent);
       console.log(`✓ New baseline snapshot: ${newBaseline}`);
     }
 

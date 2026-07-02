@@ -104,7 +104,7 @@ describe("Sprint 53 smoke tests — test harness regression", () => {
   });
 
   it("architecture baseline files exist from recent sprints", () => {
-    const files = fs.readdirSync(root);
+    const files = fs.readdirSync(path.join(root, "docs/archive/baselines"));
     const baselines = files.filter((file) =>
       file.startsWith("PROJECT_ARCHITECTURE_BASELINE-2026"),
     );

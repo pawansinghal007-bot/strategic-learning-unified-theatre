@@ -28,6 +28,7 @@ const EXCLUDED_FILES = new Set([
   "sonar-security-issues.json",
   "repo-tree.txt",
   "PROJECT_ARCHITECTURE_BASELINE.md",
+  "docs/archive/baselines/PROJECT_ARCHITECTURE_BASELINE.md",
 ]);
 
 const EXCLUDED_DIRS = new Set([

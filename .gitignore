@@ -51,6 +51,9 @@ strategic-learning-unified-theatre-ai-snapshot-*/
 PROJECT_ARCHITECTURE_BASELINE-*.md
 ai-snapshot-sprint*.md
 
+# ── Logs ───────────────────────────────────────────────────
+logs/agent-session.ndjson
+
 # ── Sprint debug/temp scripts ─────────────────────────────
 diagnose*.cjs
 diagnose*.js
