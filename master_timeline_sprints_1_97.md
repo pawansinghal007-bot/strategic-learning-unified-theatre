@@ -148,6 +148,8 @@ Sprint 96 (Test triage hardening and snapshot lock — profile templates, ESM-sa
 Sprint 97 (Broad coverage-expansion and CI/installer hardening pass — ~70 new test files, hwProbe.ts rework, security-overview/auto-scan.ts rework, CI workflow, Robot Framework suite) is complete.
 Sprint 98 (MCP server fix for VS Code Remote-WSL + test triage hardening — tsconfig moduleResolution fix, knowledge_chunks alias, score >= 0.4 comment in handlers.cjs) is complete.
 Sprint 99 (MCP SDK migration Server→McpServer + broad Vitest coverage expansion — schemas.ts, tests/mcp/, ~35 new coverage suites, generated-artifact cleanup) is complete.
+Sprint 100 (Docs-only sprint: AGENTS.md boot contract, docs/standing-rules.md, docs/build-state.md, PROJECT_ARCHITECTURE_AI_CONTEXT.md refresh, master_timeline_sprints_1_97.md update, CURRENT_ACTIVE_SNAPSHOT.md, strategic-learning-unified-theatre-ai-snapshot-sprint100-stable) is complete.
+Sprint 101 (MCP stdio protocol verification — live process-level stdio handshake via scripts/verify-mcp-stdio.mjs, real JSON-RPC messages exchanged (initialize, tools/list, tools/call), MCP layer confidence upgraded from [INFERRED] to [CONFIRMED] in PROJECT_ARCHITECTURE_AI_CONTEXT.md, closes item carried from Sprint 99 handoff) is complete.
 
 ## Sprint 97/98 boundary note
 

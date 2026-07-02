@@ -3,7 +3,7 @@
 > This is a STATUS READ, not a decision driver. Agents: do not treat
 > this file as direction. Sprint Prompt is the current objective.
 
-**Last updated:** Sprint 100 complete (tag: sprint-100-docs-contract-complete, commit ea5dd5dd)
+**Last updated:** Sprint 101 complete (MCP stdio verification, live stdio handshake confirmed)
 **Test suite:** 299 files, 4943 tests, 0 failed (unchanged from Sprint 99 — docs-only sprint, no source touched)
 **Coverage (v8):** 94.96% stmts / 92.58% branch / 93.22% funcs / 95.11% lines (carried from Sprint 99, not re-measured this sprint)
 **GPU default:** -ngl 99 (RTX 5090 Laptop 24GB — prior -ngl 0 constraints obsolete)
