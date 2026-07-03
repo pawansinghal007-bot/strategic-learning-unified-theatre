@@ -49,6 +49,7 @@
     "electron:build": "npm run ui:build && electron-builder",
     "dist:win": "electron-builder --win nsis",
     "dist:linux": "electron-builder --linux AppImage",
+    "dist:mac": "electron-builder --mac zip",
     "dist:all": "electron-builder -mwl",
     "dist": "npm run dist:all",
     "validate:governance": "node scripts/validate-governance-config.mjs",

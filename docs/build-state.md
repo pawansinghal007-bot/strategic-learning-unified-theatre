@@ -83,6 +83,12 @@ as-is. Needs a human decision, not agent auto-resolution.
 
 - macOS packaging: feasibility check attempted from this Linux/WSL2 host (`npm run electron:build -- --mac`). I attempted to install the missing dev dependency `dmg-license` to proceed locally, but `npm install -D dmg-license` failed on this platform due to a macOS-only dependency (`iconv-corefoundation` expects `os: darwin`). Therefore macOS packaging remains blocked on this host: even if Node-level deps were satisfied, macOS full packaging and signing require a macOS build host or runner (e.g., `macos-latest`) for real distributables. Recommendation: perform mac packaging on a macOS runner or local Mac machine; do not add `dmg-license` as a generic devDependency for Linux hosts because it pulls mac-only deps and cannot be installed here.
 
+## Sprint 104
+
+- Added manual GitHub Actions packaging verification workflow in `.github/workflows/build-verify.yml`. It runs native platform packaging on GitHub-hosted runners: `ubuntu-latest` for Linux, `windows-latest` for Windows, and `macos-latest` for macOS. This preserves platform-specific packaging semantics and avoids relying on the existing tag-triggered release workflow to produce all targets from a single host.
+
+- Existing `.github/workflows/release.yml` remains stale for full multi-platform packaging because it currently runs `npm run dist` on `windows-latest`, which is unsafe for macOS artifact generation. The new manual verification workflow is the appropriate place to confirm platform-specific packages before any release automation is adjusted.
+
 ## Permanent Notes
 
 - Sprint 89 is the one permanently undocumented gap in the timeline.
