@@ -73,12 +73,9 @@ as-is. Needs a human decision, not agent auto-resolution.
   multiple sprints now; likely a log file that should be gitignored
   rather than repeatedly appearing as noise in status checks
 
-### 5. Pre-existing packaging bugs (not addressed in sprint-101 security fixes)
+## Sprint 102
 
-- electron-builder Linux .deb build fails on icon format ('unknown output format set') —
-  pre-existing since at least sprint-100, unrelated to sprint-101 security fixes.
-  Needs separate fix (icon config using 'set' format expects a directory of icons,
-  not a single .ico file).
+- Electron Linux packaging fix: moved PNG icon set (16x16–512x512) out of gitignored `build/` into tracked `resources/icons/`, and updated `package.json`'s Linux target `icon` to point to `resources/icons`. Root cause: electron-builder's Linux `set` icon format requires a directory of PNG icons; the repository previously referenced a single `.ico` under a gitignored `build/` directory, so the icon set was unavailable on fresh clones/CI. Also corrected `package.json` author email to `pawansinghal@garudatechnology.co.in`, required by FPM for `.deb` packaging. Packaged artifacts verified: `release/UnifiedTheatre-0.1.0-linux-x86_64.AppImage` and `release/UnifiedTheatre-0.1.0-linux-amd64.deb`.
 
 ## Permanent Notes
 

@@ -95,10 +95,8 @@
       "target": [
         "nsis"
       ],
-      "publisherName": [
-        "Your Company, Inc."
-      ],
-      "artifactName": "${productName}-Setup-${version}.${ext}"
+      "artifactName": "${productName}-Setup-${version}.${ext}",
+      "icon": "build/icon.ico"
     },
     "linux": {
       "target": [
@@ -106,9 +104,9 @@
         "deb"
       ],
       "category": "Utility",
-      "artifactName": "${productName}-${version}-${os}-${arch}.${ext}"
-    },
-    "icon": "build/icon.ico"
+      "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
+      "icon": "resources/icons"
+    }
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
@@ -167,5 +165,8 @@
     "protobufjs": ">=7.6.3",
     "tar": ">=7.5.16"
   },
-  "author": "Pawan Singhal"
+  "author": {
+    "name": "Pawan Singhal",
+    "email": "pawansinghal@garudatechnology.co.in"
+  }
 }
