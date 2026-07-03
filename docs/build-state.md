@@ -77,6 +77,12 @@ as-is. Needs a human decision, not agent auto-resolution.
 
 - Electron Linux packaging fix: moved PNG icon set (16x16–512x512) out of gitignored `build/` into tracked `resources/icons/`, and updated `package.json`'s Linux target `icon` to point to `resources/icons`. Root cause: electron-builder's Linux `set` icon format requires a directory of PNG icons; the repository previously referenced a single `.ico` under a gitignored `build/` directory, so the icon set was unavailable on fresh clones/CI. Also corrected `package.json` author email to `pawansinghal@garudatechnology.co.in`, required by FPM for `.deb` packaging. Packaged artifacts verified: `release/UnifiedTheatre-0.1.0-linux-x86_64.AppImage` and `release/UnifiedTheatre-0.1.0-linux-amd64.deb`.
 
+## Sprint 103
+
+- Windows packaging: verification attempted via `npm run electron:build -- --win`; blocked by missing `wine`/NSIS tooling on this WSL2 host. electron-builder requires `wine` to run Windows codesigning/NSIS steps from a Linux host. Not yet resolved — needs either (a) `wine64`/`wine32` + `nsis` installed on this host (may require enabling i386 architecture and several hundred MB of packages), or (b) use a native Windows CI runner (e.g., GitHub Actions `windows-latest`) to produce real Windows artifacts. No decision yet on which path to take.
+
+- macOS packaging: feasibility check attempted from this Linux/WSL2 host (`npm run electron:build -- --mac`). I attempted to install the missing dev dependency `dmg-license` to proceed locally, but `npm install -D dmg-license` failed on this platform due to a macOS-only dependency (`iconv-corefoundation` expects `os: darwin`). Therefore macOS packaging remains blocked on this host: even if Node-level deps were satisfied, macOS full packaging and signing require a macOS build host or runner (e.g., `macos-latest`) for real distributables. Recommendation: perform mac packaging on a macOS runner or local Mac machine; do not add `dmg-license` as a generic devDependency for Linux hosts because it pulls mac-only deps and cannot be installed here.
+
 ## Permanent Notes
 
 - Sprint 89 is the one permanently undocumented gap in the timeline.
