@@ -1,8 +1,15 @@
 import { gateway } from "../llm/gateway.ts";
 import { runOrchestrator } from "../agents/orchestrator.ts";
+import { vectorSearch } from "../shared/retrieval/vector-client.js";
+import { searchCode } from "../shared/retrieval/code-search.js";
 import { logger } from "../shared/logging/logger.ts";
 import type { McpToolResult } from "./types";
-import type { AskLocalSchema, CodeReviewSchema } from "./schemas.ts";
+import type {
+  AskLocalSchema,
+  CodeReviewSchema,
+  VectorSearchSchema,
+  SearchCodeSchema,
+} from "./schemas.ts";
 import type { z } from "zod";
 import * as crypto from "node:crypto";
 
@@ -13,6 +20,12 @@ type AskLocalArgs = {
 };
 type CodeReviewArgs = {
   [K in keyof typeof CodeReviewSchema]: z.infer<(typeof CodeReviewSchema)[K]>;
+};
+type VectorSearchArgs = {
+  [K in keyof typeof VectorSearchSchema]: z.infer<(typeof VectorSearchSchema)[K]>;
+};
+type SearchCodeArgs = {
+  [K in keyof typeof SearchCodeSchema]: z.infer<(typeof SearchCodeSchema)[K]>;
 };
 
 export async function handleAskLocal(
@@ -91,10 +104,81 @@ Available MCP tools and harness commands:
 3. list-tools
    - List all available harness tools and pipeline commands
 
+4. vector-search
+   - Semantic similarity search over the project's Qdrant vector store
+   - Use for: finding conceptually related code, docs, or sprint history by natural language
+
+5. search-code
+   - Lexical/regex search over the repo using ripgrep
+   - Use for: finding exact symbols, patterns, or strings across source files
+
 Planned tools:
 - fix-sonar
 - run-sprint
 `;
 
   return { content: [{ type: "text", text: toolsDescription }] };
+}
+
+export async function handleVectorSearch(
+  input: VectorSearchArgs,
+): Promise<McpToolResult> {
+  try {
+    const results = await vectorSearch(input.query, input.topK ?? 5);
+
+    logger.info("mcp.vector-search", {
+      query: input.query,
+      topK: input.topK ?? 5,
+      hits: results.length,
+    });
+
+    if (results.length === 0) {
+      return { content: [{ type: "text", text: "No results found." }] };
+    }
+
+    const formatted = results
+      .map(
+        (r, i) =>
+          `${i + 1}. [score: ${r.score.toFixed(3)}] ${r.source}\n   ${r.text}`,
+      )
+      .join("\n\n");
+
+    return { content: [{ type: "text", text: formatted }] };
+  } catch (err: any) {
+    logger.error("mcp.vector-search.error", { error: err.message });
+    return {
+      content: [{ type: "text", text: `Error: ${err.message}` }],
+      isError: true,
+    };
+  }
+}
+
+export async function handleSearchCode(
+  input: SearchCodeArgs,
+): Promise<McpToolResult> {
+  try {
+    const hits = await searchCode(input.pattern, input.glob);
+
+    logger.info("mcp.search-code", {
+      pattern: input.pattern,
+      glob: input.glob,
+      hits: hits.length,
+    });
+
+    if (hits.length === 0) {
+      return { content: [{ type: "text", text: "No matches found." }] };
+    }
+
+    const formatted = hits
+      .map((h) => `${h.file}:${h.line}: ${h.text}`)
+      .join("\n");
+
+    return { content: [{ type: "text", text: formatted }] };
+  } catch (err: any) {
+    logger.error("mcp.search-code.error", { error: err.message });
+    return {
+      content: [{ type: "text", text: `Error: ${err.message}` }],
+      isError: true,
+    };
+  }
 }

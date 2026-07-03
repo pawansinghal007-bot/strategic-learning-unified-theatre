@@ -40,7 +40,9 @@ async function executeToolCall(
     return null;
   }
   const result = await tool.execute(args);
-  const toolResultMessage = `[TOOL RESULT:${toolName}]\n${result.output}`;
+  const toolResultMessage = result.success
+    ? `[TOOL RESULT:${toolName}]\n${result.output}`
+    : `[TOOL ERROR:${toolName}]\n${result.error ?? "Tool execution failed with no error message."}`;
   const updatedPrompt = `${baseRequest.prompt}\n\nTOOL RESULT:\n${toolResultMessage}`;
   const toolRequest: ProviderRequest = {
     requestId: baseRequest.requestId,

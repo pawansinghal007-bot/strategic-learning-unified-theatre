@@ -1,8 +1,12 @@
 import { Tool } from "./base";
 import { readFileTool } from "./read-file";
+import { vectorSearchTool } from "./vector-search";
+import { searchCodeTool } from "./search-code";
 
 const tools: Map<string, Tool> = new Map();
 tools.set(readFileTool.name, readFileTool);
+tools.set(vectorSearchTool.name, vectorSearchTool);
+tools.set(searchCodeTool.name, searchCodeTool);
 
 export function getTool(name: string): Tool | undefined {
   return tools.get(name);

@@ -180,8 +180,18 @@ It created the repo operating contract files (`AGENTS.md`, `docs/standing-rules.
 
 Sprint 89 is the only remaining undocumented sprint in this timeline — no commit, doc, test, or JSON artifact under any naming convention references it anywhere in git history (all branches, reflog, stashes, and dangling objects checked). Backfill it if source material ever surfaces; otherwise record it permanently as a skipped/no-op sprint number.
 
-Next-sprint triage candidates: decide whether `coverage-tmp*/`,
-`sonar-duplicates-by-file.json`, `sonar-issues-open.json`, and `.kiro/`
-belong in `.gitignore`; confirm the Sprint 99 MCP SDK migration passes a live
-stdio smoke test (`tools/list` round-trip) rather than relying on Vitest
-mocks alone. Continue regression verification beyond Sprint 99 as needed.
+---
+
+> **Sprints 101 and beyond are continued in `master_timeline_sprints_101_plus.md`.**
+> This file covers Sprints 1–100. See the continuation file for Sprint 101+.
+
+| Sprint | Focus | Status |
+| ------ | ----- | ------ |
+| 101 | MCP stdio protocol verification — live process-level handshake via `scripts/verify-mcp-stdio.mjs` | Complete |
+| 102 | Electron Linux packaging fix — Linux icon set + .deb maintainer email | Complete |
+| 103 | Windows/Mac packaging investigation — CI host limitations documented | Complete |
+| 104 | CI build-verify workflow + Node version + test infrastructure hardening | Complete |
+| 105 | No record found — see `master_timeline_sprints_101_plus.md` | Unknown |
+| 106 | Agentic RAG retrieval tools — `vector-search` + `search-code`, shared retrieval layer, tool-loop error-propagation fix | Complete |
+
+For detailed entries see `master_timeline_sprints_101_plus.md`.

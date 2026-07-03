@@ -13,3 +13,13 @@ export interface CodeReviewInput {
   filePath: string;
   workspaceId?: string;
 }
+
+export interface VectorSearchInput {
+  query: string;
+  topK?: number;
+}
+
+export interface SearchCodeInput {
+  pattern: string;
+  glob?: string;
+}

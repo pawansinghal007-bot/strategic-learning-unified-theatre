@@ -1,0 +1,80 @@
+# Strategic Learning Unified Theatre AI Snapshot Sprint 101
+
+> **NOTE: This snapshot was created retroactively during Sprint 106 (2026-07-03)
+> due to a documentation gap. It was NOT captured live at Sprint 101 completion.
+> Content is reconstructed from git commit history and is accurate to the best of
+> that evidence. Future readers should treat specific numbers (test counts, coverage
+> percentages) as "carried from Sprint 100" unless stated otherwise.**
+
+- Date: 2026-07-02 (reconstructed)
+- Session: Sprint 101 — MCP stdio protocol verification
+- Repository: /home/pawan/vscodeagent/Solution
+- Snapshot tag: sprint-101-complete
+- Snapshot purpose: Lock Sprint 101 state after verifying the MCP stdio protocol
+  handshake with a live process-level test.
+- Previous snapshot: strategic-learning-unified-theatre-ai-snapshot-sprint100-stable
+- Created retroactively: Sprint 106 (2026-07-03) — documentation debt paydown
+
+## Summary
+
+Sprint 101 closed the open item carried from Sprint 99's handoff: confirm the MCP
+SDK migration (`Server` → `McpServer`, Zod-backed schemas) passes a live stdio
+smoke test rather than relying on Vitest mocks alone.
+
+Key deliverables:
+1. `scripts/verify-mcp-stdio.mjs` — spawns `tsx src/mcp/server.ts` as a child
+   process and drives it over stdio with real JSON-RPC messages: `initialize`,
+   `tools/list`, `tools/call`. Script exits 0 on success.
+2. `tsx` added as a `devDependency` (fixes the original `ts-node/esm` broken
+   launcher path).
+3. `package.json` npm overrides: `protobufjs` >=7.6.3 and `tar` >=7.5.16 to
+   eliminate 1 critical + 8 high severity transitive vulnerabilities.
+4. `docs/audit/ARCHITECTURE_AUDIT.md` and `docs/audit/AUDIT_PROGRESS.md` —
+   completed read-only architecture audit.
+5. `PROJECT_ARCHITECTURE_AI_CONTEXT.md` — MCP layer confidence upgraded from
+   `[INFERRED]` to `[CONFIRMED]`.
+6. `docs/build-state.md` — "Last updated" bumped to Sprint 101.
+7. `master_timeline_sprints_1_97.md` — Sprint 101 entry appended.
+
+## Validation Results (carried from Sprint 100 — no new tests this sprint)
+
+```
+Test Files  299 passed (299)
+     Tests  4943 passed (4943)
+```
+
+Coverage (v8) — unchanged from Sprint 99/100:
+
+| Metric     | %     |
+| ---------- | ----- |
+| Statements | 94.96 |
+| Branches   | 92.58 |
+| Functions  | 93.22 |
+| Lines      | 95.11 |
+
+MCP stdio smoke (new this sprint):
+```
+initialize -> ok
+tools/list -> ok  (3 tools: ask-local, code-review, list-tools)
+tools/call -> ok
+Exit code: 0
+```
+
+## Files Added or Updated
+
+- Added: `scripts/verify-mcp-stdio.mjs`
+- Added: `docs/audit/ARCHITECTURE_AUDIT.md`
+- Added: `docs/audit/AUDIT_PROGRESS.md`
+- Updated: `PROJECT_ARCHITECTURE_AI_CONTEXT.md`
+- Updated: `docs/build-state.md`
+- Updated: `master_timeline_sprints_1_97.md`
+- Updated: `package.json` (tsx devDep + npm overrides)
+- Updated: `package-lock.json`
+
+## Handoff
+
+- Sprint 101 is locked as `strategic-learning-unified-theatre-ai-snapshot-sprint101-stable`.
+- Git tag: `sprint-101-complete` (commit `a51581b8`).
+- MCP layer status: [CONFIRMED] — transport-layer verified.
+- Open: Linux packaging bug (`unknown output format set` for electron-builder icon
+  conversion) documented but not yet fixed — carried to Sprint 102.

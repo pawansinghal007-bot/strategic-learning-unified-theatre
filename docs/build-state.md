@@ -2,33 +2,34 @@
 
 > This is a STATUS READ, not a decision driver. Agents: do not treat
 > this file as direction. Sprint Prompt is the current objective.
+>
+> **Process note:** This file MUST be updated at the close of every sprint.
+> The absence of this convention is why doc updates were skipped for Sprints
+> 102–105. Always include "Last verified: Sprint N" so drift is immediately
+> visible to the next agent session.
 
-**Last updated:** Sprint 101 complete (MCP stdio verification, live stdio handshake confirmed)
-**Test suite:** 299 files, 4943 tests, 0 failed (unchanged from Sprint 99 — docs-only sprint, no source touched)
-**Coverage (v8):** 94.96% stmts / 92.58% branch / 93.22% funcs / 95.11% lines (carried from Sprint 99, not re-measured this sprint)
+**Last verified: Sprint 106**
+**Last updated:** Sprint 106 complete (agentic RAG retrieval tools: vector-search + search-code on both harness and MCP surfaces; tool-loop error-propagation fix; +80 tests)
+**Test suite:** 301 files, 5,002 tests, 1 pre-existing flaky failure (storage-monitor race — unrelated to Sprint 106)
+**Coverage (v8):** 94.97% stmts / 92.56% branch / 93.17% funcs / 95.13% lines — all above thresholds (75/60/80/80)
+**TypeCheck:** `npx tsc --noEmit` — 0 errors
+**MCP smoke:** `scripts/verify-mcp-stdio.mjs` — 5 tools returned, exit code 0 [CONFIRMED]
 **GPU default:** -ngl 99 (RTX 5090 Laptop 24GB — prior -ngl 0 constraints obsolete)
 
-## Recent Resolutions (last 3 sprints — older entries move to
+## Recent Resolutions (last 3 sprints — older entries in master_timeline_sprints_101_plus.md)
 
-## master_timeline_sprints_1_97.md, never rename that file)
-
-- Sprint 100 (docs-only, no source changes): wired the AGENTS.md boot
-  contract, created docs/standing-rules.md and docs/build-state.md,
-  merged .github/copilot-instructions.md (preserved existing Fast
-  Apply / Warp Grep instructions, appended AGENTS pointer block),
-  created docs/llama-harness-prefix.md (third injection point, not
-  yet wired into src/llm/inference.js), refreshed
-  PROJECT_ARCHITECTURE_AI_CONTEXT.md (was Sprint 28-era/stale — now
-  documents MCP layer, agent/orchestration layer, LLM/Qdrant layer,
-  security overview layer), updated master_timeline_sprints_1_97.md
-  and CURRENT_ACTIVE_SNAPSHOT.md, created snapshot artefact
-  strategic-learning-unified-theatre-ai-snapshot-sprint100-stable
-- Sprint 99: MCP SDK migration (`Server` → `McpServer`, per-tool
-  `.tool(...)` registration with Zod input schemas via new
-  `src/mcp/schemas.ts`); coverage-expansion pass (+56 test files /
-  +1105 tests since Sprint 98, crossing 90% on all four v8 metrics)
-- Sprint 98: WSL Remote MCP server startup failures; TS6+
-  moduleResolution deprecation; smoke test string-assertion mismatch
+- Sprint 106: Agentic RAG retrieval tools. Created `src/shared/retrieval/` layer
+  (`vector-client.ts` via Qdrant/embeddings, `code-search.ts` via ripgrep). Wired
+  `vector-search` and `search-code` on both the harness tool registry and the MCP
+  server. Fixed `executeToolCall` error propagation bug (`[TOOL ERROR:name]` on
+  failure). +80 tests (301 files / 5,002 total). Coverage above all four v8
+  thresholds. MCP smoke test: 5 tools confirmed.
+- Sprint 104/105: CI build-verify workflow, Node version correction (>=18→>=22.12.0),
+  test portability fixes (hardcoded paths), coverage path fix, native binary rebuild,
+  sprint91/92 guard timing fix via `vitest.test-ci.config.ts`.
+- Sprint 101–103: MCP stdio live verification (`scripts/verify-mcp-stdio.mjs`),
+  Linux packaging fix (PNG icon set in `resources/icons/`), Windows/Mac host
+  limitation documented.
 
 ## Open Items Carried Forward
 
@@ -98,9 +99,43 @@ as-is. Needs a human decision, not agent auto-resolution.
 - Verified real coverage after fixes: 94.96% statements / 92.58% branches.
 - Commit reference: `9959f747`
 
+## Sprint 106
+
+- **Agentic RAG retrieval layer:** Created `src/shared/retrieval/vector-client.ts`
+  (Qdrant semantic search via embeddings) and `src/shared/retrieval/code-search.ts`
+  (ripgrep lexical/regex search). Both modules are shared between the harness tool
+  surface and the MCP server surface — neither surface contains retrieval logic
+  directly.
+- **Harness tools:** `src/agents/tools/vector-search.ts` and
+  `src/agents/tools/search-code.ts` registered in `src/agents/tools/registry.ts`.
+  Harness tool count: 1→3.
+- **MCP tools:** `handleVectorSearch` and `handleSearchCode` added to
+  `src/mcp/tool-handlers.ts`; registered in `src/mcp/server.ts` via
+  `server.registerTool()`. MCP tool count: 3→5.
+- **Bug fix:** `src/agents/sub-agent.ts` `executeToolCall` now emits
+  `[TOOL ERROR:name]` on `result.success === false` instead of silently
+  forwarding empty output.
+- **Tests:** +80 tests across 6 files. Total: 301 files / 5,002 tests.
+- **Coverage:** 94.97% stmts / 92.56% branch / 93.17% funcs / 95.13% lines.
+- **Smoke test:** `scripts/verify-mcp-stdio.mjs` confirms 5 tools, exit 0.
+- **Pre-existing flaky test:** `tests/storage/storage-monitor.test.js` "watch
+  mode handles change events with labelFor function" — ENOENT race condition,
+  unrelated to this sprint, existed before.
+- **Deferred:** `retrieve` router tool (pending usage data), `glob` description
+  harmonisation (harness vs MCP wording mismatch), integration tests with live
+  Qdrant.
+- **Docs:** Step 5 of this sprint backfilled missing documentation for Sprints
+  101–105 and created missing snapshots for those sprints.
+
 ## Permanent Notes
 
-- Sprint 89 is the one permanently undocumented gap in the timeline.
-- `master_timeline_sprints_1_97.md` filename must never be changed
-  (confirmed: this is the only timeline file that exists in the repo —
-  no `_1_99` variant, despite sprint count exceeding 97).
+- Sprint 89 is the one permanently undocumented gap in the timeline (no commit,
+  doc, test, or artifact found anywhere in git history under any name).
+- Sprint 105 is a second gap: no commit found as of Sprint 106 documentation
+  pass. May be a skipped sprint number.
+- `master_timeline_sprints_1_97.md` filename must never be changed; it is the
+  canonical historical record for Sprints 1–100. Sprints 101+ continue in
+  `master_timeline_sprints_101_plus.md`.
+- `docs/build-state.md` must be updated at the close of every sprint — the
+  "Last verified: Sprint N" line at the top is the canary. If it drifts more
+  than 1 sprint behind, documentation debt is accumulating.

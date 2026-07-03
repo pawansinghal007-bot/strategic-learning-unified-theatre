@@ -1,0 +1,54 @@
+# Strategic Learning Unified Theatre AI Snapshot Sprint 103
+
+> **NOTE: This snapshot was created retroactively during Sprint 106 (2026-07-03)
+> due to a documentation gap. It was NOT captured live at Sprint 103 completion.
+> Content is reconstructed from git commit history and is accurate to the best of
+> that evidence.**
+
+- Date: 2026-07-03 (reconstructed)
+- Session: Sprint 103 — Windows/Mac packaging investigation
+- Repository: /home/pawan/vscodeagent/Solution
+- Snapshot tag: sprint-103-complete
+- Snapshot purpose: Lock Sprint 103 state after investigating Windows and macOS
+  Electron packaging feasibility from the WSL2 development host.
+- Previous snapshot: strategic-learning-unified-theatre-ai-snapshot-sprint102-stable
+- Created retroactively: Sprint 106 (2026-07-03) — documentation debt paydown
+
+## Summary
+
+Sprint 103 is a documentation-only sprint. No source code was changed. The sprint
+established hard limits for cross-platform packaging from the WSL2 dev host:
+
+**Windows (.nsis/.exe):**
+- `npm run electron:build -- --win` blocked by missing `wine`/NSIS tooling.
+- electron-builder requires `wine` for Windows codesigning/NSIS steps from Linux.
+- Resolution paths: (a) install `wine64`/`wine32` + `nsis` locally, or (b) use a
+  native Windows CI runner (`windows-latest`).
+- No Windows artifact produced this sprint.
+
+**macOS (.dmg):**
+- `npm run electron:build -- --mac` blocked by `dmg-license` → `iconv-corefoundation`
+  (darwin-only native module; fails to install on Linux).
+- macOS packaging requires a macOS build host or `macos-latest` CI runner.
+- Do NOT add `dmg-license` as a general `devDependency` — it pulls darwin-only deps
+  that break Linux installs.
+- No macOS artifact produced this sprint.
+
+## Validation Results (carried — no new tests or source changes this sprint)
+
+```
+Test Files  299 passed (299)
+     Tests  4943 passed (4943)
+```
+
+## Files Added or Updated
+
+- Updated: `docs/build-state.md` (Sprint 103 findings documented)
+
+## Handoff
+
+- Sprint 103 is locked as `strategic-learning-unified-theatre-ai-snapshot-sprint103-stable`.
+- Git tag: commit `10a7d55f` (docs(sprint-103): document Windows/Mac packaging
+  verification results).
+- Open: CI workflow needed to run platform-specific packaging on GitHub-hosted
+  runners — carried to Sprint 104.

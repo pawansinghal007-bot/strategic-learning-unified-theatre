@@ -1,0 +1,99 @@
+# Strategic Learning Unified Theatre AI Snapshot Sprint 104
+
+> **NOTE: This snapshot was created retroactively during Sprint 106 (2026-07-03)
+> due to a documentation gap. It was NOT captured live at Sprint 104 completion.
+> Content is reconstructed from git commit history and is accurate to the best of
+> that evidence.**
+
+- Date: 2026-07-03 (reconstructed)
+- Session: Sprint 104 — CI build-verify workflow + Node version + test infrastructure hardening
+- Repository: /home/pawan/vscodeagent/Solution
+- Snapshot tag: sprint-104-complete
+- Snapshot purpose: Lock Sprint 104 state after shipping a multi-platform CI workflow,
+  correcting the Node.js engine requirement, and fixing four classes of test
+  infrastructure failures.
+- Previous snapshot: strategic-learning-unified-theatre-ai-snapshot-sprint103-stable
+- Created retroactively: Sprint 106 (2026-07-03) — documentation debt paydown
+
+## Summary
+
+Sprint 104 shipped four discrete improvements:
+
+**1. CI build-verify workflow:**
+- `.github/workflows/build-verify.yml` — `workflow_dispatch`-only matrix across
+  `ubuntu-latest`, `windows-latest`, `macos-latest`; uploads unsigned artifacts
+  per platform for manual testing; no signing, notarization, or publish.
+- `package.json`: added `dist:mac` script (`electron-builder --mac zip`) — `zip`
+  target avoids the darwin-only `dmg-license` dependency.
+- Existing `release.yml` flagged as stale (runs `electron-builder -mwl` on
+  `windows-latest` only — cannot produce valid macOS artifacts).
+
+**2. Node version correction:**
+- `package.json` `engines.node`: `>=18` → `>=22.12.0` (EBADENGINE warnings from
+  `electron@42.5.2`, `@electron/get@5.0.0`, `utilium@3.4.0` all require >=22.12.0).
+- `build-verify.yml` node-version: `20` → `22` in all three jobs.
+- `test.yml` still pins `node-version 20` — flagged stale, left pending separate
+  approval.
+
+**3. Test portability fixes:**
+- Fixed 4 hardcoded `/home/pawan/vscodeagent/Solution` absolute paths in
+  `storageStatus.test.js`, `paths.test.js`, `sprint85-guard.test.js`,
+  `sprint86-hotspot-guard.test.js` → `process.cwd()`-relative.
+- `vitest.config.ts` `reportsDirectory`: `./coverage/ts` → `./coverage` (what all
+  consumers — Sonar tooling, `check-coverage-failures.cjs`, 5 guard tests — expect).
+
+**4. sprint91/92 guard timing fix:**
+- Root cause: sprint91/92 guards read `coverage-summary.json` which is only written
+  AFTER test execution completes; they cannot pass in the same invocation that
+  generates their own coverage data.
+- Added `vitest.test-ci.config.ts`: excludes sprint91/92 from `test:ci`; they run
+  via `coverage:guarded` (coverage first, then guards as a separate post-coverage
+  step).
+- `sprint71`/`sprint72` guard assertions strengthened to check three independent
+  components rather than one exact string.
+- `better-sqlite3` native binary rebuilt for Linux (stale Windows-built `.node`
+  dated June 15 caused 12 test files to fail with `invalid ELF header` — was
+  masking true coverage numbers in all prior runs on this host).
+
+**Verification:**
+- `test:ci` exits 0 (297 files, 4923 tests after exclusions).
+- `coverage:guarded` exits 0 (adds 2 guard files, total 299 files / 4943 tests).
+- Real coverage confirmed: 94.96% stmts / 92.58% branch / 93.22% funcs / 95.11% lines.
+
+## Validation Results
+
+```
+test:ci:   297 files passed, 4923 tests passed (0 failed)
+coverage:guarded: 299 files passed, 4943 tests passed (0 failed)
+```
+
+Coverage (v8):
+
+| Metric     | %     |
+| ---------- | ----- |
+| Statements | 94.96 |
+| Branches   | 92.58 |
+| Functions  | 93.22 |
+| Lines      | 95.11 |
+
+## Files Added or Updated
+
+- Added: `.github/workflows/build-verify.yml`
+- Added: `vitest.test-ci.config.ts`
+- Updated: `docs/build-state.md`
+- Updated: `package.json` (engines.node, dist:mac script)
+- Updated: `tests/internal/paths.test.js`
+- Updated: `tests/sprint71-newcode-scope-guard.test.js`
+- Updated: `tests/sprint72-modified-newcode-boundary.test.js`
+- Updated: `tests/sprint85-guard.test.js`
+- Updated: `tests/sprint86-hotspot-guard.test.js`
+- Updated: `tests/storage/storageStatus.test.js`
+- Updated: `vitest.config.ts`
+
+## Handoff
+
+- Sprint 104 is locked as `strategic-learning-unified-theatre-ai-snapshot-sprint104-stable`.
+- Git tags: commits `9fc86bf0`, `f4119f51`, `9959f747`, `21bf4c86`.
+- Test infrastructure: [CONFIRMED] portable, coverage path correct, guard timing
+  resolved.
+- Open: Sprint 105 — no record found (see timeline doc).

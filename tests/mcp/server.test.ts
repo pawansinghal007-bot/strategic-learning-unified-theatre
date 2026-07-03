@@ -76,9 +76,9 @@ describe("MCP server registration (McpServer)", () => {
     { description: string; inputSchema: unknown; enabled: boolean }
   >;
 
-  it("registers exactly the three expected tools", () => {
+  it("registers exactly the five expected tools", () => {
     const names = Object.keys(registered).sort();
-    expect(names).toEqual(["ask-local", "code-review", "list-tools"]);
+    expect(names).toEqual(["ask-local", "code-review", "list-tools", "search-code", "vector-search"]);
   });
 
   it("ask-local is enabled and has a description mentioning local LLM", () => {

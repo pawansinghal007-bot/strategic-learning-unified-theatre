@@ -230,3 +230,118 @@ describe("runSubAgent", () => {
     });
   });
 });
+
+
+// ─── executeToolCall error-propagation (Step 1 fix) ──────────────────────────
+
+describe("executeToolCall — TOOL ERROR vs TOOL RESULT message format", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("feeds [TOOL RESULT:name] into the follow-up prompt when tool succeeds", async () => {
+    const mockTool = {
+      name: "search-code",
+      description: "searches code",
+      execute: vi.fn().mockResolvedValue({
+        toolName: "search-code",
+        success: true,
+        output: "src/foo.ts:10: const x = 1;",
+      }),
+    };
+    mockGetTool.mockReturnValue(mockTool);
+
+    // Iteration 1: tool call response → executeToolCall fires, then loop continues
+    // The follow-up call (inside executeToolCall) returns some text
+    // Iteration 2: done marker
+    mockGatewayAsk
+      .mockReturnValueOnce(makeResponse('[TOOL:search-code pattern="const x"]'))
+      .mockReturnValueOnce(makeResponse("found it"))   // executeToolCall's follow-up
+      .mockReturnValueOnce(makeResponse("Done. [DONE]")); // iteration 2
+
+    await runSubAgent(makeTask({ maxIterations: 5 }));
+
+    // The second gateway.ask call is inside executeToolCall — check its prompt
+    const followUpPrompt: string = mockGatewayAsk.mock.calls[1][0].prompt;
+    expect(followUpPrompt).toContain("[TOOL RESULT:search-code]");
+    expect(followUpPrompt).toContain("src/foo.ts:10: const x = 1;");
+    // Must NOT contain TOOL ERROR when success is true
+    expect(followUpPrompt).not.toContain("[TOOL ERROR:");
+  });
+
+  it("feeds [TOOL ERROR:name] into the follow-up prompt when tool fails (success:false)", async () => {
+    const mockTool = {
+      name: "vector-search",
+      description: "searches vectors",
+      execute: vi.fn().mockResolvedValue({
+        toolName: "vector-search",
+        success: false,
+        output: "",
+        error: "Qdrant connection refused",
+      }),
+    };
+    mockGetTool.mockReturnValue(mockTool);
+
+    mockGatewayAsk
+      .mockReturnValueOnce(makeResponse('[TOOL:vector-search query="foo"]'))
+      .mockReturnValueOnce(makeResponse("handled error")) // executeToolCall follow-up
+      .mockReturnValueOnce(makeResponse("Finished. [DONE]"));
+
+    await runSubAgent(makeTask({ maxIterations: 5 }));
+
+    const followUpPrompt: string = mockGatewayAsk.mock.calls[1][0].prompt;
+    expect(followUpPrompt).toContain("[TOOL ERROR:vector-search]");
+    expect(followUpPrompt).toContain("Qdrant connection refused");
+    // Must NOT contain TOOL RESULT when success is false
+    expect(followUpPrompt).not.toContain("[TOOL RESULT:");
+  });
+
+  it("[TOOL ERROR] falls back to default message when error field is undefined", async () => {
+    const mockTool = {
+      name: "read-file",
+      description: "reads a file",
+      execute: vi.fn().mockResolvedValue({
+        toolName: "read-file",
+        success: false,
+        output: "",
+        // error is intentionally absent
+      }),
+    };
+    mockGetTool.mockReturnValue(mockTool);
+
+    mockGatewayAsk
+      .mockReturnValueOnce(makeResponse('[TOOL:read-file path="missing.ts"]'))
+      .mockReturnValueOnce(makeResponse("ok"))
+      .mockReturnValueOnce(makeResponse("[DONE]"));
+
+    await runSubAgent(makeTask({ maxIterations: 5 }));
+
+    const followUpPrompt: string = mockGatewayAsk.mock.calls[1][0].prompt;
+    expect(followUpPrompt).toContain("[TOOL ERROR:read-file]");
+    expect(followUpPrompt).toContain("Tool execution failed with no error message.");
+  });
+
+  it("[TOOL RESULT] uses empty string output when tool succeeds with empty output", async () => {
+    const mockTool = {
+      name: "read-file",
+      description: "reads a file",
+      execute: vi.fn().mockResolvedValue({
+        toolName: "read-file",
+        success: true,
+        output: "",
+      }),
+    };
+    mockGetTool.mockReturnValue(mockTool);
+
+    mockGatewayAsk
+      .mockReturnValueOnce(makeResponse('[TOOL:read-file path="empty.ts"]'))
+      .mockReturnValueOnce(makeResponse("ok"))
+      .mockReturnValueOnce(makeResponse("[DONE]"));
+
+    await runSubAgent(makeTask({ maxIterations: 5 }));
+
+    const followUpPrompt: string = mockGatewayAsk.mock.calls[1][0].prompt;
+    expect(followUpPrompt).toContain("[TOOL RESULT:read-file]");
+    expect(followUpPrompt).not.toContain("[TOOL ERROR:");
+  });
+});

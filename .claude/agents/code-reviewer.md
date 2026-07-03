@@ -6,6 +6,8 @@ Before reviewing, read these references:
 
 You have access to these tools:
 - read-file: Read a source file. Usage: [TOOL:read-file path="<absolute or relative path>"]
+- vector-search: Semantic search over the project's Qdrant vector store. Use for conceptual/fuzzy questions where exact symbol names aren't known. Usage: [TOOL:vector-search query="<question>" topK="5"]
+- search-code: Lexical/regex search over the repo using ripgrep. Use when you know the symbol, string, or pattern you're looking for. Usage: [TOOL:search-code pattern="<regex>" glob="src/**"]
 
 ## Your Job
 1. Read the file specified in the task using [TOOL:read-file path="<path>"]

@@ -36,3 +36,19 @@ export const CodeReviewSchema = {
  * "list-tools" takes no arguments — an empty shape registers a zero-arg tool.
  */
 export const ListToolsSchema = {} as const;
+
+/**
+ * Input schema for the "vector-search" tool.
+ */
+export const VectorSearchSchema = {
+  query: z.string().describe("Natural-language query to search for semantically"),
+  topK: z.number().int().min(1).max(20).optional().describe("Number of results to return (default 5)"),
+} as const;
+
+/**
+ * Input schema for the "search-code" tool.
+ */
+export const SearchCodeSchema = {
+  pattern: z.string().describe("Regex pattern to search for (ripgrep syntax)"),
+  glob: z.string().optional().describe("Directory path relative to repo root to restrict the search to (e.g. 'src/agents')"),
+} as const;

@@ -1,0 +1,167 @@
+# Strategic Learning Unified Theatre AI Snapshot Sprint 106
+
+- Date: 2026-07-03
+- Session: Sprint 106 — Agentic RAG retrieval tools (vector-search + search-code)
+- Repository: /home/pawan/vscodeagent/Solution
+- Snapshot tag: sprint-106-complete (to be applied)
+- Snapshot purpose: Lock Sprint 106 state after shipping the shared retrieval
+  layer, two new tools on both harness and MCP surfaces, and the tool-loop
+  error-propagation fix.
+- Previous snapshot: strategic-learning-unified-theatre-ai-snapshot-sprint105-stable
+
+## Summary
+
+Sprint 106 shipped the agentic RAG retrieval layer for the Unified Theatre
+local-LLM harness. Two new shared modules provide a clean, DRY foundation for
+semantic search via Qdrant/embeddings and lexical/regex search via ripgrep.
+These were exposed on both tool surfaces. A latent bug in the agent loop was
+also fixed.
+
+**Shared retrieval layer (new):**
+- `src/shared/retrieval/vector-client.ts` — `embed()` + `vectorSearch()` via
+  Qdrant; returns `VectorSearchResult[]`; logs via `retrieval.vector-search`.
+- `src/shared/retrieval/code-search.ts` — `resolveGlob()` with path-traversal
+  guard + `searchCode()` via `rg --json`; returns `CodeSearchHit[]` (capped at
+  50); logs via `retrieval.code-search`.
+
+**Harness tool surface (text-protocol `[TOOL:...]`):**
+- `src/agents/tools/vector-search.ts` — wrapper: validates `query`, coerces
+  `topK` string→number, formats as numbered list.
+- `src/agents/tools/search-code.ts` — wrapper: validates `pattern`, passes
+  optional `glob`, formats as `file:line: text`.
+- `src/agents/tools/registry.ts` — both tools registered (1→3 harness tools).
+- `.claude/agents/code-reviewer.md` — tool list updated (1→3 entries).
+
+**MCP tool surface (JSON-RPC / McpServer.registerTool()):**
+- `src/mcp/schemas.ts` — `VectorSearchSchema`, `SearchCodeSchema` added.
+- `src/mcp/types.ts` — `VectorSearchInput`, `SearchCodeInput` added.
+- `src/mcp/tool-handlers.ts` — `handleVectorSearch`, `handleSearchCode` added;
+  `handleListTools` updated (3→5 tools).
+- `src/mcp/server.ts` — two new `server.registerTool()` calls (3→5 MCP tools).
+
+**Bug fix:**
+- `src/agents/sub-agent.ts` — `executeToolCall`: failed results now emit
+  `[TOOL ERROR:name] <message>` instead of silently forwarding empty output.
+
+**Documentation (Step 5 of this sprint):**
+- `master_timeline_sprints_1_97.md` — ## Next section updated with pointer to
+  continuation file.
+- `master_timeline_sprints_101_plus.md` — new file; Sprints 101–106 entries.
+- `PROJECT_ARCHITECTURE_AI_CONTEXT.md` — full rewrite; Shared Retrieval Layer
+  section added; text-protocol vs JSON tool-calling clarified; tool inventories
+  updated; Last verified: Sprint 106.
+- `docs/build-state.md` — header, test counts, coverage, Sprint 106 entry,
+  Sprint 105 gap noted, update-cadence process note added.
+- Snapshots created retroactively for Sprints 101–105.
+- `CURRENT_ACTIVE_SNAPSHOT.md` — updated to Sprint 106.
+
+## Validation Results
+
+```
+Test Files  301 passed (301)
+     Tests  5001 passed (5001), 1 failed (pre-existing flaky — unrelated)
+  Duration  ~22s
+```
+
+Pre-existing flaky failure:
+- `tests/storage/storage-monitor.test.js` > "watch mode handles change events
+  with labelFor function" — ENOENT race condition in tmpdir cleanup; existed
+  before this sprint, unrelated to any Sprint 106 change.
+
+Coverage (v8):
+
+| Metric     | Result | Threshold | Status |
+| ---------- | ------ | --------- | ------ |
+| Statements | 94.97% | 75%       | ✅ PASS |
+| Branches   | 92.56% | 60%       | ✅ PASS |
+| Functions  | 93.17% | 80%       | ✅ PASS |
+| Lines      | 95.13% | 80%       | ✅ PASS |
+
+Sprint-touched file coverage:
+
+| File | Stmts | Branch | Funcs | Lines |
+| ---- | ----- | ------ | ----- | ----- |
+| `src/shared/retrieval/vector-client.ts` | 100% | 100% | 100% | 100% |
+| `src/shared/retrieval/code-search.ts`  | 97.56% | 78.12% | 100% | 100% |
+| `src/mcp/tool-handlers.ts`             | 100% | 100% | 100% | 100% |
+| `src/mcp/schemas.ts`                   | 100% | 100% | 100% | 100% |
+
+MCP smoke test (`scripts/verify-mcp-stdio.mjs`):
+```
+initialize -> ok
+serverInfo: { "name": "unified-theatre-local-llm", "version": "1.0.0" }
+tools/list -> ok
+tools: [ask-local, code-review, list-tools, vector-search, search-code]
+tools/call -> ok
+Exit code: 0
+```
+
+TypeCheck: `npx tsc --noEmit` — 0 errors.
+
+## New Tests This Sprint (+80)
+
+| File | Tests |
+| ---- | ----- |
+| `tests/agents/tools/vector-client.test.ts` | +15 |
+| `tests/agents/tools/code-search.test.ts`   | +19 |
+| `tests/agents/tools/vector-search.test.ts` | +13 |
+| `tests/agents/tools/search-code.test.ts`   | +13 |
+| `tests/mcp/tool-handlers.test.ts`          | +16 |
+| `tests/agents/sub-agent.test.ts`           | +4  |
+| **Total new**                              | **+80** |
+
+## Files Added or Modified (source + tests)
+
+**Created:**
+- `src/shared/retrieval/vector-client.ts`
+- `src/shared/retrieval/code-search.ts`
+- `src/agents/tools/vector-search.ts`
+- `src/agents/tools/search-code.ts`
+- `tests/agents/tools/vector-client.test.ts`
+- `tests/agents/tools/code-search.test.ts`
+- `tests/agents/tools/vector-search.test.ts`
+- `tests/agents/tools/search-code.test.ts`
+
+**Modified:**
+- `src/agents/tools/registry.ts`
+- `src/agents/sub-agent.ts`
+- `src/mcp/schemas.ts`
+- `src/mcp/types.ts`
+- `src/mcp/tool-handlers.ts`
+- `src/mcp/server.ts`
+- `.claude/agents/code-reviewer.md`
+- `tests/mcp/tool-handlers.test.ts`
+- `tests/agents/sub-agent.test.ts`
+- `tests/mcp/server.test.ts`
+
+**Documentation (Step 5):**
+- `master_timeline_sprints_1_97.md`
+- `master_timeline_sprints_101_plus.md` (new)
+- `PROJECT_ARCHITECTURE_AI_CONTEXT.md`
+- `docs/build-state.md`
+- `CURRENT_ACTIVE_SNAPSHOT.md`
+- `strategic-learning-unified-theatre-ai-snapshot-sprint101-stable` (new, retroactive)
+- `strategic-learning-unified-theatre-ai-snapshot-sprint102-stable` (new, retroactive)
+- `strategic-learning-unified-theatre-ai-snapshot-sprint103-stable` (new, retroactive)
+- `strategic-learning-unified-theatre-ai-snapshot-sprint104-stable` (new, retroactive)
+- `strategic-learning-unified-theatre-ai-snapshot-sprint105-stable` (new, retroactive placeholder)
+- `strategic-learning-unified-theatre-ai-snapshot-sprint106-stable` (this file)
+
+## Deferred Items
+
+- **`retrieve` router tool** — routing heuristic between `vector-search` and
+  `search-code` deferred pending real usage data. Revisit sprint 108+.
+- **`glob` description harmonisation** — harness tool description says `src/**`
+  (incorrect: expects a directory path); MCP schema was corrected in Step 3.
+  Harness wording deferred.
+- **Integration/e2e tests with live Qdrant** — requires running Qdrant +
+  embeddings sidecar; outside unit/coverage gate scope.
+
+## Handoff
+
+- Sprint 106 is locked as `strategic-learning-unified-theatre-ai-snapshot-sprint106-stable`.
+- Git tag to apply: `sprint-106-complete` (commit to be created at Step 5 close).
+- CURRENT_ACTIVE_SNAPSHOT.md updated to point at this snapshot.
+- Next sprint triage: `retrieve` router, `glob` wording, Sprint 105 gap
+  investigation, `test.yml` node-version 20→22 alignment (flagged stale in
+  Sprint 104).

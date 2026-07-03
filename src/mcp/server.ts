@@ -5,11 +5,15 @@ import {
   handleAskLocal,
   handleCodeReview,
   handleListTools,
+  handleVectorSearch,
+  handleSearchCode,
 } from "./tool-handlers.ts";
 import {
   AskLocalSchema,
   CodeReviewSchema,
   ListToolsSchema,
+  VectorSearchSchema,
+  SearchCodeSchema,
 } from "./schemas.ts";
 
 export const server = new McpServer(
@@ -52,6 +56,32 @@ server.registerTool(
   async () => {
     logger.info("mcp.tool-call", { tool: "list-tools" });
     return handleListTools();
+  },
+);
+
+server.registerTool(
+  "vector-search",
+  {
+    description:
+      "Semantic similarity search over the project's Qdrant vector store. Use for: finding conceptually related code, docs, or sprint history by natural language.",
+    inputSchema: VectorSearchSchema,
+  },
+  async (args) => {
+    logger.info("mcp.tool-call", { tool: "vector-search" });
+    return handleVectorSearch(args);
+  },
+);
+
+server.registerTool(
+  "search-code",
+  {
+    description:
+      "Lexical/regex search over the repo using ripgrep. Use for: finding exact symbols, patterns, or strings across source files.",
+    inputSchema: SearchCodeSchema,
+  },
+  async (args) => {
+    logger.info("mcp.tool-call", { tool: "search-code" });
+    return handleSearchCode(args);
   },
 );
 
