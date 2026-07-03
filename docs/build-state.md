@@ -73,6 +73,13 @@ as-is. Needs a human decision, not agent auto-resolution.
   multiple sprints now; likely a log file that should be gitignored
   rather than repeatedly appearing as noise in status checks
 
+### 5. Pre-existing packaging bugs (not addressed in sprint-101 security fixes)
+
+- electron-builder Linux .deb build fails on icon format ('unknown output format set') —
+  pre-existing since at least sprint-100, unrelated to sprint-101 security fixes.
+  Needs separate fix (icon config using 'set' format expects a directory of icons,
+  not a single .ico file).
+
 ## Permanent Notes
 
 - Sprint 89 is the one permanently undocumented gap in the timeline.
