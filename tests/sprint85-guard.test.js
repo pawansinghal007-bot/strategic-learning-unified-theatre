@@ -12,7 +12,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { execSync } from "node:child_process";
 
-const workspaceRoot = "/home/pawan/vscodeagent/Solution";
+const workspaceRoot = process.cwd();
 
 describe("Sprint 85 Guard", () => {
   describe("NOSONAR removal", () => {

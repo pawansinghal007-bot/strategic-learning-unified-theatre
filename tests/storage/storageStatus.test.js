@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { vi } from "vitest";
 
-const testDir = "/home/pawan/vscodeagent/Solution/tests/fixtures/storage";
+const testDir = path.join(process.cwd(), "tests/fixtures/storage");
 const testSnapshotFile = path.join(testDir, "storage-snapshot.json");
 
 let getStorageMonitorStatus;

@@ -70,7 +70,11 @@ describe("Sprint 71 new-code scope guard", () => {
   describe("Coverage and Sonar scripts preserved", () => {
     it("coverage script exists in package.json", () => {
       expect(packageJson.scripts.coverage).toBeTruthy();
-      expect(packageJson.scripts.coverage).toContain("vitest run --coverage");
+      expect(packageJson.scripts.coverage).toContain("vitest run");
+      expect(packageJson.scripts.coverage).toContain("--coverage");
+      expect(packageJson.scripts.coverage).toContain(
+        "-c vitest.test-ci.config.ts",
+      );
     });
 
     it("sonar scan script exists in package.json", () => {

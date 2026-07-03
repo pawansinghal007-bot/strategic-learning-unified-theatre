@@ -37,7 +37,7 @@ export default defineConfig({
 
       reporter: ["text", "json", "html", "json-summary", "lcov", "cobertura"],
 
-      reportsDirectory: "./coverage/ts",
+      reportsDirectory: "./coverage",
 
       include: ["src/**/*.js", "src/**/*.ts"],
 

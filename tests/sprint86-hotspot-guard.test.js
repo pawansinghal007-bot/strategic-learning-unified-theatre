@@ -10,7 +10,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-const workspaceRoot = "/home/pawan/vscodeagent/Solution";
+const workspaceRoot = process.cwd();
 const hotspotLogPath = join(workspaceRoot, "docs/security-hotspot-log.md");
 
 describe("Sprint 86 Hotspot Guard", () => {
@@ -25,8 +25,9 @@ describe("Sprint 86 Hotspot Guard", () => {
     it("each entry has a justification field", () => {
       const content = readFileSync(hotspotLogPath, "utf8");
       // Each entry should have "- **Justification**:" field
-      const justificationCount = (content.match(/- \*\*Justification\*\*/gm) || [])
-        .length;
+      const justificationCount = (
+        content.match(/- \*\*Justification\*\*/gm) || []
+      ).length;
       expect(justificationCount).toBeGreaterThanOrEqual(16);
     });
   });

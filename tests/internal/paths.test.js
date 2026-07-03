@@ -22,8 +22,7 @@ vi.mock("node:os", () => ({
     homedir: vi.fn(() => "/home/test"),
   },
 }));
-// Mock using full path to config.js
-vi.mock("/home/pawan/vscodeagent/Solution/src/internal/config.js", () => ({
+vi.mock("../../src/internal/config.js", () => ({
   loadConfig: vi.fn().mockResolvedValue({}),
 }));
 
@@ -35,7 +34,7 @@ import {
 } from "../../src/internal/paths.js";
 
 // Import loadConfig for use in tests
-import { loadConfig } from "/home/pawan/vscodeagent/Solution/src/internal/config.js";
+import { loadConfig } from "../../src/internal/config.js";
 
 describe("internal/paths.js", () => {
   beforeEach(() => {

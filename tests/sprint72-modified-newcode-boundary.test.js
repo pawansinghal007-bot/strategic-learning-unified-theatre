@@ -90,7 +90,11 @@ describe("Sprint 72 modified-newcode boundary guard", () => {
 
   describe("Coverage and Sonar scripts preserved", () => {
     it("coverage script exists with vitest run --coverage", () => {
-      expect(pkg.scripts.coverage).toContain("vitest run --coverage");
+      expect(pkg.scripts.coverage).toContain("vitest run");
+      expect(pkg.scripts.coverage).toContain("--coverage");
+      expect(pkg.scripts.coverage).toContain(
+        "-c vitest.test-ci.config.ts",
+      );
     });
 
     it("sonar:scan script exists", () => {
