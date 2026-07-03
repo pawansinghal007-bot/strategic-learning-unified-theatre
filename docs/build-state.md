@@ -89,6 +89,15 @@ as-is. Needs a human decision, not agent auto-resolution.
 
 - Existing `.github/workflows/release.yml` remains stale for full multi-platform packaging because it currently runs `npm run dist` on `windows-latest`, which is unsafe for macOS artifact generation. The new manual verification workflow is the appropriate place to confirm platform-specific packages before any release automation is adjusted.
 
+## Sprint 105
+
+- Rebuilt the `better-sqlite3` native Linux binary after detecting a stale Windows-built `.node` file that caused 12 test files to fail to load on this host.
+- Fixed 4 tests with hardcoded `/home/pawan/vscodeagent/Solution` absolute paths to use `process.cwd()` instead, restoring portable test execution.
+- Corrected `vitest.config.ts` so the coverage reporter writes to `./coverage` instead of `./coverage/ts`.
+- Determined `sprint91`/`sprint92` guard tests cannot reliably run in the same invocation that generates their own coverage data; they must run via `npm run coverage:guarded`, not as part of `npm run test:ci`.
+- Verified real coverage after fixes: 94.96% statements / 92.58% branches.
+- Commit reference: `9959f747`
+
 ## Permanent Notes
 
 - Sprint 89 is the one permanently undocumented gap in the timeline.
