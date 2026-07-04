@@ -47,9 +47,10 @@ vi.mock("../../src/agents/orchestrator.ts", () => ({
 
 // Patch McpServer.connect so the top-level await main() doesn't hang
 vi.mock("@modelcontextprotocol/sdk/server/mcp.js", async (importOriginal) => {
-  const original = await importOriginal<
-    typeof import("@modelcontextprotocol/sdk/server/mcp.js")
-  >();
+  const original =
+    await importOriginal<
+      typeof import("@modelcontextprotocol/sdk/server/mcp.js")
+    >();
   const OriginalMcpServer = original.McpServer;
   class PatchedMcpServer extends OriginalMcpServer {
     override connect(_transport: unknown): Promise<void> {
@@ -78,7 +79,14 @@ describe("MCP server registration (McpServer)", () => {
 
   it("registers exactly the five expected tools", () => {
     const names = Object.keys(registered).sort();
-    expect(names).toEqual(["ask-local", "code-review", "list-tools", "search-code", "vector-search"]);
+    expect(names).toEqual([
+      "ask-local",
+      "code-review",
+      "list-tools",
+      "retrieve",
+      "search-code",
+      "vector-search",
+    ]);
   });
 
   it("ask-local is enabled and has a description mentioning local LLM", () => {
@@ -132,7 +140,9 @@ describe("No Server (deprecated class) import", () => {
       "utf8",
     );
     // Must not import the deprecated Server class
-    expect(content).not.toMatch(/from ["']@modelcontextprotocol\/sdk\/server\/index\.js["']/);
+    expect(content).not.toMatch(
+      /from ["']@modelcontextprotocol\/sdk\/server\/index\.js["']/,
+    );
     // Must use McpServer
     expect(content).toMatch(/McpServer/);
     // NOSONAR comment must be gone

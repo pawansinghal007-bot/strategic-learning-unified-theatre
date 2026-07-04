@@ -23,3 +23,10 @@ export interface SearchCodeInput {
   pattern: string;
   glob?: string;
 }
+
+export interface RetrieveInput {
+  query: string;
+  mode?: "code" | "vector" | "file";
+  topK?: number;
+  glob?: string;
+}

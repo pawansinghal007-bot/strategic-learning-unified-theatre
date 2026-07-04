@@ -18,18 +18,20 @@ import { logger } from "../logging/logger.js";
 
 const execFile = promisify(childProcess.execFile);
 
+// ─── timeout configuration ────────────────────────────────────────────────────
+
+const RETRIEVAL_TIMEOUT_MS = Number(process.env.RETRIEVAL_TIMEOUT_MS ?? 10_000);
+
 // ─── configuration (from environment) ────────────────────────────────────────
 
 // Follows the same convention as read-file.ts (PROJECT_ROOT) and
 // orchestrator.ts (process.cwd() as project base).
-const REPO_ROOT = path.resolve(
-  process.env.REPO_ROOT ?? process.cwd(),
-);
+const REPO_ROOT = path.resolve(process.env.REPO_ROOT ?? process.cwd());
 
 // ─── types ────────────────────────────────────────────────────────────────────
 
 export interface CodeSearchHit {
-  file: string;   // path relative to REPO_ROOT
+  file: string; // path relative to REPO_ROOT
   line: number;
   text: string;
 }
@@ -86,16 +88,25 @@ export async function searchCode(
 
   const args = [
     "--json",
-    "--max-count", "50",
-    "--glob", "!node_modules",
-    "--glob", "!.git",
+    "--max-count",
+    "50",
+    "--glob",
+    "!node_modules",
+    "--glob",
+    "!.git",
     pattern,
     searchPath,
   ];
 
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), RETRIEVAL_TIMEOUT_MS);
+
   let stdout = "";
   try {
-    const result = await execFile("rg", args, { maxBuffer: 10 * 1024 * 1024 });
+    const result = await execFile("rg", args, {
+      maxBuffer: 10 * 1024 * 1024,
+      signal: controller.signal,
+    });
     stdout = result.stdout;
   } catch (err) {
     const execErr = err as NodeJS.ErrnoException & {
@@ -106,6 +117,12 @@ export async function searchCode(
     // rg exits with code 1 when there are no matches — not a real error.
     // execFile surfaces the exit code as the string "1" on ErrnoException.code.
     const exitCode = String(execErr.code ?? "");
+
+    // Check for timeout (AbortError)
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error(`searchCode: timed out after ${RETRIEVAL_TIMEOUT_MS}ms`);
+    }
+
     if (exitCode === "1" && !execErr.stdout?.trim()) {
       logger.info("retrieval.code-search", {
         pattern,
@@ -118,6 +135,8 @@ export async function searchCode(
     throw new Error(
       `searchCode: rg failed (code ${exitCode}): ${execErr.stderr ?? String(err)}`,
     );
+  } finally {
+    clearTimeout(timer);
   }
 
   // Parse rg --json output: each line is a JSON object; we only care about

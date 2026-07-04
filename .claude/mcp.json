@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "unified-theatre-local-llm": {
+      "command": "npx",
+      "args": ["tsx", "src/mcp/server.ts"],
+      "cwd": "/home/pawan/vscodeagent/Solution",
+      "env": {
+        "VSCODE_ROTATOR_LLM_ENDPOINT": "http://localhost:8080/v1/chat/completions",
+        "VSCODE_ROTATOR_LLM_MODEL": "qwen3-coder",
+        "PROJECT_ROOT": "/home/pawan/vscodeagent/Solution",
+        "SESSION_LOG_PATH": "/home/pawan/vscodeagent/Solution/logs/agent-session.ndjson"
+      }
+    }
+  }
+}

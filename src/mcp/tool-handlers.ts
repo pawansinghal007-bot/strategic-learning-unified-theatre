@@ -2,6 +2,11 @@ import { gateway } from "../llm/gateway.ts";
 import { runOrchestrator } from "../agents/orchestrator.ts";
 import { vectorSearch } from "../shared/retrieval/vector-client.js";
 import { searchCode } from "../shared/retrieval/code-search.js";
+import { retrieve } from "../shared/retrieval/router.js";
+import {
+  formatVectorResults,
+  formatCodeHits,
+} from "../shared/retrieval/format.js";
 import { logger } from "../shared/logging/logger.ts";
 import type { McpToolResult } from "./types";
 import type {
@@ -9,6 +14,7 @@ import type {
   CodeReviewSchema,
   VectorSearchSchema,
   SearchCodeSchema,
+  RetrieveSchema,
 } from "./schemas.ts";
 import type { z } from "zod";
 import * as crypto from "node:crypto";
@@ -22,10 +28,15 @@ type CodeReviewArgs = {
   [K in keyof typeof CodeReviewSchema]: z.infer<(typeof CodeReviewSchema)[K]>;
 };
 type VectorSearchArgs = {
-  [K in keyof typeof VectorSearchSchema]: z.infer<(typeof VectorSearchSchema)[K]>;
+  [K in keyof typeof VectorSearchSchema]: z.infer<
+    (typeof VectorSearchSchema)[K]
+  >;
 };
 type SearchCodeArgs = {
   [K in keyof typeof SearchCodeSchema]: z.infer<(typeof SearchCodeSchema)[K]>;
+};
+type RetrieveArgs = {
+  [K in keyof typeof RetrieveSchema]: z.infer<(typeof RetrieveSchema)[K]>;
 };
 
 export async function handleAskLocal(
@@ -112,6 +123,11 @@ Available MCP tools and harness commands:
    - Lexical/regex search over the repo using ripgrep
    - Use for: finding exact symbols, patterns, or strings across source files
 
+6. retrieve
+   - Smart retrieval router that automatically chooses between code, vector, and file search
+   - Uses heuristics: path-like (has '/' + extension) → file, symbol-like (camelCase/PascalCase/snake_case/quotes/regex) → code, default → vector
+   - Use for: unified retrieval that adapts to query type automatically
+
 Planned tools:
 - fix-sonar
 - run-sprint
@@ -136,12 +152,7 @@ export async function handleVectorSearch(
       return { content: [{ type: "text", text: "No results found." }] };
     }
 
-    const formatted = results
-      .map(
-        (r, i) =>
-          `${i + 1}. [score: ${r.score.toFixed(3)}] ${r.source}\n   ${r.text}`,
-      )
-      .join("\n\n");
+    const formatted = formatVectorResults(results);
 
     return { content: [{ type: "text", text: formatted }] };
   } catch (err: any) {
@@ -169,13 +180,69 @@ export async function handleSearchCode(
       return { content: [{ type: "text", text: "No matches found." }] };
     }
 
-    const formatted = hits
-      .map((h) => `${h.file}:${h.line}: ${h.text}`)
-      .join("\n");
+    const formatted = formatCodeHits(hits);
 
     return { content: [{ type: "text", text: formatted }] };
   } catch (err: any) {
     logger.error("mcp.search-code.error", { error: err.message });
+    return {
+      content: [{ type: "text", text: `Error: ${err.message}` }],
+      isError: true,
+    };
+  }
+}
+
+export async function handleRetrieve(
+  input: RetrieveArgs,
+): Promise<McpToolResult> {
+  try {
+    const result = await retrieve(input.query, {
+      mode: input.mode,
+      topK: input.topK,
+      glob: input.glob,
+    });
+
+    logger.info("mcp.retrieve", {
+      query: input.query,
+      mode: input.mode,
+      topK: input.topK ?? 5,
+      strategy: result.strategy,
+    });
+
+    if (result.error) {
+      return {
+        content: [{ type: "text", text: `Error: ${result.error}` }],
+        isError: true,
+      };
+    }
+
+    // Format based on strategy
+    switch (result.strategy) {
+      case "vector": {
+        const formatted = formatVectorResults(result.results as any);
+        if (formatted === "") {
+          return { content: [{ type: "text", text: "No results found." }] };
+        }
+        return { content: [{ type: "text", text: formatted }] };
+      }
+      case "code": {
+        const formatted = formatCodeHits(result.results as any);
+        if (formatted === "") {
+          return { content: [{ type: "text", text: "No results found." }] };
+        }
+        return { content: [{ type: "text", text: formatted }] };
+      }
+      case "file": {
+        // File strategy returns raw content
+        return { content: [{ type: "text", text: result.results as string }] };
+      }
+      default: {
+        const _exhaustive: never = result.strategy;
+        throw new Error(`Unknown strategy: ${_exhaustive}`);
+      }
+    }
+  } catch (err: any) {
+    logger.error("mcp.retrieve.error", { error: err.message });
     return {
       content: [{ type: "text", text: `Error: ${err.message}` }],
       isError: true,

@@ -1,10 +1,11 @@
 import { Tool, ToolResult } from "./base.js";
 import { searchCode } from "../../shared/retrieval/code-search.js";
+import { formatCodeHits } from "../../shared/retrieval/format.js";
 
 export const searchCodeTool: Tool = {
   name: "search-code",
   description:
-    "Lexical/regex search over the repo using ripgrep. Use when you know the symbol, string, or pattern you're looking for. Usage: [TOOL:search-code pattern=\"<regex>\" glob=\"src/**\"]",
+    'Lexical/regex search over the repo using ripgrep. Use when you know the symbol, string, or pattern you\'re looking for. Usage: [TOOL:search-code pattern="<regex>" glob="src/agents"]',
   async execute(args: Record<string, string>): Promise<ToolResult> {
     if (!args.pattern) {
       return {
@@ -26,9 +27,7 @@ export const searchCodeTool: Tool = {
         };
       }
 
-      const output = hits
-        .map((h) => `${h.file}:${h.line}: ${h.text}`)
-        .join("\n");
+      const output = formatCodeHits(hits);
 
       return {
         toolName: this.name,

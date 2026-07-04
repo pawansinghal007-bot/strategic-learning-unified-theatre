@@ -71,7 +71,9 @@ describe("runSubAgent", () => {
   });
 
   it("succeeds on first iteration when response contains doneMarker", async () => {
-    mockGatewayAsk.mockReturnValueOnce(makeResponse("The answer is 42. [DONE]"));
+    mockGatewayAsk.mockReturnValueOnce(
+      makeResponse("The answer is 42. [DONE]"),
+    );
 
     const result = await runSubAgent(makeTask());
 
@@ -178,7 +180,13 @@ describe("runSubAgent", () => {
     const mockTool = {
       name: "read-file",
       description: "reads a file",
-      execute: vi.fn().mockResolvedValue({ toolName: "read-file", success: true, output: "file contents" }),
+      execute: vi
+        .fn()
+        .mockResolvedValue({
+          toolName: "read-file",
+          success: true,
+          output: "file contents",
+        }),
     };
     mockGetTool.mockReturnValue(mockTool);
 
@@ -186,9 +194,9 @@ describe("runSubAgent", () => {
     // executeToolCall internally calls gateway.ask again (the follow-up after injecting tool result)
     // Then `continue` re-runs the loop (iteration 2): gateway.ask → done-marker response
     mockGatewayAsk
-      .mockReturnValueOnce(makeResponse('[TOOL:read-file path="src/foo.ts"]'))  // iteration 1 main call
-      .mockReturnValueOnce(makeResponse("Tool follow-up text"))                 // executeToolCall's internal ask
-      .mockReturnValueOnce(makeResponse("Reviewed the file. [DONE]"));          // iteration 2
+      .mockReturnValueOnce(makeResponse('[TOOL:read-file path="src/foo.ts"]')) // iteration 1 main call
+      .mockReturnValueOnce(makeResponse("Tool follow-up text")) // executeToolCall's internal ask
+      .mockReturnValueOnce(makeResponse("Reviewed the file. [DONE]")); // iteration 2
 
     const result = await runSubAgent(makeTask({ maxIterations: 5 }));
 
@@ -214,12 +222,20 @@ describe("runSubAgent", () => {
     const mockTool = {
       name: "read-file",
       description: "reads a file",
-      execute: vi.fn().mockResolvedValue({ toolName: "read-file", success: true, output: "ok" }),
+      execute: vi
+        .fn()
+        .mockResolvedValue({
+          toolName: "read-file",
+          success: true,
+          output: "ok",
+        }),
     };
     mockGetTool.mockReturnValue(mockTool);
 
     mockGatewayAsk
-      .mockReturnValueOnce(makeResponse('[TOOL:read-file path="quoted/path" flag=unquoted]'))
+      .mockReturnValueOnce(
+        makeResponse('[TOOL:read-file path="quoted/path" flag=unquoted]'),
+      )
       .mockReturnValueOnce(makeResponse("[DONE]"));
 
     await runSubAgent(makeTask({ maxIterations: 5 }));
@@ -230,7 +246,6 @@ describe("runSubAgent", () => {
     });
   });
 });
-
 
 // ─── executeToolCall error-propagation (Step 1 fix) ──────────────────────────
 
@@ -256,7 +271,7 @@ describe("executeToolCall — TOOL ERROR vs TOOL RESULT message format", () => {
     // Iteration 2: done marker
     mockGatewayAsk
       .mockReturnValueOnce(makeResponse('[TOOL:search-code pattern="const x"]'))
-      .mockReturnValueOnce(makeResponse("found it"))   // executeToolCall's follow-up
+      .mockReturnValueOnce(makeResponse("found it")) // executeToolCall's follow-up
       .mockReturnValueOnce(makeResponse("Done. [DONE]")); // iteration 2
 
     await runSubAgent(makeTask({ maxIterations: 5 }));
@@ -318,7 +333,9 @@ describe("executeToolCall — TOOL ERROR vs TOOL RESULT message format", () => {
 
     const followUpPrompt: string = mockGatewayAsk.mock.calls[1][0].prompt;
     expect(followUpPrompt).toContain("[TOOL ERROR:read-file]");
-    expect(followUpPrompt).toContain("Tool execution failed with no error message.");
+    expect(followUpPrompt).toContain(
+      "Tool execution failed with no error message.",
+    );
   });
 
   it("[TOOL RESULT] uses empty string output when tool succeeds with empty output", async () => {
@@ -343,5 +360,32 @@ describe("executeToolCall — TOOL ERROR vs TOOL RESULT message format", () => {
     const followUpPrompt: string = mockGatewayAsk.mock.calls[1][0].prompt;
     expect(followUpPrompt).toContain("[TOOL RESULT:read-file]");
     expect(followUpPrompt).not.toContain("[TOOL ERROR:");
+  });
+
+  it("feeds [TOOL ERROR:retrieve] into the follow-up prompt when retrieve fails", async () => {
+    const mockTool = {
+      name: "retrieve",
+      description: "retrieves code or docs",
+      execute: vi.fn().mockResolvedValue({
+        toolName: "retrieve",
+        success: false,
+        output: "",
+        error: "Router failed: no strategy matched",
+      }),
+    };
+    mockGetTool.mockReturnValue(mockTool);
+
+    mockGatewayAsk
+      .mockReturnValueOnce(makeResponse('[TOOL:retrieve query="test"]'))
+      .mockReturnValueOnce(makeResponse("handled retrieve error")) // executeToolCall follow-up
+      .mockReturnValueOnce(makeResponse("Finished. [DONE]"));
+
+    await runSubAgent(makeTask({ maxIterations: 5 }));
+
+    const followUpPrompt: string = mockGatewayAsk.mock.calls[1][0].prompt;
+    expect(followUpPrompt).toContain("[TOOL ERROR:retrieve]");
+    expect(followUpPrompt).toContain("Router failed: no strategy matched");
+    // Must NOT contain TOOL RESULT when success is false
+    expect(followUpPrompt).not.toContain("[TOOL RESULT:");
   });
 });

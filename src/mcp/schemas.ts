@@ -12,10 +12,7 @@ import { z } from "zod";
  */
 export const AskLocalSchema = {
   prompt: z.string().describe("The prompt to send"),
-  systemPrompt: z
-    .string()
-    .optional()
-    .describe("Optional system instructions"),
+  systemPrompt: z.string().optional().describe("Optional system instructions"),
   workspaceId: z
     .string()
     .optional()
@@ -41,8 +38,16 @@ export const ListToolsSchema = {} as const;
  * Input schema for the "vector-search" tool.
  */
 export const VectorSearchSchema = {
-  query: z.string().describe("Natural-language query to search for semantically"),
-  topK: z.number().int().min(1).max(20).optional().describe("Number of results to return (default 5)"),
+  query: z
+    .string()
+    .describe("Natural-language query to search for semantically"),
+  topK: z
+    .number()
+    .int()
+    .min(1)
+    .max(20)
+    .optional()
+    .describe("Number of results to return (default 5)"),
 } as const;
 
 /**
@@ -50,5 +55,36 @@ export const VectorSearchSchema = {
  */
 export const SearchCodeSchema = {
   pattern: z.string().describe("Regex pattern to search for (ripgrep syntax)"),
-  glob: z.string().optional().describe("Directory path relative to repo root to restrict the search to (e.g. 'src/agents')"),
+  glob: z
+    .string()
+    .optional()
+    .describe(
+      "Directory path relative to repo root to restrict the search to (e.g. 'src/agents')",
+    ),
+} as const;
+
+/**
+ * Input schema for the "retrieve" tool.
+ */
+export const RetrieveSchema = {
+  query: z.string().describe("The query to retrieve results for"),
+  mode: z
+    .enum(["code", "vector", "file"])
+    .optional()
+    .describe(
+      "Optional explicit strategy override: 'code', 'vector', or 'file'",
+    ),
+  topK: z
+    .number()
+    .int()
+    .min(1)
+    .max(20)
+    .optional()
+    .describe("Number of vector search results to return (default 5)"),
+  glob: z
+    .string()
+    .optional()
+    .describe(
+      "Directory path relative to repo root to restrict code search to (e.g. 'src/agents')",
+    ),
 } as const;

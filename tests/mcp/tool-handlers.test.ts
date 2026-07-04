@@ -2,13 +2,14 @@
  * tests/mcp/tool-handlers.test.ts
  *
  * Covers handleAskLocal, handleCodeReview, handleListTools,
- * handleVectorSearch, and handleSearchCode:
+ * handleVectorSearch, handleSearchCode, and handleRetrieve:
  *   - success path
  *   - error path (gateway/orchestrator/retrieval throws)
  *   - handleCodeReview result.error branch
  *   - handleListTools static content
  *   - handleVectorSearch: missing-arg guard, success, empty results, error
  *   - handleSearchCode: missing-arg guard, success, empty results, error
+ *   - handleRetrieve: missing-arg guard, success, empty results, error
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -17,13 +18,19 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 // Hoisted mocks — must appear before any import that transitively loads these
 // ---------------------------------------------------------------------------
 
-const { mockGatewayAsk, mockRunOrchestrator, mockVectorSearch, mockSearchCode } =
-  vi.hoisted(() => ({
-    mockGatewayAsk: vi.fn(),
-    mockRunOrchestrator: vi.fn(),
-    mockVectorSearch: vi.fn(),
-    mockSearchCode: vi.fn(),
-  }));
+const {
+  mockGatewayAsk,
+  mockRunOrchestrator,
+  mockVectorSearch,
+  mockSearchCode,
+  mockRetrieve,
+} = vi.hoisted(() => ({
+  mockGatewayAsk: vi.fn(),
+  mockRunOrchestrator: vi.fn(),
+  mockVectorSearch: vi.fn(),
+  mockSearchCode: vi.fn(),
+  mockRetrieve: vi.fn(),
+}));
 
 vi.mock("../../src/llm/gateway.ts", () => ({
   gateway: { ask: (...args: unknown[]) => mockGatewayAsk(...args) },
@@ -46,6 +53,11 @@ vi.mock("../../src/shared/retrieval/code-search.js", () => ({
   searchCode: (...args: unknown[]) => mockSearchCode(...args),
 }));
 
+// Router layer — used by handleRetrieve
+vi.mock("../../src/shared/retrieval/router.js", () => ({
+  retrieve: (...args: unknown[]) => mockRetrieve(...args),
+}));
+
 // ---------------------------------------------------------------------------
 // Module under test -- imported AFTER mocks are hoisted
 // ---------------------------------------------------------------------------
@@ -56,6 +68,7 @@ import {
   handleListTools,
   handleVectorSearch,
   handleSearchCode,
+  handleRetrieve,
 } from "../../src/mcp/tool-handlers.ts";
 
 // ---------------------------------------------------------------------------
@@ -86,7 +99,10 @@ describe("handleAskLocal", () => {
 
     expect(result.isError).toBeUndefined();
     expect(result.content).toHaveLength(1);
-    expect(result.content[0]).toEqual({ type: "text", text: "The answer is 4." });
+    expect(result.content[0]).toEqual({
+      type: "text",
+      text: "The answer is 4.",
+    });
   });
 
   it("passes prompt, systemPrompt, and workspaceId to gateway", async () => {
@@ -161,9 +177,7 @@ describe("handleCodeReview", () => {
   it("passes filePath and workspaceId to runOrchestrator", async () => {
     mockRunOrchestrator.mockResolvedValue({ finalOutput: "ok", error: null });
 
-    await handleCodeReview(
-      makeCodeReviewArgs({ workspaceId: "ws-review" }),
-    );
+    await handleCodeReview(makeCodeReviewArgs({ workspaceId: "ws-review" }));
 
     expect(mockRunOrchestrator).toHaveBeenCalledWith(
       "code-review",
@@ -232,7 +246,6 @@ describe("handleListTools", () => {
   });
 });
 
-
 // ---------------------------------------------------------------------------
 // handleVectorSearch
 // ---------------------------------------------------------------------------
@@ -248,7 +261,10 @@ describe("handleVectorSearch", () => {
       { score: 0.82, source: "src/bar.ts", text: "const bar = 1" },
     ]);
 
-    const result = await handleVectorSearch({ query: "how does foo work", topK: 5 });
+    const result = await handleVectorSearch({
+      query: "how does foo work",
+      topK: 5,
+    });
 
     expect(result.isError).toBeUndefined();
     expect(result.content).toHaveLength(1);
@@ -279,23 +295,32 @@ describe("handleVectorSearch", () => {
   it("returns 'No results found' message when result array is empty", async () => {
     mockVectorSearch.mockResolvedValueOnce([]);
 
-    const result = await handleVectorSearch({ query: "obscure query", topK: 5 });
+    const result = await handleVectorSearch({
+      query: "obscure query",
+      topK: 5,
+    });
 
     expect(result.isError).toBeUndefined();
     expect(result.content[0].text).toContain("No results found");
   });
 
   it("returns isError:true when vectorSearch throws", async () => {
-    mockVectorSearch.mockRejectedValueOnce(new Error("Qdrant connection refused"));
+    mockVectorSearch.mockRejectedValueOnce(
+      new Error("Qdrant connection refused"),
+    );
 
     const result = await handleVectorSearch({ query: "query", topK: 5 });
 
     expect(result.isError).toBe(true);
-    expect(result.content[0].text).toContain("Error: Qdrant connection refused");
+    expect(result.content[0].text).toContain(
+      "Error: Qdrant connection refused",
+    );
   });
 
   it("returns isError:true when embeddings server throws", async () => {
-    mockVectorSearch.mockRejectedValueOnce(new Error("embed: embeddings service returned 503"));
+    mockVectorSearch.mockRejectedValueOnce(
+      new Error("embed: embeddings service returned 503"),
+    );
 
     const result = await handleVectorSearch({ query: "q", topK: 5 });
 
@@ -305,7 +330,11 @@ describe("handleVectorSearch", () => {
 
   it("formats results with score, source, and text on separate lines", async () => {
     mockVectorSearch.mockResolvedValueOnce([
-      { score: 0.999, source: "docs/README.md", text: "Welcome to the project" },
+      {
+        score: 0.999,
+        source: "docs/README.md",
+        text: "Welcome to the project",
+      },
     ]);
 
     const result = await handleVectorSearch({ query: "readme", topK: 1 });
@@ -329,17 +358,32 @@ describe("handleSearchCode", () => {
 
   it("returns formatted hits on successful search", async () => {
     mockSearchCode.mockResolvedValueOnce([
-      { file: "src/agents/sub-agent.ts", line: 42, text: "export async function runSubAgent(" },
-      { file: "tests/agents/sub-agent.test.ts", line: 10, text: "import { runSubAgent }" },
+      {
+        file: "src/agents/sub-agent.ts",
+        line: 42,
+        text: "export async function runSubAgent(",
+      },
+      {
+        file: "tests/agents/sub-agent.test.ts",
+        line: 10,
+        text: "import { runSubAgent }",
+      },
     ]);
 
-    const result = await handleSearchCode({ pattern: "runSubAgent", glob: undefined });
+    const result = await handleSearchCode({
+      pattern: "runSubAgent",
+      glob: undefined,
+    });
 
     expect(result.isError).toBeUndefined();
     expect(result.content).toHaveLength(1);
     const text = result.content[0].text;
-    expect(text).toContain("src/agents/sub-agent.ts:42: export async function runSubAgent(");
-    expect(text).toContain("tests/agents/sub-agent.test.ts:10: import { runSubAgent }");
+    expect(text).toContain(
+      "src/agents/sub-agent.ts:42: export async function runSubAgent(",
+    );
+    expect(text).toContain(
+      "tests/agents/sub-agent.test.ts:10: import { runSubAgent }",
+    );
   });
 
   it("passes pattern and glob to searchCode", async () => {
@@ -361,7 +405,10 @@ describe("handleSearchCode", () => {
   it("returns 'No matches found' message when hits array is empty", async () => {
     mockSearchCode.mockResolvedValueOnce([]);
 
-    const result = await handleSearchCode({ pattern: "nothing_xyz", glob: undefined });
+    const result = await handleSearchCode({
+      pattern: "nothing_xyz",
+      glob: undefined,
+    });
 
     expect(result.isError).toBeUndefined();
     expect(result.content[0].text).toContain("No matches found");
@@ -370,7 +417,10 @@ describe("handleSearchCode", () => {
   it("returns isError:true when searchCode throws", async () => {
     mockSearchCode.mockRejectedValueOnce(new Error("rg exited with code 2"));
 
-    const result = await handleSearchCode({ pattern: "bad[re", glob: undefined });
+    const result = await handleSearchCode({
+      pattern: "bad[re",
+      glob: undefined,
+    });
 
     expect(result.isError).toBe(true);
     expect(result.content[0].text).toContain("Error: rg exited with code 2");
@@ -378,10 +428,13 @@ describe("handleSearchCode", () => {
 
   it("returns isError:true when path traversal error is thrown", async () => {
     mockSearchCode.mockRejectedValueOnce(
-      new Error("resolveGlob: path \"../../etc\" escapes REPO_ROOT"),
+      new Error('resolveGlob: path "../../etc" escapes REPO_ROOT'),
     );
 
-    const result = await handleSearchCode({ pattern: "foo", glob: "../../etc" });
+    const result = await handleSearchCode({
+      pattern: "foo",
+      glob: "../../etc",
+    });
 
     expect(result.isError).toBe(true);
     expect(result.content[0].text).toMatch(/Error:/);
@@ -403,5 +456,121 @@ describe("handleSearchCode", () => {
     const text = result.content[0].text;
     expect(text).toContain("vector-search");
     expect(text).toContain("search-code");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// handleRetrieve
+// ---------------------------------------------------------------------------
+
+describe("handleRetrieve", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("returns formatted vector results on successful search", async () => {
+    mockRetrieve.mockResolvedValueOnce({
+      strategy: "vector",
+      results: [
+        { score: 0.95, source: "src/foo.ts", text: "function foo()" },
+        { score: 0.82, source: "src/bar.ts", text: "const bar = 1" },
+      ],
+    });
+
+    const result = await handleRetrieve({
+      query: "how does foo work",
+      topK: 5,
+    });
+
+    expect(result.isError).toBeUndefined();
+    expect(result.content).toHaveLength(1);
+    expect(result.content[0].type).toBe("text");
+    const text = result.content[0].text;
+    expect(text).toContain("src/foo.ts");
+    expect(text).toContain("0.950");
+    expect(text).toContain("function foo()");
+  });
+
+  it("returns formatted code results on successful search", async () => {
+    mockRetrieve.mockResolvedValueOnce({
+      strategy: "code",
+      results: [
+        {
+          file: "src/agents/sub-agent.ts",
+          line: 42,
+          text: "export async function runSubAgent(",
+        },
+      ],
+    });
+
+    const result = await handleRetrieve({ query: "runSubAgent", mode: "code" });
+
+    expect(result.isError).toBeUndefined();
+    expect(result.content).toHaveLength(1);
+    const text = result.content[0].text;
+    expect(text).toContain("src/agents/sub-agent.ts:42:");
+  });
+
+  it("returns file content on successful file strategy", async () => {
+    mockRetrieve.mockResolvedValueOnce({
+      strategy: "file",
+      results: "file contents here",
+    });
+
+    const result = await handleRetrieve({
+      query: "/path/to/file.ts",
+      mode: "file",
+    });
+
+    expect(result.isError).toBeUndefined();
+    expect(result.content).toHaveLength(1);
+    expect(result.content[0].text).toBe("file contents here");
+  });
+
+  it("returns 'No results found' for empty vector results", async () => {
+    mockRetrieve.mockResolvedValueOnce({
+      strategy: "vector",
+      results: [],
+    });
+
+    const result = await handleRetrieve({ query: "obscure query", topK: 5 });
+
+    expect(result.isError).toBeUndefined();
+    expect(result.content[0].text).toContain("No results found");
+  });
+
+  it("returns 'No results found' for empty code results", async () => {
+    mockRetrieve.mockResolvedValueOnce({
+      strategy: "code",
+      results: [],
+    });
+
+    const result = await handleRetrieve({ query: "nothing", mode: "code" });
+
+    expect(result.isError).toBeUndefined();
+    expect(result.content[0].text).toContain("No results found");
+  });
+
+  it("returns isError:true when router returns error field", async () => {
+    mockRetrieve.mockResolvedValueOnce({
+      strategy: "vector",
+      error: "Qdrant connection refused",
+    });
+
+    const result = await handleRetrieve({ query: "query", topK: 5 });
+
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toContain(
+      "Error: Qdrant connection refused",
+    );
+  });
+
+  it("returns isError:true when retrieve throws", async () => {
+    mockRetrieve.mockRejectedValueOnce(new Error("Router crash"));
+
+    const result = await handleRetrieve({ query: "query", topK: 5 });
+
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toContain("Error: Router crash");
   });
 });

@@ -7,6 +7,7 @@ import {
   handleListTools,
   handleVectorSearch,
   handleSearchCode,
+  handleRetrieve,
 } from "./tool-handlers.ts";
 import {
   AskLocalSchema,
@@ -14,6 +15,7 @@ import {
   ListToolsSchema,
   VectorSearchSchema,
   SearchCodeSchema,
+  RetrieveSchema,
 } from "./schemas.ts";
 
 export const server = new McpServer(
@@ -82,6 +84,19 @@ server.registerTool(
   async (args) => {
     logger.info("mcp.tool-call", { tool: "search-code" });
     return handleSearchCode(args);
+  },
+);
+
+server.registerTool(
+  "retrieve",
+  {
+    description:
+      "Smart retrieval router that automatically chooses between code, vector, or file search strategies based on query characteristics. Use for: general queries where the best search strategy is unknown.",
+    inputSchema: RetrieveSchema,
+  },
+  async (args) => {
+    logger.info("mcp.tool-call", { tool: "retrieve" });
+    return handleRetrieve(args);
   },
 );
 
