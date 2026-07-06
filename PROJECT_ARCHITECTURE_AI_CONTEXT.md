@@ -2,13 +2,13 @@
 PROJECT ARCHITECTURE SUMMARY
 =========================================================
 
-This document was last updated: 2026-07-03 (Sprint 106).
+This document was last updated: 2026-07-04 (Sprint 107).
 It is reconciled from the current source tree. Statements are tagged:
-  [CONFIRMED] — docs and code agree
-  [INFERRED]  — docs exist, code not re-checked this sprint
-  [UNVERIFIED] — neither docs nor code confirmed
+[CONFIRMED] — docs and code agree
+[INFERRED] — docs exist, code not re-checked this sprint
+[UNVERIFIED] — neither docs nor code confirmed
 
-**Last verified: Sprint 106**
+**Last verified: Sprint 107**
 
 ---
 
@@ -29,15 +29,21 @@ MCP Layer: [CONFIRMED]
 - Tool registration uses Zod-backed input shapes from src/mcp/schemas.ts and
   handler logic in src/mcp/tool-handlers.ts.
 
-**Current MCP tools (5 as of Sprint 106):**
-  - "ask-local"       — send a prompt to the local LLM
-  - "code-review"     — run a code review on a source file via the local LLM
-  - "list-tools"      — list available harness tools and pipeline commands
-  - "vector-search"   — semantic search via Qdrant + embeddings (added Sprint 106)
-  - "search-code"     — lexical/regex search via ripgrep (added Sprint 106)
+**Current MCP tools (6 as of Sprint 107):**
+
+- "ask-local" — send a prompt to the local LLM
+- "code-review" — run a code review on a source file via the local LLM
+- "list-tools" — list available harness tools and pipeline commands
+- "vector-search" — semantic search via Qdrant + embeddings (added Sprint 106)
+- "search-code" — lexical/regex search via ripgrep (added Sprint 106)
+- "retrieve" — smart retrieval router delegating to code-search or vector-search based on heuristic (added Sprint 107)
 
 Both `vector-search` and `search-code` delegate to the shared retrieval layer
 at src/shared/retrieval/ — see the Shared Retrieval Layer section below.
+
+The `retrieve` tool (added Sprint 107) is a retrieval strategy router that
+chooses between code-search and vector-search based on heuristic analysis
+of the query (path-like vs symbol-like patterns).
 
 - MCP stdio protocol handshake verified via scripts/verify-mcp-stdio.mjs with
   real JSON-RPC messages exchanged (initialize, tools/list, tools/call).
@@ -68,9 +74,11 @@ architectural policy, not an implementation detail.
 
 **Harness tool registry** (src/agents/tools/registry.ts):
 Tools are registered via `tools.set(name, toolImpl)`. Current tools:
-  - "read-file"     — read a file from the workspace (src/agents/tools/read-file.ts)
-  - "vector-search" — semantic search (src/agents/tools/vector-search.ts, added Sprint 106)
-  - "search-code"   — lexical/regex search (src/agents/tools/search-code.ts, added Sprint 106)
+
+- "read-file" — read a file from the workspace (src/agents/tools/read-file.ts)
+- "vector-search" — semantic search (src/agents/tools/vector-search.ts, added Sprint 106)
+- "search-code" — lexical/regex search (src/agents/tools/search-code.ts, added Sprint 106)
+- "retrieve" — smart retrieval router (src/agents/tools/retrieve.ts, added Sprint 107)
 
 **Tool-loop error propagation fix (Sprint 106):**
 `executeToolCall` in sub-agent.ts previously silently forwarded empty output
@@ -80,37 +88,38 @@ rather than proceeding with an empty tool result.
 
 ---
 
-Shared Retrieval Layer (NEW — Sprint 106): [CONFIRMED]
+Shared Retrieval Layer (NEW — Sprint 106, expanded Sprint 107): [CONFIRMED]
 
 src/shared/retrieval/ is a new first-class architectural module providing a
 DRY, shared implementation for retrieval operations used by both the harness
 tool surface and the MCP tool surface. Neither surface contains retrieval
 logic directly; both delegate to this layer.
 
-  src/shared/retrieval/vector-client.ts
-    - `embed(text)` — calls EMBEDDINGS_URL (configurable via env) to get an
-      embedding vector.
-    - `vectorSearch(query, topK)` — calls embed(), queries Qdrant for nearest
-      neighbours, returns VectorSearchResult[].
-    - Logs via "retrieval.vector-search" logger namespace.
+src/shared/retrieval/vector-client.ts - `embed(text)` — calls EMBEDDINGS_URL (configurable via env) to get an
+embedding vector. - `vectorSearch(query, topK)` — calls embed(), queries Qdrant for nearest
+neighbours, returns VectorSearchResult[]. - Logs via "retrieval.vector-search" logger namespace.
 
-  src/shared/retrieval/code-search.ts
-    - `resolveGlob(dir)` — resolves a directory path with a path-traversal
-      guard (rejects paths escaping the repo root).
-    - `searchCode(pattern, glob?)` — shells out to `rg --json`, parses match
-      lines (skipping summary/malformed lines) into CodeSearchHit[], capped
-      at 50 hits.
-    - Logs via "retrieval.code-search" logger namespace.
+src/shared/retrieval/code-search.ts - `resolveGlob(dir)` — resolves a directory path with a path-traversal
+guard (rejects paths escaping the repo root). - `searchCode(pattern, glob?)` — shells out to `rg --json`, parses match
+lines (skipping summary/malformed lines) into CodeSearchHit[], capped
+at 50 hits. - Logs via "retrieval.code-search" logger namespace.
 
-**The two tool surfaces and their relationship to this layer:**
+src/shared/retrieval/router.ts (NEW — Sprint 107) - `chooseStrategy(query)` — heuristic-based strategy selection:
+path-like queries (contains '/' AND ends in file extension) → code-search
+symbol-like queries (contains '/' OR is camelCase/PascalCase) → vector-search
+otherwise → code-search - `retrieve(query, topK?)` — executes chosen strategy, returns unified result. - Logs via "retrieval.retrieve" logger namespace.
 
-  Harness surface (text-protocol `[TOOL:...]` dispatch):
-    src/agents/tools/vector-search.ts  →  src/shared/retrieval/vector-client.ts
-    src/agents/tools/search-code.ts    →  src/shared/retrieval/code-search.ts
+**The three tool surfaces and their relationship to this layer:**
 
-  MCP surface (McpServer.registerTool() / JSON-RPC):
-    src/mcp/tool-handlers.ts handleVectorSearch()  →  src/shared/retrieval/vector-client.ts
-    src/mcp/tool-handlers.ts handleSearchCode()    →  src/shared/retrieval/code-search.ts
+Harness surface (text-protocol `[TOOL:...]` dispatch):
+src/agents/tools/vector-search.ts → src/shared/retrieval/vector-client.ts
+src/agents/tools/search-code.ts → src/shared/retrieval/code-search.ts
+src/agents/tools/retrieve.ts → src/shared/retrieval/router.ts
+
+MCP surface (McpServer.registerTool() / JSON-RPC):
+src/mcp/tool-handlers.ts handleVectorSearch() → src/shared/retrieval/vector-client.ts
+src/mcp/tool-handlers.ts handleSearchCode() → src/shared/retrieval/code-search.ts
+src/mcp/tool-handlers.ts handleRetrieve() → src/shared/retrieval/router.ts
 
 Both surfaces share the same underlying retrieval logic. Adding a new
 retrieval capability means implementing it once in src/shared/retrieval/,
@@ -168,33 +177,38 @@ Rules:
 ---
 
 =========================================================
-CURRENT ARCHITECTURE SNAPSHOT (2026-07-03 — Sprint 106)
+CURRENT ARCHITECTURE SNAPSHOT (2026-07-04 — Sprint 107)
 =========================================================
 
-**What changed relative to the prior summary (Sprint 101):**
+**What changed relative to the prior summary (Sprint 106):**
 
-1. Shared Retrieval Layer added (src/shared/retrieval/) — new first-class
-   module, see dedicated section above. This is the most significant
-   structural addition since Sprint 99's MCP migration.
+1. Shared Retrieval Layer expanded with router.ts — new retrieval strategy
+   router that heuristically selects between code-search and vector-search
+   based on query pattern analysis (path-like vs symbol-like).
 
-2. Both tool surfaces (harness text-protocol and MCP JSON-RPC) now expose
-   vector-search and search-code, both backed by the shared retrieval layer.
-   Tool inventory expanded from 1 harness / 3 MCP to 3 harness / 5 MCP.
+2. Both tool surfaces now expose the retrieve tool:
+   - MCP: "retrieve" tool registered in src/mcp/server.ts (handleRetrieve)
+   - Harness: "retrieve" tool registered in src/agents/tools/registry.ts
+     Tool inventory expanded from 3 harness / 5 MCP to 4 harness / 6 MCP.
 
-3. Harness tool-loop error propagation fixed — [TOOL ERROR:name] now emitted
-   on tool failure instead of silent empty-output forwarding.
+3. Retrieval strategy router added — heuristic-based routing:
+   - path-like queries (contains '/' AND ends in file extension) → code-search
+   - symbol-like queries (contains '/' OR camelCase/PascalCase) → vector-search
+   - default → code-search
 
-4. Text-protocol vs. JSON tool-calling clarification added explicitly to this
-   document to prevent recurring confusion about LLAMA_ARG_JINJA=1.
+4. Unified retrieval result format — src/shared/retrieval/format.ts provides
+   consistent output structure across all retrieval operations.
 
 **Architecture impact summary:**
 
-- Shared retrieval layer: [CONFIRMED] — src/shared/retrieval/ exists and is
+- Shared retrieval layer: [CONFIRMED] — src/shared/retrieval/ exists with 4
+  files (vector-client.ts, code-search.ts, router.ts, format.ts) and is
   tested at 100% statement coverage (vector-client.ts) / 97.56% statements
-  (code-search.ts).
-- MCP tool count: [CONFIRMED] — smoke test confirms 5 tools returned by
-  tools/list.
-- Harness tool count: [CONFIRMED] — registry.ts registers 3 tools.
+  (code-search.ts) / 100% statements (router.ts).
+- MCP tool count: [CONFIRMED] — smoke test confirms 6 tools returned by
+  tools/list (retrieve added Sprint 107).
+- Harness tool count: [CONFIRMED] — registry.ts registers 4 tools (retrieve
+  added Sprint 107).
 - Qdrant-only policy: [CONFIRMED] by current implementation and Standing Rules.
 - Text-protocol harness: [CONFIRMED] — sub-agent.ts parses [TOOL:...] markers;
   no JSON function-call parsing present in the harness loop.
@@ -203,14 +217,17 @@ CURRENT ARCHITECTURE SNAPSHOT (2026-07-03 — Sprint 106)
 
 - src/shared/retrieval/vector-client.ts (new Sprint 106)
 - src/shared/retrieval/code-search.ts (new Sprint 106)
+- src/shared/retrieval/router.ts (new Sprint 107)
+- src/shared/retrieval/format.ts (new Sprint 107)
 - src/agents/tools/vector-search.ts (new Sprint 106)
 - src/agents/tools/search-code.ts (new Sprint 106)
-- src/agents/tools/registry.ts (modified Sprint 106)
+- src/agents/tools/retrieve.ts (new Sprint 107)
+- src/agents/tools/registry.ts (modified Sprint 106, Sprint 107)
 - src/agents/sub-agent.ts (modified Sprint 106)
-- src/mcp/server.ts (modified Sprint 106)
-- src/mcp/tool-handlers.ts (modified Sprint 106)
-- src/mcp/schemas.ts (modified Sprint 106)
-- src/mcp/types.ts (modified Sprint 106)
+- src/mcp/server.ts (modified Sprint 106, Sprint 107)
+- src/mcp/tool-handlers.ts (modified Sprint 106, Sprint 107)
+- src/mcp/schemas.ts (modified Sprint 106, Sprint 107)
+- src/mcp/types.ts (modified Sprint 106, Sprint 107)
 - src/agents/orchestrator.ts
 - src/agents/pipeline.ts
 - src/agents/cli.ts
@@ -218,4 +235,4 @@ CURRENT ARCHITECTURE SNAPSHOT (2026-07-03 — Sprint 106)
 - src/llm/inference.js
 - src/llm/qdrant-client.ts
 - src/security/security-overview/index.ts
-- scripts/verify-mcp-stdio.mjs (Sprint 101 + Sprint 106 smoke re-run)
+- scripts/verify-mcp-stdio.mjs (Sprint 101 + Sprint 106 + Sprint 107 smoke re-run)

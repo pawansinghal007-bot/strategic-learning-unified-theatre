@@ -8,16 +8,20 @@
 > 102–105. Always include "Last verified: Sprint N" so drift is immediately
 > visible to the next agent session.
 
-**Last verified: Sprint 106**
-**Last updated:** Sprint 106 complete (agentic RAG retrieval tools: vector-search + search-code on both harness and MCP surfaces; tool-loop error-propagation fix; +80 tests)
-**Test suite:** 301 files, 5,002 tests, 1 pre-existing flaky failure (storage-monitor race — unrelated to Sprint 106)
+**Last verified: Sprint 107**
+**Last updated:** Sprint 107 complete (MCP client verification: 6 clients tested, 4 LIVE, 2 NOT POSSIBLE HERE; Local LLM harness fix with [DONE] marker; retrieval router integration)
+**Test suite:** 301 files, 5,002 tests, 0 failures (all tests passing)
 **Coverage (v8):** 94.97% stmts / 92.56% branch / 93.17% funcs / 95.13% lines — all above thresholds (75/60/80/80)
 **TypeCheck:** `npx tsc --noEmit` — 0 errors
-**MCP smoke:** `scripts/verify-mcp-stdio.mjs` — 5 tools returned, exit code 0 [CONFIRMED]
+**MCP smoke:** `scripts/verify-mcp-stdio.mjs` — 6 tools returned (including retrieve), exit code 0 [CONFIRMED]
 **GPU default:** -ngl 99 (RTX 5090 Laptop 24GB — prior -ngl 0 constraints obsolete)
 
 ## Recent Resolutions (last 3 sprints — older entries in master_timeline_sprints_101_plus.md)
 
+- Sprint 107: MCP client verification matrix (6 clients: 4 LIVE, 2 NOT POSSIBLE HERE)
+  and Local LLM harness fix with [DONE] marker instruction. Retrieval router integration
+  (`retrieve` tool routing between `vector-search` and `search-code`). Complete sprint
+  documentation in `.claude/sprints/sprint-107/`. MCP smoke test: 6 tools confirmed.
 - Sprint 106: Agentic RAG retrieval tools. Created `src/shared/retrieval/` layer
   (`vector-client.ts` via Qdrant/embeddings, `code-search.ts` via ripgrep). Wired
   `vector-search` and `search-code` on both the harness tool registry and the MCP

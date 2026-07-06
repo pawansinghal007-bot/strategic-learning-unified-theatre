@@ -112,3 +112,30 @@ This index summarizes the current repository layout after Reorg Sprint 0.5.
 - Local LLM consumers should import from `src/llm/local-llm.js`.
 - Storage consumers should import storage indexing from `src/storage/storage-monitor.js`.
 - AI memory schema references should use `src/ai-memory/memory.sql`; pre-S3 schema snapshots belong under `src/ai-memory/legacy/`.
+
+## Shared Retrieval Layer (NEW — Sprint 106, expanded Sprint 107)
+
+`src/shared/retrieval/` owns shared retrieval logic used by both the harness tool surface and MCP tool surface.
+
+- `src/shared/retrieval/vector-client.ts` - Vector search via Qdrant + embeddings (added Sprint 106).
+- `src/shared/retrieval/code-search.ts` - Lexical/regex search via ripgrep (added Sprint 106).
+- `src/shared/retrieval/router.ts` - Heuristic-based retrieval strategy selection (added Sprint 107).
+- `src/shared/retrieval/format.ts` - Unified retrieval result format (added Sprint 107).
+
+**Relationship to tool surfaces:**
+
+- Harness surface (`src/agents/tools/`):
+  - `vector-search.ts` → `vector-client.ts`
+  - `search-code.ts` → `code-search.ts`
+  - `retrieve.ts` → `router.ts` (added Sprint 107)
+
+- MCP surface (`src/mcp/`):
+  - `handleVectorSearch()` → `vector-client.ts`
+  - `handleSearchCode()` → `code-search.ts`
+  - `handleRetrieve()` → `router.ts` (added Sprint 107)
+
+The retrieval strategy router (`router.ts`) heuristically selects between code-search and vector-search:
+
+- Path-like queries (contains '/' AND ends in file extension) → code-search
+- Symbol-like queries (contains '/' OR camelCase/PascalCase) → vector-search
+- Default → code-search"}

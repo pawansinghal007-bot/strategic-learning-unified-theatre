@@ -106,3 +106,4 @@ tests/**/*.bak
 .venv/
 audit-log.html
 audit-log.json
+.memories/
