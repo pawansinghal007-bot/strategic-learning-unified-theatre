@@ -2,13 +2,13 @@
 PROJECT ARCHITECTURE SUMMARY
 =========================================================
 
-This document was last updated: 2026-07-04 (Sprint 107).
+This document was last updated: 2026-07-06 (Sprint 108).
 It is reconciled from the current source tree. Statements are tagged:
 [CONFIRMED] — docs and code agree
 [INFERRED] — docs exist, code not re-checked this sprint
 [UNVERIFIED] — neither docs nor code confirmed
 
-**Last verified: Sprint 107**
+**Last verified: Sprint 108**
 
 ---
 
@@ -150,12 +150,37 @@ Security Overview Layer: [INFERRED]
 
 ---
 
+Tool Governance Layer (NEW — Sprint 108): [CONFIRMED]
+
+- **docs/tool-mandates.md** — Single source of truth for tool boundaries,
+  authority levels, and external effect assessments. Documents known
+  asymmetries (e.g., read-file is harness-only with no MCP mandate) and
+  security fixes applied this sprint (path-traversal guard, subprocess
+  flag-injection fix, PROJECT_ROOT/REPO_ROOT unification).
+- **src/shared/audit/decision-receipt.ts** — Decision receipt logger for
+  audit trail of retrieval strategy choices. Captures strategy selection
+  point with alternatives considered, caller identity (currently
+  "unknown-mcp-client" placeholder), timestamp, and decision metadata.
+  Wired to the retrieve() router only (not MCP surface, not error paths
+  yet — future sprint).
+- **Path-traversal security fix (Sprint 108)**: A real security issue was
+  fixed this sprint affecting BOTH `src/agents/tools/read-file.ts` and
+  `src/shared/retrieval/router.ts`'s "file" strategy. Both files used
+  inline path resolution that accepted any absolute path or relative paths
+  with `../` that could escape PROJECT_ROOT. Fixed via shared
+  `src/shared/security/safe-path.ts` helper (`resolveSafePath`) that uses
+  `fs.realpathSync()` to prevent symlink escapes. Both call sites migrated
+  to use the shared guard, eliminating duplication and ensuring consistent
+  security behavior.
+
+---
+
 Testing: [CONFIRMED]
 
 - Vitest is the active test runner.
-- As of Sprint 106: 301 test files / 5,002 tests.
-- Coverage (v8): 94.97% statements / 92.56% branches / 93.17% functions /
-  95.13% lines — all above the vitest.config.ts thresholds (75/60/80/80).
+- As of Sprint 108: 306 test files / 5,089 tests.
+- Coverage (v8): 94.92% statements / 92.55% branches / 93% functions /
+  95.1% lines — all above the vitest.config.ts thresholds (75/60/80/80).
 - vitest.test-ci.config.ts excludes sprint91/sprint92 guard tests from the
   main test:ci run; they require a prior coverage generation pass and are
   run separately via coverage:guarded.
@@ -177,7 +202,73 @@ Rules:
 ---
 
 =========================================================
-CURRENT ARCHITECTURE SNAPSHOT (2026-07-04 — Sprint 107)
+CURRENT ARCHITECTURE SNAPSHOT (2026-07-06 — Sprint 108)
+=========================================================
+
+**What changed relative to the prior summary (Sprint 107):**
+
+1. Tool Governance Layer added — `docs/tool-mandates.md` is now the source
+   of truth for tool boundaries, authority levels, and constraints across all
+   12 registered tools.
+
+2. Path-traversal security fix — shared `resolveSafePath()` helper created in
+   `src/shared/security/safe-path.ts` (uses `fs.realpathSync` to prevent
+   symlink escapes). Applied to both vulnerable locations:
+   - `src/agents/tools/read-file.ts` (absolute paths + `../` traversal)
+   - `src/shared/retrieval/router.ts` "file" strategy (same vectors)
+
+3. PROJECT_ROOT centralized — `src/shared/config/paths.ts` is now the single
+   source of truth for the root constant. `read-file.ts`, `router.ts`, and
+   `code-search.ts` all import from it; `process.cwd()` / `process.env.REPO_ROOT`
+   direct usage removed from those modules.
+
+4. Subprocess flag-injection fix — `src/agents/tools/code-search.ts` now
+   inserts `"--"` before the user-controlled pattern in the ripgrep args array,
+   preventing options like `--pre=...` being interpreted as ripgrep flags.
+
+5. Decision-receipt audit logger — `src/shared/audit/decision-receipt.ts`
+   exports `recordDecision()` / `getReceipts()` / `clearReceipts()`. Wired into
+   `src/shared/retrieval/router.ts` `retrieve()` at the strategy choice point,
+   logging tool name, surface, input, strategy chosen, alternatives considered,
+   and timestamp.
+
+6. Test infrastructure fix — `vitest.config.ts` base config now excludes
+   sprint91/sprint92 guard tests (same as `vitest.test-ci.config.ts`), preventing
+   false failures when `coverage-summary.json` is absent.
+
+**Architecture impact summary (Sprint 108 additions):**
+
+- Security layer: [CONFIRMED] — `src/shared/security/safe-path.ts` exists and
+  is tested at 100% statement coverage.
+- Config layer: [CONFIRMED] — `src/shared/config/paths.ts` exports `PROJECT_ROOT`;
+  imported by read-file.ts, router.ts, code-search.ts.
+- Audit layer: [CONFIRMED] — `src/shared/audit/decision-receipt.ts` wired to
+  router.ts retrieve() only; MCP surface unchanged.
+- Tool governance: [CONFIRMED] — `docs/tool-mandates.md` created; not
+  runtime-enforced, serves as authoritative policy document.
+- Test count: [CONFIRMED] — 306 files / 5,089 tests, 0 failures.
+- Coverage: [CONFIRMED] — 94.92% stmts / 92.55% branch / 93% funcs / 95.1% lines.
+
+**Source evidence used for Sprint 108 refresh:**
+
+- src/shared/security/safe-path.ts (new Sprint 108)
+- src/shared/config/paths.ts (new Sprint 108)
+- src/shared/audit/decision-receipt.ts (new Sprint 108)
+- docs/tool-mandates.md (new Sprint 108)
+- src/agents/tools/read-file.ts (modified Sprint 108 — path-traversal fix)
+- src/shared/retrieval/router.ts (modified Sprint 108 — path-traversal fix + decision-receipt wiring)
+- src/agents/tools/code-search.ts (modified Sprint 108 — flag-injection fix + REPO_ROOT unification)
+- vitest.config.ts (modified Sprint 108 — guard test exclusion)
+- tests/shared/security/safe-path.test.ts (new Sprint 108)
+- tests/agents/tools/read-file-security.test.ts (new Sprint 108)
+- tests/shared/audit/decision-receipt.test.ts (new Sprint 108)
+
+---
+
+**Prior snapshot (Sprint 107) preserved below for reference:**
+
+=========================================================
+PRIOR ARCHITECTURE SNAPSHOT (2026-07-04 — Sprint 107)
 =========================================================
 
 **What changed relative to the prior summary (Sprint 106):**

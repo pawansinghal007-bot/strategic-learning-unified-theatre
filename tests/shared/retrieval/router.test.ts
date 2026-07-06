@@ -8,16 +8,20 @@
  *   - Explicit mode override always wins
  *   - retrieve() dispatches to correct underlying method
  *   - retrieve() error propagation: error vs. empty-success are structurally distinguishable
+ *   - decision-receipt logging with alternativesConsidered populated correctly
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // ─── hoisted mocks ────────────────────────────────────────────────────────────
 
-const { mockVectorSearch, mockSearchCode } = vi.hoisted(() => ({
-  mockVectorSearch: vi.fn(),
-  mockSearchCode: vi.fn(),
-}));
+const { mockVectorSearch, mockSearchCode, mockRecordDecision } = vi.hoisted(
+  () => ({
+    mockVectorSearch: vi.fn(),
+    mockSearchCode: vi.fn(),
+    mockRecordDecision: vi.fn(),
+  }),
+);
 
 vi.mock("../../../src/shared/retrieval/vector-client", () => ({
   vectorSearch: (...args: unknown[]) => mockVectorSearch(...args),
@@ -25,6 +29,16 @@ vi.mock("../../../src/shared/retrieval/vector-client", () => ({
 
 vi.mock("../../../src/shared/retrieval/code-search", () => ({
   searchCode: (...args: unknown[]) => mockSearchCode(...args),
+}));
+
+vi.mock("../../../src/shared/audit/decision-receipt.js", () => ({
+  recordDecision: (receipt: Record<string, unknown>) => {
+    const entry = {
+      ...receipt,
+      timestamp: new Date().toISOString(),
+    };
+    mockRecordDecision(entry);
+  },
 }));
 
 // ─── module under test ────────────────────────────────────────────────────────
@@ -225,5 +239,96 @@ describe("retrieve", () => {
     expect(
       errorResult.error !== undefined && emptyResult.results?.length === 0,
     ).toBe(true);
+  });
+
+  // ── decision-receipt tests ─────────────────────────────────────────────────
+
+  describe("decision-receipt logging", () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it("calls recordDecision with alternativesConsidered for 'vector' strategy", async () => {
+      mockVectorSearch.mockResolvedValueOnce([]);
+
+      const result = await retrieve("how does it work");
+
+      expect(result.strategy).toBe("vector");
+      expect(mockRecordDecision).toHaveBeenCalledTimes(1);
+      expect(mockRecordDecision).toHaveBeenCalledWith(
+        expect.objectContaining({
+          toolName: "retrieve",
+          surface: "mcp",
+          input: "how does it work",
+          alternativesConsidered: expect.arrayContaining(["code", "file"]),
+        }),
+      );
+      // Verify alternativesConsidered has exactly 2 items (the other strategies)
+      const callArgs = mockRecordDecision.mock.calls[0][0];
+      expect(callArgs.alternativesConsidered).toHaveLength(2);
+      expect(callArgs.alternativesConsidered).not.toContain("vector");
+    });
+
+    it("calls recordDecision with alternativesConsidered for 'code' strategy", async () => {
+      mockSearchCode.mockResolvedValueOnce([]);
+
+      const result = await retrieve("runSubAgent");
+
+      expect(result.strategy).toBe("code");
+      expect(mockRecordDecision).toHaveBeenCalledTimes(1);
+      expect(mockRecordDecision).toHaveBeenCalledWith(
+        expect.objectContaining({
+          toolName: "retrieve",
+          surface: "mcp",
+          input: "runSubAgent",
+          alternativesConsidered: expect.arrayContaining(["vector", "file"]),
+        }),
+      );
+      // Verify alternativesConsidered has exactly 2 items (the other strategies)
+      const callArgs = mockRecordDecision.mock.calls[0][0];
+      expect(callArgs.alternativesConsidered).toHaveLength(2);
+      expect(callArgs.alternativesConsidered).not.toContain("code");
+    });
+
+    it("calls recordDecision with alternativesConsidered for 'file' strategy", async () => {
+      // Force 'file' strategy with a path-like query
+      const result = await retrieve("src/foo.ts");
+
+      expect(result.strategy).toBe("file");
+      expect(mockRecordDecision).toHaveBeenCalledTimes(1);
+      expect(mockRecordDecision).toHaveBeenCalledWith(
+        expect.objectContaining({
+          toolName: "retrieve",
+          surface: "mcp",
+          input: "src/foo.ts",
+          alternativesConsidered: expect.arrayContaining(["vector", "code"]),
+        }),
+      );
+      // Verify alternativesConsidered has exactly 2 items (the other strategies)
+      const callArgs = mockRecordDecision.mock.calls[0][0];
+      expect(callArgs.alternativesConsidered).toHaveLength(2);
+      expect(callArgs.alternativesConsidered).not.toContain("file");
+    });
+
+    it("recordDecision includes all required fields", async () => {
+      mockVectorSearch.mockResolvedValueOnce([]);
+
+      const result = await retrieve("how does it work");
+
+      expect(mockRecordDecision).toHaveBeenCalledTimes(1);
+      const callArgs = mockRecordDecision.mock.calls[0][0];
+
+      expect(callArgs).toMatchObject({
+        toolName: "retrieve",
+        surface: "mcp",
+        callerIdentity: "unknown-mcp-client",
+        input: "how does it work",
+        outcome: "success",
+        externalEffect: false,
+        reversible: true,
+      });
+      expect(callArgs.timestamp).toBeDefined();
+      expect(typeof callArgs.timestamp).toBe("string");
+    });
   });
 });

@@ -23,6 +23,12 @@ export default defineConfig({
       "e2e/**/*.test.{js,jsx,ts,tsx}",
       "e2e/**/*.e2e.{js,jsx,ts,tsx}",
     ],
+    exclude: [
+      // Guard tests require coverage-summary.json to already exist.
+      // Run them via: npm run coverage:guarded
+      "tests/sprint91-sonar-fix-guard.test.js",
+      "tests/sprint92-thread-and-coverage-guard.test.js",
+    ],
     server: {
       deps: { inline: [/\.cjs$/] },
     },

@@ -14,6 +14,7 @@ import { vectorSearch } from "./vector-client.js";
 import { searchCode } from "./code-search.js";
 import { resolveSafePath } from "../security/safe-path.js";
 import { PROJECT_ROOT } from "../config/paths";
+import { recordDecision } from "../audit/decision-receipt.js";
 
 // ─── types ────────────────────────────────────────────────────────────────────
 
@@ -118,6 +119,24 @@ export async function retrieve(
   opts?: { mode?: RetrievalStrategy; topK?: number; glob?: string },
 ): Promise<RetrieveResult> {
   const strategy = chooseStrategy(query, opts?.mode);
+
+  // Record decision receipt at the strategy choice point
+  // TODO: replace with real client id when available from the MCP transport layer
+  const callerIdentity = "unknown-mcp-client";
+  const allStrategies: RetrievalStrategy[] = ["code", "vector", "file"];
+  const alternativesConsidered = allStrategies.filter(
+    (s) => s !== strategy,
+  ) as string[];
+  recordDecision({
+    toolName: "retrieve",
+    surface: "mcp",
+    callerIdentity,
+    input: query,
+    alternativesConsidered,
+    outcome: "success",
+    externalEffect: false,
+    reversible: true,
+  });
 
   try {
     let results: unknown;

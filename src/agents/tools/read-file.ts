@@ -11,10 +11,10 @@ export const readFileTool: Tool = {
   description:
     'Read a source file. Usage: [TOOL:read-file path="<absolute or relative path>"]',
   async execute(args): Promise<ToolResult> {
-    // resolve relative paths against PROJECT_ROOT using safe path resolution
-    const filePath = resolveSafePath(args.path, PROJECT_ROOT);
-
     try {
+      // resolve relative paths against PROJECT_ROOT using safe path resolution
+      const filePath = resolveSafePath(args.path, PROJECT_ROOT);
+
       const content = fs.readFileSync(filePath, "utf8");
       const lines = content.split("\n");
 

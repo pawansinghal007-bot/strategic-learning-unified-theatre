@@ -8,16 +8,26 @@
 > 102–105. Always include "Last verified: Sprint N" so drift is immediately
 > visible to the next agent session.
 
-**Last verified: Sprint 107**
-**Last updated:** Sprint 107 complete (MCP client verification: 6 clients tested, 4 LIVE, 2 NOT POSSIBLE HERE; Local LLM harness fix with [DONE] marker; retrieval router integration)
-**Test suite:** 301 files, 5,002 tests, 0 failures (all tests passing)
-**Coverage (v8):** 94.97% stmts / 92.56% branch / 93.17% funcs / 95.13% lines — all above thresholds (75/60/80/80)
+**Last verified: Sprint 108**
+**Last updated:** Sprint 108 complete (tool governance: mandates, security fixes, decision receipts; path-traversal fix in read-file.ts and router.ts; subprocess flag-injection fix in code-search.ts; PROJECT_ROOT/REPO_ROOT unification; decision-receipt.ts wired to retrieve() router only)
+**Test suite:** 5089 tests, 0 failures (all tests passing)
+**Coverage (v8):** 94.92% stmts / 92.55% branch / 93% funcs / 95.1% lines — all above thresholds (75/60/80/80)
 **TypeCheck:** `npx tsc --noEmit` — 0 errors
 **MCP smoke:** `scripts/verify-mcp-stdio.mjs` — 6 tools returned (including retrieve), exit code 0 [CONFIRMED]
 **GPU default:** -ngl 99 (RTX 5090 Laptop 24GB — prior -ngl 0 constraints obsolete)
 
 ## Recent Resolutions (last 3 sprints — older entries in master_timeline_sprints_101_plus.md)
 
+- Sprint 108: Tool governance (mandates, security fixes, decision receipts). Created
+  `docs/tool-mandates.md` as source of truth for tool boundaries and authority levels.
+  Fixed path-traversal vulnerability in `src/agents/tools/read-file.ts` and
+  `src/shared/retrieval/router.ts`'s "file" strategy via shared `resolveSafePath()`
+  helper in `src/shared/security/safe-path.ts`. Added subprocess flag-injection fix
+  in `src/agents/tools/code-search.ts` via "--" separator before pattern. Centralized
+  PROJECT_ROOT in `src/shared/config/paths.ts`. Created decision-receipt logger
+  `src/shared/audit/decision-receipt.ts` wired to `retrieve()` router only. 5089 tests
+  passing, 0 failures. Coverage: 94.92% stmts / 92.55% branch / 93% funcs / 95.1% lines.
+  Complete sprint documentation in `.claude/sprints/sprint-108/`.
 - Sprint 107: MCP client verification matrix (6 clients: 4 LIVE, 2 NOT POSSIBLE HERE)
   and Local LLM harness fix with [DONE] marker instruction. Retrieval router integration
   (`retrieve` tool routing between `vector-search` and `search-code`). Complete sprint

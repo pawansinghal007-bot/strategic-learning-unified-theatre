@@ -227,3 +227,52 @@ Sprint 107 focused on verifying MCP client compatibility across the supported cl
 **Snapshot:** `strategic-learning-unified-theatre-ai-snapshot-sprint107-stable`
 
 **Note:** No completion tag exists in git history for Sprint 107 (unlike previous sprints that used `sprint-XX-complete` tags). The sprint is considered complete based on documentation in `.claude/sprints/sprint-107/`.
+
+---
+
+## Sprint 108 — Tool governance (mandates, security fix, decision receipts)
+
+**Status: Complete**
+**Date: 2026-07-10**
+
+Sprint 108 established tool governance via `docs/tool-mandates.md`, fixed a path-traversal security vulnerability in `read-file.ts` and `router.ts`, added subprocess flag-injection protection in `code-search.ts`, centralized PROJECT_ROOT in `paths.ts`, and implemented decision-receipt logging wired to the retrieval router.
+
+**What was built:**
+
+_Tool governance:_
+
+- `docs/tool-mandates.md` — Source of truth for tool boundaries and authority levels. Documents 12 tools with their purpose, input/output, authority level (1-3), and constraints. Authority level 3 tools (read-file, write-file, code-search, vector-search, search-code, retrieve) require explicit user request or agent self-request with justification.
+
+_Security fixes:_
+
+- `src/shared/security/safe-path.ts` — Created shared `resolveSafePath()` helper using `fs.realpathSync()` to prevent symlink escapes. Validates resolved path stays within `PROJECT_ROOT`.
+- `src/agents/tools/read-file.ts` — Replaced inline path resolution with `resolveSafePath()` import. Both path-traversal vectors (absolute paths and `../` relative paths) now blocked.
+- `src/shared/retrieval/router.ts` — "file" strategy replaced inline path resolution with `resolveSafePath()` import. Path-traversal blocked.
+- `src/shared/config/paths.ts` — Created as single source of truth for `PROJECT_ROOT` constant. Both `read-file.ts` and `router.ts` now import from this shared module.
+- `src/agents/tools/code-search.ts` — Added `--` separator before pattern in args array to prevent subprocess flag injection (e.g., `--pattern=-e`).
+
+_Decision receipt logging:_
+
+- `src/shared/audit/decision-receipt.ts` — Created `recordDecision()` function that logs via shared logger and stores in in-memory array. Logs strategy choice point in `retrieve()` router with inputs, strategy, and timestamp.
+
+**Files changed:**
+
+- `docs/tool-mandates.md` — Created (new file)
+- `src/shared/security/safe-path.ts` — Created (new file)
+- `src/shared/config/paths.ts` — Created (new file)
+- `src/shared/audit/decision-receipt.ts` — Created (new file)
+- `src/agents/tools/read-file.ts` — Modified (path-traversal fix, PROJECT_ROOT import)
+- `src/shared/retrieval/router.ts` — Modified (path-traversal fix, PROJECT_ROOT import, decision-receipt wiring)
+- `src/agents/tools/code-search.ts` — Modified (subprocess flag-injection fix)
+- `PROJECT_ARCHITECTURE_AI_CONTEXT.md` — Updated with Tool Governance Layer section
+- `docs/ARCHITECTURE_INDEX.md` — Updated with Governance/Audit section
+- `docs/build-state.md` — Updated with Sprint 108 information
+- `master_timeline_sprints_101_plus.md` — This entry appended
+
+**Test/coverage state:**
+
+- **Test suite:** 5089 tests, 0 failures
+- **Coverage:** Statements 94.92%, Branches 92.55%, Functions 93%, Lines 95.1%
+- **Coverage gate:** ✅ PASS (all thresholds met)
+
+**Snapshot:** `strategic-learning-unified-theatre-ai-snapshot-sprint108-stable`
