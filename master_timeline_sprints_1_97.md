@@ -185,15 +185,15 @@ Sprint 89 is the only remaining undocumented sprint in this timeline — no comm
 > **Sprints 101 and beyond are continued in `master_timeline_sprints_101_plus.md`.**
 > This file covers Sprints 1–100. See the continuation file for Sprint 101+.
 
-| Sprint | Focus                                                                                                                                               | Status   |
-| ------ | --------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| 101    | MCP stdio protocol verification — live process-level handshake via `scripts/verify-mcp-stdio.mjs`                                                   | Complete |
-| 102    | Electron Linux packaging fix — Linux icon set + .deb maintainer email                                                                               | Complete |
-| 103    | Windows/Mac packaging investigation — CI host limitations documented                                                                                | Complete |
-| 104    | CI build-verify workflow + Node version + test infrastructure hardening                                                                             | Complete |
-| 105    | No record found — see `master_timeline_sprints_101_plus.md`                                                                                         | Unknown  |
-| 106    | Agentic RAG retrieval tools — `vector-search` + `search-code`, shared retrieval layer, tool-loop error-propagation fix                              | Complete |
-| 107    | MCP client verification + Local LLM harness fix — 6 clients verified (4 LIVE, 2 NOT POSSIBLE HERE), [DONE] marker fix, retrieval router integration | Complete |
+| Sprint | Focus                                                                                                                                                                | Status   |
+| ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| 101    | MCP stdio protocol verification — live process-level handshake via `scripts/verify-mcp-stdio.mjs`                                                                    | Complete |
+| 102    | Electron Linux packaging fix — Linux icon set + .deb maintainer email                                                                                                | Complete |
+| 103    | Windows/Mac packaging investigation — CI host limitations documented                                                                                                 | Complete |
+| 104    | CI build-verify workflow + Node version + test infrastructure hardening                                                                                              | Complete |
+| 105    | No record found — see `master_timeline_sprints_101_plus.md`                                                                                                          | Unknown  |
+| 106    | Agentic RAG retrieval tools — `vector-search` + `search-code`, shared retrieval layer, tool-loop error-propagation fix                                               | Complete |
+| 107    | MCP client verification + Local LLM harness fix — 6 clients verified (4 LIVE, 2 NOT POSSIBLE HERE), [DONE] marker fix, retrieval router integration                  | Complete |
 | 108    | Tool governance (mandates, security fix, decision receipts) — tool-mandates.md, safe-path.ts, decision-receipt.ts, path-traversal fix, subprocess flag-injection fix | Complete |
 
 For detailed entries see `master_timeline_sprints_101_plus.md`.

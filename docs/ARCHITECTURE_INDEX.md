@@ -144,4 +144,4 @@ The retrieval strategy router (`router.ts`) heuristically selects between code-s
 
 - `docs/tool-mandates.md` — Single source of truth for tool boundaries, authority levels, and external effect assessments. Documents known asymmetries (e.g., read-file is harness-only with no MCP mandate) and security fixes applied this sprint (path-traversal guard, subprocess flag-injection fix, PROJECT_ROOT/REPO_ROOT unification).
 - `src/shared/audit/decision-receipt.ts` — Decision receipt logger for audit trail of retrieval strategy choices. Captures strategy selection point with alternatives considered, caller identity (currently "unknown-mcp-client" placeholder), timestamp, and decision metadata. Wired to the retrieve() router only (not MCP surface, not error paths yet — future sprint).
-"}
+  "}

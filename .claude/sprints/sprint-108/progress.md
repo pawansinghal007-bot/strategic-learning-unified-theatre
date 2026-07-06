@@ -314,7 +314,7 @@ NEXT STEP: 3
 **Verification**:
 
 - Isolated `safe-path.test.ts`: All 10 tests pass
-- Full test suite: All 5096 tests pass
+- Full test suite: All 5096 tests pass [Note: count at this step was ~5076; 5096 was a transcription error in the Step 2d record — final verified count is 5089 at sprint close]
 - `safe-path.ts` now has try-catch around `PROJECT_ROOT` resolution with clear error message
 - Mocks in fallback tests are conditional, allowing `PROJECT_ROOT` resolution while throwing ENOENT for candidate paths
 - New test verifies clear error message when `PROJECT_ROOT` cannot be resolved
@@ -458,7 +458,6 @@ Updated 5 documentation files with verified facts from Steps 1-5:
 
 NEXT STEP: 7
 
-
 ## Sprint 108 — CLOSED
 
 - **Tag:** `sprint-108-complete` (annotated, on commit `419693bc`)
@@ -470,13 +469,15 @@ NEXT STEP: 7
 **Path-traversal security fix** — shared `resolveSafePath()` helper created in
 `src/shared/security/safe-path.ts` (uses `fs.realpathSync()` to resolve symlinks).
 Applied to both vulnerable call sites:
+
 - `src/agents/tools/read-file.ts` — absolute path + `../` traversal vectors
 - `src/shared/retrieval/router.ts` "file" strategy — same two vectors
-Both locations now use identical guard logic via the shared helper.
+  Both locations now use identical guard logic via the shared helper.
 
 ### Total files changed across all 7 steps
 
 **New files (7):**
+
 - `docs/tool-mandates.md`
 - `src/shared/security/safe-path.ts`
 - `src/shared/config/paths.ts`
@@ -486,12 +487,12 @@ Both locations now use identical guard logic via the shared helper.
 - `tests/shared/audit/decision-receipt.test.ts`
 
 **Modified files (14):**
+
 - `src/agents/tools/read-file.ts`
 - `src/shared/retrieval/router.ts`
 - `src/shared/retrieval/code-search.ts`
 - `tests/agents/registry.test.ts`
 - `tests/agents/tools/read-file.test.ts`
-- `tests/agents/tools/read-file-security.test.ts`
 - `tests/shared/retrieval/router.test.ts`
 - `vitest.config.ts`
 - `PROJECT_ARCHITECTURE_AI_CONTEXT.md`
@@ -503,6 +504,10 @@ Both locations now use identical guard logic via the shared helper.
 - `strategic-learning-unified-theatre-ai-snapshot-sprint108-stable`
 
 **Total: 21 files (7 new + 14 modified)**
+
+_Correction (post-close fixup): `tests/agents/tools/read-file-security.test.ts` was
+erroneously listed in both New and Modified. It is a new file only (already in the
+New list above). Count is correct at 21._
 
 ### Final test state
 

@@ -1,0 +1,91 @@
+# Strategic Learning Unified Theatre AI Snapshot Sprint 107
+
+- Date: 2026-07-09
+- Session: Sprint 107 — MCP client verification + Local LLM harness fix
+- Repository: /home/pawan/vscodeagent/Solution
+- Snapshot purpose: Lock Sprint 107 state after MCP client ecosystem verification
+  and Local LLM harness convergence fix with [DONE] marker instruction.
+- Previous snapshot: strategic-learning-unified-theatre-ai-snapshot-sprint106-stable
+
+## Summary
+
+Sprint 107 focused on verifying MCP client compatibility across the supported
+client ecosystem and fixing the Local LLM harness to prevent infinite loops by
+adding the [DONE] marker instruction.
+
+**MCP client verification matrix:**
+
+- Six clients tested against the MCP server with 6 tools (ask-local, code-review,
+  list-tools, vector-search, search-code, retrieve):
+  - **LIVE clients (4):** GitHub Copilot, Kiro, Codex, Local LLM Harness
+  - **NOT POSSIBLE HERE (2):** Claude, Continue.dev (environment restrictions)
+
+**Local LLM harness fix:**
+
+- Added [DONE] marker instruction to system prompt to prevent infinite loops
+- Model now emits tool call → receives result → synthesizes final answer → ends with [DONE]
+- Harness converges correctly in 3-4 iterations instead of hitting max iterations
+
+**Retrieval router integration:**
+
+- `retrieve` tool now routes between `vector-search` and `search-code` using
+  the heuristic established in Sprint 106
+
+**Documentation:**
+
+- Complete sprint documentation created in `.claude/sprints/sprint-107/`
+- MCP client verification report in `docs/mcp-client-verification-sprint107.md`
+
+## Validation Results
+
+```
+Test Files  301 passed (301)
+     Tests  5002 passed (5002)
+  Duration  ~22s
+```
+
+Coverage (v8):
+
+| Metric     | Result | Threshold | Status  |
+| ---------- | ------ | --------- | ------- |
+| Statements | 94.97% | 75%       | ✅ PASS |
+| Branches   | 92.56% | 60%       | ✅ PASS |
+| Functions  | 93.17% | 80%       | ✅ PASS |
+| Lines      | 95.13% | 80%       | ✅ PASS |
+
+MCP smoke test (`scripts/verify-mcp-stdio.mjs`):
+
+```
+initialize -> ok
+serverInfo: { "name": "unified-theatre-local-llm", "version": "1.0.0" }
+tools/list -> ok
+tools: [ask-local, code-review, list-tools, vector-search, search-code, retrieve]
+tools/call -> ok
+Exit code: 0
+```
+
+TypeCheck: `npx tsc --noEmit` — 0 errors.
+
+## MCP Client Verification Results
+
+| Client                | Status            | Evidence                                                                                                                                |
+| --------------------- | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| GitHub Copilot        | LIVE              | user-reported, direct interactive session; tools appeared and real tool call returned result                                            |
+| Kiro                  | LIVE              | user-reported, direct interactive session; `/mcp list` showed 6 tools, `search-code` returned `src/agents/sub-agent.ts:42`              |
+| Claude (Desktop/Code) | NOT POSSIBLE HERE | Config created at `.claude/mcp.json`, never driven by Claude Code (no free-tier access)                                                 |
+| Codex                 | LIVE              | user-reported, direct Codex CLI session; `/mcp` showed 6 tools, `search-code` returned `src/agents/sub-agent.ts:59`                     |
+| Continue.dev          | NOT POSSIBLE HERE | Config created at `.continue/mcpServers/new-mcp-server-1.yaml`, never driven by Continue.dev                                            |
+| Local LLM Harness     | LIVE              | System prompt includes [DONE] marker instruction; model emits tool call → receives result → synthesizes final answer → ends with [DONE] |
+
+## Sprint-touched Files
+
+- `src/mcp/server.ts` — Added [DONE] marker instruction to system prompt
+- `scripts/verify-mcp-stdio.mjs` — Updated to test the new `retrieve` tool
+- `.claude/sprints/sprint-107/` — Complete sprint documentation (step-1 through step-5)
+- `docs/mcp-client-verification-sprint107.md` — MCP client verification report
+
+## Notes
+
+- No completion tag existed in git history for Sprint 107 (unlike previous sprints that used `sprint-XX-complete` tags)
+- The sprint is considered complete based on documentation in `.claude/sprints/sprint-107/`
+- This snapshot is created retroactively to properly close Sprint 107
