@@ -12,6 +12,8 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { vectorSearch } from "./vector-client.js";
 import { searchCode } from "./code-search.js";
+import { resolveSafePath } from "../security/safe-path.js";
+import { PROJECT_ROOT } from "../config/paths";
 
 // ─── types ────────────────────────────────────────────────────────────────────
 
@@ -132,9 +134,7 @@ export async function retrieve(
       case "file": {
         // Minimal inline fs.readFile fallback for "file" strategy
         // No shared file-read function exists in the retrieval layer
-        const filePath = path.isAbsolute(query)
-          ? query
-          : path.resolve(process.cwd(), query);
+        const filePath = resolveSafePath(query, PROJECT_ROOT);
         results = fs.readFileSync(filePath, "utf8");
         break;
       }

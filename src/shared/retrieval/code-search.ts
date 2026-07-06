@@ -24,9 +24,11 @@ const RETRIEVAL_TIMEOUT_MS = Number(process.env.RETRIEVAL_TIMEOUT_MS ?? 10_000);
 
 // ─── configuration (from environment) ────────────────────────────────────────
 
-// Follows the same convention as read-file.ts (PROJECT_ROOT) and
-// orchestrator.ts (process.cwd() as project base).
-const REPO_ROOT = path.resolve(process.env.REPO_ROOT ?? process.cwd());
+import { PROJECT_ROOT } from "../config/paths";
+
+// REPO_ROOT is an alias for PROJECT_ROOT for historical reasons.
+// All code-search.ts logic uses PROJECT_ROOT via this alias.
+const REPO_ROOT = PROJECT_ROOT;
 
 // ─── types ────────────────────────────────────────────────────────────────────
 
@@ -94,6 +96,7 @@ export async function searchCode(
     "!node_modules",
     "--glob",
     "!.git",
+    "--",
     pattern,
     searchPath,
   ];

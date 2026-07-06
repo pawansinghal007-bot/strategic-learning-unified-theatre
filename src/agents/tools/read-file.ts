@@ -1,8 +1,8 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { Tool, ToolResult } from "./base";
-
-const PROJECT_ROOT = process.env.PROJECT_ROOT ?? path.resolve(process.cwd());
+import { resolveSafePath } from "../../shared/security/safe-path";
+import { PROJECT_ROOT } from "../../shared/config/paths";
 
 const MAX_LINES = 500;
 
@@ -11,10 +11,8 @@ export const readFileTool: Tool = {
   description:
     'Read a source file. Usage: [TOOL:read-file path="<absolute or relative path>"]',
   async execute(args): Promise<ToolResult> {
-    // resolve relative paths against PROJECT_ROOT
-    const filePath = path.isAbsolute(args.path)
-      ? args.path
-      : path.join(PROJECT_ROOT, args.path);
+    // resolve relative paths against PROJECT_ROOT using safe path resolution
+    const filePath = resolveSafePath(args.path, PROJECT_ROOT);
 
     try {
       const content = fs.readFileSync(filePath, "utf8");
@@ -40,7 +38,9 @@ export const readFileTool: Tool = {
     } catch (error) {
       return {
         toolName: this.name,
-        success: false,        output: '',        error: `Failed to read file: ${error instanceof Error ? error.message : String(error)}`,
+        success: false,
+        output: "",
+        error: `Failed to read file: ${error instanceof Error ? error.message : String(error)}`,
       };
     }
   },

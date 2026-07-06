@@ -30,19 +30,27 @@ describe("tools registry", () => {
   });
 
   it("getToolDescriptions includes the read-file tool description", async () => {
-    const { getToolDescriptions } = await import("../../src/agents/tools/registry");
+    const { getToolDescriptions } =
+      await import("../../src/agents/tools/registry");
     const desc = getToolDescriptions();
     expect(desc).toContain("read-file");
     expect(desc).toContain("Read a source file");
   });
 
   it("registerTool makes a new tool retrievable via getTool", async () => {
-    const { registerTool, getTool } = await import("../../src/agents/tools/registry");
+    const { registerTool, getTool } =
+      await import("../../src/agents/tools/registry");
 
     const fakeTool = {
       name: "fake-tool",
       description: "A fake tool for testing",
-      execute: vi.fn().mockResolvedValue({ toolName: "fake-tool", success: true, output: "fake" }),
+      execute: vi
+        .fn()
+        .mockResolvedValue({
+          toolName: "fake-tool",
+          success: true,
+          output: "fake",
+        }),
     };
 
     registerTool(fakeTool);
@@ -50,7 +58,8 @@ describe("tools registry", () => {
   });
 
   it("registerTool overwrites an existing tool with the same name", async () => {
-    const { registerTool, getTool } = await import("../../src/agents/tools/registry");
+    const { registerTool, getTool } =
+      await import("../../src/agents/tools/registry");
 
     const v1 = {
       name: "my-tool",
@@ -70,9 +79,8 @@ describe("tools registry", () => {
   });
 
   it("getToolDescriptions includes registered tools", async () => {
-    const { registerTool, getToolDescriptions } = await import(
-      "../../src/agents/tools/registry"
-    );
+    const { registerTool, getToolDescriptions } =
+      await import("../../src/agents/tools/registry");
 
     registerTool({
       name: "my-custom-tool",
@@ -101,6 +109,8 @@ describe("read-file tool", () => {
   });
 
   it("reads an existing file and returns its content", async () => {
+    process.env.PROJECT_ROOT = tmpDir;
+    vi.resetModules();
     const filePath = path.join(tmpDir, "hello.txt");
     fs.writeFileSync(filePath, "hello world");
 
@@ -113,6 +123,8 @@ describe("read-file tool", () => {
   });
 
   it("returns failure result when file does not exist", async () => {
+    process.env.PROJECT_ROOT = tmpDir;
+    vi.resetModules();
     const { readFileTool } = await import("../../src/agents/tools/read-file");
     const result = await readFileTool.execute({
       path: path.join(tmpDir, "nonexistent.ts"),
@@ -124,6 +136,8 @@ describe("read-file tool", () => {
   });
 
   it("truncates files exceeding 500 lines", async () => {
+    process.env.PROJECT_ROOT = tmpDir;
+    vi.resetModules();
     const filePath = path.join(tmpDir, "big.txt");
     const lines = Array.from({ length: 600 }, (_, i) => `line ${i + 1}`);
     fs.writeFileSync(filePath, lines.join("\n"));
@@ -140,6 +154,8 @@ describe("read-file tool", () => {
   });
 
   it("does not truncate files with exactly 500 lines", async () => {
+    process.env.PROJECT_ROOT = tmpDir;
+    vi.resetModules();
     const filePath = path.join(tmpDir, "exact.txt");
     const lines = Array.from({ length: 500 }, (_, i) => `line ${i + 1}`);
     fs.writeFileSync(filePath, lines.join("\n"));
