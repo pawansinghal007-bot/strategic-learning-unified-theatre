@@ -9,6 +9,7 @@
 
 import type { VectorSearchResult } from "./vector-client.js";
 import type { CodeSearchHit } from "./code-search.js";
+import type { SymbolSearchResult } from "./symbol-search.js";
 
 // ─── vector results ───────────────────────────────────────────────────────────
 
@@ -45,4 +46,26 @@ export function formatCodeHits(hits: CodeSearchHit[]): string {
   }
 
   return hits.map((h) => `${h.file}:${h.line}: ${h.text}`).join("\n");
+}
+
+// ─── symbol search results ────────────────────────────────────────────────────
+
+/**
+ * Formats symbol search results as name (kind) at file:line.
+ *
+ * Returns an empty string for empty arrays — callers decide their own
+ * empty-message text. Matches the convention used by formatCodeHits
+ * and formatVectorResults.
+ */
+export function formatSymbolResults(results: SymbolSearchResult[]): string {
+  if (results.length === 0) {
+    return "";
+  }
+
+  return results
+    .map(
+      (r) =>
+        `${r.name} (${r.kind}) at ${r.filePath}:${r.startLine}-${r.endLine}`,
+    )
+    .join("\n");
 }

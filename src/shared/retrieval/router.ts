@@ -12,13 +12,14 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { vectorSearch } from "./vector-client.js";
 import { searchCode } from "./code-search.js";
+import { findSymbolDefinition } from "./symbol-search.js";
 import { resolveSafePath } from "../security/safe-path.js";
 import { PROJECT_ROOT } from "../config/paths";
 import { recordDecision } from "../audit/decision-receipt.js";
 
 // ─── types ────────────────────────────────────────────────────────────────────
 
-export type RetrievalStrategy = "code" | "vector" | "file";
+export type RetrievalStrategy = "code" | "vector" | "file" | "symbol";
 
 export interface RetrieveResult {
   strategy: RetrievalStrategy;
@@ -123,7 +124,12 @@ export async function retrieve(
   // Record decision receipt at the strategy choice point
   // TODO: replace with real client id when available from the MCP transport layer
   const callerIdentity = "unknown-mcp-client";
-  const allStrategies: RetrievalStrategy[] = ["code", "vector", "file"];
+  const allStrategies: RetrievalStrategy[] = [
+    "code",
+    "vector",
+    "file",
+    "symbol",
+  ];
   const alternativesConsidered = allStrategies.filter(
     (s) => s !== strategy,
   ) as string[];
@@ -155,6 +161,10 @@ export async function retrieve(
         // No shared file-read function exists in the retrieval layer
         const filePath = resolveSafePath(query, PROJECT_ROOT);
         results = fs.readFileSync(filePath, "utf8");
+        break;
+      }
+      case "symbol": {
+        results = await findSymbolDefinition(query);
         break;
       }
       default: {
