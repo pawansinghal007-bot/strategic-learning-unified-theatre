@@ -195,5 +195,7 @@ Sprint 89 is the only remaining undocumented sprint in this timeline — no comm
 | 106    | Agentic RAG retrieval tools — `vector-search` + `search-code`, shared retrieval layer, tool-loop error-propagation fix                                               | Complete |
 | 107    | MCP client verification + Local LLM harness fix — 6 clients verified (4 LIVE, 2 NOT POSSIBLE HERE), [DONE] marker fix, retrieval router integration                  | Complete |
 | 108    | Tool governance (mandates, security fix, decision receipts) — tool-mandates.md, safe-path.ts, decision-receipt.ts, path-traversal fix, subprocess flag-injection fix | Complete |
+| 109    | includeWorkspaceContext default changed to false in gateway.ts — partial documentation only; no sprint prompt, tag, or test artifact found; see `master_timeline_sprints_101_plus.md` | Partial |
+| 110    | Retrieval-first classifier and prompt budget hardening — tool-call-classifier.ts, enforcePromptBudget() fix, never-truncate-userPrompt hardening, 500-char workspace truncation | Complete |
 
 For detailed entries see `master_timeline_sprints_101_plus.md`.

@@ -12,7 +12,7 @@
     "start": "node ./src/cli.js",
     "test": "cross-env VSCODE_ROTATOR_MOCK_LLM=1 NODE_OPTIONS=--max-old-space-size=8192 vitest run",
     "coverage": "cross-env VSCODE_ROTATOR_MOCK_LLM=1 NODE_OPTIONS=--max-old-space-size=8192 vitest run -c vitest.test-ci.config.ts --coverage",
-    "coverage:guarded": "npm run coverage && npx vitest run tests/sprint91-sonar-fix-guard.test.js tests/sprint92-thread-and-coverage-guard.test.js",
+    "coverage:guarded": "npm run coverage && cross-env VITEST_INCLUDE_GUARD_TESTS=1 npx vitest run tests/sprint91-sonar-fix-guard.test.js tests/sprint92-thread-and-coverage-guard.test.js",
     "coverage:report": "vitest run --coverage --reporter=html",
     "test:ci": "cross-env VSCODE_ROTATOR_MOCK_LLM=1 NODE_OPTIONS=--max-old-space-size=8192 vitest run -c vitest.test-ci.config.ts --coverage --reporter=verbose",
     "test:integration": "cross-env VSCODE_ROTATOR_MOCK_LLM=0 NODE_OPTIONS=--max-old-space-size=8192 vitest -c vitest.integration.config.js run",

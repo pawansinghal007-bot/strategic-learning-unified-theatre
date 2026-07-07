@@ -56,6 +56,19 @@ export interface ProviderRequest {
   metadata?: Record<string, unknown>;
   constraints?: ProviderRequestConstraints;
   stream?: boolean;
+  /**
+   * Raw user prompt text (without workspace context or system prompt).
+   * When provided, enforcePromptBudget() will use this as the explicit
+   * boundary to protect user content from truncation.
+   *
+   * Rationale: Blind end-truncation without a known user-prompt boundary
+   * is rejected as unsafe because it may silently cut into the user's own
+   * prompt text, losing critical instructions or context. By requiring
+   * callers to pass the raw user prompt explicitly, we ensure the budget
+   * guard can always identify and preserve the user's input regardless of
+   * whether workspace context injection was enabled.
+   */
+  userPrompt?: string;
 }
 
 export interface ProviderUsage {

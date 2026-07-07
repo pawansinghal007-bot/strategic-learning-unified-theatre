@@ -14,15 +14,27 @@ export function stableHash(value) {
     .digest("hex");
 }
 
-export function truncateToTokens(text, maxTokens) {
+export function truncateToTokens(text, maxTokens, options = {}) {
   const source = String(text || "");
   const maxChars = Math.max(0, maxTokens * CHARS_PER_TOKEN);
   if (source.length <= maxChars) return source;
-  return `${source.slice(0, Math.max(0, maxChars - 32)).trimEnd()}\n[compressed]`;
+
+  const { fromEnd = false } = options;
+
+  if (fromEnd) {
+    // Keep the most recent (tail) portion
+    const keepStart = Math.max(0, source.length - maxChars);
+    return `\n[compressed]\n${source.slice(keepStart).trimStart()}`;
+  } else {
+    // Keep the earliest (head) portion (original behavior)
+    return `${source.slice(0, Math.max(0, maxChars - 32)).trimEnd()}\n[compressed]`;
+  }
 }
 
 function compactWhitespace(text) {
-  return String(text || "").replaceAll(/\s+/g, " ").trim();
+  return String(text || "")
+    .replaceAll(/\s+/g, " ")
+    .trim();
 }
 
 function dedupeByHash(items, hashFn, maxItems) {
@@ -43,7 +55,8 @@ export function summarizeFileSnippet(file, maxTokens = 220) {
   return {
     path: file.path || file.filename || file.doc_id || "(unknown)",
     source_type: file.source_type || file.sourceType || "unknown",
-    score: typeof file.score === "number" ? Number(file.score.toFixed(3)) : null,
+    score:
+      typeof file.score === "number" ? Number(file.score.toFixed(3)) : null,
     snippet: content,
     hash: stableHash(content),
   };
@@ -67,7 +80,9 @@ export function createAgentState({
     maxFiles,
   );
   const toolSummary = dedupeByHash(
-    toolOutputs.map((output) => truncateToTokens(compactWhitespace(output), 120)),
+    toolOutputs.map((output) =>
+      truncateToTokens(compactWhitespace(output), 120),
+    ),
     stableHash,
     6,
   ).join(" | ");
@@ -120,7 +135,10 @@ export function enforceTokenBudget(sections, maxTokens = MAX_CONTEXT_TOKENS) {
   }
 
   const sortedKept = [...kept].sort((a, b) => a.order - b.order);
-  return sortedKept.map((section) => section.text).filter(Boolean).join("\n\n");
+  return sortedKept
+    .map((section) => section.text)
+    .filter(Boolean)
+    .join("\n\n");
 }
 
 export function createReasoningHash({
@@ -131,7 +149,9 @@ export function createReasoningHash({
   return stableHash({
     currentStep,
     retrievedFilesHash: stableHash(
-      retrievedFiles.map((file) => file.hash || file.path || file.chunk_id || file.doc_id),
+      retrievedFiles.map(
+        (file) => file.hash || file.path || file.chunk_id || file.doc_id,
+      ),
     ),
     toolInputsLastTurn: toolInputsLastTurn.map((input) => stableHash(input)),
   });

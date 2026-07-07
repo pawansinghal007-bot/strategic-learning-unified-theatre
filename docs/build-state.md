@@ -8,16 +8,19 @@
 > 102–105. Always include "Last verified: Sprint N" so drift is immediately
 > visible to the next agent session.
 
-**Last verified: Sprint 108**
-**Last updated:** Sprint 108 complete (tool governance: mandates, security fixes, decision receipts; path-traversal fix in read-file.ts and router.ts; subprocess flag-injection fix in code-search.ts; PROJECT_ROOT/REPO_ROOT unification; decision-receipt.ts wired to retrieve() router only)
-**Test suite:** 5089 tests, 0 failures (all tests passing)
-**Coverage (v8):** 94.92% stmts / 92.55% branch / 93% funcs / 95.1% lines — all above thresholds (75/60/80/80)
+**Last verified: Sprint 110 (committed) / Sprint 108 (committed)**
+**Last committed sprint:** Sprint 110 — commit `cb19bfb815889fc0f707d9648f8cc8d7ad634dba` on `sprint-110-budget-guard-and-retrieval-classifier`
+**Sprint 110 status:** Closed — committed and tagged as `sprint-110-complete`
+**Last updated:** Sprint 110 closure (retrieval-first classifier; `enforcePromptBudget()` TOOL RESULT trim-direction fix; `never-truncate-userPrompt` hardening) — verified from the committed state
+**Test suite:** 5144 tests, 0 failures (fresh run)
+**Coverage (v8):** 94.93% stmts / 92.48% branch / 93.03% funcs / 95.13% lines — all above thresholds (75/60/80/80)
 **TypeCheck:** `npx tsc --noEmit` — 0 errors
 **MCP smoke:** `scripts/verify-mcp-stdio.mjs` — 6 tools returned (including retrieve), exit code 0 [CONFIRMED]
 **GPU default:** -ngl 99 (RTX 5090 Laptop 24GB — prior -ngl 0 constraints obsolete)
 
 ## Recent Resolutions (last 3 sprints — older entries in master_timeline_sprints_101_plus.md)
 
+- Sprint 110 (CLOSED): The committed sprint implementation includes the `enforcePromptBudget()` trim-direction fix (keep the most recent TOOL RESULT content), `never-truncate-userPrompt` hardening (no silent blind truncation when no context marker is present — necessary because Sprint 109 defaulted `includeWorkspaceContext` to `false`, eliminating the `"User request:"` marker), and the retrieval-first classifier (`src/agents/tool-call-classifier.ts`) with `classifyToolCall()` that routes path-like/symbol-like tools to skip the second `gateway.ask()`. Fresh verification reported 5144 tests passing, 0 failures. Coverage: 94.93% stmts / 92.48% branch / 93.03% funcs / 95.13% lines. Commit: `cb19bfb815889fc0f707d9648f8cc8d7ad634dba`. Tag: `sprint-110-complete`. Snapshot reference: `strategic-learning-unified-theatre-ai-snapshot-sprint110-stable`. Sprint docs are in `master_timeline_sprints_101_plus.md` and `.claude/sprints/sprint-110/progress.md`.
 - Sprint 108: Tool governance (mandates, security fixes, decision receipts). Created
   `docs/tool-mandates.md` as source of truth for tool boundaries and authority levels.
   Fixed path-traversal vulnerability in `src/agents/tools/read-file.ts` and
@@ -147,6 +150,18 @@ as-is. Needs a human decision, not agent auto-resolution.
   doc, test, or artifact found anywhere in git history under any name).
 - Sprint 105 is a second gap: no commit found as of Sprint 106 documentation
   pass. May be a skipped sprint number.
+- Sprint 109 is a third partial-documentation gap with a twist: a local branch
+  `sprint-109-loop-fix-and-prompt-budget` exists (tip `4b8aec5d`, 2026-07-07) with a
+  single commit covering the sub-agent loop/doneMarker fix, opt-in context injection,
+  and `includeWorkspaceContext` defaulted to `false`. This branch was never pushed to
+  `origin` and never merged into `origin/main`. Decision: leave as a local orphan;
+  do not merge or cherry-pick. Its content was superseded by sprint-110 working-tree
+  changes. Delete with `git branch -D sprint-109-loop-fix-and-prompt-budget` once
+  sprint-110 is committed. Anyone debugging prior response-quality or truncation
+  regressions should be aware: prompts built before Sprint 110 with
+  `includeWorkspaceContext=false` had no safe truncation boundary, meaning oversized
+  prompts could silently lose user content. Full record in
+  `master_timeline_sprints_101_plus.md` under "Sprint 109".
 - `master_timeline_sprints_1_97.md` filename must never be changed; it is the
   canonical historical record for Sprints 1–100. Sprints 101+ continue in
   `master_timeline_sprints_101_plus.md`.

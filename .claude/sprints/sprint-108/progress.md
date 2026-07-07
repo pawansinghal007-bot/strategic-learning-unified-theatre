@@ -514,3 +514,11 @@ New list above). Count is correct at 21._
 - 306 test files / 5,089 tests / 0 failures
 - Coverage: 94.92% stmts / 92.55% branch / 93% funcs / 95.1% lines
 - All thresholds met (75/60/80/80)
+
+---
+
+## Sprint 110 — NOTE (audit correction, 2026-07-07)
+
+Sprint 110 closure content is no longer recorded in this file. The sprint-110
+closure record now lives in `.claude/sprints/sprint-110/progress.md` so the
+sprint-108 and sprint-110 histories remain distinct.

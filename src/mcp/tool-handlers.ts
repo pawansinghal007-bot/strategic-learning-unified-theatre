@@ -52,6 +52,7 @@ export async function handleAskLocal(
       requestId,
       workspaceId,
       prompt,
+      userPrompt: prompt, // Explicit boundary for budget enforcement
       systemPrompt,
       constraints: { privacyMode: "local-only" },
     };

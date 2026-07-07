@@ -6,6 +6,7 @@ import {
   ProviderResponse,
 } from "../shared/contracts/provider";
 import { getTool } from "./tools/registry";
+import { classifyToolCall, type ToolCallClass } from "./tool-call-classifier";
 
 // ─── private helpers ─────────────────────────────────────────────────────────
 
@@ -28,11 +29,15 @@ function parseToolArgs(argsString: string): Record<string, string> {
 /**
  * Executes a named tool and returns the follow-up LLM response incorporating
  * the tool result, or `null` if the tool is not registered.
+ *
+ * When skipGatewayAsk is true (for retrieval-first tools), returns the raw
+ * tool output formatted as TOOL RESULT without calling gateway.ask() again.
  */
 async function executeToolCall(
   toolName: string,
   args: Record<string, string>,
   baseRequest: ProviderRequest,
+  skipGatewayAsk?: boolean,
 ): Promise<string | null> {
   const tool = getTool(toolName);
   if (!tool) {
@@ -43,6 +48,12 @@ async function executeToolCall(
   const toolResultMessage = result.success
     ? `[TOOL RESULT:${toolName}]\n${result.output}`
     : `[TOOL ERROR:${toolName}]\n${result.error ?? "Tool execution failed with no error message."}`;
+
+  // For retrieval-first tools, skip the second gateway.ask() call
+  if (skipGatewayAsk) {
+    return toolResultMessage;
+  }
+
   const updatedPrompt = `${baseRequest.prompt}\n\nTOOL RESULT:\n${toolResultMessage}`;
   const toolRequest: ProviderRequest = {
     requestId: baseRequest.requestId,
@@ -79,6 +90,7 @@ export async function runSubAgent(task: AgentTask): Promise<AgentResult> {
         requestId: taskId,
         workspaceId,
         prompt: fullPrompt,
+        userPrompt: task.userPrompt, // Explicit boundary for budget enforcement
         constraints: { privacyMode: "local-only" },
       };
 
@@ -91,10 +103,26 @@ export async function runSubAgent(task: AgentTask): Promise<AgentResult> {
       if (toolCallMatch) {
         const toolName = toolCallMatch[1];
         const args = parseToolArgs(toolCallMatch[2]);
-        const toolOutput = await executeToolCall(toolName, args, request);
+
+        // Classify tool call to determine if we should skip the second gateway.ask() call
+        const classification = classifyToolCall(toolName, args);
+        const skipGatewayAsk =
+          classification === "path-like" || classification === "symbol-like";
+
+        const toolOutput = await executeToolCall(
+          toolName,
+          args,
+          request,
+          skipGatewayAsk,
+        );
         if (toolOutput !== null) {
           outputText = toolOutput;
           // Continue loop without consuming an iteration for tool calls
+          // NOTE: Direct-return tool turns (path-like/symbol-like) can never satisfy doneMarker
+          // themselves. The doneMarker can only appear on a genuine model response (semantic/
+          // synthesis path, or a later iteration after all tool calls are complete).
+          // maxIterations must still account for at least one non-direct-return iteration to
+          // produce the final doneMarker response.
           continue;
         }
         // Tool not found — fall through and treat current outputText as-is
