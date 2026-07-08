@@ -40,6 +40,7 @@ import {
   getState,
 } from "../policies/provider-policy";
 import { buildRequestContextPrompt } from "../memory/request-context";
+import { estimateTokens, truncateToTokens } from "./agent-loop-guard.js";
 
 /**
  * Non-fatal error handler for gateway operations.
@@ -50,6 +51,180 @@ function logNonFatalError(error: unknown, context: string): void {
     context,
     error: error instanceof Error ? error.message : String(error),
   });
+}
+
+/**
+ * Budget guard: trim oversized prompts before provider dispatch.
+ * Trim order: (a) drop workspace context first, (b) truncate TOOL RESULT from end,
+ * (c) never truncate userPrompt itself.
+ *
+ * Exported for testing. Internal callers should continue to use it directly.
+ *
+ * @param prompt - The full composite prompt (workspace context + user request)
+ * @param constraints - Optional budget constraints (maxTokens)
+ * @param workspaceContext - The workspace context prefix if injected
+ * @param userPrompt - **EXPLICIT user prompt boundary** (preferred approach).
+ *   When provided, this is used as the definitive boundary to protect user content.
+ *   This is safer than inferring the boundary from string markers because:
+ *   - If includeWorkspaceContext was false (the default since Sprint 109),
+ *     the "User request:" marker never appears, so blind end-truncation
+ *     could silently cut into the user's own prompt text.
+ *   - By requiring callers to pass the raw user prompt explicitly, we ensure
+ *     the budget guard can always identify and preserve the user's input.
+ *   - Blind end-truncation without a known boundary was rejected as unsafe
+ *     because it may lose critical user instructions or context.
+ */
+export function enforcePromptBudget(
+  prompt: string,
+  constraints?: { maxTokens?: number },
+  workspaceContext?: string,
+  userPrompt?: string,
+): { trimmedPrompt: string; originalLength: number; trimmedLength: number } {
+  const DEFAULT_BUDGET_CHARS = 6000;
+  const budgetChars =
+    constraints?.maxTokens && constraints.maxTokens > 0
+      ? constraints.maxTokens * 4 // Convert tokens to chars (4 chars/token)
+      : DEFAULT_BUDGET_CHARS;
+
+  const originalLength = prompt.length;
+
+  // If within budget, return as-is
+  if (originalLength <= budgetChars) {
+    return {
+      trimmedPrompt: prompt,
+      originalLength,
+      trimmedLength: originalLength,
+    };
+  }
+
+  // Step (a): Try dropping workspace context first if present
+  if (workspaceContext && prompt.startsWith(workspaceContext)) {
+    const remainingPrompt = prompt.slice(workspaceContext.length).trimStart();
+    // Check if remaining is within budget (accounting for the "User request:" prefix)
+    const userRequestPrefix = "User request: ";
+    if (remainingPrompt.startsWith(userRequestPrefix)) {
+      const userPromptFromMarker = remainingPrompt.slice(
+        userRequestPrefix.length,
+      );
+      // If user prompt alone is within budget, return just it
+      if (userPromptFromMarker.length <= budgetChars) {
+        logger.warn("gateway.prompt.trimmed", {
+          reason: "workspace_context_dropped",
+          originalLength,
+          trimmedLength: userPromptFromMarker.length,
+          workspaceContextLength: workspaceContext.length,
+        });
+        return {
+          trimmedPrompt: userPromptFromMarker,
+          originalLength,
+          trimmedLength: userPromptFromMarker.length,
+        };
+      }
+    }
+  }
+
+  // Step (b): Truncate TOOL RESULT content from the end, keeping most recent portion
+  // Look for patterns like "TOOL RESULT:" or "Tool output:" at the end
+  const toolResultPatterns = [
+    /(\n\n)?TOOL RESULT:[\s\S]*$/i,
+    /(\n\n)?Tool output:[\s\S]*$/i,
+    /(\n\n)?TOOL OUTPUT:[\s\S]*$/i,
+  ];
+
+  let trimmedPrompt = prompt;
+  for (const pattern of toolResultPatterns) {
+    const match = prompt.match(pattern);
+    if (match) {
+      const toolResultStart = match.index ?? 0;
+      const nonToolPart = prompt.slice(0, toolResultStart);
+      const toolResultPart = prompt.slice(toolResultStart);
+
+      // Keep non-tool part entirely, truncate tool result
+      if (nonToolPart.length <= budgetChars) {
+        const availableSpace = budgetChars - nonToolPart.length;
+        const truncatedToolResult = truncateToTokens(
+          toolResultPart,
+          Math.max(availableSpace / 4, 100), // min 100 chars worth of tokens
+          { fromEnd: true }, // Keep most recent (tail) portion
+        );
+        trimmedPrompt = nonToolPart + truncatedToolResult;
+        break;
+      }
+    }
+  }
+
+  // Step (c): If still over budget, use explicit userPrompt boundary if provided
+  // This is the PREFERRED approach - explicit boundary via userPrompt parameter
+  if (trimmedPrompt.length > budgetChars && userPrompt) {
+    // Find the userPrompt in the trimmedPrompt to establish the boundary
+    const userPromptIndex = trimmedPrompt.indexOf(userPrompt);
+    if (userPromptIndex >= 0) {
+      const contextPart = trimmedPrompt.slice(0, userPromptIndex);
+      const userPromptText = trimmedPrompt.slice(userPromptIndex);
+
+      // Keep at least some context, but ensure userPrompt is intact
+      const minContextChars = 500; // minimum context to keep
+      if (userPromptText.length <= budgetChars - minContextChars) {
+        const availableSpace = budgetChars - userPromptText.length;
+        trimmedPrompt =
+          contextPart.slice(0, availableSpace).trimEnd() +
+          "\n\n" +
+          userPromptText;
+      }
+      // If userPrompt alone exceeds budget, leave it untrimmed with warning below
+    }
+  }
+
+  // Fallback: If still over budget and no explicit boundary, try marker-based approach
+  if (trimmedPrompt.length > budgetChars) {
+    // Try to find userPrompt marker
+    const userRequestMatch = trimmedPrompt.match(/User request:[\s\S]*$/);
+    if (userRequestMatch) {
+      const userRequestStart = userRequestMatch.index ?? 0;
+      const contextPart = trimmedPrompt.slice(0, userRequestStart);
+      const userPromptFromMarker = trimmedPrompt.slice(userRequestStart);
+
+      // Keep at least some context, but ensure userPrompt is intact
+      const minContextChars = 500; // minimum context to keep
+      if (userPromptFromMarker.length <= budgetChars - minContextChars) {
+        const availableSpace = budgetChars - userPromptFromMarker.length;
+        trimmedPrompt =
+          contextPart.slice(0, availableSpace).trimEnd() +
+          "\n\n" +
+          userPromptFromMarker;
+      }
+    } else {
+      // No clear marker and no explicit userPrompt boundary
+      // CRITICAL: Do NOT silently truncate - log warning and return untrimmed
+      // Blind end-truncation without a known boundary was rejected as unsafe
+      // because it may silently cut into the user's own prompt text, losing
+      // critical instructions or context. The caller must ensure userPrompt
+      // is provided or accept that oversized prompts will pass through.
+      logger.warn("gateway.prompt.cannot-truncate-no-boundary", {
+        reason: "budget_exceeded_but_no_user_prompt_boundary",
+        originalLength,
+        budgetChars,
+        note: "Prompt exceeds budget but cannot be safely trimmed without explicit userPrompt boundary. Passing through untrimmed to avoid losing user content.",
+      });
+      return {
+        trimmedPrompt: prompt,
+        originalLength,
+        trimmedLength: originalLength,
+      };
+    }
+  }
+
+  const trimmedLength = trimmedPrompt.length;
+  if (trimmedLength < originalLength) {
+    logger.warn("gateway.prompt.truncated", {
+      reason: "budget_exceeded",
+      originalLength,
+      trimmedLength,
+      budgetChars,
+    });
+  }
+
+  return { trimmedPrompt, originalLength, trimmedLength };
 }
 
 export interface GatewayOptions {
@@ -176,9 +351,12 @@ export class Gateway {
     try {
       const contextPrompt = buildRequestContextPrompt(requestData.workspaceId);
       if (contextPrompt) {
+        // Preserve userPrompt if provided (for explicit boundary in budget enforcement)
+        const userPrompt = requestData.userPrompt || requestData.prompt;
         return {
           ...requestData,
           prompt: `${contextPrompt}\n\nUser request: ${requestData.prompt}`,
+          userPrompt, // Preserve explicit boundary
         };
       }
     } catch (error) {
@@ -186,6 +364,30 @@ export class Gateway {
     }
 
     return requestData;
+  }
+
+  /**
+   * Extract workspace context from the full prompt.
+   * The workspace context is everything before "User request:".
+   */
+  private extractWorkspaceContext(
+    fullPrompt: string,
+    userPrompt: string,
+  ): string {
+    const userRequestPrefix = "User request: ";
+    const userRequestIndex = fullPrompt.indexOf(userRequestPrefix + userPrompt);
+
+    if (userRequestIndex > 0) {
+      return fullPrompt.slice(0, userRequestIndex);
+    }
+
+    // Fallback: try to find just "User request:" marker
+    const simpleIndex = fullPrompt.indexOf(userRequestPrefix);
+    if (simpleIndex > 0) {
+      return fullPrompt.slice(0, simpleIndex);
+    }
+
+    return "";
   }
 
   private recordSuccessResponse(
@@ -322,7 +524,32 @@ export class Gateway {
 
       let requestData = await this.injectContextIntoRequest(parsedRequest.data);
 
-      const rawResponse = await selectedProvider!.ask(requestData);
+      // Enforce prompt budget before dispatching to provider
+      // Extract workspace context for budget enforcement
+      const workspaceContext = this.extractWorkspaceContext(
+        requestData.prompt,
+        requestData.userPrompt || requestData.prompt,
+      );
+      const budgetResult = enforcePromptBudget(
+        requestData.prompt,
+        requestData.constraints,
+        workspaceContext,
+        requestData.userPrompt, // Pass explicit userPrompt boundary
+      );
+
+      if (budgetResult.trimmedLength < budgetResult.originalLength) {
+        logger.warn("gateway.prompt.budget_enforced", {
+          requestId: requestData.requestId,
+          originalLength: budgetResult.originalLength,
+          trimmedLength: budgetResult.trimmedLength,
+          reason: "budget_exceeded",
+        });
+      }
+
+      const rawResponse = await selectedProvider!.ask({
+        ...requestData,
+        prompt: budgetResult.trimmedPrompt,
+      });
       const normalizedResponse = this.normalizeResponse(
         rawResponse,
         selectedProviderName,

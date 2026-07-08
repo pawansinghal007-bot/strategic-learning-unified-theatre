@@ -15,6 +15,7 @@ import {
   Gateway,
   applyWorkspaceQuotaEnforcement,
   enforceWorkspaceQuotaOrThrow,
+  enforcePromptBudget,
   type GatewayOptions,
 } from "../../src/llm/gateway.js";
 import {
@@ -27,6 +28,10 @@ import { resetRoutingHistory } from "../../src/llm/routing-history.js";
 // ---------------------------------------------------------------------------
 // Module-level mocks (applied before any test runs in this file)
 // ---------------------------------------------------------------------------
+
+vi.mock("../../src/shared/logging/logger.js", () => ({
+  logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
+}));
 
 vi.mock("../../src/governance/workspace-quotas.js", () => ({
   evaluateWorkspaceQuotaStatus: vi.fn(() => ({
@@ -50,6 +55,7 @@ import {
   recordWorkspaceQuotaUsage,
 } from "../../src/governance/workspace-quotas.js";
 import { buildRequestContextPrompt } from "../../src/memory/request-context.js";
+import { logger } from "../../src/shared/logging/logger.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -209,9 +215,7 @@ describe("Gateway.injectContextIntoRequest()", () => {
     );
 
     const gw = new Gateway({ defaultOrder: ["local"] });
-    const response = await gw.ask(
-      makeRequest({ workspaceId: "ws-ctx" }),
-    );
+    const response = await gw.ask(makeRequest({ workspaceId: "ws-ctx" }));
     // The local stub adapter receives the modified prompt — response should exist
     expect(response).toBeDefined();
     expect(vi.mocked(buildRequestContextPrompt)).toHaveBeenCalledWith("ws-ctx");
@@ -261,7 +265,8 @@ describe("Gateway.resolveCandidates()", () => {
     const gw = new Gateway({
       defaultOrder: ["local"],
       providers: {
-        local: (new Gateway({ defaultOrder: ["local"] }) as any).providers.local,
+        local: (new Gateway({ defaultOrder: ["local"] }) as any).providers
+          .local,
       } as any,
     });
     const response = await gw.ask(
@@ -288,7 +293,9 @@ describe("Gateway.resolveCandidates()", () => {
     // except local — response should still come from local
     const response = await gw.ask(
       makeRequest({
-        constraints: { excludedProviders: ["groq", "gemini", "openai", "perplexity"] },
+        constraints: {
+          excludedProviders: ["groq", "gemini", "openai", "perplexity"],
+        },
       }),
     );
     expect(response.provider).toBe("local");
@@ -305,7 +312,8 @@ describe("Gateway.validateProviderAvailable()", () => {
       // Only local registered; "groq" is in default order but not here
       defaultOrder: ["groq", "local"],
       providers: {
-        local: (new Gateway({ defaultOrder: ["local"] }) as any).providers.local,
+        local: (new Gateway({ defaultOrder: ["local"] }) as any).providers
+          .local,
       } as any,
     });
     const response = await gw.ask(makeRequest());
@@ -324,7 +332,9 @@ describe("Gateway.stream()", () => {
     await expect(async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const gen = gw.stream({} as any);
-      for await (const _ of gen) { /* consume */ }
+      for await (const _ of gen) {
+        /* consume */
+      }
     }).rejects.toThrow();
   });
 
@@ -342,7 +352,9 @@ describe("Gateway.stream()", () => {
       },
     });
     await expect(async () => {
-      for await (const _ of gw.stream(makeRequest())) { /* consume */ }
+      for await (const _ of gw.stream(makeRequest())) {
+        /* consume */
+      }
     }).rejects.toThrow();
   });
 
@@ -386,7 +398,9 @@ describe("Gateway.stream()", () => {
       },
     });
     await expect(async () => {
-      for await (const _ of gw.stream(makeRequest())) { /* consume */ }
+      for await (const _ of gw.stream(makeRequest())) {
+        /* consume */
+      }
     }).rejects.toThrow("stream boom");
   });
 
@@ -407,7 +421,9 @@ describe("Gateway.stream()", () => {
       },
     });
     await expect(async () => {
-      for await (const _ of gw.stream(makeRequest())) { /* consume */ }
+      for await (const _ of gw.stream(makeRequest())) {
+        /* consume */
+      }
     }).rejects.toThrow();
   });
 });
@@ -441,9 +457,11 @@ describe("Gateway recordFailureResponse DomainError path (line 596-598)", () => 
         local: {
           name: "local",
           capabilities: () => [],
-          ask: vi.fn().mockRejectedValue(
-            new DomainError("TEST_ERROR", "Domain error from provider"),
-          ),
+          ask: vi
+            .fn()
+            .mockRejectedValue(
+              new DomainError("TEST_ERROR", "Domain error from provider"),
+            ),
         } as any,
       },
     });
@@ -597,5 +615,206 @@ describe("Gateway.ask() — no-candidates path", () => {
         }),
       ),
     ).rejects.toThrow();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// enforcePromptBudget — concrete before/after TOOL RESULT tail-trim tests
+//
+// AC 3: a prompt with TOOL RESULT content that exceeds budget is trimmed to
+// keep the tail (most recent) portion, verified against concrete strings.
+// Trim order: workspace context first → TOOL RESULT → userPrompt last.
+// ---------------------------------------------------------------------------
+describe("enforcePromptBudget() — TOOL RESULT tail trimming", () => {
+  // 1. Prompt within budget → returned unchanged
+  it("returns the prompt unchanged when it is within budget", () => {
+    const prompt = "User request: fix the bug";
+    const result = enforcePromptBudget(
+      prompt,
+      { maxTokens: 1000 },
+      undefined,
+      "fix the bug",
+    );
+    expect(result.trimmedPrompt).toBe(prompt);
+    expect(result.originalLength).toBe(prompt.length);
+    expect(result.trimmedLength).toBe(prompt.length);
+  });
+
+  // 2. Core AC 3 test: TOOL RESULT tail is kept, head is dropped
+  it("trims TOOL RESULT content to keep the tail (most recent) portion", () => {
+    // Budget: 100 tokens = 400 chars.
+    // Use a unique head sentinel that cannot appear in the kept tail window.
+    // Tool block: sentinel(32) + filler(600) + tail(25) = 657 chars
+    // The kept tail window (~375 chars after preamble) will contain only
+    // filler + tail; the sentinel at position 0 of the tool block is dropped.
+    const preamble = "User request: summarize\n\n"; // 25 chars
+    const toolHeadSentinel = "HEAD_SENTINEL_MUST_BE_DROPPED___"; // 32 chars — unique
+    const toolHeadFiller = "X".repeat(600); // 600 chars padding
+    const toolTail = "TOOL_RESULT_TAIL_KEEP_END"; // 25 chars — must survive
+    const prompt = `${preamble}TOOL RESULT:\n${toolHeadSentinel}${toolHeadFiller}${toolTail}`;
+
+    const result = enforcePromptBudget(
+      prompt,
+      { maxTokens: 100 },
+      undefined,
+      "summarize",
+    ); // 400 char budget
+
+    // The tail of the TOOL RESULT section must appear in the trimmed output
+    expect(result.trimmedPrompt).toContain("TOOL_RESULT_TAIL_KEEP_END");
+    // The unique head sentinel is outside the kept tail window and must be gone
+    expect(result.trimmedPrompt).not.toContain(
+      "HEAD_SENTINEL_MUST_BE_DROPPED___",
+    );
+    // Overall length reduced
+    expect(result.trimmedLength).toBeLessThan(result.originalLength);
+    // Compression marker confirms truncation occurred
+    expect(result.trimmedPrompt).toContain("[compressed]");
+  });
+
+  // 3. Trim order — workspace context is dropped before touching TOOL RESULT
+  it("drops workspace context first when the prompt starts with it", () => {
+    const workspaceCtx = "WS_CONTEXT: be concise.\n\n"; // will be stripped
+    const userPrompt = "fix the login bug";
+    const fullPrompt = `${workspaceCtx}User request: ${userPrompt}`;
+
+    // Budget tight enough that the workspace prefix pushes it over
+    const budget = Math.ceil(fullPrompt.length / 4) - 2; // just under full length in tokens
+    const result = enforcePromptBudget(
+      fullPrompt,
+      { maxTokens: budget },
+      workspaceCtx,
+      userPrompt,
+    );
+
+    // userPrompt must survive; workspace context must be gone
+    expect(result.trimmedPrompt).toContain(userPrompt);
+    expect(result.trimmedPrompt).not.toContain("WS_CONTEXT:");
+    expect(result.trimmedLength).toBeLessThan(result.originalLength);
+  });
+
+  // 4. userPrompt is never truncated — even when everything else is trimmed
+  it("preserves the user request text when truncating context", () => {
+    const userRequest = "User request: please explain the architecture";
+    // Huge preamble forces truncation. userRequest (45 chars) must survive.
+    // minContextChars in the function is 500, so budgetChars must be >= 545.
+    // Use maxTokens:200 → budgetChars=800. Then 45 <= 800-500=300 ✓
+    const bigContext = "CONTEXT_LINE\n".repeat(300); // ~3900 chars
+    const prompt = bigContext + userRequest;
+
+    const result = enforcePromptBudget(
+      prompt,
+      { maxTokens: 200 },
+      undefined,
+      userRequest,
+    ); // 800 char budget
+
+    expect(result.trimmedPrompt).toContain("please explain the architecture");
+    expect(result.trimmedLength).toBeLessThan(result.originalLength);
+  });
+
+  // 5. TOOL OUTPUT variant header is also recognised
+  it("trims TOOL OUTPUT: header variant to keep the tail", () => {
+    const preamble = "User request: check output\n\n";
+    const toolHead = "OLD_OUTPUT_DATA_".repeat(30); // 480 chars
+    const toolTail = "LATEST_OUTPUT_SURVIVES"; // 22 chars
+    const prompt = `${preamble}TOOL OUTPUT:\n${toolHead}${toolTail}`;
+
+    const result = enforcePromptBudget(
+      prompt,
+      { maxTokens: 80 },
+      undefined,
+      "check output",
+    ); // 320 char budget
+
+    expect(result.trimmedPrompt).toContain("LATEST_OUTPUT_SURVIVES");
+    expect(result.trimmedLength).toBeLessThan(result.originalLength);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// AC: no workspace context + no "User request:" marker, exceeds budget
+//
+// Two cases from the acceptance criteria:
+//   (a) userPrompt threaded through — step (c) identifies the boundary via
+//       the explicit userPrompt parameter, trims the preceding context, and
+//       preserves the user text. No "User request:" marker is needed.
+//   (b) no userPrompt provided either — prompt left untrimmed, warning logged.
+//
+// Both cases must never silently truncate unprotected user-prompt text.
+// ---------------------------------------------------------------------------
+describe("enforcePromptBudget() — no workspace context, no User request marker", () => {
+  beforeEach(() => {
+    vi.mocked(logger.warn).mockClear();
+  });
+
+  // (a) Threaded-through approach: userPrompt is passed explicitly so step (c)
+  // can identify and protect it even though no "User request:" marker exists.
+  //
+  // Budget arithmetic (minContextChars = 500 in the implementation):
+  //   userPrompt = 24 chars.
+  //   availableSpace = budgetChars(800) - 24 = 776.
+  //   contextPart.slice(0, 776) must end with whitespace so .trimEnd() yields
+  //   ≤773 chars; assembled total = 773 + 2 ("\n\n") + 24 = 799 ≤ 800. ✓
+  //
+  //   Constructed context: 773 X-chars + 3 spaces (776 chars at the boundary)
+  //   followed by 5000 Y-chars padding so the full prompt is ~5800 chars > 800.
+  it("(a) preserves userPrompt via threaded-through boundary when no marker exists", () => {
+    const userPrompt = "explain the test failure"; // 24 chars, no "User request:" prefix
+    // contextPart.slice(0, 776): 773 "X" chars + 3 spaces → trimEnd → 773 chars.
+    // assembled = 773 + "\n\n" + 24 = 799 ≤ 800-char budget. ✓
+    const prefix = "X".repeat(773) + "   "; // 776 chars; index 775 = space
+    const padding = "Y".repeat(5000); // bulk that pushes prompt over budget
+    const bigContext = prefix + padding; // 5776 chars
+    // No workspace context prefix, no "User request:" marker.
+    const prompt = bigContext + userPrompt; // ~5800 chars >> 800-char budget
+
+    const result = enforcePromptBudget(
+      prompt,
+      { maxTokens: 200 }, // budgetChars = 800
+      undefined, // no workspace context
+      userPrompt, // explicit boundary threaded through
+    );
+
+    // User text must be intact — never silently truncated.
+    expect(result.trimmedPrompt).toContain(userPrompt);
+    // The bulk context must have been reduced.
+    expect(result.trimmedLength).toBeLessThan(result.originalLength);
+    // No "cannot-truncate" warning — boundary was found and used cleanly.
+    expect(vi.mocked(logger.warn)).not.toHaveBeenCalledWith(
+      "gateway.prompt.cannot-truncate-no-boundary",
+      expect.anything(),
+    );
+  });
+
+  // (b) No-boundary fallback: neither a "User request:" marker nor an explicit
+  // userPrompt is provided. The budget guard must NOT silently truncate;
+  // instead it must return the prompt untrimmed and log a warning.
+  //
+  // Rationale (from gateway.ts comment): blind end-truncation without a known
+  // boundary was rejected as unsafe because it may silently cut into the
+  // user's own prompt text, losing critical instructions or context.
+  it("(b) returns prompt untrimmed and logs a warning when no boundary is available", () => {
+    // Plain over-budget blob with no markers and no userPrompt argument.
+    const prompt = "OPAQUE_CONTENT_".repeat(500); // 7500 chars, well over default 6000
+
+    const result = enforcePromptBudget(
+      prompt,
+      undefined, // default 6000-char budget
+      undefined, // no workspace context
+      undefined, // no explicit userPrompt boundary
+    );
+
+    // Must not truncate — returning fewer chars would silently drop user content.
+    expect(result.trimmedPrompt).toBe(prompt);
+    expect(result.trimmedLength).toBe(result.originalLength);
+
+    // Must warn so the issue is observable in logs.
+    expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
+      "gateway.prompt.cannot-truncate-no-boundary",
+      expect.objectContaining({
+        reason: "budget_exceeded_but_no_user_prompt_boundary",
+      }),
+    );
   });
 });

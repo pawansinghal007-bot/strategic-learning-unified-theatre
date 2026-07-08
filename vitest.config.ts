@@ -1,4 +1,13 @@
 import { defineConfig } from "vitest/config";
+
+const guardTestExcludes =
+  process.env.VITEST_INCLUDE_GUARD_TESTS === "1"
+    ? []
+    : [
+        "tests/sprint91-sonar-fix-guard.test.js",
+        "tests/sprint92-thread-and-coverage-guard.test.js",
+      ];
+
 export default defineConfig({
   resolve: {
     extensions: [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"],
@@ -26,8 +35,7 @@ export default defineConfig({
     exclude: [
       // Guard tests require coverage-summary.json to already exist.
       // Run them via: npm run coverage:guarded
-      "tests/sprint91-sonar-fix-guard.test.js",
-      "tests/sprint92-thread-and-coverage-guard.test.js",
+      ...guardTestExcludes,
     ],
     server: {
       deps: { inline: [/\.cjs$/] },

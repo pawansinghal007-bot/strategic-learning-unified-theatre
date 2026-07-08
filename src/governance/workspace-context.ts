@@ -3,7 +3,9 @@ import path from "node:path";
 import os from "node:os";
 
 function getDbPath(): string {
-  const stateDir = process.env.ROTATOR_STATE_DIR || path.join(os.homedir(), ".strategic-learning");
+  const stateDir =
+    process.env.ROTATOR_STATE_DIR ||
+    path.join(os.homedir(), ".strategic-learning");
   return process.env.DB_PATH || path.join(stateDir, "workspace-context.db");
 }
 
@@ -19,22 +21,50 @@ function getDb() {
   return db;
 }
 
-export function setWorkspaceContext(workspaceId: string, payload: { summary?: string; tags?: string[]; lastIntent?: string; }) {
+export function setWorkspaceContext(
+  workspaceId: string,
+  payload: { summary?: string; tags?: string[]; lastIntent?: string },
+) {
   const db = getDb();
   const updatedAt = Date.now();
-  db.prepare(`INSERT OR REPLACE INTO workspace_context (workspaceId, summary, tags, lastIntent, updatedAt) VALUES (?, ?, ?, ?, ?)`)
-    .run(workspaceId, payload.summary ?? null, JSON.stringify(payload.tags ?? []), payload.lastIntent ?? null, updatedAt);
+
+  // Truncate summary at write time with 500-char cap + "..." suffix
+  let summaryToStore = payload.summary ?? null;
+  if (summaryToStore && summaryToStore.length > 500) {
+    summaryToStore = summaryToStore.slice(0, 500) + "...";
+  }
+
+  db.prepare(
+    `INSERT OR REPLACE INTO workspace_context (workspaceId, summary, tags, lastIntent, updatedAt) VALUES (?, ?, ?, ?, ?)`,
+  ).run(
+    workspaceId,
+    summaryToStore,
+    JSON.stringify(payload.tags ?? []),
+    payload.lastIntent ?? null,
+    updatedAt,
+  );
   db.close();
-  return { workspaceId, summary: payload.summary ?? null, tags: payload.tags ?? [], lastIntent: payload.lastIntent ?? null, updatedAt };
+  return {
+    workspaceId,
+    summary: summaryToStore,
+    tags: payload.tags ?? [],
+    lastIntent: payload.lastIntent ?? null,
+    updatedAt,
+  };
 }
 
-export function saveWorkspaceContext(workspaceId: string, payload: { summary?: string; tags?: string[]; lastIntent?: string; }) {
+export function saveWorkspaceContext(
+  workspaceId: string,
+  payload: { summary?: string; tags?: string[]; lastIntent?: string },
+) {
   return setWorkspaceContext(workspaceId, payload);
 }
 
 export function getWorkspaceContext(workspaceId: string) {
   const db = getDb();
-  const row = db.prepare(`SELECT * FROM workspace_context WHERE workspaceId = ?`).get(workspaceId) as any;
+  const row = db
+    .prepare(`SELECT * FROM workspace_context WHERE workspaceId = ?`)
+    .get(workspaceId) as any;
   db.close();
   if (!row) return null;
   return { ...row, tags: JSON.parse(row.tags || "[]") };
@@ -42,7 +72,9 @@ export function getWorkspaceContext(workspaceId: string) {
 
 export function clearWorkspaceContext(workspaceId: string) {
   const db = getDb();
-  db.prepare(`DELETE FROM workspace_context WHERE workspaceId = ?`).run(workspaceId);
+  db.prepare(`DELETE FROM workspace_context WHERE workspaceId = ?`).run(
+    workspaceId,
+  );
   db.close();
 }
 

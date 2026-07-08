@@ -6,6 +6,7 @@ import { retrieve } from "../shared/retrieval/router.js";
 import {
   formatVectorResults,
   formatCodeHits,
+  formatSymbolResults,
 } from "../shared/retrieval/format.js";
 import { logger } from "../shared/logging/logger.ts";
 import type { McpToolResult } from "./types";
@@ -52,6 +53,7 @@ export async function handleAskLocal(
       requestId,
       workspaceId,
       prompt,
+      userPrompt: prompt, // Explicit boundary for budget enforcement
       systemPrompt,
       constraints: { privacyMode: "local-only" },
     };
@@ -235,6 +237,13 @@ export async function handleRetrieve(
       case "file": {
         // File strategy returns raw content
         return { content: [{ type: "text", text: result.results as string }] };
+      }
+      case "symbol": {
+        const formatted = formatSymbolResults(result.results as any);
+        if (formatted === "") {
+          return { content: [{ type: "text", text: "No results found." }] };
+        }
+        return { content: [{ type: "text", text: formatted }] };
       }
       default: {
         const _exhaustive: never = result.strategy;

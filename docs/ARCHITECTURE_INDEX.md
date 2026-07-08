@@ -43,6 +43,8 @@ This index summarizes the current repository layout after Reorg Sprint 0.5.
 - `src/llm/training-exporter.js` - Training data export from captured experience.
 - `src/llm/embeddings.js` - Embedding encoding, similarity, clustering, and related search helpers.
 - `src/llm/inference.js` - Local inference provider selection and runtime integration.
+- `src/llm/gateway.ts` - LLM gateway with ask() method, prompt assembly, and response parsing (Sprint 110: updated for retrieval-first classifier integration).
+- `src/llm/agent-loop-guard.js` - Agent loop guard with enforcePromptBudget() to trim TOOL RESULT content from the correct end (Sprint 110: fixed trim direction to keep most recent portion).
 
 ## AI Memory
 
@@ -62,6 +64,7 @@ This index summarizes the current repository layout after Reorg Sprint 0.5.
 - `src/internal/journal.js` - Progress journal writer and tail reader.
 - `src/internal/git-monitor.js` - Git status parsing and repository monitoring helpers.
 - `src/internal/reporter.js` - Journal-backed reporting helpers.
+- `src/agents/tool-call-classifier.ts` - Pure-function classifier for tool calls to determine whether to skip second gateway.ask() follow-up (Sprint 110: retrieval-first classifier that categorizes tool calls into path-like, symbol-like, semantic, or synthesis classes).
 
 ## Daemon
 
@@ -144,3 +147,7 @@ The retrieval strategy router (`router.ts`) heuristically selects between code-s
 
 - `docs/tool-mandates.md` — Single source of truth for tool boundaries, authority levels, and external effect assessments. Documents known asymmetries (e.g., read-file is harness-only with no MCP mandate) and security fixes applied this sprint (path-traversal guard, subprocess flag-injection fix, PROJECT_ROOT/REPO_ROOT unification).
 - `src/shared/audit/decision-receipt.ts` — Decision receipt logger for audit trail of retrieval strategy choices. Captures strategy selection point with alternatives considered, caller identity (currently "unknown-mcp-client" placeholder), timestamp, and decision metadata. Wired to the retrieve() router only (not MCP surface, not error paths yet — future sprint).
+
+## Sprint 109 Note
+
+Sprint 109 is partially documented. The only confirmed change is that `includeWorkspaceContext` was changed to `false` as the default in `src/llm/gateway.ts`. No sprint prompt, tag, test artifact, or snapshot exists. This change is the direct motivator for the `userPrompt` explicit-boundary approach added in Sprint 110's `enforcePromptBudget()` hardening. Treat as a partial-documentation gap alongside Sprint 89 and Sprint 105. Sprint 110 itself is now closed and tagged as `sprint-110-complete` at commit `ec42fe73fc40f1520f6e140ac614e058597dc6f1`.

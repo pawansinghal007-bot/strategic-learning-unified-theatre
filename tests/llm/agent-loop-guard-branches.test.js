@@ -111,6 +111,53 @@ describe("truncateToTokens", () => {
     const beforeCompressed = result.replace(/\n\[compressed\]$/, "");
     expect(beforeCompressed).not.toMatch(/\s$/);
   });
+
+  // ── fromEnd: true — concrete before/after string tests ──────────────────
+
+  it("fromEnd:true keeps the tail (most recent) portion, not the head", () => {
+    // 10 tokens * 4 chars/token = 40 chars budget.
+    // Tail is exactly 40 chars — fills the entire kept window.
+    // Head is 200 chars — entirely outside the kept window.
+    const tail = "RECENT_END_KEEP_TAIL_CONTENT_SURVIVES_!!"; // exactly 40 chars
+    const head = "EARLY_".repeat(40);                        // 240 chars — must be discarded
+    const full = head + tail;                               // 280 chars > 40 char budget
+    const result = truncateToTokens(full, 10, { fromEnd: true });
+    expect(result).toContain("RECENT_END_KEEP_TAIL_CONTENT_SURVIVES_!!");
+    // Tail fills the whole window, so no head chars appear after the marker
+    expect(result).not.toContain("EARLY_");
+    expect(result).toContain("[compressed]");
+  });
+
+  it("fromEnd:true result starts with the [compressed] marker then the tail", () => {
+    // 10 tokens * 4 = 40 chars budget.
+    // Tail is exactly 40 chars — fills the entire kept window.
+    // Head is 240 chars entirely outside the kept window.
+    const tailText = "TAIL_SECTION_KEPT_IN_RESULT_EXACTLY_40!!"; // exactly 40 chars
+    const headText = "Z".repeat(240);                               // 240 chars — all dropped
+    const full = headText + tailText;                              // 280 chars total
+    const result = truncateToTokens(full, 10, { fromEnd: true });
+    // Output format: "\n[compressed]\n<tail>"
+    expect(result.startsWith("\n[compressed]\n")).toBe(true);
+    expect(result.endsWith(tailText)).toBe(true);
+    expect(result).not.toContain("Z"); // all Z head chars dropped
+  });
+
+  it("fromEnd:true returns source unchanged when it fits within budget", () => {
+    const text = "fits fine";
+    expect(truncateToTokens(text, 100, { fromEnd: true })).toBe(text);
+  });
+
+  it("default (fromEnd omitted) keeps the head, appending [compressed]", () => {
+    // Contrast with fromEnd:true to make the difference explicit.
+    // Budget: 5 tokens = 20 chars. Head is 20 chars exactly; tail is extra.
+    const head = "KEEP_THIS_HEAD_STRT"; // 19 chars (just under budget edge)
+    const tail = "DROP_THIS_TAIL_END_XYZ_EXTRA"; // appended, must be cut
+    const full = head + tail;
+    const result = truncateToTokens(full, 5); // 5*4=20 chars
+    // Head portion retained, tail dropped
+    expect(result).not.toContain("DROP_THIS_TAIL_END_XYZ_EXTRA");
+    expect(result).toContain("[compressed]");
+  });
 });
 
 // ── dedupeByHash via createAgentState (lines 40-44) ────────────────────────

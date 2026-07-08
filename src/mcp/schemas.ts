@@ -69,10 +69,10 @@ export const SearchCodeSchema = {
 export const RetrieveSchema = {
   query: z.string().describe("The query to retrieve results for"),
   mode: z
-    .enum(["code", "vector", "file"])
+    .enum(["code", "vector", "file", "symbol"])
     .optional()
     .describe(
-      "Optional explicit strategy override: 'code', 'vector', or 'file'",
+      "Optional explicit strategy override: 'code', 'vector', 'file', or 'symbol'",
     ),
   topK: z
     .number()

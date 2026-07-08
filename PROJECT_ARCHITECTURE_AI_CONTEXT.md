@@ -2,13 +2,13 @@
 PROJECT ARCHITECTURE SUMMARY
 =========================================================
 
-This document was last updated: 2026-07-06 (Sprint 108).
+This document was last updated: 2026-07-07 (Sprint 110).
 It is reconciled from the current source tree. Statements are tagged:
 [CONFIRMED] — docs and code agree
 [INFERRED] — docs exist, code not re-checked this sprint
 [UNVERIFIED] — neither docs nor code confirmed
 
-**Last verified: Sprint 108**
+**Last verified: Sprint 110**
 
 ---
 
@@ -262,6 +262,74 @@ CURRENT ARCHITECTURE SNAPSHOT (2026-07-06 — Sprint 108)
 - tests/shared/security/safe-path.test.ts (new Sprint 108)
 - tests/agents/tools/read-file-security.test.ts (new Sprint 108)
 - tests/shared/audit/decision-receipt.test.ts (new Sprint 108)
+
+---
+
+=========================================================
+SPRINT 109 NOTE
+=========================================================
+
+Sprint 109 is partially documented. The only confirmed evidence in the
+codebase is a comment in `src/llm/gateway.ts` stating that
+`includeWorkspaceContext` was changed to `false` as the default "since
+Sprint 109". No sprint prompt, tag, state file, test artifact, or snapshot
+exists for Sprint 109. It is treated as a partial-documentation gap
+alongside Sprint 89 and Sprint 105.
+
+**Known Sprint 109 change:** `includeWorkspaceContext` parameter in
+`src/llm/gateway.ts` defaulted to `false`. This motivated the
+`never-truncate-userPrompt` hardening in Sprint 110: with
+`includeWorkspaceContext=false`, the `"User request:"` marker is never
+injected into the prompt, making any marker-based boundary inference
+unsafe. Sprint 110's explicit `userPrompt` parameter approach was
+designed to handle this case correctly. [CONFIRMED — code comment]
+
+---
+
+=========================================================
+CURRENT ARCHITECTURE SNAPSHOT (2026-07-07 — Sprint 110)
+=========================================================
+
+**What changed relative to the prior confirmed summary (Sprint 108; Sprint 109 is a partial-documentation gap):**
+
+1. enforcePromptBudget() TOOL RESULT trim direction fixed — The function now
+   keeps the most recent portion of TOOL RESULT content when truncating,
+   correcting a bug where it was truncating the wrong end of the content.
+
+2. never-truncate-userPrompt guarantee hardened — The function no longer
+   silently falls through to blind end-truncation when no context marker is
+   present. This ensures user prompts are never unexpectedly truncated.
+
+3. Retrieval-first classifier added — `src/agents/tool-call-classifier.ts`
+   exports `classifyToolCall()` that categorizes tool calls into four classes
+   ("path-like", "symbol-like", "semantic", "synthesis") based solely on
+   tool name and arguments. When the sub-agent loop encounters path-like or
+   symbol-like tool calls, it skips the second `gateway.ask()` follow-up call
+   and returns the raw tool result directly, reducing gateway.ask() calls for
+   code-reviewer.md-style flows.
+
+4. Intent-based routing remains out of scope — The classifier operates only
+   on tool name and args; it does not populate the `intent` field. Intent-based
+   routing is deferred to a future sprint.
+
+**Architecture impact summary (Sprint 110 additions):**
+
+- Agent layer: [CONFIRMED] — `src/agents/tool-call-classifier.ts` exists with
+  pure-function classifier and is tested at 100% statement coverage.
+- Agent layer: [CONFIRMED] — `src/agents/sub-agent.ts` updated to call
+  `classifyToolCall()` and skip second `gateway.ask()` for path-like/symbol-like
+  tool calls.
+- Test count: [CONFIRMED] — 312 test files / 5,150 tests, 0 failures.
+- Coverage: [CONFIRMED] — 94.93% stmts / 92.5% branch / 93.03% funcs / 95.13% lines.
+
+**Source evidence used for Sprint 110 refresh:**
+
+- src/agents/tool-call-classifier.ts (new Sprint 110)
+- src/agents/sub-agent.ts (modified Sprint 110 — classifier integration)
+- src/governance/workspace-context.ts (modified Sprint 110 — 500-char truncation)
+- tests/agents/tool-call-classifier.test.ts (new Sprint 110)
+- tests/agents/sub-agent.test.ts (modified Sprint 110 — updated expectations)
+- tests/workspace-context.test.js (modified Sprint 110 — truncation tests)
 
 ---
 

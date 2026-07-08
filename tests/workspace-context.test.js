@@ -218,3 +218,47 @@ describe("getDbPath via ROTATOR_STATE_DIR", () => {
     }
   });
 });
+
+// ─── Truncation tests for write-time summary truncation ──────────────────────
+
+describe("write-time truncation", () => {
+  it("truncates summaries over 500 characters to 500 + \"...\" (503 total)", () => {
+    const longSummary = "x".repeat(600); // 600 characters
+    const result = setWorkspaceContext("ws-truncate", { summary: longSummary });
+
+    // Should be exactly 500 chars + "..." = 503 chars
+    expect(result.summary).toHaveLength(503);
+    expect(result.summary).toBe(longSummary.slice(0, 500) + "...");
+    
+    // Verify it's stored correctly in DB
+    const fetched = getWorkspaceContext("ws-truncate");
+    expect(fetched?.summary).toHaveLength(503);
+    expect(fetched?.summary).toBe(longSummary.slice(0, 500) + "...");
+  });
+
+  it("does not truncate summaries at exactly 500 characters", () => {
+    const summary500 = "y".repeat(500); // exactly 500 characters
+    const result = setWorkspaceContext("ws-500", { summary: summary500 });
+
+    // Should remain unchanged (no truncation)
+    expect(result.summary).toHaveLength(500);
+    expect(result.summary).toBe(summary500);
+    
+    const fetched = getWorkspaceContext("ws-500");
+    expect(fetched?.summary).toHaveLength(500);
+    expect(fetched?.summary).toBe(summary500);
+  });
+
+  it("truncates summaries at 501 characters to 503 total", () => {
+    const summary501 = "z".repeat(501); // 501 characters
+    const result = setWorkspaceContext("ws-501", { summary: summary501 });
+
+    // Should be truncated to 500 chars + "..." = 503 chars
+    expect(result.summary).toHaveLength(503);
+    expect(result.summary).toBe(summary501.slice(0, 500) + "...");
+    
+    const fetched = getWorkspaceContext("ws-501");
+    expect(fetched?.summary).toHaveLength(503);
+    expect(fetched?.summary).toBe(summary501.slice(0, 500) + "...");
+  });
+});
