@@ -1,4 +1,5 @@
-import { Pool } from "pg";
+import pg from "pg";
+const { Pool } = pg;
 
 export interface SymbolSearchResult {
   name: string;
@@ -26,7 +27,7 @@ export async function findSymbolDefinition(
      from symbols where name = $1`,
     [query],
   );
-  return result.rows.map((r) => ({
+  return result.rows.map((r: any) => ({
     name: r.name,
     kind: r.kind,
     filePath: r.file_path,
