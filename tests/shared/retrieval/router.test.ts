@@ -263,9 +263,10 @@ describe("retrieve", () => {
           alternativesConsidered: expect.arrayContaining(["code", "file"]),
         }),
       );
-      // Verify alternativesConsidered has exactly 2 items (the other strategies)
+      // Verify alternativesConsidered has exactly 3 items (the other strategies,
+      // now including "symbol" added in the retrieval-first symbol strategy work)
       const callArgs = mockRecordDecision.mock.calls[0][0];
-      expect(callArgs.alternativesConsidered).toHaveLength(2);
+      expect(callArgs.alternativesConsidered).toHaveLength(3);
       expect(callArgs.alternativesConsidered).not.toContain("vector");
     });
 
@@ -284,9 +285,10 @@ describe("retrieve", () => {
           alternativesConsidered: expect.arrayContaining(["vector", "file"]),
         }),
       );
-      // Verify alternativesConsidered has exactly 2 items (the other strategies)
+      // Verify alternativesConsidered has exactly 3 items (the other strategies,
+      // now including "symbol" added in the retrieval-first symbol strategy work)
       const callArgs = mockRecordDecision.mock.calls[0][0];
-      expect(callArgs.alternativesConsidered).toHaveLength(2);
+      expect(callArgs.alternativesConsidered).toHaveLength(3);
       expect(callArgs.alternativesConsidered).not.toContain("code");
     });
 
@@ -304,9 +306,10 @@ describe("retrieve", () => {
           alternativesConsidered: expect.arrayContaining(["vector", "code"]),
         }),
       );
-      // Verify alternativesConsidered has exactly 2 items (the other strategies)
+      // Verify alternativesConsidered has exactly 3 items (the other strategies,
+      // now including "symbol" added in the retrieval-first symbol strategy work)
       const callArgs = mockRecordDecision.mock.calls[0][0];
-      expect(callArgs.alternativesConsidered).toHaveLength(2);
+      expect(callArgs.alternativesConsidered).toHaveLength(3);
       expect(callArgs.alternativesConsidered).not.toContain("file");
     });
 
