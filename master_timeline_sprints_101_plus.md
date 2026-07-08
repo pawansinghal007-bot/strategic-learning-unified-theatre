@@ -343,7 +343,7 @@ was not confirmed from a clean origin checkout.
 
 **Status: Complete**
 **Branch: `sprint-110-budget-guard-and-retrieval-classifier`**
-**Commit: `cb19bfb815889fc0f707d9648f8cc8d7ad634dba`**
+**Commit: `ec42fe73fc40f1520f6e140ac614e058597dc6f1`**
 **Tag: `sprint-110-complete`**
 **Date: 2026-07-07**
 

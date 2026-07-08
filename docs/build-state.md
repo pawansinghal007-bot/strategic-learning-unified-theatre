@@ -9,7 +9,7 @@
 > visible to the next agent session.
 
 **Last verified: Sprint 110 (committed) / Sprint 108 (committed)**
-**Last committed sprint:** Sprint 110 — commit `cb19bfb815889fc0f707d9648f8cc8d7ad634dba` on `sprint-110-budget-guard-and-retrieval-classifier`
+**Last committed sprint:** Sprint 110 — commit `ec42fe73fc40f1520f6e140ac614e058597dc6f1` on `sprint-110-budget-guard-and-retrieval-classifier`
 **Sprint 110 status:** Closed — committed and tagged as `sprint-110-complete`
 **Last updated:** Sprint 110 closure (retrieval-first classifier; `enforcePromptBudget()` TOOL RESULT trim-direction fix; `never-truncate-userPrompt` hardening) — verified from the committed state
 **Test suite:** 5144 tests, 0 failures (fresh run)
@@ -20,7 +20,7 @@
 
 ## Recent Resolutions (last 3 sprints — older entries in master_timeline_sprints_101_plus.md)
 
-- Sprint 110 (CLOSED): The committed sprint implementation includes the `enforcePromptBudget()` trim-direction fix (keep the most recent TOOL RESULT content), `never-truncate-userPrompt` hardening (no silent blind truncation when no context marker is present — necessary because Sprint 109 defaulted `includeWorkspaceContext` to `false`, eliminating the `"User request:"` marker), and the retrieval-first classifier (`src/agents/tool-call-classifier.ts`) with `classifyToolCall()` that routes path-like/symbol-like tools to skip the second `gateway.ask()`. Fresh verification reported 5144 tests passing, 0 failures. Coverage: 94.93% stmts / 92.48% branch / 93.03% funcs / 95.13% lines. Commit: `cb19bfb815889fc0f707d9648f8cc8d7ad634dba`. Tag: `sprint-110-complete`. Snapshot reference: `strategic-learning-unified-theatre-ai-snapshot-sprint110-stable`. Sprint docs are in `master_timeline_sprints_101_plus.md` and `.claude/sprints/sprint-110/progress.md`.
+- Sprint 110 (CLOSED): The committed sprint implementation includes the `enforcePromptBudget()` trim-direction fix (keep the most recent TOOL RESULT content), `never-truncate-userPrompt` hardening (no silent blind truncation when no context marker is present — necessary because Sprint 109 defaulted `includeWorkspaceContext` to `false`, eliminating the `"User request:"` marker), and the retrieval-first classifier (`src/agents/tool-call-classifier.ts`) with `classifyToolCall()` that routes path-like/symbol-like tools to skip the second `gateway.ask()`. Fresh verification reported 5144 tests passing, 0 failures. Coverage: 94.93% stmts / 92.48% branch / 93.03% funcs / 95.13% lines. Commit: `ec42fe73fc40f1520f6e140ac614e058597dc6f1`. Tag: `sprint-110-complete`. Snapshot reference: `strategic-learning-unified-theatre-ai-snapshot-sprint110-stable`. Sprint docs are in `master_timeline_sprints_101_plus.md` and `.claude/sprints/sprint-110/progress.md`.
 - Sprint 108: Tool governance (mandates, security fixes, decision receipts). Created
   `docs/tool-mandates.md` as source of truth for tool boundaries and authority levels.
   Fixed path-traversal vulnerability in `src/agents/tools/read-file.ts` and

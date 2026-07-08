@@ -111,6 +111,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
+    "@types/pg": "8.11.10",
     "@xenova/transformers": "^2.17.2",
     "@zilliz/milvus2-sdk-node": "^3.0.3",
     "ajv": "^8.12.0",
@@ -127,6 +128,7 @@
     "marked": "^18.0.4",
     "nanoid": "^5.1.11",
     "ora": "^9.4.0",
+    "pg": "8.13.3",
     "playwright": "^1.60.0",
     "prop-types": "^15.8.1",
     "react": "^19.2.6",
