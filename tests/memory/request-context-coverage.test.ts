@@ -163,3 +163,33 @@ describe("saveWorkspaceContext — optional field defaults", () => {
     expect(rec.lastIntent).toBe("sprint planning");
   });
 });
+
+
+// ---------------------------------------------------------------------------
+// saveWorkspaceContext — write-time truncation (WORKSPACE_CONTEXT_SUMMARY_MAX_CHARS)
+// ---------------------------------------------------------------------------
+
+describe("saveWorkspaceContext — write-time truncation", () => {
+  it("truncates a summary over 500 chars to exactly 503 chars (500 + '...')", () => {
+    const longSummary = "x".repeat(501);
+    const rec = saveWorkspaceContext("ws-truncate-over", { summary: longSummary });
+    // WORKSPACE_CONTEXT_SUMMARY_MAX_CHARS is 500; truncated = 500 chars + "..."
+    expect(rec.summary.length).toBe(503);
+    expect(rec.summary.endsWith("...")).toBe(true);
+  });
+
+  it("does NOT truncate a summary at exactly 500 chars", () => {
+    const exactSummary = "y".repeat(500);
+    const rec = saveWorkspaceContext("ws-truncate-exact", { summary: exactSummary });
+    expect(rec.summary.length).toBe(500);
+    expect(rec.summary.endsWith("...")).toBe(false);
+  });
+
+  it("truncates a summary at 501 chars to exactly 503 chars (500 + '...')", () => {
+    const borderSummary = "z".repeat(501);
+    const rec = saveWorkspaceContext("ws-truncate-501", { summary: borderSummary });
+    // WORKSPACE_CONTEXT_SUMMARY_MAX_CHARS = 500; 501 > 500 → slice(0,500) + "..."
+    expect(rec.summary.length).toBe(503);
+    expect(rec.summary.endsWith("...")).toBe(true);
+  });
+});

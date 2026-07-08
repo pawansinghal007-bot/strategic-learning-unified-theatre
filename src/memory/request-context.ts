@@ -41,14 +41,28 @@ export function getWorkspaceContext(
   return store.workspaces[workspaceId] ?? null;
 }
 
+const WORKSPACE_CONTEXT_SUMMARY_MAX_CHARS = 500;
+
 export function saveWorkspaceContext(
   workspaceId: string,
   payload: { summary: string; tags?: string[]; lastIntent?: string },
 ): WorkspaceContextRecord {
   const store = readWorkspaceContextStore();
+
+  // Cap summary at write time, mirroring the same 500-char + "..." pattern
+  // already used in src/governance/workspace-context.ts's setWorkspaceContext().
+  // Uncapped, this summary is prepended to every gateway.ask() call via
+  // buildRequestContextPrompt() whenever a workspaceId is present, with no
+  // downstream size limit until enforcePromptBudget() reactively trims it.
+  let summaryToStore = payload.summary;
+  if (summaryToStore.length > WORKSPACE_CONTEXT_SUMMARY_MAX_CHARS) {
+    summaryToStore =
+      summaryToStore.slice(0, WORKSPACE_CONTEXT_SUMMARY_MAX_CHARS) + "...";
+  }
+
   const record: WorkspaceContextRecord = {
     workspaceId,
-    summary: payload.summary,
+    summary: summaryToStore,
     tags: payload.tags ?? [],
     lastIntent: payload.lastIntent,
     updatedAt: Date.now(),
