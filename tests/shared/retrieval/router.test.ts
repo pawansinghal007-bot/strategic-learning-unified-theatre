@@ -15,10 +15,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // ─── hoisted mocks ────────────────────────────────────────────────────────────
 
-const { mockVectorSearch, mockSearchCode, mockRecordDecision } = vi.hoisted(
+const { mockVectorSearch, mockSearchCode, mockFindSymbolDefinition, mockRecordDecision } = vi.hoisted(
   () => ({
     mockVectorSearch: vi.fn(),
     mockSearchCode: vi.fn(),
+    mockFindSymbolDefinition: vi.fn(),
     mockRecordDecision: vi.fn(),
   }),
 );
@@ -29,6 +30,10 @@ vi.mock("../../../src/shared/retrieval/vector-client", () => ({
 
 vi.mock("../../../src/shared/retrieval/code-search", () => ({
   searchCode: (...args: unknown[]) => mockSearchCode(...args),
+}));
+
+vi.mock("../../../src/shared/retrieval/symbol-search", () => ({
+  findSymbolDefinition: (...args: unknown[]) => mockFindSymbolDefinition(...args),
 }));
 
 vi.mock("../../../src/shared/audit/decision-receipt.js", () => ({
@@ -214,6 +219,52 @@ describe("retrieve", () => {
     expect(result.strategy).toBe("file");
     expect(result.error).toBeDefined();
     expect(result.results).toBeUndefined();
+  });
+
+  it("dispatches to findSymbolDefinition for 'symbol' strategy", async () => {
+    mockFindSymbolDefinition.mockResolvedValueOnce([
+      {
+        name: "SubAgent",
+        kind: "class",
+        filePath: "src/agents/sub-agent.ts",
+        startLine: 1,
+        endLine: 50,
+      },
+    ]);
+
+    const result = await retrieve("SubAgent", { mode: "symbol" });
+
+    expect(result.strategy).toBe("symbol");
+    expect(result.results).toEqual([
+      {
+        name: "SubAgent",
+        kind: "class",
+        filePath: "src/agents/sub-agent.ts",
+        startLine: 1,
+        endLine: 50,
+      },
+    ]);
+    expect(mockFindSymbolDefinition).toHaveBeenCalledWith("SubAgent");
+  });
+
+  it("returns { strategy, error } when findSymbolDefinition throws", async () => {
+    mockFindSymbolDefinition.mockRejectedValueOnce(new Error("DB connection refused"));
+
+    const result = await retrieve("anything", { mode: "symbol" });
+
+    expect(result.strategy).toBe("symbol");
+    expect(result.error).toBe("DB connection refused");
+    expect(result.results).toBeUndefined();
+  });
+
+  it("returns empty array from symbol strategy when no symbols found", async () => {
+    mockFindSymbolDefinition.mockResolvedValueOnce([]);
+
+    const result = await retrieve("noSuchSymbol", { mode: "symbol" });
+
+    expect(result.strategy).toBe("symbol");
+    expect(result.results).toEqual([]);
+    expect(result.error).toBeUndefined();
   });
 
   it("error vs. empty-success are structurally distinguishable", async () => {

@@ -3,6 +3,7 @@ import { retrieve } from "../../shared/retrieval/router.js";
 import {
   formatVectorResults,
   formatCodeHits,
+  formatSymbolResults,
 } from "../../shared/retrieval/format.js";
 
 export const retrieveTool: Tool = {
@@ -19,7 +20,7 @@ export const retrieveTool: Tool = {
       };
     }
 
-    const mode = args.mode as "code" | "vector" | "file" | undefined;
+    const mode = args.mode as "code" | "vector" | "file" | "symbol" | undefined;
     const topK = args.topK ? Number(args.topK) : 5;
     const glob = args.glob;
 
@@ -54,6 +55,14 @@ export const retrieveTool: Tool = {
           } else {
             output = formatted;
           }
+          break;
+        }
+        case "symbol": {
+          const formatted = formatSymbolResults(result.results as any);
+          output =
+            formatted === ""
+              ? `No symbol found for "${args.query}".`
+              : formatted;
           break;
         }
         case "file": {
