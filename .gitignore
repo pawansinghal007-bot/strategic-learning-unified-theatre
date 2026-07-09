@@ -107,3 +107,4 @@ tests/**/*.bak
 audit-log.html
 audit-log.json
 .memories/
+response.json
