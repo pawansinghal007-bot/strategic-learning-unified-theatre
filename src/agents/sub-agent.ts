@@ -7,6 +7,7 @@ import {
 } from "../shared/contracts/provider";
 import { getTool } from "./tools/registry";
 import { classifyToolCall, type ToolCallClass } from "./tool-call-classifier";
+import { recordToolCallForMeasurement } from "./tool-call-measurement-log.js";
 
 // ─── private helpers ─────────────────────────────────────────────────────────
 
@@ -44,6 +45,13 @@ async function executeToolCall(
     logger.warn("agent.tool-not-found", { toolName });
     return null;
   }
+  const classification = classifyToolCall(toolName, args);
+  recordToolCallForMeasurement({
+    toolName,
+    args,
+    classification,
+    skippedGatewayAsk: Boolean(skipGatewayAsk),
+  });
   const result = await tool.execute(args);
   const toolResultMessage = result.success
     ? `[TOOL RESULT:${toolName}]\n${result.output}`
