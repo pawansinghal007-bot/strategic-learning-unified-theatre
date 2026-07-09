@@ -51,7 +51,32 @@ export function classifyToolCall(
     return "semantic";
   }
 
-  // Rule 4: synthesis — fallback for everything else
+  // Rule 4: retrieve — mirror the same path-like/symbol-like/semantic split
+  // used above, since retrieve() internally routes to the same underlying
+  // strategies (file/symbol/code/vector) and returns a deterministic result
+  // string. Without this rule, every retrieve call fell through to
+  // "synthesis" and always paid for a second gateway.ask(), even when the
+  // resolved strategy was an exact file read or symbol lookup.
+  if (toolName === "retrieve") {
+    const query = args.query ?? "";
+    const mode = args.mode ?? "";
+
+    // Explicit mode override takes precedence, mirroring router.ts's own
+    // chooseStrategy() precedence rule (explicit mode always wins).
+    if (mode === "file" || (mode === "" && isRetrievePathLike(query))) {
+      return "path-like";
+    }
+    if (
+      mode === "symbol" ||
+      mode === "code" ||
+      (mode === "" && isSymbolLikeQuery(query))
+    ) {
+      return "symbol-like";
+    }
+    return "semantic";
+  }
+
+  // Rule 5: synthesis — fallback for everything else
   return "synthesis";
 }
 
@@ -64,6 +89,22 @@ function isPlainPath(value: string): boolean {
   if (value.includes(" ")) return false;
   // Allow leading ./ or / or drive letter on Windows (C:/)
   return true;
+}
+
+/**
+ * Is this query path-like specifically for retrieve()'s auto-detection?
+ * Stricter than isPlainPath: requires an actual path separator, OR a
+ * recognized common file extension from a closed list. An open-ended
+ * "any short suffix" regex was rejected because dotted identifiers like
+ * "gateway.ask" or "namespace.ClassName" structurally match the same
+ * shape as a file extension and would be misclassified as path-like.
+ */
+function isRetrievePathLike(value: string): boolean {
+  if (!isPlainPath(value)) return false;
+  if (value.includes("/") || value.includes("\\")) return true;
+  const KNOWN_EXTENSIONS =
+    /\.(ts|tsx|js|jsx|mjs|cjs|json|md|yml|yaml|py|go|rs|java|c|cpp|h|hpp|css|scss|html|sql|sh|txt|toml|xml|env)$/i;
+  return KNOWN_EXTENSIONS.test(value);
 }
 
 /** Does this query look like a single identifier or dotted qualified name? */

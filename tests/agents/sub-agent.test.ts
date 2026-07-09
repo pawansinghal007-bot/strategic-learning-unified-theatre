@@ -402,7 +402,7 @@ describe("executeToolCall — TOOL ERROR vs TOOL RESULT message format", () => {
     expect(result.output).toBe("Done.");
   });
 
-  it("feeds [TOOL ERROR:retrieve] into the follow-up prompt when retrieve fails", async () => {
+  it("feeds [TOOL ERROR:retrieve] directly into loop output when retrieve fails (symbol-like query, skips second gateway.ask)", async () => {
     const mockTool = {
       name: "retrieve",
       description: "retrieves code or docs",
@@ -415,17 +415,59 @@ describe("executeToolCall — TOOL ERROR vs TOOL RESULT message format", () => {
     };
     mockGetTool.mockReturnValue(mockTool);
 
+    // query="test" is a single identifier -> classified as "symbol-like" by
+    // classifyToolCall(), so the second gateway.ask() is skipped and the
+    // tool error is returned directly, same as read-file/search-code
+    // path-like/symbol-like tools.
     mockGatewayAsk
       .mockReturnValueOnce(makeResponse('[TOOL:retrieve query="test"]'))
-      .mockReturnValueOnce(makeResponse("handled retrieve error")) // executeToolCall follow-up
       .mockReturnValueOnce(makeResponse("Finished. [DONE]"));
 
-    await runSubAgent(makeTask({ maxIterations: 5 }));
+    const result = await runSubAgent(makeTask({ maxIterations: 5 }));
 
-    const followUpPrompt: string = mockGatewayAsk.mock.calls[1][0].prompt;
-    expect(followUpPrompt).toContain("[TOOL ERROR:retrieve]");
-    expect(followUpPrompt).toContain("Router failed: no strategy matched");
-    // Must NOT contain TOOL RESULT when success is false
-    expect(followUpPrompt).not.toContain("[TOOL RESULT:");
+    // Two calls total: initial tool call + next iteration's done response.
+    // No follow-up synthesis call for the tool error itself.
+    expect(mockGatewayAsk).toHaveBeenCalledTimes(2);
+
+    // The tool error should appear as the loop's outputText for that
+    // iteration, which becomes the prompt content on the NEXT gateway.ask
+    // call (iteration 2) rather than a same-iteration follow-up.
+    // Since iteration 2's mocked response is the [DONE] response itself,
+    // we can't inspect the intermediate outputText directly here — instead
+    // confirm the tool's execute() was called with the right args and that
+    // the loop completed successfully via the done marker.
+    expect(mockTool.execute).toHaveBeenCalledWith({ query: "test" });
+    expect(result.success).toBe(true);
+    expect(result.output).toBe("Finished.");
+  });
+
+  it("returns [TOOL ERROR:retrieve] as direct output when a symbol-like retrieve call fails and no further iteration follows", async () => {
+    const mockTool = {
+      name: "retrieve",
+      description: "retrieves code or docs",
+      execute: vi.fn().mockResolvedValue({
+        toolName: "retrieve",
+        success: false,
+        output: "",
+        error: "Router failed: no strategy matched",
+      }),
+    };
+    mockGetTool.mockReturnValue(mockTool);
+
+    // Only one gateway.ask call is mocked; with skipGatewayAsk=true the
+    // tool error becomes outputText directly, and since it lacks [DONE],
+    // the loop exhausts maxIterations without a second call ever needing
+    // to be consumed for iteration content (iteration 2 reuses the same
+    // mock via mockReturnValue as a fallback).
+    mockGatewayAsk.mockReturnValue(
+      makeResponse('[TOOL:retrieve query="test"]'),
+    );
+
+    const result = await runSubAgent(makeTask({ maxIterations: 2 }));
+
+    // The direct tool-error output should be visible in the final result
+    // once max iterations is reached without a done marker ever appearing.
+    expect(result.output).toContain("[TOOL ERROR:retrieve]");
+    expect(result.output).toContain("Router failed: no strategy matched");
   });
 });

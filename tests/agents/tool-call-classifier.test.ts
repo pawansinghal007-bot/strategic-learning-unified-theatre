@@ -210,6 +210,71 @@ describe("classifyToolCall", () => {
     });
   });
 
+  // ─── retrieve ──────────────────────────────────────────────────────────────
+
+  describe('"retrieve" tool classification', () => {
+    it('classifies retrieve with plain path query as "path-like"', () => {
+      const result = classifyToolCall("retrieve", { query: "src/foo.ts" });
+      expect(result).toBe("path-like");
+    });
+
+    it('classifies retrieve with explicit mode="file" as "path-like"', () => {
+      const result = classifyToolCall("retrieve", {
+        query: "anything",
+        mode: "file",
+      });
+      expect(result).toBe("path-like");
+    });
+
+    it('classifies retrieve with single identifier query as "symbol-like"', () => {
+      const result = classifyToolCall("retrieve", { query: "runSubAgent" });
+      expect(result).toBe("symbol-like");
+    });
+
+    it('classifies retrieve with dotted qualified name as "symbol-like"', () => {
+      const result = classifyToolCall("retrieve", {
+        query: "gateway.ask",
+      });
+      expect(result).toBe("symbol-like");
+    });
+
+    it('classifies retrieve with explicit mode="symbol" as "symbol-like"', () => {
+      const result = classifyToolCall("retrieve", {
+        query: "anything at all",
+        mode: "symbol",
+      });
+      expect(result).toBe("symbol-like");
+    });
+
+    it('classifies retrieve with explicit mode="code" as "symbol-like"', () => {
+      const result = classifyToolCall("retrieve", {
+        query: "anything at all",
+        mode: "code",
+      });
+      expect(result).toBe("symbol-like");
+    });
+
+    it('classifies retrieve with natural language query as "semantic"', () => {
+      const result = classifyToolCall("retrieve", {
+        query: "how does the retry logic work",
+      });
+      expect(result).toBe("semantic");
+    });
+
+    it('classifies retrieve with explicit mode="vector" as "semantic"', () => {
+      const result = classifyToolCall("retrieve", {
+        query: "runSubAgent",
+        mode: "vector",
+      });
+      expect(result).toBe("semantic");
+    });
+
+    it('classifies retrieve with no query and no mode as "semantic"', () => {
+      const result = classifyToolCall("retrieve", {});
+      expect(result).toBe("semantic");
+    });
+  });
+
   // ─── edge cases ────────────────────────────────────────────────────────────
 
   describe("edge cases", () => {
