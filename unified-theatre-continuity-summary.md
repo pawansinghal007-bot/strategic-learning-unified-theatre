@@ -465,3 +465,5 @@ complete — do not treat this section as final prose._
 | src/llm/document-ingester.js | 97-102,106-111 | 93.61tmts / 89.69ranches / 94.28 0nes | 94.28tmts / 89.69ranches / 94.28 0nes | c218f628 | Tested: fallback branches in readDocumentText for pdf/docx import failures now assert the ingester returns a zero-chunk result instead of crashing; no skip needed because the branch is meaningful and observable. |
 
 | src/llm/embeddings.js | 188 | 96.77tmts / 90ranches / 98.47 0nes | 96.77tmts / 90ranches / 98.47 0nes | 7577cffc | Tested: clusterDocuments returns `{ clusters: [] }` when no documents contain an embedding; this is a meaningful branch because it changes behavior from attempting clustering to returning an empty result. |
+
+| src/llm/experience-db.js | 579-580 | 96.85tmts / 87.98ranches / 97.65 0nes | 96.85tmts / 87.98ranches / 97.65 0nes | a9ddfedc | Tested: getThreadContext() returns `[]` for blank/whitespace query before any embedding logic runs; this branch is meaningful because it short-circuits the query path and avoids needless work. |
