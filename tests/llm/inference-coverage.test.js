@@ -501,4 +501,18 @@ describe("askOpenAiCompat", () => {
     const { askOpenAiCompat } = await import("../../src/llm/inference.js");
     expect(await askOpenAiCompat("empty")).toBe("");
   });
+
+  it("returns empty string when the completion payload has no message content", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockImplementation(async (url) => {
+      if (String(url).endsWith("/v1/models")) {
+        return { ok: true, json: async () => ({ data: [{ id: "m1" }] }) };
+      }
+      return {
+        ok: true,
+        json: async () => ({ choices: [{ message: {} }] }),
+      };
+    }));
+    const { askOpenAiCompat } = await import("../../src/llm/inference.js");
+    expect(await askOpenAiCompat("empty-content")).toBe("");
+  });
 });
