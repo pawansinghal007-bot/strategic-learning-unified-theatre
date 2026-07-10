@@ -2,7 +2,7 @@
 
 _Read this first if you're an agent (Claude, Copilot, or otherwise) picking up this project. It exists to prevent context loss across sessions and across different tools/providers working on the same repo._
 
-> **Last updated 2026-07-10.** See Section 9 for that session's full detail (measurement-log root-cause fix, source tagging, and automated weekly checkpoint). Section 5 and Section 6 below have been updated in place to reflect current state; everything else in Sections 1–8 is unchanged from the prior version of this doc.
+> **Last updated 2026-07-10.** See Section 9 for that session's full detail (measurement-log root-cause fix, source tagging, and automated weekly checkpoint) — **fully committed and pushed as `51b648dd`**. Section 5 and Section 6 below have been updated in place to reflect current state; everything else in Sections 1–8 is unchanged from the prior version of this doc.
 
 **This file is now tracked in git at the repo root** (`unified-theatre-continuity-summary.md`) — pull the latest `main` to get the current version rather than relying on a copy pasted into a chat session. If you update this doc, commit and push it like any other change, following the same verification discipline as code.
 
@@ -131,25 +131,25 @@ This is an **object literal with a method**, not a class — matters for any too
 
 ## 5. Current Repo State (updated 2026-07-10 — see Section 9 for full detail)
 
-- 9 commits on `main`, all pushed to `origin/main` (most recent: `69ed89f5`).
-- **One uncommitted change remains as of this update** (previously the doc said none remained — that was accurate at the time, this is new work from the 2026-07-10 session): `git status --porcelain` shows `M src/agents/tool-call-measurement-log.ts` and `?? scripts/measurement-checkpoint.ts`. Not yet committed — see Section 9 for the exact commands to commit and push. This doc itself should also be committed alongside that change.
-- `tool-call-measurement-log.json` (mentioned in Section 2's "Measurement logging" entry and Section 6's open item) was found this session to have **zero entries ever** — not "not enough yet." Root cause and fix are in Section 9. The file has since been reset to `{"entries": []}` and real accumulation restarted from 2026-07-10 with a `source` field now distinguishing production/dev/ci/test traffic.
+- 10 commits on `main`, all pushed to `origin/main` (most recent: `51b648dd`, the 2026-07-10 measurement-log fix — supersedes the previous "most recent: `69ed89f5`" note).
+- **No uncommitted code changes remain**, as of commit `51b648dd`. The measurement-log fix (source tagging, log reset, checkpoint automation) landed cleanly: 3 files changed, 348 insertions(+), 19 deletions(-), pushed `dcbc4611..51b648dd`. (This doc's own most recent revision, adding Sections 9.7–9.10, is itself pending its own small follow-up commit — see Section 9.9's housekeeping note.)
+- `tool-call-measurement-log.json` (mentioned in Section 2's "Measurement logging" entry and Section 6's open item) was found this session to have **zero entries ever** — not "not enough yet." Root cause and fix are in Section 9. The file has since been reset to `{"entries": []}` and real accumulation restarted from 2026-07-10 with a `source` field now distinguishing production/dev/ci/test traffic. `UNIFIED_AI_ENV=dev` is confirmed set in the local dev shell profile, so this machine's own interactive testing won't contaminate the `"production"` bucket.
 - `symbols` table exists and is populated (1322 rows as of the batch-insert live verification) in the local dev Postgres at `postgresql://unified:postgres_CHANGE_ME@localhost:5432/unified_theatre` (Docker container `qwen-postgres`). This does not persist automatically to any other environment. `DATABASE_URL` is present in the repo's local `.env`, **confirmed gitignored** (`git check-ignore .env` → `ignored`).
 - `schema_migrations` table exists in that same local Postgres and correctly reflects `001_symbols_table.sql` as applied (backfilled).
-- Full test suite via plain `npx vitest run`: **318 test files, 5379 tests, passing clean** — confirmed via two consecutive fresh runs after all this session's changes landed. `npx tsc --noEmit` clean.
+- Full test suite via plain `npx vitest run`: **318 test files, 5379 tests, passing clean** — confirmed via two consecutive fresh runs after the hw-probe session's changes landed (`69ed89f5`); not re-run after the 2026-07-10 measurement-log fix since that change didn't touch test files — worth a fresh run before the next code change in this area, per Section 1's verification standard.
 - `response.json` scratch-dump issue resolved (commit `0fa09174`).
 
 ---
 
-## 6. Open Items (updated 2026-07-10)
+## 6. Open Items (updated 2026-07-10, post-commit)
 
-1. **Option A (real measurement)** — instrumentation is in place and, as of 2026-07-10, **confirmed actually firing and writing to disk** (this was not previously verified — see Section 9; the log had zero entries before this session despite being described as "in place"). It now also correctly tags every entry with `source: "production"|"dev"|"ci"|"test"` so dev-loop/CI/test traffic can be excluded from analysis. Needs real accumulated **production-tagged** usage (a weekly automated checkpoint script now reports progress — see Section 9) before the actual cost/distribution analysis can happen. Do not synthesize this data. **This remains the only substantively open item**, now split into two concrete sub-steps:
+1. **Option A (real measurement)** — instrumentation is in place and, as of 2026-07-10, **confirmed actually firing and writing to disk** (this was not previously verified — see Section 9; the log had zero entries before this session despite being described as "in place"). It now also correctly tags every entry with `source: "production"|"dev"|"ci"|"test"` so dev-loop/CI/test traffic can be excluded from analysis. Needs real accumulated **production-tagged** usage (a weekly automated checkpoint script now reports progress — see Section 9) before the actual cost/distribution analysis can happen. Do not synthesize this data. **This remains the only substantively open item in the whole doc**, split into two concrete sub-steps:
    - a. Let production usage accumulate until the checkpoint script's readiness gate is met.
    - b. Run the distribution analysis (scoped to `source: "production"` only) and decide whether to extend the fast-path skip to `vector-search`/`semantic search-code`.
-2. **Commit the 2026-07-10 measurement-log fix** — `src/agents/tool-call-measurement-log.ts` (modified) and `scripts/measurement-checkpoint.ts` (new) are staged locally but not committed. See Section 9 for the exact commands.
-3. **Confirm `UNIFIED_AI_ENV=dev` is set in the interactive dev shell profile** — without it, the new `detectSource()` logic will default local dev-loop testing to `"production"`, which is exactly the contamination this fix was meant to prevent. Not yet confirmed as of this doc update.
+2. ~~Commit the 2026-07-10 measurement-log fix~~ — **Done.** Committed as `51b648dd`, pushed to `origin/main`. See Section 9.7.
+3. ~~Confirm `UNIFIED_AI_ENV=dev` is set in the interactive dev shell profile~~ — **Done.** Confirmed set and sourced. See Section 9.7.
 
-_(Previously open items — `run-migrations.ts` idempotency, `symbol-indexer.ts` batch inserts, `hw-probe` root-suite inclusion, `.env` gitignore confirmation, `response.json` cleanup — are all resolved; see Sections 3 and 5.)_
+_(Previously open items — `run-migrations.ts` idempotency, `symbol-indexer.ts` batch inserts, `hw-probe` root-suite inclusion, `.env` gitignore confirmation, `response.json` cleanup — are all resolved; see Sections 3 and 5. As of this update, item 1 above is the only thing left open anywhere in this document — everything else is either done or blocked on item 1's real-world accumulation timeline.)_
 
 ---
 
@@ -342,32 +342,29 @@ PATH=/home/pawan/.nvm/versions/node/v22.22.3/bin:/usr/local/sbin:/usr/local/bin:
 
 **Known fragility, flagged for the future:** the `PATH=` line hardcodes node version `v22.22.3`. If a future `nvm install` changes the shell's default node version, this cron job will silently start failing again with the same "No such file" error pattern from step 1/2 above — check this first if `checkpoint-history.log` unexpectedly goes quiet.
 
-### 9.7 Commit status as of this doc update
+### 9.7 Commit status — DONE (updated after commit)
 
-**Not yet committed.** `git status --porcelain` as of this session:
+**Committed and pushed.** Commit `51b648dd`, on `origin/main` as of 2026-07-10 23:58 IST.
 
 ```
- M src/agents/tool-call-measurement-log.ts
-?? scripts/measurement-checkpoint.ts
+[main 51b648dd] Fix empty measurement log, add source tagging, automate weekly checkpoint
+ 3 files changed, 348 insertions(+), 19 deletions(-)
+ create mode 100644 scripts/measurement-checkpoint.ts
 ```
 
-(Note: `sub-agent.ts` and `storage.ts` correctly show no diff — see Section 9.4's note on the debug lines being added and removed within the same session, net zero.)
+Pushed cleanly: `dcbc4611..51b648dd main -> main`. Commit message verified in full via `git log -1 --format="%B"` (not just the terminal echo of the heredoc/`-m` string, per Section 1's discipline around cosmetic paste-back truncation) — confirmed all bullet points stored correctly.
 
-Commands to commit, matching this repo's established small-slice + verification discipline (Section 1):
+**Files committed:** `src/agents/tool-call-measurement-log.ts` (modified, +18/-2), `scripts/measurement-checkpoint.ts` (new, 124 lines), `unified-theatre-continuity-summary.md` (this doc itself, modified — note: that commit captured the _previous_ revision of this doc, i.e. everything through Section 9.6; this current revision, including 9.7 onward, will need its own follow-up commit once saved — see Section 9.9).
+
+(Note: `sub-agent.ts` and `storage.ts` correctly showed no diff at commit time — see Section 9.4's note on the debug lines being added and removed within the same session, net zero.)
+
+The commands originally planned for this step (kept below for reference / repeatability if this pattern is needed again):
 
 ```bash
 cd /home/pawan/vscodeagent/Solution
-
 git status --porcelain
-# expect:
-#  M src/agents/tool-call-measurement-log.ts
-#  M unified-theatre-continuity-summary.md
-# ?? scripts/measurement-checkpoint.ts
-
 git add src/agents/tool-call-measurement-log.ts scripts/measurement-checkpoint.ts unified-theatre-continuity-summary.md
-
-git diff --cached --stat   # sanity check before committing
-
+git diff --cached --stat
 git commit -m "Fix empty measurement log, add source tagging, automate weekly checkpoint
 
 - Root cause: recordToolCallForMeasurement() was correctly wired but no
@@ -384,22 +381,56 @@ git commit -m "Fix empty measurement log, add source tagging, automate weekly ch
 - Wire weekly cron job (Monday 9am) to run the checkpoint automatically,
   verified end-to-end including WSL cron PATH/daemon persistence.
 - Update continuity summary (Section 9) with full session history."
-
-git log -1 --stat   # confirm the commit landed as expected
-
+git log -1 --stat
 git push
 ```
 
-Also, separately (not part of this commit — a personal shell config change, not a repo change):
+**`UNIFIED_AI_ENV=dev` — also DONE.** Added to `~/.bashrc` and sourced:
 
 ```bash
 echo 'export UNIFIED_AI_ENV=dev' >> ~/.bashrc
 source ~/.bashrc
 ```
 
-### 9.8 State handoff for the next agent/session
+Confirmed applied — interactive dev-loop sessions on this machine now correctly tag as `"dev"` rather than defaulting to `"production"`, closing the gap described in Section 9.3/9.4.
 
-- Do not re-run the Section 9.2 diagnosis — it's confirmed resolved. If the log ever goes empty again unexpectedly, suspect the cron `PATH=` node-version fragility (Section 9.6) or a `UNIFIED_AI_DATA_DIR` override first, not a repeat of the original root cause.
-- Do not treat any log entry without a `source` field as valid production data — it predates this fix.
+### 9.9 Final state as of this doc update
+
+Every action item opened during this session (Section 6, items 1b setup / 2 / 3) is now resolved except the genuinely long-running one:
+
+| Item                                    | Status                                                 |
+| --------------------------------------- | ------------------------------------------------------ |
+| Measurement log root cause fixed        | ✅ Done                                                |
+| Source tagging implemented              | ✅ Done                                                |
+| Log reset to clean slate                | ✅ Done                                                |
+| Checkpoint script + weekly cron         | ✅ Done, verified end-to-end                           |
+| `UNIFIED_AI_ENV=dev` set on dev machine | ✅ Done                                                |
+| Code + doc committed and pushed         | ✅ Done — commit `51b648dd`                            |
+| Real production accumulation            | ⏳ In progress, started 2026-07-10, 0 entries at reset |
+| Distribution analysis                   | ⏳ Blocked on accumulation reaching readiness gate     |
+| Fast-path-skip widening decision        | ⏳ Blocked on analysis above                           |
+
+**Nothing else is actionable right now.** The system runs itself from here: use the app normally, the Monday 9am cron job appends to `~/.unified-ai-workspace/checkpoint-history.log` automatically, and the next real step is triggered by that log reporting the readiness gate met on `source: "production"` entries — at which point run the distribution analysis and then the fast-path-skip decision (Section 6, item 1b).
+
+**Housekeeping note for whoever saves this revision of the doc:** this edit (Sections 9.7–9.9) was made _after_ commit `51b648dd`, so it is itself currently uncommitted. Commit it as a small, self-contained follow-up:
+
+```bash
+cd /home/pawan/vscodeagent/Solution
+# overwrite unified-theatre-continuity-summary.md with this revision first, then:
+git status --porcelain   # expect only: M unified-theatre-continuity-summary.md
+git add unified-theatre-continuity-summary.md
+git commit -m "docs: confirm measurement-log fix committed, pushed, and env var set
+
+Follow-up to 51b648dd — records that the commit/push succeeded and
+UNIFIED_AI_ENV=dev was set, and marks all setup-phase action items from
+Section 6 as done. Only the long-running production-accumulation step
+remains open."
+git push
+```
+
+### 9.10 State handoff for the next agent/session
+
+- Do not re-run the Section 9.2 diagnosis — it's confirmed resolved and shipped in `51b648dd`. If the log ever goes empty again unexpectedly, suspect the cron `PATH=` node-version fragility (Section 9.6) or a `UNIFIED_AI_DATA_DIR` override first, not a repeat of the original root cause.
+- Do not treat any log entry without a `source` field as valid production data — it predates this fix (anything from before 2026-07-10).
 - Do not run a full distribution analysis until `scripts/measurement-checkpoint.ts` (or `~/.unified-ai-workspace/checkpoint-history.log`) reports the readiness gate as met on `source: "production"` entries specifically.
-- If `git status --porcelain` still shows the two files from Section 9.7 as pending, commit them before doing anything else in this area — don't let more work stack on top of an uncommitted foundational change.
+- All setup-phase work for this item is committed (`51b648dd`) and confirmed pushed to `origin/main`. There is nothing left to commit for this item until the analysis/decision step (Section 6, item 1b) produces code changes.
