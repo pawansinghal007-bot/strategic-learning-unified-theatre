@@ -448,4 +448,33 @@ describe("llm.js — additional branch coverage", () => {
       expect(process.exitCode).toBe(1);
     });
   });
+
+  // ── line 775: rubric enable — success path logs "Enabled." ───────────────
+
+  describe("llm rubric enable — success path (line 775)", () => {
+    it("prints 'Enabled.' when setRubricActive resolves (line 775)", async () => {
+      setRubricActive.mockResolvedValue(undefined);
+
+      const { logSpy } = await run(["llm", "rubric", "enable", "42"]);
+
+      // Must have called setRubricActive(id, true)
+      expect(setRubricActive).toHaveBeenCalledWith("42", true);
+      // Must have logged "Enabled." — this is the statement on line 775
+      const out = logSpy.mock.calls.flat().join(" ");
+      expect(out).toContain("Enabled.");
+      expect(process.exitCode).toBeUndefined();
+    });
+
+    it("logs the raw error object when err has no .message (??-else branch)", async () => {
+      // Throws a non-Error value — exercises the `?? err` branch in
+      // `err?.message ?? err` on the catch line.
+      const rawErr = { code: "E_FAKE" };
+      setRubricActive.mockRejectedValueOnce(rawErr);
+
+      const { errorSpy } = await run(["llm", "rubric", "enable", "7"]);
+
+      expect(errorSpy.mock.calls[0][0]).toContain("[object Object]");
+      expect(process.exitCode).toBe(1);
+    });
+  });
 });
