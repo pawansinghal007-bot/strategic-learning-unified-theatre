@@ -73,16 +73,17 @@ export default defineConfig({
         "src/llm/index.ts",
         "src/llm/providers/index.ts",
         "src/ai-memory/index.js",
+        "src/domain/types.js", // ESM re-export barrel + JSDoc @typedefs only — V8 cannot instrument static re-export bindings
         // Interface-only files — no executable JS emitted (all declarations)
         "src/mcp/types.ts",
         "src/agents/types.ts",
       ],
 
       thresholds: {
-        statements: 75,
-        branches: 60,
-        functions: 80,
-        lines: 80,
+        statements: 95,
+        branches: 95,
+        functions: 95,
+        lines: 95,
       },
     },
   },
