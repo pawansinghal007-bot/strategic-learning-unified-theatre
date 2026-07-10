@@ -9,8 +9,20 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { DocumentIngester, chunkText } from "../../src/llm/document-ingester.js";
 import { ExperienceDb } from "../../src/llm/experience-db.js";
+
+const mockPdfParse = vi.fn();
+const mockMammothExtractRawText = vi.fn();
+
+vi.mock("pdf-parse", () => ({
+  default: mockPdfParse,
+}));
+
+vi.mock("mammoth", () => ({
+  extractRawText: mockMammothExtractRawText,
+}));
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -121,6 +133,28 @@ describe("DocumentIngester.ingestFile — unsupported / missing file", () => {
     const result = await ingester.ingestFile(filePath);
     expect(result.skipped).toBe(false);
     expect(result.chunks).toBeGreaterThan(0);
+    await ingester.db.close();
+  });
+
+  it("returns empty text for pdf files when pdf parsing throws", async () => {
+    mockPdfParse.mockRejectedValueOnce(new Error("pdf parse failed"));
+    const filePath = await writeFile(tempDir, "broken.pdf", "not really a pdf");
+    const ingester = new DocumentIngester({ baseDir: tempDir });
+    await ingester.db.open();
+    const result = await ingester.ingestFile(filePath);
+    expect(result.skipped).toBe(false);
+    expect(result.chunks).toBe(0);
+    await ingester.db.close();
+  });
+
+  it("returns empty text for docx files when mammoth parsing throws", async () => {
+    mockMammothExtractRawText.mockRejectedValueOnce(new Error("mammoth failed"));
+    const filePath = await writeFile(tempDir, "broken.docx", "not really docx");
+    const ingester = new DocumentIngester({ baseDir: tempDir });
+    await ingester.db.open();
+    const result = await ingester.ingestFile(filePath);
+    expect(result.skipped).toBe(false);
+    expect(result.chunks).toBe(0);
     await ingester.db.close();
   });
 
