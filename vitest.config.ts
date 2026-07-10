@@ -13,6 +13,7 @@ export default defineConfig({
     extensions: [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"],
   },
   test: {
+    projects: [".", "src/installer/hw-probe"],
     timeout: 10000,
     environment: "jsdom",
     environmentMatchPatterns: [
@@ -27,6 +28,7 @@ export default defineConfig({
     include: [
       "tests/**/*.test.{js,jsx,ts,tsx}",
       "src/**/*.test.{js,jsx,ts,tsx}",
+      "src/**/*.spec.ts",
       "electron-ui/**/*.test.{js,jsx,ts,tsx}",
       "renderer/**/*.test.{js,jsx,ts,tsx}",
       "e2e/**/*.test.{js,jsx,ts,tsx}",
