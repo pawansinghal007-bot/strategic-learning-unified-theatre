@@ -4,9 +4,10 @@
  * Covers previously-uncovered lines: 43, 48, 54, 188, 211, 245
  */
 
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   kMeans,
+  clusterDocuments,
   EmbeddingProvider,
   cosineSimilarity,
   encodeEmbedding,
@@ -67,6 +68,20 @@ describe("kMeans — edge cases", () => {
     // All indices must be covered across both clusters
     const allIndices = result.clusters.flatMap((c) => c.indices).sort();
     expect(allIndices).toHaveLength(3);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// clusterDocuments — line 188 (no embeddable documents)
+// ---------------------------------------------------------------------------
+describe("clusterDocuments()", () => {
+  it("returns empty clusters when there are no embeddable documents", async () => {
+    const db = {
+      open: vi.fn().mockResolvedValue(undefined),
+      state: { documents: [] },
+    };
+
+    await expect(clusterDocuments(db, 2)).resolves.toEqual({ clusters: [] });
   });
 });
 
