@@ -469,3 +469,5 @@ complete — do not treat this section as final prose._
 | src/llm/experience-db.js | 579-580 | 96.85tmts / 87.98ranches / 97.65 0nes | 96.85tmts / 87.98ranches / 97.65 0nes | a9ddfedc | Tested: getThreadContext() returns `[]` for blank/whitespace query before any embedding logic runs; this branch is meaningful because it short-circuits the query path and avoids needless work. |
 
 | src/llm/gateway.ts | 329-330,387,446,453,541,562,718,908-909,930-936,962-971 | 92.4tmts / 79.39ranches / 92.4 0nes | 92.4tmts / 79.39ranches / 92.4 0nes | c6d82070 | Tested: enforcePromptBudget() returns the prompt untrimmed and logs `gateway.prompt.cannot-truncate-no-boundary` when no safe boundary exists; this is a measurable fallback branch rather than a no-op. |
+
+| src/llm/inference.js | 37-41,68,90,97,114,123,276-277,294,311-313,315-335 | 83.42tmts / 75.8ranches / 84.07 0nes | 83.42tmts / 75.8ranches / 84.07 0nes | c4013e06 | Tested: askOpenAiCompat() returns `""` when the completion payload contains a choice without message content; this is a meaningful fallback branch because it changes the return value rather than merely executing the code. |
