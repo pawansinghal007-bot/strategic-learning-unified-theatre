@@ -41,6 +41,15 @@ interface Entry {
 const MIN_PRODUCTION_ENTRIES = 200;
 const MIN_SPAN_DAYS = 5;
 const MIN_CLASSES_REPRESENTED = 4; // out of 5 known classes
+const MIN_PER_CATEGORY = 40; // 200 / 5 = 40 average floor per category
+
+const CATEGORIES: Classification[] = [
+  "path-like",
+  "symbol-like",
+  "vector-search",
+  "semantic",
+  "synthesis",
+];
 
 function main() {
   console.log(
@@ -119,6 +128,65 @@ function main() {
   console.log(
     `\n=> ${ready ? "Looks sufficient — consider running the full distribution analysis prompt." : "Keep collecting."}\n`,
   );
+
+  // Per-category readiness gate
+  const perCategoryState: Record<
+    Classification,
+    { count: number; state: "sufficient" | "insufficient" | "zero" }
+  > = {} as Record<
+    Classification,
+    { count: number; state: "sufficient" | "insufficient" | "zero" }
+  >;
+
+  for (const cat of CATEGORIES) {
+    const count = byClass[cat] ?? 0;
+    let state: "sufficient" | "insufficient" | "zero";
+    if (count >= MIN_PER_CATEGORY) {
+      state = "sufficient";
+    } else if (count >= 1) {
+      state = "insufficient";
+    } else {
+      state = "zero";
+    }
+    perCategoryState[cat] = { count, state };
+  }
+
+  console.log("\n=== Per-category readiness ===");
+  for (const cat of CATEGORIES) {
+    const { count, state } = perCategoryState[cat];
+    if (state === "sufficient") {
+      console.log(`  ${cat.padEnd(13)}: ${state}   (count=${count})`);
+    } else if (state === "zero") {
+      console.log(
+        `  ${cat.padEnd(13)}: ${state}         (count=${count}, need ${MIN_PER_CATEGORY})`,
+      );
+    } else {
+      // insufficient
+      const needMore = MIN_PER_CATEGORY - count;
+      console.log(
+        `  ${cat.padEnd(13)}: ${state} (count=${count}, need ${needMore} more)`,
+      );
+    }
+  }
+
+  console.log(
+    `\n  Overall gate: ${ready ? "PASS" : "FAIL"} (from existing aggregate logic — do not change this)`,
+  );
+
+  const allSufficient = CATEGORIES.every(
+    (cat) => perCategoryState[cat].state === "sufficient",
+  );
+  const blocking = CATEGORIES.filter(
+    (cat) => perCategoryState[cat].state !== "sufficient",
+  );
+  if (allSufficient) {
+    console.log("  Per-category gate: PASS");
+  } else {
+    console.log(
+      `  Per-category gate: FAIL — blocking: ${blocking.join(", ")}`,
+    );
+  }
+  console.log();
 }
 
 main();
