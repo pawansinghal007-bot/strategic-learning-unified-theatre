@@ -15,6 +15,7 @@ _Read this first if you're an agent (Claude, Copilot, or otherwise) picking up t
 ## 1. Working Conventions (established over many sessions — follow these)
 
 - **Verification standard:** literal pasted command output is required. Summaries, narrated confirmations, or "should be fine" are never accepted as proof of completion. This has repeatedly caught real bugs and real inaccurate claims that would otherwise have shipped or gone unnoticed.
+- **Confident-wrong vs. honest-unknown:** any output surfaced by an MCP tool, the retrieval router, or an analysis/checkpoint script must make "not found / not measured / not yet enough data" structurally distinguishable from a real result — never a bare `0`, empty default, or blended aggregate standing in for "we don't know yet." When this is found violated, it is a bug of the same severity as the measurement-log root-cause bug in Section 9, and gets a pinned regression test in the same commit as the fix, not a follow-up item.
 - **Small-slice discipline:** one file/fact/change per step, verified before moving to the next. Sprawling multi-file changes are avoided. A fix that touches several files but is one coherent logical change (e.g. an implementation + its test + its config) can still be one commit — "small slice" means verified and coherent, not literally one file.
 - **Test location:** tests live in `tests/`, not colocated with source — imports use `../src/` prefixes. (Exception: the self-contained `src/installer/hw-probe/` sub-project colocates its spec file — see Section 2.)
 - **Commit discipline:** small, fully-verified changes may go directly to `main`. Larger or multi-sprint work goes through a feature branch, gets a full merge-readiness audit (clean tree, zero conflicts, clean typecheck, full test pass — verified _again_ on `main` post-merge), then merges with `--no-ff` so the boundary is visible in history.
@@ -434,3 +435,13 @@ git push
 - Do not treat any log entry without a `source` field as valid production data — it predates this fix (anything from before 2026-07-10).
 - Do not run a full distribution analysis until `scripts/measurement-checkpoint.ts` (or `~/.unified-ai-workspace/checkpoint-history.log`) reports the readiness gate as met on `source: "production"` entries specifically.
 - All setup-phase work for this item is committed (`51b648dd`) and confirmed pushed to `origin/main`. There is nothing left to commit for this item until the analysis/decision step (Section 6, item 1b) produces code changes.
+
+
+## Coverage Hardening Log (pending condensation)
+_Raw per-file entries below. To be reviewed and folded into the main
+sections (or deleted if not worth keeping) once the coverage pass is
+complete — do not treat this section as final prose._
+
+| File | Lines targeted | Before | After | Commit | What was actually tested / why skipped |
+|---|---|---|---|---|---|
+| src/agents/tools/retrieve.ts | 61-66 | 90% stmts / 84.21% branches | 100% stmts / 100% branches | fea79ac4 | Two tests for the `case "symbol":` branch: (1) non-empty results assert exact formatted string `"name (kind) at filePath:startLine-endLine"`; (2) empty results assert exact `"No symbol found for \"<query>\"."` fallback message |
