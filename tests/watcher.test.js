@@ -647,3 +647,246 @@ describe("_spawnEnhance (real child_process integration)", () => {
     expect(daemon.running).toBe(false);
   });
 });
+
+
+
+
+describe("concurrent-guard branches (lines 374 and 437)", () => {
+  let originalHome;
+
+  beforeEach(() => {
+    originalHome = process.env.HOME;
+    process.env.ROTATOR_LOG_LEVEL = "silent";
+    process.env.ROTATOR_LOG_SINK = "none";
+    captureThreadMock.mockReset();
+    spawnMock.mockReset();
+  });
+
+  afterEach(() => {
+    process.env.HOME = originalHome;
+    try {
+      vi.useRealTimers();
+    } catch {}
+  });
+
+  async function writeEnhanceCfg(tmp, cfg) {
+    const { default: fs } = await import("node:fs/promises");
+    await fs.mkdir(path.join(tmp, ".vscode-rotator"), { recursive: true });
+    await fs.writeFile(
+      path.join(tmp, ".vscode-rotator", "config.json"),
+      JSON.stringify(cfg),
+    );
+  }
+
+  function makeLocalStubs() {
+    return {
+      store: { list: async () => [], update: async () => {} },
+      switcher: { switch: async () => {} },
+      scheduler: {
+        load: async () => {},
+        clearExpired: async () => [],
+        setCooldown: async (_, d) => Date.now() + d,
+      },
+      journal: { append: async () => {} },
+      gitMonitor: {
+        stop: () => {},
+        watchAll: () => {},
+        removeAllListeners: () => {},
+        on: () => {},
+      },
+      probeAccount: async () => ({ valid: true }),
+    };
+  }
+
+  it("line 374: runEnhanceCycle returns early when a cycle is already running", async () => {
+    // Strategy: stub _spawnEnhance so the first call blocks until the daemon
+    // is stopped (timers cleared). A second timer tick fires while the first
+    // call is still pending, which must hit the `running` guard (line 374)
+    // and skip spawning a second time.
+    const { default: fs } = await import("node:fs/promises");
+    const { default: os } = await import("node:os");
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "watcher-en-guard-"));
+    process.env.HOME = tmp;
+
+    await writeEnhanceCfg(tmp, {
+      enhanceSchedule: {
+        enabled: true,
+        intervalMs: 50,
+        goals: ["goal-a"],
+        platform: "chatgpt",
+      },
+    });
+
+    const daemon = new WatcherDaemon(makeLocalStubs());
+
+    let spawnCallCount = 0;
+    // firstUnblock is resolved by the test after the second timer tick fires.
+    let firstUnblock;
+    const firstBlocker = new Promise((res) => {
+      firstUnblock = res;
+    });
+
+    daemon._spawnEnhance = vi.fn(async () => {
+      spawnCallCount++;
+      // Only the first call blocks; subsequent calls (if the guard fails)
+      // would resolve immediately and inflate callCount.
+      if (spawnCallCount === 1) {
+        await firstBlocker;
+      }
+    });
+
+    vi.useFakeTimers();
+    await daemon.start(100000);
+
+    // Tick 1: runEnhanceCycle fires, enters cycle (running=true), calls _spawnEnhance (blocking).
+    await vi.advanceTimersByTimeAsync(60000);
+
+    // Tick 2: runEnhanceCycle fires again while cycle 1 is still awaiting.
+    // The `running` guard at line 374 must return early.
+    await vi.advanceTimersByTimeAsync(60000);
+
+    // Stop the daemon (clears all setInterval handles) then unblock cycle 1.
+    // Stopping first avoids infinite-loop from still-active timers.
+    await daemon.stop();
+    firstUnblock();
+    await Promise.resolve(); // drain microtask queue
+
+    vi.useRealTimers();
+
+    // The guard prevented a second spawn: callCount must be exactly 1.
+    expect(spawnCallCount).toBe(1);
+  });
+
+  it("line 437: runCaptureCycle returns early when a cycle is already running", async () => {
+    // Same pattern for the capture concurrent guard.
+    const { default: fs } = await import("node:fs/promises");
+    const { default: os } = await import("node:os");
+    const tmp = await fs.mkdtemp(path.join(os.tmpdir(), "watcher-cap-guard-"));
+    process.env.HOME = tmp;
+
+    await writeEnhanceCfg(tmp, {
+      captureSchedule: { enabled: true, intervalMs: 200 },
+      platformTriggers: { a: "chatgpt" },
+    });
+
+    let captureCallCount = 0;
+    let firstCaptureUnblock;
+    const firstCaptureBlocker = new Promise((res) => {
+      firstCaptureUnblock = res;
+    });
+
+    captureThreadMock.mockImplementation(async () => {
+      captureCallCount++;
+      if (captureCallCount === 1) {
+        await firstCaptureBlocker;
+      }
+      return { filename: "chatgpt.json" };
+    });
+
+    const daemon = new WatcherDaemon(makeLocalStubs());
+    vi.useFakeTimers();
+    await daemon.start(100000);
+
+    // Tick 1: runCaptureCycle fires, enters cycle (running=true), blocks on captureThread.
+    await vi.advanceTimersByTimeAsync(200);
+
+    // Tick 2: runCaptureCycle fires again while cycle 1 is still awaiting.
+    // The `running` guard at line 437 must return early.
+    await vi.advanceTimersByTimeAsync(200);
+
+    // Stop daemon first (clears timers), then unblock cycle 1.
+    await daemon.stop();
+    firstCaptureUnblock();
+    await Promise.resolve();
+
+    vi.useRealTimers();
+
+    // Guard prevented a second captureThread invocation.
+    expect(captureCallCount).toBe(1);
+  });
+});
+
+
+describe("enhance throttle guard (line 374)", () => {
+  let originalHome;
+
+  beforeEach(() => {
+    originalHome = process.env.HOME;
+    process.env.ROTATOR_LOG_LEVEL = "silent";
+    process.env.ROTATOR_LOG_SINK = "none";
+    spawnMock.mockReset();
+  });
+
+  afterEach(() => {
+    process.env.HOME = originalHome;
+    try {
+      vi.useRealTimers();
+    } catch {}
+  });
+
+  it("line 374: throttle guard blocks a second cycle run that is within the intervalMs window", async () => {
+    // Config: huge intervalMs (1 week) so any second tick within 60s is throttled.
+    const { default: fs } = await import("node:fs/promises");
+    const { default: os } = await import("node:os");
+    const tmp = await fs.mkdtemp(
+      path.join(os.tmpdir(), "watcher-throttle-"),
+    );
+    process.env.HOME = tmp;
+    await fs.mkdir(path.join(tmp, ".vscode-rotator"), { recursive: true });
+    await fs.writeFile(
+      path.join(tmp, ".vscode-rotator", "config.json"),
+      JSON.stringify({
+        enhanceSchedule: {
+          enabled: true,
+          intervalMs: 604800000, // 1 week — second tick at 60s is always within window
+          goals: ["goal-a"],
+          platform: "chatgpt",
+        },
+      }),
+    );
+
+    let spawnCallCount = 0;
+    spawnMock.mockImplementation(() => {
+      spawnCallCount++;
+      const child = new EventEmitter();
+      queueMicrotask(() => child.emit("close", 0));
+      return child;
+    });
+
+    const s = {
+      store: { list: async () => [], update: async () => {} },
+      switcher: { switch: async () => {} },
+      scheduler: {
+        load: async () => {},
+        clearExpired: async () => [],
+        setCooldown: async (_, d) => Date.now() + d,
+      },
+      journal: { append: async () => {} },
+      gitMonitor: {
+        stop: () => {},
+        watchAll: () => {},
+        removeAllListeners: () => {},
+        on: () => {},
+      },
+      probeAccount: async () => ({ valid: true }),
+    };
+
+    vi.useFakeTimers();
+    const daemon = new WatcherDaemon(s);
+    await daemon.start(100000);
+
+    // Tick 1: first enhance interval — cycle runs, sets lastEnhanceRunAt, calls _spawnEnhance once.
+    await vi.advanceTimersByTimeAsync(60000);
+
+    // Tick 2: 60s later, still within the 1-week intervalMs window.
+    // The throttle at line 373-374 must return early (lastEnhanceRunAt is set,
+    // and now - lastEnhanceRunAt = 60000ms << 604800000ms).
+    await vi.advanceTimersByTimeAsync(60000);
+
+    await daemon.stop();
+    vi.useRealTimers();
+
+    // The throttle guard (line 374) prevented a second spawn call.
+    expect(spawnCallCount).toBe(1);
+  });
+});
