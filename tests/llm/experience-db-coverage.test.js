@@ -514,6 +514,11 @@ describe("ExperienceDb.getThreadContext()", () => {
     expect(result).toEqual([]);
   });
 
+  it("returns empty array before any embedding work when query is blank", async () => {
+    const result = await db.getThreadContext("   ", null, 3);
+    expect(result).toEqual([]);
+  });
+
   it("returns empty array for whitespace-only query", async () => {
     const result = await db.getThreadContext("   ", "chatgpt");
     expect(result).toEqual([]);
