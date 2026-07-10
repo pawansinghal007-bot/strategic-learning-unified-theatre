@@ -794,7 +794,7 @@ describe("enforcePromptBudget() — no workspace context, no User request marker
   // Rationale (from gateway.ts comment): blind end-truncation without a known
   // boundary was rejected as unsafe because it may silently cut into the
   // user's own prompt text, losing critical instructions or context.
-  it("(b) returns prompt untrimmed and logs a warning when no boundary is available", () => {
+  it("returns the prompt untrimmed and emits a warning when no safe truncation boundary exists", () => {
     // Plain over-budget blob with no markers and no userPrompt argument.
     const prompt = "OPAQUE_CONTENT_".repeat(500); // 7500 chars, well over default 6000
 
