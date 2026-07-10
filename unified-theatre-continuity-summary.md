@@ -445,3 +445,5 @@ complete — do not treat this section as final prose._
 | File | Lines targeted | Before | After | Commit | What was actually tested / why skipped |
 |---|---|---|---|---|---|
 | src/agents/tools/retrieve.ts | 61-66 | 90% stmts / 84.21% branches | 100% stmts / 100% branches | fea79ac4 | Two tests for the `case "symbol":` branch: (1) non-empty results assert exact formatted string `"name (kind) at filePath:startLine-endLine"`; (2) empty results assert exact `"No symbol found for \"<query>\"."` fallback message |
+
+| src/daemon/watcher.js | 374, 437 | 98.9% stmts / 77.57% branches / 98.87% lines | 100% stmts / 80.37% branches / 100% lines | 1ed41516 | Line 374: throttle guard in runEnhanceCycle — asserts `_spawnEnhance` called exactly once when second tick is within `intervalMs` window; line 437: concurrent `running` flag guard in runCaptureCycle — asserts `captureThread` called exactly once when second tick fires while first cycle is still awaiting |
