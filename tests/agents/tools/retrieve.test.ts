@@ -148,6 +148,49 @@ describe("retrieveTool", () => {
     expect(result.output).toContain('No matches for "nothing".');
   });
 
+  // ── successful symbol search ───────────────────────────────────────────────
+
+  it("returns success:true with formatted symbol results when symbols are found", async () => {
+    mockRetrieve.mockResolvedValueOnce({
+      strategy: "symbol",
+      results: [
+        {
+          name: "runSubAgent",
+          kind: "function",
+          filePath: "src/agents/sub-agent.ts",
+          startLine: 42,
+          endLine: 68,
+        },
+      ],
+    });
+
+    const result = await retrieveTool.execute({
+      query: "runSubAgent",
+      mode: "symbol",
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.toolName).toBe("retrieve");
+    expect(result.output).toBe(
+      "runSubAgent (function) at src/agents/sub-agent.ts:42-68",
+    );
+  });
+
+  it("returns success:true with a no-symbol message when symbol results are empty", async () => {
+    mockRetrieve.mockResolvedValueOnce({
+      strategy: "symbol",
+      results: [],
+    });
+
+    const result = await retrieveTool.execute({
+      query: "ghostFunction",
+      mode: "symbol",
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.output).toBe('No symbol found for "ghostFunction".');
+  });
+
   // ── successful file search ─────────────────────────────────────────────────
 
   it("returns success:true with raw file content on successful file search", async () => {
