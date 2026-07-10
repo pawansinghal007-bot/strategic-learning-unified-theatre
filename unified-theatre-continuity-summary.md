@@ -2,6 +2,8 @@
 
 _Read this first if you're an agent (Claude, Copilot, or otherwise) picking up this project. It exists to prevent context loss across sessions and across different tools/providers working on the same repo._
 
+> **Last updated 2026-07-10.** See Section 9 for that session's full detail (measurement-log root-cause fix, source tagging, and automated weekly checkpoint). Section 5 and Section 6 below have been updated in place to reflect current state; everything else in Sections 1–8 is unchanged from the prior version of this doc.
+
 **This file is now tracked in git at the repo root** (`unified-theatre-continuity-summary.md`) — pull the latest `main` to get the current version rather than relying on a copy pasted into a chat session. If you update this doc, commit and push it like any other change, following the same verification discipline as code.
 
 **Repo:** `~/vscodeagent/Solution` on Linux (Ubuntu 22.04)
@@ -96,19 +98,20 @@ This is an **object literal with a method**, not a class — matters for any too
 
 ## 3. Session Work — Commits (chronological across sessions)
 
-| Commit     | What                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `3344219e` | Option C: cap `saveWorkspaceContext()` summaries at 500 chars (mirrors existing `governance/workspace-context.ts` pattern), preventing unbounded context injection into every `gateway.ask()` call with a `workspaceId`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| `d57b9f56` | Option B: `retrieve` tool calls now get classified (`path-like`/`symbol-like`/`semantic`) instead of always falling to `synthesis`. Includes a real bug fix found mid-work: initial path-detection logic (`isRetrievePathLike`) used an open-ended extension regex that misclassified dotted symbol names (`gateway.ask`) as file paths; replaced with a closed list of known extensions.                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| `852132d4` | Repo cleanup: deleted 2 stale branches (`sprint-110a-symbol-strategy` via `-d`, confirmed merged + tagged `sprint-110a-complete`; `sprint-109-loop-fix-and-prompt-budget` via `-D`, confirmed unmerged-but-tagged `sprint-109-complete`). Removed a stray tracked 0-byte file named `main` at repo root that had been causing `git log main` ambiguity errors since `f407e494` ("Sprint 10 complete").                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| `6230f58c` | Sprint 110b: symbol extractor (`symbol-extractor.ts`), indexer (`symbol-indexer.ts`), migration runner (`run-migrations.ts`), deterministic repository ID (`repository-id.ts`). Also fixes a real bug caught along the way: `retrieve.ts`'s `mode` type annotation silently excluded `"symbol"` via an `as` cast, masking TypeScript's exhaustiveness check and creating a live runtime-crash risk on any real `mode="symbol"` call. Verified end-to-end against a live Postgres DB (1306 rows inserted, real query succeeded).                                                                                                                                                                                                                                                                                                               |
-| `7dc7d228` | Option A instrumentation: best-effort tool-call measurement logging, added after confirming no existing log captured this data.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| `0fa09174` | `chore: gitignore response.json` — removed a stray untracked `response.json` scratch dump at repo root (leftover from an ad-hoc tool/API call), added `response.json` to `.gitignore` to prevent recurrence.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| `237b6a43` | **`run-migrations.ts` idempotency via `schema_migrations` table.** The original runner applied every `.sql` file unconditionally; re-running against a DB that already had the tables crashed with "relation already exists". Fix: at the start of every run, create `schema_migrations (filename TEXT PRIMARY KEY, applied_at TIMESTAMPTZ)` if absent, load the set of already-recorded filenames, skip any migration already in that set, and insert a row after each newly-applied file. Updated the completion log line to report "N new / M already up to date". Adds `tests/storage/run-migrations.test.ts` (6 unit tests, `pg` + `node:fs` fully mocked — see Section 8.2 for the debugging detour this test file took). Includes documentation of the one-time backfill required for pre-existing databases. Pushed to `origin/main`. |
-| `525064b0` | **`symbol-indexer.ts` batch-insert optimization.** Replaced the per-symbol loop (~1300+ individual `INSERT`s) with `insertChunk()`, building multi-row `INSERT ... VALUES ($1,...,$7), ($8,...,$14), ...` per batch of `INSERT_CHUNK_SIZE = 500` rows. Placeholder indices confirmed chunk-local via direct diff review — no parameter-index bleed across batches. Same transaction/rollback/return-shape semantics preserved. Test suite rewritten: batching-count test, placeholder-correctness test asserting on the raw SQL string (not just call counts), zero-symbols edge case, updated rollback test. Verified: isolated test file (9/9), full suite (317/5322 at the time), `npx tsc --noEmit` clean, live Postgres (189 files, 1322 symbols → 3 batched INSERTs of 500/500/322). Pushed to `origin/main`.                           |
-| `69ed89f5` | **`hw-probe` sub-project fix + root Vitest project wiring.** See Section 2's `hw-probe` entry and Section 8.4 for the full diagnostic trail. Fresh `hwProbe.ts` implementation, rewritten `hwProbe.spec.ts` (57 tests), fixed sub-project `vitest.config.ts` include glob, and — the actual root-cause fix — added `projects: [".", "src/installer/hw-probe"]` to the root `vitest.config.ts`. Verified via clean before/after full-suite diff (317/5322 → 318/5379) and `npx tsc --noEmit`. Pushed to `origin/main`.                                                                                                                                                                                                                                                                                                                         |
+| Commit      | What                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `3344219e`  | Option C: cap `saveWorkspaceContext()` summaries at 500 chars (mirrors existing `governance/workspace-context.ts` pattern), preventing unbounded context injection into every `gateway.ask()` call with a `workspaceId`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `d57b9f56`  | Option B: `retrieve` tool calls now get classified (`path-like`/`symbol-like`/`semantic`) instead of always falling to `synthesis`. Includes a real bug fix found mid-work: initial path-detection logic (`isRetrievePathLike`) used an open-ended extension regex that misclassified dotted symbol names (`gateway.ask`) as file paths; replaced with a closed list of known extensions.                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `852132d4`  | Repo cleanup: deleted 2 stale branches (`sprint-110a-symbol-strategy` via `-d`, confirmed merged + tagged `sprint-110a-complete`; `sprint-109-loop-fix-and-prompt-budget` via `-D`, confirmed unmerged-but-tagged `sprint-109-complete`). Removed a stray tracked 0-byte file named `main` at repo root that had been causing `git log main` ambiguity errors since `f407e494` ("Sprint 10 complete").                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `6230f58c`  | Sprint 110b: symbol extractor (`symbol-extractor.ts`), indexer (`symbol-indexer.ts`), migration runner (`run-migrations.ts`), deterministic repository ID (`repository-id.ts`). Also fixes a real bug caught along the way: `retrieve.ts`'s `mode` type annotation silently excluded `"symbol"` via an `as` cast, masking TypeScript's exhaustiveness check and creating a live runtime-crash risk on any real `mode="symbol"` call. Verified end-to-end against a live Postgres DB (1306 rows inserted, real query succeeded).                                                                                                                                                                                                                                                                                                               |
+| `7dc7d228`  | Option A instrumentation: best-effort tool-call measurement logging, added after confirming no existing log captured this data.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `0fa09174`  | `chore: gitignore response.json` — removed a stray untracked `response.json` scratch dump at repo root (leftover from an ad-hoc tool/API call), added `response.json` to `.gitignore` to prevent recurrence.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `237b6a43`  | **`run-migrations.ts` idempotency via `schema_migrations` table.** The original runner applied every `.sql` file unconditionally; re-running against a DB that already had the tables crashed with "relation already exists". Fix: at the start of every run, create `schema_migrations (filename TEXT PRIMARY KEY, applied_at TIMESTAMPTZ)` if absent, load the set of already-recorded filenames, skip any migration already in that set, and insert a row after each newly-applied file. Updated the completion log line to report "N new / M already up to date". Adds `tests/storage/run-migrations.test.ts` (6 unit tests, `pg` + `node:fs` fully mocked — see Section 8.2 for the debugging detour this test file took). Includes documentation of the one-time backfill required for pre-existing databases. Pushed to `origin/main`. |
+| `525064b0`  | **`symbol-indexer.ts` batch-insert optimization.** Replaced the per-symbol loop (~1300+ individual `INSERT`s) with `insertChunk()`, building multi-row `INSERT ... VALUES ($1,...,$7), ($8,...,$14), ...` per batch of `INSERT_CHUNK_SIZE = 500` rows. Placeholder indices confirmed chunk-local via direct diff review — no parameter-index bleed across batches. Same transaction/rollback/return-shape semantics preserved. Test suite rewritten: batching-count test, placeholder-correctness test asserting on the raw SQL string (not just call counts), zero-symbols edge case, updated rollback test. Verified: isolated test file (9/9), full suite (317/5322 at the time), `npx tsc --noEmit` clean, live Postgres (189 files, 1322 symbols → 3 batched INSERTs of 500/500/322). Pushed to `origin/main`.                           |
+| `69ed89f5`  | **`hw-probe` sub-project fix + root Vitest project wiring.** See Section 2's `hw-probe` entry and Section 8.4 for the full diagnostic trail. Fresh `hwProbe.ts` implementation, rewritten `hwProbe.spec.ts` (57 tests), fixed sub-project `vitest.config.ts` include glob, and — the actual root-cause fix — added `projects: [".", "src/installer/hw-probe"]` to the root `vitest.config.ts`. Verified via clean before/after full-suite diff (317/5322 → 318/5379) and `npx tsc --noEmit`. Pushed to `origin/main`.                                                                                                                                                                                                                                                                                                                         |
+| _(pending)_ | **Measurement-log root-cause fix + source tagging + checkpoint automation.** `tool-call-measurement-log.json` was found to have zero entries ever, despite `7dc7d228`'s instrumentation being correctly wired — root cause was simply no real tool-invoking session having run since. Added `source: "production"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | "dev" | "ci" | "test"`field +`detectSource()`to`tool-call-measurement-log.ts`to prevent dev/CI/test traffic contaminating production measurements. Reset the log (the 2 debug-run entries predate the`source`field). Added`scripts/measurement-checkpoint.ts` + a weekly cron job to report progress automatically. See Section 9 for full detail. **Not yet committed as of this doc update** — see Section 9's git commands. |
 
-**All commits through `69ed89f5` are pushed to `origin/main`.** No uncommitted code changes remain as of this summary.
+**All commits through `69ed89f5` are pushed to `origin/main`.** The measurement-log fix described above (source tagging + checkpoint automation) is staged locally but **not yet committed** as of this doc update — `git status --porcelain` shows `src/agents/tool-call-measurement-log.ts` modified and `scripts/measurement-checkpoint.ts` untracked. See Section 9 for the exact git commands to commit and push it.
 
 ---
 
@@ -126,10 +129,11 @@ This is an **object literal with a method**, not a class — matters for any too
 
 ---
 
-## 5. Current Repo State (as of end of this summary)
+## 5. Current Repo State (updated 2026-07-10 — see Section 9 for full detail)
 
 - 9 commits on `main`, all pushed to `origin/main` (most recent: `69ed89f5`).
-- **No uncommitted code changes remain.** `git status --porcelain` is clean aside from this continuity doc itself, which is now tracked (see note at top of this file).
+- **One uncommitted change remains as of this update** (previously the doc said none remained — that was accurate at the time, this is new work from the 2026-07-10 session): `git status --porcelain` shows `M src/agents/tool-call-measurement-log.ts` and `?? scripts/measurement-checkpoint.ts`. Not yet committed — see Section 9 for the exact commands to commit and push. This doc itself should also be committed alongside that change.
+- `tool-call-measurement-log.json` (mentioned in Section 2's "Measurement logging" entry and Section 6's open item) was found this session to have **zero entries ever** — not "not enough yet." Root cause and fix are in Section 9. The file has since been reset to `{"entries": []}` and real accumulation restarted from 2026-07-10 with a `source` field now distinguishing production/dev/ci/test traffic.
 - `symbols` table exists and is populated (1322 rows as of the batch-insert live verification) in the local dev Postgres at `postgresql://unified:postgres_CHANGE_ME@localhost:5432/unified_theatre` (Docker container `qwen-postgres`). This does not persist automatically to any other environment. `DATABASE_URL` is present in the repo's local `.env`, **confirmed gitignored** (`git check-ignore .env` → `ignored`).
 - `schema_migrations` table exists in that same local Postgres and correctly reflects `001_symbols_table.sql` as applied (backfilled).
 - Full test suite via plain `npx vitest run`: **318 test files, 5379 tests, passing clean** — confirmed via two consecutive fresh runs after all this session's changes landed. `npx tsc --noEmit` clean.
@@ -137,9 +141,13 @@ This is an **object literal with a method**, not a class — matters for any too
 
 ---
 
-## 6. Open Items
+## 6. Open Items (updated 2026-07-10)
 
-1. **Option A (real measurement)** — instrumentation is in place; needs real accumulated usage in `~/.unified-ai-workspace/tool-call-measurement-log.json` (a few dozen+ entries minimum) before the actual cost/distribution analysis can happen. Do not synthesize this data. **This is the only remaining open item as of this summary.**
+1. **Option A (real measurement)** — instrumentation is in place and, as of 2026-07-10, **confirmed actually firing and writing to disk** (this was not previously verified — see Section 9; the log had zero entries before this session despite being described as "in place"). It now also correctly tags every entry with `source: "production"|"dev"|"ci"|"test"` so dev-loop/CI/test traffic can be excluded from analysis. Needs real accumulated **production-tagged** usage (a weekly automated checkpoint script now reports progress — see Section 9) before the actual cost/distribution analysis can happen. Do not synthesize this data. **This remains the only substantively open item**, now split into two concrete sub-steps:
+   - a. Let production usage accumulate until the checkpoint script's readiness gate is met.
+   - b. Run the distribution analysis (scoped to `source: "production"` only) and decide whether to extend the fast-path skip to `vector-search`/`semantic search-code`.
+2. **Commit the 2026-07-10 measurement-log fix** — `src/agents/tool-call-measurement-log.ts` (modified) and `scripts/measurement-checkpoint.ts` (new) are staged locally but not committed. See Section 9 for the exact commands.
+3. **Confirm `UNIFIED_AI_ENV=dev` is set in the interactive dev shell profile** — without it, the new `detectSource()` logic will default local dev-loop testing to `"production"`, which is exactly the contamination this fix was meant to prevent. Not yet confirmed as of this doc update.
 
 _(Previously open items — `run-migrations.ts` idempotency, `symbol-indexer.ts` batch inserts, `hw-probe` root-suite inclusion, `.env` gitignore confirmation, `response.json` cleanup — are all resolved; see Sections 3 and 5.)_
 
@@ -212,3 +220,186 @@ Diffs reviewed directly for all four files (`hwProbe.ts`, `hwProbe.spec.ts`, sub
 ### 8.6 Commit + push sequence for `525064b0` and `69ed89f5`
 
 Both changes (symbol-indexer batching, hw-probe fix) were verified independently, then staged and committed as two separate commits per small-slice discipline — a `git add` of both sets accidentally happened in one shot at one point, caught via `git status --porcelain` before committing, and corrected with `git restore --staged <hw-probe files>` to un-stage the second set before the first commit. Both commit messages were written via `git commit -F- << 'EOF' ... EOF` heredocs; the terminal echo of both looked visually truncated/interleaved mid-paste in both cases, but `git log -1 --format="%B"` confirmed both stored messages were complete and correct in both cases — see bug-adjacent note in Section 1 about this being cosmetic, not a real problem. Pushed together as `237b6a43..69ed89f5`, verified via the standard 5-step sequence (pre-push log diff, clean status, fetch+diff showing no surprise upstream commits, push, post-push confirmation showing empty diff and "up to date with origin/main").
+
+---
+
+## 9. Session Log — 2026-07-10: Measurement-Log Root Cause, Source Tagging, Checkpoint Automation
+
+### 9.1 What triggered this session
+
+Section 6's prior open item said instrumentation was "in place" and just needed real accumulated usage. On investigation, `~/.unified-ai-workspace/tool-call-measurement-log.json` **did not exist at all** — zero entries, ever, not "not enough yet." This is a materially different starting point than the prior summary implied, so it's documented here in full rather than silently folded into an updated status line.
+
+### 9.2 Root-cause diagnosis
+
+Checked, in order:
+
+1. Confirmed `UNIFIED_AI_DATA_DIR` unset in the normal interactive dev environment (both `echo` and `env | grep`) — so the default `~/.unified-ai-workspace/` path is correct and not the issue.
+2. Added temporary debug `console.error` lines at the call site in `sub-agent.ts` (`executeToolCall()`) and in `storage.ts` (`writeJsonFile()`) to trace whether the write path was actually being reached.
+3. Ran one real tool-invoking session through the harness (not the test suite). Debug output confirmed **two real tool calls fired and were recorded**:
+   ```
+   [DEBUG sub-agent.executeToolCall] { toolName: 'search-code', classification: 'symbol-like', skipGatewayAsk: true }
+   [DEBUG storage.writeJsonFile] { fileName: 'tool-call-measurement-log.json', filePath: '/home/pawan/.unified-ai-workspace/tool-call-measurement-log.json', entryCount: 1 }
+   [DEBUG sub-agent.executeToolCall] { toolName: 'search-code', classification: 'semantic', skipGatewayAsk: false }
+   [DEBUG storage.writeJsonFile] { fileName: 'tool-call-measurement-log.json', filePath: '/home/pawan/.unified-ai-workspace/tool-call-measurement-log.json', entryCount: 2 }
+   ```
+4. A `"require is not defined"` error appeared in the debug output too, but this was a red herring — it came from the temporary debug code itself using CommonJS `require()` inside an ESM module, thrown _after_ the real `writeFileSync` call had already succeeded. Confirmed via `cat ~/.unified-ai-workspace/tool-call-measurement-log.json` showing the 2 correct entries.
+5. **Conclusion:** the instrumentation (`recordToolCallForMeasurement()`, wired into `executeToolCall()` at the single real `tool.execute()` call site, per Section 2's existing "Measurement logging" note and commit `7dc7d228`) was always correct. The file was simply never written because **no real tool-invoking agent session had been run through `runSubAgent()` since the instrumentation landed** — prior activity was either test suites (isolated to a temp `UNIFIED_AI_DATA_DIR` per `tests/setup.ts`) or sessions that never triggered a `[TOOL:name args]` pattern. Not a bug; a gap in real-world exercise of the code path.
+
+### 9.3 Gap found beyond the original ask: no source tagging
+
+While investigating, a second, real gap was identified that the original instrumentation (commit `7dc7d228`) didn't cover: **no way to distinguish real end-user usage from developer dev-loop testing or CI runs** — all would land in the same log file, indistinguishable. This is the same category of failure that is referenced elsewhere in this doc (Section 2's "Measurement logging" note) as having invalidated an _earlier_ measurement attempt (one that accidentally measured the classifier's own unit tests instead of real usage).
+
+Test traffic itself was confirmed already isolated (test setup uses a temp `UNIFIED_AI_DATA_DIR` per run, cleaned up after), but **dev-loop and CI runs, if `UNIFIED_AI_DATA_DIR` isn't overridden, write to the same file as production usage** with nothing to tell them apart.
+
+### 9.4 Fix implemented
+
+Diff applied to three files (`tool-call-measurement-log.ts`, `sub-agent.ts`, `storage.ts`):
+
+**`src/agents/tool-call-measurement-log.ts`:**
+
+```diff
++ /** Derive call source from environment. Explicit override > CI > test > dev > production. */
++ export function detectSource(): "production" | "dev" | "ci" | "test" {
++   const env = process.env.UNIFIED_AI_ENV;
++   if (env) return env as "production" | "dev" | "ci" | "test";
++   if (process.env.CI) return "ci";
++   if (process.env.VITEST) return "test";
++   return "production";
++ }
++
+  export interface ToolCallMeasurementEntry {
+    toolName: string;
+    args: Record<string, string>;
+    classification: ToolCallClass;
+    skippedGatewayAsk: boolean;
++   source: "production" | "dev" | "ci" | "test";
+    timestamp: number;
+  }
+
+  export function recordToolCallForMeasurement(
+-   entry: Omit<ToolCallMeasurementEntry, "timestamp">,
++   entry: Omit<ToolCallMeasurementEntry, "timestamp" | "source">,
+  ): void {
+    try {
+      const store = readJsonFile<MeasurementStore>(MEASUREMENT_LOG_FILE, { entries: [] });
+-     store.entries.push({ ...entry, timestamp: Date.now() });
++     store.entries.push({ ...entry, source: detectSource(), timestamp: Date.now() });
+```
+
+**`sub-agent.ts` and `storage.ts`:** the temporary debug `console.error` lines from Section 9.2's diagnosis were removed again after the fix — net diff on these two files is zero, which is why `git status --porcelain` correctly shows them unmodified (only `tool-call-measurement-log.ts` shows as modified).
+
+**Action required on developer machines**, not yet confirmed done as of this doc update (tracked as Section 6, item 3):
+
+```bash
+export UNIFIED_AI_ENV=dev
+```
+
+Add to `~/.bashrc` so interactive dev sessions self-tag as `"dev"` instead of defaulting to `"production"`.
+
+### 9.5 Log reset
+
+The 2 entries created during the Section 9.2 debug run predate the `source` field (no `source` key present in either) and are not representative real usage — they were manually triggered to test the instrumentation. The file was reset to `{"entries": []}` so accumulation starts clean against the new schema.
+
+**Real accumulation restart date: 2026-07-10.**
+
+### 9.6 Checkpoint automation
+
+A manual "go check the log" step was judged too easy to forget, so it was automated end-to-end.
+
+**Script added:** `scripts/measurement-checkpoint.ts` (new, untracked as of this doc update). Reads the log, reports:
+
+- total entries and breakdown by `source`
+- for `source: "production"` only: date range and classification distribution (path-like / symbol-like / vector-search / semantic / synthesis)
+- a heuristic **readiness gate** (adjustable constants at the top of the file, not a statistical proof): flags "looks sufficient" when production entries is at least 200, date span is at least 5 days, and at least 4 of 5 classifications are represented.
+
+Deliberately does **not** draw conclusions or suggest code changes — mirrors this doc's existing "do not synthesize this data" discipline (Section 6) by only ever reporting on what's actually been logged.
+
+**Cron job added** (WSL/Ubuntu, `pawan`'s machine), runs weekly Monday 9am, appends to `~/.unified-ai-workspace/checkpoint-history.log`:
+
+```cron
+PATH=/home/pawan/.nvm/versions/node/v22.22.3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+0 9 * * 1 cd /home/pawan/vscodeagent/Solution && npx tsx scripts/measurement-checkpoint.ts >> /home/pawan/.unified-ai-workspace/checkpoint-history.log 2>&1
+```
+
+**Debugging detour setting this up** (worth keeping in full — same "verify the real invocation, not a proxy for it" lesson as bug #9 in Section 4, just applied to cron instead of Vitest):
+
+1. First attempt used `/usr/bin/env -S npx tsx ...` — failed with `env: 'npx': No such file or directory`. Cron runs with a minimal PATH that doesn't include nvm-managed node; `which npx` resolves fine in an interactive shell only because `.bashrc`/nvm sourcing puts it there, which cron skips entirely.
+2. Second attempt hardcoded the absolute path to `npx` (`/home/pawan/.nvm/versions/node/v22.22.3/bin/npx`) — got further but then failed with `env: 'node': No such file or directory`, because `npx` itself is a Node script with a `#!/usr/bin/env node` shebang, and cron's minimal PATH still couldn't resolve `node` when `npx` tried to invoke it internally.
+3. Root-caused: the fix needed to be a `PATH=` line at the top of the crontab (covering the whole job, not just one binary), not a one-off absolute path to a single executable. Added a `PATH=` line pointing at the nvm node bin dir, and simplified the job line back to plain `npx tsx ...`.
+4. Separately, `service cron status` showed cron **not running at all** in this WSL instance by default. Fixed interactively with `sudo service cron start`, then made persistent across `wsl --shutdown`/restart via a `[boot]` stanza in `/etc/wsl.conf`:
+   ```ini
+   [boot]
+   command="service cron start"
+   ```
+   Note: this does NOT need re-doing just from closing a terminal window — WSL keeps running across window closes. It only resets on an actual `wsl --shutdown` or a full Windows restart, which is exactly the case the `wsl.conf` boot stanza covers.
+5. Verified the full pipe end-to-end by temporarily setting the schedule to `*/2 * * * *`, confirming `tail ~/.unified-ai-workspace/checkpoint-history.log` showed real script output (not a cron error) after roughly 2 minutes, clearing the log of the stale pre-fix error lines, re-testing once clean, then switching the schedule back to `0 9 * * 1`.
+6. Final `crontab -l` confirmed correct as of this doc update:
+   ```
+   PATH=/home/pawan/.nvm/versions/node/v22.22.3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+   0 3 * * 0 cd /home/pawan/qwen-stack && bash scripts/pull-latest.sh >> logs/watchtower.log 2>&1
+   0 9 * * 1 cd /home/pawan/vscodeagent/Solution && npx tsx scripts/measurement-checkpoint.ts >> /home/pawan/.unified-ai-workspace/checkpoint-history.log 2>&1
+   ```
+
+**Known fragility, flagged for the future:** the `PATH=` line hardcodes node version `v22.22.3`. If a future `nvm install` changes the shell's default node version, this cron job will silently start failing again with the same "No such file" error pattern from step 1/2 above — check this first if `checkpoint-history.log` unexpectedly goes quiet.
+
+### 9.7 Commit status as of this doc update
+
+**Not yet committed.** `git status --porcelain` as of this session:
+
+```
+ M src/agents/tool-call-measurement-log.ts
+?? scripts/measurement-checkpoint.ts
+```
+
+(Note: `sub-agent.ts` and `storage.ts` correctly show no diff — see Section 9.4's note on the debug lines being added and removed within the same session, net zero.)
+
+Commands to commit, matching this repo's established small-slice + verification discipline (Section 1):
+
+```bash
+cd /home/pawan/vscodeagent/Solution
+
+git status --porcelain
+# expect:
+#  M src/agents/tool-call-measurement-log.ts
+#  M unified-theatre-continuity-summary.md
+# ?? scripts/measurement-checkpoint.ts
+
+git add src/agents/tool-call-measurement-log.ts scripts/measurement-checkpoint.ts unified-theatre-continuity-summary.md
+
+git diff --cached --stat   # sanity check before committing
+
+git commit -m "Fix empty measurement log, add source tagging, automate weekly checkpoint
+
+- Root cause: recordToolCallForMeasurement() was correctly wired but no
+  real tool-invoking session had run through it since instrumentation
+  landed, so the log file never existed.
+- Add source field (production/dev/ci/test) to ToolCallMeasurementEntry
+  via detectSource(), to prevent dev/CI/test traffic from contaminating
+  production measurements (same failure mode that invalidated an earlier
+  measurement attempt).
+- Reset log to empty; real accumulation starts fresh as of this commit.
+- Add scripts/measurement-checkpoint.ts: reports entry counts, source
+  breakdown, and production-only classification distribution against a
+  volume/diversity readiness gate. Does not draw conclusions.
+- Wire weekly cron job (Monday 9am) to run the checkpoint automatically,
+  verified end-to-end including WSL cron PATH/daemon persistence.
+- Update continuity summary (Section 9) with full session history."
+
+git log -1 --stat   # confirm the commit landed as expected
+
+git push
+```
+
+Also, separately (not part of this commit — a personal shell config change, not a repo change):
+
+```bash
+echo 'export UNIFIED_AI_ENV=dev' >> ~/.bashrc
+source ~/.bashrc
+```
+
+### 9.8 State handoff for the next agent/session
+
+- Do not re-run the Section 9.2 diagnosis — it's confirmed resolved. If the log ever goes empty again unexpectedly, suspect the cron `PATH=` node-version fragility (Section 9.6) or a `UNIFIED_AI_DATA_DIR` override first, not a repeat of the original root cause.
+- Do not treat any log entry without a `source` field as valid production data — it predates this fix.
+- Do not run a full distribution analysis until `scripts/measurement-checkpoint.ts` (or `~/.unified-ai-workspace/checkpoint-history.log`) reports the readiness gate as met on `source: "production"` entries specifically.
+- If `git status --porcelain` still shows the two files from Section 9.7 as pending, commit them before doing anything else in this area — don't let more work stack on top of an uncommitted foundational change.
