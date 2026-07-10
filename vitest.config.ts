@@ -77,6 +77,7 @@ export default defineConfig({
         // Interface-only files — no executable JS emitted (all declarations)
         "src/mcp/types.ts",
         "src/agents/types.ts",
+        "src/agents/tools/base.ts", // ToolResult + Tool interfaces only — zero executable statements
       ],
 
       thresholds: {
