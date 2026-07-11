@@ -89,10 +89,16 @@ describe("fileExists via resolveModelPath", () => {
   let savedEnv;
   beforeEach(() => {
     process.env.VSCODE_ROTATOR_MOCK_LLM = "1";
-    savedEnv = { VSCODE_ROTATOR_LLM_PROVIDER: process.env.VSCODE_ROTATOR_LLM_PROVIDER };
+    savedEnv = {
+      VSCODE_ROTATOR_LLM_PROVIDER: process.env.VSCODE_ROTATOR_LLM_PROVIDER,
+    };
     process.env.VSCODE_ROTATOR_LLM_PROVIDER = "node-llama-cpp";
   });
-  afterEach(() => { vi.restoreAllMocks(); resetEnv(savedEnv); delete process.env.VSCODE_ROTATOR_MOCK_LLM; });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    resetEnv(savedEnv);
+    delete process.env.VSCODE_ROTATOR_MOCK_LLM;
+  });
 
   it("resolveModelPath returns null when modelDir does not exist", async () => {
     const { LocalLlmInference } = await import("../../src/llm/inference.js");
@@ -107,15 +113,20 @@ describe("fileExists via resolveModelPath", () => {
   });
 });
 
-
 // ── isOllamaAvailable / findOllamaBinary (lines 42-61) ────────────────────────
 describe("isOllamaAvailable", () => {
   let savedEnv;
   beforeEach(() => {
-    savedEnv = { VSCODE_ROTATOR_OLLAMA_BIN: process.env.VSCODE_ROTATOR_OLLAMA_BIN };
+    savedEnv = {
+      VSCODE_ROTATOR_OLLAMA_BIN: process.env.VSCODE_ROTATOR_OLLAMA_BIN,
+    };
     process.env.VSCODE_ROTATOR_MOCK_LLM = "1";
   });
-  afterEach(() => { vi.restoreAllMocks(); resetEnv(savedEnv); delete process.env.VSCODE_ROTATOR_MOCK_LLM; });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    resetEnv(savedEnv);
+    delete process.env.VSCODE_ROTATOR_MOCK_LLM;
+  });
 
   it("returns true when ollama plain binary name resolves", async () => {
     delete process.env.VSCODE_ROTATOR_OLLAMA_BIN;
@@ -135,16 +146,23 @@ describe("isOllamaAvailable", () => {
 describe("verifyOllamaInstalled", () => {
   let savedEnv;
   beforeEach(() => {
-    savedEnv = { VSCODE_ROTATOR_OLLAMA_BIN: process.env.VSCODE_ROTATOR_OLLAMA_BIN };
+    savedEnv = {
+      VSCODE_ROTATOR_OLLAMA_BIN: process.env.VSCODE_ROTATOR_OLLAMA_BIN,
+    };
     process.env.VSCODE_ROTATOR_MOCK_LLM = "1";
   });
-  afterEach(() => { vi.restoreAllMocks(); resetEnv(savedEnv); delete process.env.VSCODE_ROTATOR_MOCK_LLM; });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    resetEnv(savedEnv);
+    delete process.env.VSCODE_ROTATOR_MOCK_LLM;
+  });
 
   it("returns true when execFile succeeds (ollama --version)", async () => {
     setupExecSuccess("ollama version 0.3.0");
 
     process.env.VSCODE_ROTATOR_OLLAMA_BIN = "ollama";
-    const { verifyOllamaInstalled } = await import("../../src/llm/inference.js");
+    const { verifyOllamaInstalled } =
+      await import("../../src/llm/inference.js");
     expect(await verifyOllamaInstalled()).toBe(true);
   });
 
@@ -152,8 +170,11 @@ describe("verifyOllamaInstalled", () => {
     setupExecError("spawn error ENOENT");
 
     process.env.VSCODE_ROTATOR_OLLAMA_BIN = "ollama";
-    const { verifyOllamaInstalled } = await import("../../src/llm/inference.js");
-    await expect(verifyOllamaInstalled()).rejects.toThrow(/Ollama runtime not available/);
+    const { verifyOllamaInstalled } =
+      await import("../../src/llm/inference.js");
+    await expect(verifyOllamaInstalled()).rejects.toThrow(
+      /Ollama runtime not available/,
+    );
   });
 });
 
@@ -162,30 +183,37 @@ describe("isNodeLlamaCppInstalled", () => {
   afterEach(() => vi.restoreAllMocks());
 
   it("returns false when node-llama-cpp package is not installed", async () => {
-    const { isNodeLlamaCppInstalled } = await import("../../src/llm/inference.js");
+    const { isNodeLlamaCppInstalled } =
+      await import("../../src/llm/inference.js");
     const result = await isNodeLlamaCppInstalled();
     expect(typeof result).toBe("boolean");
   });
 });
 
-
 // ── resolvePreferredLlmProvider (lines 93-109) ───────────────────────────────
 describe("resolvePreferredLlmProvider", () => {
   let savedEnv;
   beforeEach(() => {
-    savedEnv = { VSCODE_ROTATOR_LLM_PROVIDER: process.env.VSCODE_ROTATOR_LLM_PROVIDER };
+    savedEnv = {
+      VSCODE_ROTATOR_LLM_PROVIDER: process.env.VSCODE_ROTATOR_LLM_PROVIDER,
+    };
   });
-  afterEach(() => { vi.restoreAllMocks(); resetEnv(savedEnv); });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    resetEnv(savedEnv);
+  });
 
   it("returns 'ollama' when env is 'ollama'", async () => {
     process.env.VSCODE_ROTATOR_LLM_PROVIDER = "ollama";
-    const { resolvePreferredLlmProvider } = await import("../../src/llm/inference.js");
+    const { resolvePreferredLlmProvider } =
+      await import("../../src/llm/inference.js");
     expect(await resolvePreferredLlmProvider()).toBe("ollama");
   });
 
   it("returns 'node-llama-cpp' when env is 'node-llama-cpp'", async () => {
     process.env.VSCODE_ROTATOR_LLM_PROVIDER = "node-llama-cpp";
-    const { resolvePreferredLlmProvider } = await import("../../src/llm/inference.js");
+    const { resolvePreferredLlmProvider } =
+      await import("../../src/llm/inference.js");
     expect(await resolvePreferredLlmProvider()).toBe("node-llama-cpp");
   });
 });
@@ -194,38 +222,51 @@ describe("resolvePreferredLlmProvider", () => {
 describe("verifyLocalLlmRuntime — ollama provider", () => {
   let savedEnv;
   beforeEach(() => {
-    savedEnv = { VSCODE_ROTATOR_LLM_PROVIDER: process.env.VSCODE_ROTATOR_LLM_PROVIDER };
+    savedEnv = {
+      VSCODE_ROTATOR_LLM_PROVIDER: process.env.VSCODE_ROTATOR_LLM_PROVIDER,
+    };
     process.env.VSCODE_ROTATOR_LLM_PROVIDER = "ollama";
   });
-  afterEach(() => { vi.restoreAllMocks(); resetEnv(savedEnv); });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    resetEnv(savedEnv);
+  });
 
   it("calls verifyOllamaInstalled and returns true", async () => {
     setupExecSuccess("ollama 0.3.0");
 
-    const { verifyLocalLlmRuntime } = await import("../../src/llm/inference.js");
+    const { verifyLocalLlmRuntime } =
+      await import("../../src/llm/inference.js");
     expect(await verifyLocalLlmRuntime()).toBe(true);
   });
 
   it("verifyNodeLlamaCppInstalled delegates and returns true", async () => {
     setupExecSuccess("ollama 0.3.0");
 
-    const { verifyNodeLlamaCppInstalled } = await import("../../src/llm/inference.js");
+    const { verifyNodeLlamaCppInstalled } =
+      await import("../../src/llm/inference.js");
     expect(await verifyNodeLlamaCppInstalled()).toBe(true);
   });
 });
-
 
 // ── parseOllamaListOutput via listOllamaModels (lines 131-161) ───────────────
 describe("listOllamaModels — parseOllamaListOutput branches", () => {
   let savedEnv;
   beforeEach(() => {
-    savedEnv = { VSCODE_ROTATOR_OLLAMA_BIN: process.env.VSCODE_ROTATOR_OLLAMA_BIN };
+    savedEnv = {
+      VSCODE_ROTATOR_OLLAMA_BIN: process.env.VSCODE_ROTATOR_OLLAMA_BIN,
+    };
     process.env.VSCODE_ROTATOR_OLLAMA_BIN = "ollama";
   });
-  afterEach(() => { vi.restoreAllMocks(); resetEnv(savedEnv); });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    resetEnv(savedEnv);
+  });
 
   it("parses JSON array from --json output", async () => {
-    setupExecSuccess(JSON.stringify([{ name: "phi3:mini" }, { model: "tinyllama" }]));
+    setupExecSuccess(
+      JSON.stringify([{ name: "phi3:mini" }, { model: "tinyllama" }]),
+    );
     const { listOllamaModels } = await import("../../src/llm/inference.js");
     const models = await listOllamaModels();
     expect(models).toContain("phi3:mini");
@@ -257,10 +298,15 @@ describe("listOllamaModels — parseOllamaListOutput branches", () => {
 describe("installOllamaModel", () => {
   let savedEnv;
   beforeEach(() => {
-    savedEnv = { VSCODE_ROTATOR_OLLAMA_BIN: process.env.VSCODE_ROTATOR_OLLAMA_BIN };
+    savedEnv = {
+      VSCODE_ROTATOR_OLLAMA_BIN: process.env.VSCODE_ROTATOR_OLLAMA_BIN,
+    };
     process.env.VSCODE_ROTATOR_OLLAMA_BIN = "ollama";
   });
-  afterEach(() => { vi.restoreAllMocks(); resetEnv(savedEnv); });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    resetEnv(savedEnv);
+  });
 
   it("returns true on successful pull", async () => {
     setupExecSuccess("pulling manifest...");
@@ -271,21 +317,28 @@ describe("installOllamaModel", () => {
   it("throws on pull failure", async () => {
     setupExecError("network error");
     const { installOllamaModel } = await import("../../src/llm/inference.js");
-    await expect(installOllamaModel("phi3:mini")).rejects.toThrow(/Ollama install failed/);
+    await expect(installOllamaModel("phi3:mini")).rejects.toThrow(
+      /Ollama install failed/,
+    );
   });
 });
-
 
 // ── runOllama / generate via ollama provider (lines 164-192) ─────────────────
 describe("LocalLlmInference.generate — ollama provider", () => {
   let savedEnv;
   beforeEach(() => {
-    savedEnv = { VSCODE_ROTATOR_LLM_PROVIDER: process.env.VSCODE_ROTATOR_LLM_PROVIDER };
+    savedEnv = {
+      VSCODE_ROTATOR_LLM_PROVIDER: process.env.VSCODE_ROTATOR_LLM_PROVIDER,
+    };
     process.env.VSCODE_ROTATOR_LLM_PROVIDER = "ollama";
     process.env.VSCODE_ROTATOR_OLLAMA_BIN = "ollama";
     delete process.env.VSCODE_ROTATOR_MOCK_LLM;
   });
-  afterEach(() => { vi.restoreAllMocks(); resetEnv(savedEnv); delete process.env.VSCODE_ROTATOR_OLLAMA_BIN; });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    resetEnv(savedEnv);
+    delete process.env.VSCODE_ROTATOR_OLLAMA_BIN;
+  });
 
   it("returns parsed ollama output (strips trailing --- lines)", async () => {
     setupExecDispatch((args, cb) => {
@@ -306,7 +359,9 @@ describe("LocalLlmInference.generate — ollama provider", () => {
 
     const { LocalLlmInference } = await import("../../src/llm/inference.js");
     const inf = new LocalLlmInference({});
-    await expect(inf.generate({ prompt: "hi" })).rejects.toThrow(/Ollama execution failed/);
+    await expect(inf.generate({ prompt: "hi" })).rejects.toThrow(
+      /Ollama execution failed/,
+    );
   });
 
   it("generate with MOCK_LLM set returns truncated system+prompt (lines 250-257)", async () => {
@@ -329,15 +384,20 @@ describe("LocalLlmInference.generate — ollama provider", () => {
   });
 });
 
-
 // ── assertReady branches (lines 264-288) ─────────────────────────────────────
 describe("LocalLlmInference.assertReady", () => {
   let savedEnv;
   beforeEach(() => {
-    savedEnv = { VSCODE_ROTATOR_LLM_PROVIDER: process.env.VSCODE_ROTATOR_LLM_PROVIDER };
+    savedEnv = {
+      VSCODE_ROTATOR_LLM_PROVIDER: process.env.VSCODE_ROTATOR_LLM_PROVIDER,
+    };
     delete process.env.VSCODE_ROTATOR_MOCK_LLM;
   });
-  afterEach(() => { vi.restoreAllMocks(); resetEnv(savedEnv); fsStat.mockReset(); });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    resetEnv(savedEnv);
+    fsStat.mockReset();
+  });
 
   it("throws when provider=node-llama-cpp and no model file found", async () => {
     process.env.VSCODE_ROTATOR_LLM_PROVIDER = "node-llama-cpp";
@@ -352,11 +412,15 @@ describe("LocalLlmInference.assertReady", () => {
     // listOllamaModels returns empty (both --json and plain list fail)
     execFileMock.mockImplementation(makeExecFileError("not found"));
     // stat throws so fileExists returns false for the model path
-    fsStat.mockRejectedValue(Object.assign(new Error("ENOENT"), { code: "ENOENT" }));
+    fsStat.mockRejectedValue(
+      Object.assign(new Error("ENOENT"), { code: "ENOENT" }),
+    );
 
     const { LocalLlmInference } = await import("../../src/llm/inference.js");
     const inf = new LocalLlmInference({ modelPath: "/nonexistent/model.gguf" });
-    await expect(inf.assertReady()).rejects.toThrow(/Local Ollama model not found/);
+    await expect(inf.assertReady()).rejects.toThrow(
+      /Local Ollama model not found/,
+    );
     delete process.env.VSCODE_ROTATOR_OLLAMA_BIN;
     fsStat.mockReset();
   });
@@ -367,7 +431,7 @@ describe("LocalLlmInference.assertReady", () => {
     execFileMock.mockImplementation(makeExecFileSuccess("ollama 0.3.0"));
 
     const { LocalLlmInference } = await import("../../src/llm/inference.js");
-    const inf = new LocalLlmInference({});  // no modelPath
+    const inf = new LocalLlmInference({}); // no modelPath
     expect(await inf.assertReady()).toBeNull();
     delete process.env.VSCODE_ROTATOR_OLLAMA_BIN;
   });
@@ -383,7 +447,9 @@ describe("LocalLlmInference.assertReady", () => {
     });
 
     // Make stat throw so fileExists returns false for the model name
-    fsStat.mockRejectedValue(Object.assign(new Error("ENOENT"), { code: "ENOENT" }));
+    fsStat.mockRejectedValue(
+      Object.assign(new Error("ENOENT"), { code: "ENOENT" }),
+    );
 
     const { LocalLlmInference } = await import("../../src/llm/inference.js");
     const inf = new LocalLlmInference({ modelPath: "phi3:mini" });
@@ -394,28 +460,30 @@ describe("LocalLlmInference.assertReady", () => {
   });
 });
 
-
 // ── OpenAI-compat helpers (lines 302-384) ────────────────────────────────────
 describe("isOpenAiCompatAvailable", () => {
   afterEach(() => vi.restoreAllMocks());
 
   it("returns true when /v1/models returns ok", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true }));
-    const { isOpenAiCompatAvailable } = await import("../../src/llm/inference.js");
+    const { isOpenAiCompatAvailable } =
+      await import("../../src/llm/inference.js");
     expect(await isOpenAiCompatAvailable()).toBe(true);
     vi.unstubAllGlobals();
   });
 
   it("returns false when fetch throws", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("timeout")));
-    const { isOpenAiCompatAvailable } = await import("../../src/llm/inference.js");
+    const { isOpenAiCompatAvailable } =
+      await import("../../src/llm/inference.js");
     expect(await isOpenAiCompatAvailable()).toBe(false);
     vi.unstubAllGlobals();
   });
 
   it("returns false when response.ok is false", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false }));
-    const { isOpenAiCompatAvailable } = await import("../../src/llm/inference.js");
+    const { isOpenAiCompatAvailable } =
+      await import("../../src/llm/inference.js");
     expect(await isOpenAiCompatAvailable()).toBe(false);
     vi.unstubAllGlobals();
   });
@@ -425,32 +493,44 @@ describe("listOpenAiCompatModels", () => {
   afterEach(() => vi.unstubAllGlobals());
 
   it("returns names from data array", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ data: [{ id: "gpt-3.5" }, { name: "local" }] }),
-    }));
-    const { listOpenAiCompatModels } = await import("../../src/llm/inference.js");
-    expect(await listOpenAiCompatModels()).toEqual(expect.arrayContaining(["gpt-3.5", "local"]));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: [{ id: "gpt-3.5" }, { name: "local" }] }),
+      }),
+    );
+    const { listOpenAiCompatModels } =
+      await import("../../src/llm/inference.js");
+    expect(await listOpenAiCompatModels()).toEqual(
+      expect.arrayContaining(["gpt-3.5", "local"]),
+    );
   });
 
   it("returns names from models array", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ models: [{ name: "phi3" }] }),
-    }));
-    const { listOpenAiCompatModels } = await import("../../src/llm/inference.js");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ models: [{ name: "phi3" }] }),
+      }),
+    );
+    const { listOpenAiCompatModels } =
+      await import("../../src/llm/inference.js");
     expect(await listOpenAiCompatModels()).toContain("phi3");
   });
 
   it("returns [] when response not ok", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false }));
-    const { listOpenAiCompatModels } = await import("../../src/llm/inference.js");
+    const { listOpenAiCompatModels } =
+      await import("../../src/llm/inference.js");
     expect(await listOpenAiCompatModels()).toEqual([]);
   });
 
   it("returns [] when fetch throws", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("net error")));
-    const { listOpenAiCompatModels } = await import("../../src/llm/inference.js");
+    const { listOpenAiCompatModels } =
+      await import("../../src/llm/inference.js");
     expect(await listOpenAiCompatModels()).toEqual([]);
   });
 });
@@ -459,59 +539,88 @@ describe("askOpenAiCompat", () => {
   afterEach(() => vi.unstubAllGlobals());
 
   it("posts chat completion and returns content", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockImplementation(async (url) => {
-      if (String(url).endsWith("/v1/models")) {
-        return { ok: true, json: async () => ({ data: [{ id: "local-model" }] }) };
-      }
-      return { ok: true, json: async () => ({ choices: [{ message: { content: "Hello!" } }] }) };
-    }));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation(async (url) => {
+        if (String(url).endsWith("/v1/models")) {
+          return {
+            ok: true,
+            json: async () => ({ data: [{ id: "local-model" }] }),
+          };
+        }
+        return {
+          ok: true,
+          json: async () => ({ choices: [{ message: { content: "Hello!" } }] }),
+        };
+      }),
+    );
     const { askOpenAiCompat } = await import("../../src/llm/inference.js");
     expect(await askOpenAiCompat("Say hi", "local-model")).toBe("Hello!");
   });
 
   it("uses first available model when none specified", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockImplementation(async (url) => {
-      if (String(url).endsWith("/v1/models")) {
-        return { ok: true, json: async () => ({ models: [{ name: "auto-model" }] }) };
-      }
-      return { ok: true, json: async () => ({ choices: [{ message: { content: "auto" } }] }) };
-    }));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation(async (url) => {
+        if (String(url).endsWith("/v1/models")) {
+          return {
+            ok: true,
+            json: async () => ({ models: [{ name: "auto-model" }] }),
+          };
+        }
+        return {
+          ok: true,
+          json: async () => ({ choices: [{ message: { content: "auto" } }] }),
+        };
+      }),
+    );
     const { askOpenAiCompat } = await import("../../src/llm/inference.js");
     expect(await askOpenAiCompat("prompt")).toBe("auto");
   });
 
   it("throws when completion endpoint returns non-ok", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockImplementation(async (url) => {
-      if (String(url).endsWith("/v1/models")) {
-        return { ok: true, json: async () => ({ data: [{ id: "m1" }] }) };
-      }
-      return { ok: false, status: 503 };
-    }));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation(async (url) => {
+        if (String(url).endsWith("/v1/models")) {
+          return { ok: true, json: async () => ({ data: [{ id: "m1" }] }) };
+        }
+        return { ok: false, status: 503 };
+      }),
+    );
     const { askOpenAiCompat } = await import("../../src/llm/inference.js");
-    await expect(askOpenAiCompat("fail")).rejects.toThrow(/LLM request failed: 503/);
+    await expect(askOpenAiCompat("fail")).rejects.toThrow(
+      /LLM request failed: 503/,
+    );
   });
 
   it("returns empty string when choices is empty", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockImplementation(async (url) => {
-      if (String(url).endsWith("/v1/models")) {
-        return { ok: true, json: async () => ({ data: [{ id: "m1" }] }) };
-      }
-      return { ok: true, json: async () => ({ choices: [] }) };
-    }));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation(async (url) => {
+        if (String(url).endsWith("/v1/models")) {
+          return { ok: true, json: async () => ({ data: [{ id: "m1" }] }) };
+        }
+        return { ok: true, json: async () => ({ choices: [] }) };
+      }),
+    );
     const { askOpenAiCompat } = await import("../../src/llm/inference.js");
     expect(await askOpenAiCompat("empty")).toBe("");
   });
 
   it("returns empty string when the completion payload has no message content", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockImplementation(async (url) => {
-      if (String(url).endsWith("/v1/models")) {
-        return { ok: true, json: async () => ({ data: [{ id: "m1" }] }) };
-      }
-      return {
-        ok: true,
-        json: async () => ({ choices: [{ message: {} }] }),
-      };
-    }));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation(async (url) => {
+        if (String(url).endsWith("/v1/models")) {
+          return { ok: true, json: async () => ({ data: [{ id: "m1" }] }) };
+        }
+        return {
+          ok: true,
+          json: async () => ({ choices: [{ message: {} }] }),
+        };
+      }),
+    );
     const { askOpenAiCompat } = await import("../../src/llm/inference.js");
     expect(await askOpenAiCompat("empty-content")).toBe("");
   });

@@ -182,9 +182,7 @@ function main() {
   if (allSufficient) {
     console.log("  Per-category gate: PASS");
   } else {
-    console.log(
-      `  Per-category gate: FAIL — blocking: ${blocking.join(", ")}`,
-    );
+    console.log(`  Per-category gate: FAIL — blocking: ${blocking.join(", ")}`);
   }
   console.log();
 }

@@ -94,14 +94,14 @@ describe("ExperienceDb.open() error paths", () => {
 
     // Mock fs.readFile to throw SQLITE_BUSY only for the db path
     const origReadFile = fs.readFile.bind(fs);
-    const readFileSpy = vi.spyOn(fs, "readFile").mockImplementation(
-      async (filePath, ...args) => {
+    const readFileSpy = vi
+      .spyOn(fs, "readFile")
+      .mockImplementation(async (filePath, ...args) => {
         if (String(filePath) === db.dbPath) {
           throw busyError;
         }
         return origReadFile(filePath, ...args);
-      },
-    );
+      });
 
     await expect(db.open()).rejects.toThrow("Experience DB is locked");
     readFileSpy.mockRestore();
@@ -424,9 +424,24 @@ describe("ExperienceDb.vectorSearchDocuments()", () => {
 
   it("respects the limit parameter", async () => {
     await db.replaceDocumentsForFile("many.md", [
-      { content: "Doc 1", embedding: ZERO_EMBEDDING, source_type: "md", file_ts: "2026-01-01T00:00:00.000Z" },
-      { content: "Doc 2", embedding: ZERO_EMBEDDING, source_type: "md", file_ts: "2026-01-01T00:00:00.000Z" },
-      { content: "Doc 3", embedding: ZERO_EMBEDDING, source_type: "md", file_ts: "2026-01-01T00:00:00.000Z" },
+      {
+        content: "Doc 1",
+        embedding: ZERO_EMBEDDING,
+        source_type: "md",
+        file_ts: "2026-01-01T00:00:00.000Z",
+      },
+      {
+        content: "Doc 2",
+        embedding: ZERO_EMBEDDING,
+        source_type: "md",
+        file_ts: "2026-01-01T00:00:00.000Z",
+      },
+      {
+        content: "Doc 3",
+        embedding: ZERO_EMBEDDING,
+        source_type: "md",
+        file_ts: "2026-01-01T00:00:00.000Z",
+      },
     ]);
     const results = await db.vectorSearchDocuments(ZERO_EMBEDDING, 2);
     expect(results).toHaveLength(2);
@@ -545,7 +560,7 @@ describe("ExperienceDb.getThreadContext()", () => {
         content: "Unrelated topic about cooking",
         embedding: UNIT_VEC(1),
         source_type: "thread-turn",
-        platform: "gemini",  // different platform
+        platform: "gemini", // different platform
         turn_index: 1,
         file_ts: "2026-01-01T00:00:00.000Z",
       },

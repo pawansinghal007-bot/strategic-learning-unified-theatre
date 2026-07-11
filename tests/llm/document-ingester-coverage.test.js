@@ -10,7 +10,10 @@ import os from "node:os";
 import path from "node:path";
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { DocumentIngester, chunkText } from "../../src/llm/document-ingester.js";
+import {
+  DocumentIngester,
+  chunkText,
+} from "../../src/llm/document-ingester.js";
 import { ExperienceDb } from "../../src/llm/experience-db.js";
 
 const mockPdfParse = vi.fn();
@@ -103,7 +106,11 @@ describe("DocumentIngester.ingestFile — unsupported / missing file", () => {
 
   // line 208: unsupported extension → skipped: true
   it("skips files with unsupported extensions", async () => {
-    const filePath = await writeFile(tempDir, "script.js", "console.log('hi');");
+    const filePath = await writeFile(
+      tempDir,
+      "script.js",
+      "console.log('hi');",
+    );
     const ingester = new DocumentIngester({ baseDir: tempDir });
     await ingester.db.open();
     const result = await ingester.ingestFile(filePath);
@@ -148,7 +155,9 @@ describe("DocumentIngester.ingestFile — unsupported / missing file", () => {
   });
 
   it("returns empty text for docx files when mammoth parsing throws", async () => {
-    mockMammothExtractRawText.mockRejectedValueOnce(new Error("mammoth failed"));
+    mockMammothExtractRawText.mockRejectedValueOnce(
+      new Error("mammoth failed"),
+    );
     const filePath = await writeFile(tempDir, "broken.docx", "not really docx");
     const ingester = new DocumentIngester({ baseDir: tempDir });
     await ingester.db.open();
@@ -370,11 +379,7 @@ describe("DocumentIngester.ingestFromSnapshot — deleted actions", () => {
     await ingester1.ingestFromSnapshot({ snapshotPath });
 
     // Now remove the file from the snapshot — it should trigger a "deleted" action
-    await fs.writeFile(
-      snapshotPath,
-      JSON.stringify({ paths: {} }),
-      "utf8",
-    );
+    await fs.writeFile(snapshotPath, JSON.stringify({ paths: {} }), "utf8");
 
     const ingester2 = new DocumentIngester({ baseDir: tempDir });
     const result = await ingester2.ingestFromSnapshot({ snapshotPath });

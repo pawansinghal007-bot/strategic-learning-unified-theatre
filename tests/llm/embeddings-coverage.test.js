@@ -61,7 +61,11 @@ describe("kMeans — edge cases", () => {
     // share an assignment and leave one cluster empty after first iter, the
     // empty-cluster branch fires.  Run with k=2 and 2 vectors identical so
     // one cluster ends up empty after assignment.
-    const same = [[1, 0], [1, 0], [1, 0]];
+    const same = [
+      [1, 0],
+      [1, 0],
+      [1, 0],
+    ];
     // All three identical vectors, 2 clusters → one cluster will be empty
     const result = kMeans(same, 2);
     expect(result.clusters).toHaveLength(2);
