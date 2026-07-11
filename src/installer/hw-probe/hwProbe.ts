@@ -141,7 +141,7 @@ function detectGpusLinux(): GpuInfo[] {
 
 function detectAppleSilicon(): GpuInfo[] {
   try {
-    const memBytes = parseInt(
+    const memBytes = Number.parseInt(
       (execFileSync("sysctl", ["-n", "hw.memsize"], {
         encoding: "utf8",
       }) as string).trim(),
