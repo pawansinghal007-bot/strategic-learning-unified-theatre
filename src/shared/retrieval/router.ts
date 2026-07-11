@@ -9,7 +9,6 @@
  */
 
 import * as fs from "node:fs";
-import * as path from "node:path";
 import { vectorSearch } from "./vector-client.js";
 import { searchCode } from "./code-search.js";
 import { findSymbolDefinition } from "./symbol-search.js";
