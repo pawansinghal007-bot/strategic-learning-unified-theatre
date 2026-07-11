@@ -5,10 +5,13 @@ const MEASUREMENT_LOG_FILE = "tool-call-measurement-log.json";
 const MAX_ENTRIES = 2000; // bounded, oldest entries drop off — this is a
 // sampling log for measurement, not a permanent record
 
+/** Source origin for a tool-call measurement entry. */
+export type ToolCallSource = "production" | "dev" | "ci" | "test";
+
 /** Derive call source from environment. Explicit override > CI > test > production. */
-export function detectSource(): "production" | "dev" | "ci" | "test" {
+export function detectSource(): ToolCallSource {
   const env = process.env.UNIFIED_AI_ENV;
-  if (env) return env as "production" | "dev" | "ci" | "test";
+  if (env) return env as ToolCallSource;
   if (process.env.CI) return "ci";
   if (process.env.VITEST) return "test";
   return "production";
@@ -19,7 +22,7 @@ export interface ToolCallMeasurementEntry {
   args: Record<string, string>;
   classification: ToolCallClass;
   skippedGatewayAsk: boolean;
-  source: "production" | "dev" | "ci" | "test";
+  source: ToolCallSource;
   timestamp: number;
 }
 
