@@ -4,8 +4,13 @@ var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __esm = (fn, res) => function __init() {
-  return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
+var __esm = (fn, res, err) => function __init() {
+  if (err) throw err[0];
+  try {
+    return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
+  } catch (e) {
+    throw err = [e], e;
+  }
 };
 var __export = (target, all) => {
   for (var name in all)
@@ -356,9 +361,13 @@ function getWorkspaceContext(workspaceId) {
 }
 function saveWorkspaceContext(workspaceId, payload) {
   const store = readWorkspaceContextStore();
+  let summaryToStore = payload.summary;
+  if (summaryToStore.length > WORKSPACE_CONTEXT_SUMMARY_MAX_CHARS) {
+    summaryToStore = summaryToStore.slice(0, WORKSPACE_CONTEXT_SUMMARY_MAX_CHARS) + "...";
+  }
   const record = {
     workspaceId,
-    summary: payload.summary,
+    summary: summaryToStore,
     tags: payload.tags ?? [],
     lastIntent: payload.lastIntent,
     updatedAt: Date.now()
@@ -382,7 +391,7 @@ function buildRequestContextPrompt(workspaceId) {
   if (context.lastIntent) lines.push(`Last intent: ${context.lastIntent}`);
   return lines.join("\n");
 }
-var WORKSPACE_CONTEXT_FILE, DEFAULT_WORKSPACE_CONTEXT_STORE;
+var WORKSPACE_CONTEXT_FILE, DEFAULT_WORKSPACE_CONTEXT_STORE, WORKSPACE_CONTEXT_SUMMARY_MAX_CHARS;
 var init_request_context = __esm({
   "src/memory/request-context.ts"() {
     init_storage();
@@ -391,6 +400,7 @@ var init_request_context = __esm({
     DEFAULT_WORKSPACE_CONTEXT_STORE = {
       workspaces: {}
     };
+    WORKSPACE_CONTEXT_SUMMARY_MAX_CHARS = 500;
   }
 });
 
