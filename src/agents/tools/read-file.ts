@@ -1,5 +1,4 @@
 import * as fs from "node:fs";
-import * as path from "node:path";
 import { Tool, ToolResult } from "./base";
 import { resolveSafePath } from "../../shared/security/safe-path";
 import { PROJECT_ROOT } from "../../shared/config/paths";
