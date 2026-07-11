@@ -133,7 +133,7 @@ export function enforcePromptBudget(
 
   let trimmedPrompt = prompt;
   for (const pattern of toolResultPatterns) {
-    const match = prompt.match(pattern);
+    const match = pattern.exec(prompt);
     if (match) {
       const toolResultStart = match.index ?? 0;
       const nonToolPart = prompt.slice(0, toolResultStart);
