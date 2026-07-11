@@ -67,7 +67,7 @@ export async function embed(text: string): Promise<number[]> {
 
     const embedding = json.data?.[0]?.embedding;
     if (!Array.isArray(embedding)) {
-      throw new Error(
+      throw new TypeError(
         `embed: unexpected response shape — missing data[0].embedding`,
       );
     }
