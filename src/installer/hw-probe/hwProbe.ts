@@ -78,7 +78,7 @@ export function inferVendor(name: string): GpuVendor {
  * Returns 0 for unrecognised formats.
  */
 export function parseVramString(raw: string): number {
-  const m = raw.match(/([\d.]+)\s*(GB|MB)/i);
+  const m = /([\d.]+)\s*(GB|MB)/i.exec(raw);
   if (!m) return 0;
   const value = parseFloat(m[1]);
   const unit = m[2].toUpperCase();
