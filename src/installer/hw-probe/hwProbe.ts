@@ -106,7 +106,7 @@ function tryNvidiaSmi(): GpuInfo[] {
       const [namePart, vramPart] = line.split(",");
       const name = (namePart ?? "").trim() || "Unknown NVIDIA GPU";
       const vramMB = Number.parseInt((vramPart ?? "0").trim(), 10) || 0;
-      return { name, vendor: "nvidia" as GpuVendor, vramMB };
+      return { name, vendor: "nvidia", vramMB };
     });
 }
 
