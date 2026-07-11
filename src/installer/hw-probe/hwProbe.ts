@@ -80,7 +80,7 @@ export function inferVendor(name: string): GpuVendor {
 export function parseVramString(raw: string): number {
   const m = /([\d.]+)\s*(GB|MB)/i.exec(raw);
   if (!m) return 0;
-  const value = parseFloat(m[1]);
+  const value = Number.parseFloat(m[1]);
   const unit = m[2].toUpperCase();
   return unit === "GB" ? Math.round(value * 1024) : Math.round(value);
 }
