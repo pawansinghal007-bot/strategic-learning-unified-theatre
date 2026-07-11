@@ -474,3 +474,12 @@ complete — do not treat this section as final prose._
 
 
 | src/knowledge/ingest/ingest-repository.js | 60-61,69,75,106,129-130,190,232,266-273,278 | Stmts 81.19% Branch 58.33% Funcs 94.44% Lines 83.49% | Stmts 88.88% Branch 77.08% Funcs 94.44% Lines 92.23% | cc63c061 | Tested: walkFiles isFile() branch (L60-61) — pass file path directly as baseDir, assert insert called; walkFiles subdir recursion (L69) — nested `.md` in subdirectory, assert discovery+insert; walkFiles catch block (L75) — fs.stat throws EACCES, assert console.warn contains "[ingest] Skipping"; large-file skip + skipped-count log (L129-130,232) — maxFileBytes:1, assert insert not called and log contains "Skipped 1 large file(s)"; attachVectors mismatch throw (L190) — embedTextBatch returns [] for 1-chunk file, assert rejects with "embedTextBatch returned"; parseFeatureArea undefined fallback (L106) — file at cwd root has single-segment relative path, assert inserted entity module === "unknown". L266-273 SKIPPED — main() body unreachable in Vitest (VITEST env guard returns early). L278 SKIPPED — isDirectRun() can never return true in Vitest runner. Also fixed pre-existing spy leak in test file by adding afterEach vi.restoreAllMocks(). |
+
+
+## Pre-existing Unstaged Diffs — Committed (pending condensation)
+_Two commits to clear the working tree of diffs that pre-dated the coverage hardening session._
+
+| Commit | Files | What changed |
+|---|---|---|
+| d074fdf3 | `electron-ui/ipc/*.bundled.cjs`, `electron-ui/preload.bundled.cjs` (8 files) | Bundler-generated CJS artifacts updated with error-propagating `__esm` initialiser (added try/catch + `err` param so module-init errors are captured and re-thrown on subsequent calls). No source logic changed — pure build output. |
+| 9101caea | `scripts/measurement-checkpoint.ts`, `tests/llm/document-ingester-coverage.test.js`, `tests/llm/embeddings-coverage.test.js`, `tests/llm/experience-db-coverage.test.js`, `tests/llm/inference-coverage.test.js` (5 files) | Prettier formatting only — long lines reflowed, inline object/array literals expanded to multi-line. Zero logic change confirmed by diff review. |
