@@ -178,7 +178,7 @@ export function enforcePromptBudget(
   // Fallback: If still over budget and no explicit boundary, try marker-based approach
   if (trimmedPrompt.length > budgetChars) {
     // Try to find userPrompt marker
-    const userRequestMatch = trimmedPrompt.match(/User request:[\s\S]*$/);
+    const userRequestMatch = /User request:[\s\S]*$/.exec(trimmedPrompt);
     if (userRequestMatch) {
       const userRequestStart = userRequestMatch.index ?? 0;
       const contextPart = trimmedPrompt.slice(0, userRequestStart);
