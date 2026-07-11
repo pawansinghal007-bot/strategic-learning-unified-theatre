@@ -40,7 +40,7 @@ import {
   getState,
 } from "../policies/provider-policy";
 import { buildRequestContextPrompt } from "../memory/request-context";
-import { estimateTokens, truncateToTokens } from "./agent-loop-guard.js";
+import { truncateToTokens } from "./agent-loop-guard.js";
 
 /**
  * Non-fatal error handler for gateway operations.
