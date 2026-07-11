@@ -113,7 +113,7 @@ function isSymbolLikeQuery(query: string): boolean {
   if (query.includes(" ")) return false;
   // Match: identifier, or identifier.identifier, or identifier.identifier.identifier, etc.
   // Each segment must start with letter/underscore, followed by alphanumerics/underscore
-  const segment = /^[A-Za-z_][A-Za-z0-9_]*$/;
+  const segment = /^[A-Za-z_]\w*$/;
   const parts = query.split(".");
   if (parts.length === 0) return false;
   return parts.every((p) => segment.test(p));
