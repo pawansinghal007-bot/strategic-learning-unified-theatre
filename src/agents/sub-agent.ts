@@ -6,7 +6,7 @@ import {
   ProviderResponse,
 } from "../shared/contracts/provider";
 import { getTool } from "./tools/registry";
-import { classifyToolCall, type ToolCallClass } from "./tool-call-classifier";
+import { classifyToolCall } from "./tool-call-classifier";
 import { recordToolCallForMeasurement } from "./tool-call-measurement-log.js";
 
 // ─── private helpers ─────────────────────────────────────────────────────────
