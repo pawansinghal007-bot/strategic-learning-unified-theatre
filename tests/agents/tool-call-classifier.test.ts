@@ -275,6 +275,24 @@ describe("classifyToolCall", () => {
     });
   });
 
+  // ─── Edge cases for isRetrievePathLike regex (S5843) ────────────────────
+  // These hit the KNOWN_EXTENSIONS regex rather than short-circuiting via `/` or `\`
+
+  it('classifies retrieve with bare filename and known extension as "path-like"', () => {
+    const result = classifyToolCall("retrieve", { query: "config.json" });
+    expect(result).toBe("path-like");
+  });
+
+  it('classifies retrieve with bare filename and no known extension as "symbol-like"', () => {
+    const result = classifyToolCall("retrieve", { query: "Makefile" });
+    expect(result).toBe("symbol-like");
+  });
+
+  it('classifies retrieve with dotted identifier (not a known extension) as "symbol-like"', () => {
+    const result = classifyToolCall("retrieve", { query: "gateway.ask" });
+    expect(result).toBe("symbol-like");
+  });
+
   // ─── edge cases ────────────────────────────────────────────────────────────
 
   describe("edge cases", () => {
