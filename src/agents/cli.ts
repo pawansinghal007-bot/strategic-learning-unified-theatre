@@ -88,6 +88,6 @@ export async function main(
 // `import.meta.url` vs `process.argv[1]` check keeps the module importable
 // without side effects under Vitest, ts-node, or any other loader.
 /* istanbul ignore next -- entry guard: unreachable when imported by the test runner */
-if (process.argv[1] && process.argv[1].endsWith("cli.ts")) {
+if (process.argv[1]?.endsWith("cli.ts")) {
   await main(process.argv.slice(2));
 }
