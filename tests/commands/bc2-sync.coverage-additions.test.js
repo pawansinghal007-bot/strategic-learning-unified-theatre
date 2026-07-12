@@ -31,9 +31,9 @@ import {
 let tempDir, captureDbPath, baseDir;
 
 beforeEach(async () => {
-  tempDir       = await fs.mkdtemp(path.join(os.tmpdir(), "bc2-cov-"));
+  tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "bc2-cov-"));
   captureDbPath = path.join(tempDir, "capture.db");
-  baseDir       = path.join(tempDir, "rotator");
+  baseDir = path.join(tempDir, "rotator");
 
   const db = new Database(captureDbPath);
   db.exec(`
@@ -49,14 +49,21 @@ beforeEach(async () => {
     );
   `);
   db.prepare(
-    "INSERT INTO chat_sessions (site, url, conversation_key, model_name, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)"
-  ).run("chatgpt", "https://chatgpt.com", "k1", "gpt-4", "2026-01-01T00:00:00Z", "2026-01-01T00:00:00Z");
+    "INSERT INTO chat_sessions (site, url, conversation_key, model_name, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
+  ).run(
+    "chatgpt",
+    "https://chatgpt.com",
+    "k1",
+    "gpt-4",
+    "2026-01-01T00:00:00Z",
+    "2026-01-01T00:00:00Z",
+  );
   db.prepare(
-    "INSERT INTO chat_messages (chat_session_id, role, text_content, ts) VALUES (?, ?, ?, ?)"
+    "INSERT INTO chat_messages (chat_session_id, role, text_content, ts) VALUES (?, ?, ?, ?)",
   ).run(1, "assistant", "Hello from assistant.", "2026-01-01T10:00:00Z");
   db.prepare(
-    "INSERT INTO chat_messages (chat_session_id, role, text_content, ts) VALUES (?, ?, ?, ?)"
-  ).run(1, "User", "Hi there user.", "2026-01-01T10:01:00Z");  // non-"assistant" role
+    "INSERT INTO chat_messages (chat_session_id, role, text_content, ts) VALUES (?, ?, ?, ?)",
+  ).run(1, "User", "Hi there user.", "2026-01-01T10:01:00Z"); // non-"assistant" role
   db.close();
 });
 
@@ -83,14 +90,21 @@ describe("normalizeRole — non-assistant role normalises to 'user' (line 15)", 
 describe("parseSince null early-return (line 34)", () => {
   it("returns all rows when since is not provided (null early-return)", async () => {
     // since omitted → parseSince returns null → all rows returned
-    const result = await syncBc2Messages({ captureDbPath, baseDir, dryRun: true });
+    const result = await syncBc2Messages({
+      captureDbPath,
+      baseDir,
+      dryRun: true,
+    });
     expect(result.since).toBeNull();
     expect(result.total).toBe(2);
   });
 
   it("returns all rows when since is explicitly undefined", async () => {
     const result = await syncBc2Messages({
-      captureDbPath, baseDir, dryRun: true, since: undefined,
+      captureDbPath,
+      baseDir,
+      dryRun: true,
+      since: undefined,
     });
     expect(result.since).toBeNull();
   });
@@ -159,7 +173,10 @@ describe("bindBc2SyncCommand schedule log (line 220)", () => {
     const cmdStub = {
       description: () => cmdStub,
       option: () => cmdStub,
-      action: (fn) => { actionFn = fn; return cmdStub; },
+      action: (fn) => {
+        actionFn = fn;
+        return cmdStub;
+      },
     };
     bindBc2SyncCommand({ command: () => cmdStub });
 
@@ -181,7 +198,6 @@ describe("bindBc2SyncCommand schedule log (line 220)", () => {
     vi.useRealTimers();
   });
 });
-
 
 // ─── fetchBc2Messages: rows not an Array → return [] (branch 8[0] line 55) ──
 
@@ -294,7 +310,9 @@ describe("syncBc2Messages — null row fields trigger ?? fallbacks (lines 95, 98
 describe("schedule interval — active guard fires (branch 28[0] line 155)", () => {
   it("skips the interval callback when a previous runOnce is still in-flight", async () => {
     vi.useFakeTimers();
-    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
 
     // Use a real DB so runOnce resolves quickly, but by advancing fake timers
     // fast enough we ensure the active guard is exercised.
@@ -332,7 +350,9 @@ const SCHEDULE_INTERVAL_MS = 5 * 60 * 1000;
 describe("schedule interval — non-Error thrown triggers ?? fallback (branch 29[1] line 160)", () => {
   it("logs the raw thrown value when error has no .message property", async () => {
     vi.useFakeTimers();
-    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
 
     // Start the scheduler normally
     const resultP = syncBc2Messages({
@@ -381,11 +401,16 @@ describe("bindBc2SyncCommand — thrown non-Error uses ?? fallback (branch 32[1]
     const cmdStub = {
       description: () => cmdStub,
       option: () => cmdStub,
-      action: (fn) => { actionFn = fn; return cmdStub; },
+      action: (fn) => {
+        actionFn = fn;
+        return cmdStub;
+      },
     };
     bindBc2SyncCommand({ command: () => cmdStub });
 
-    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
     const origExitCode = process.exitCode;
 
     // Make syncBc2Messages throw a plain string by patching Database.prototype.prepare
@@ -418,7 +443,6 @@ describe("bindBc2SyncCommand — thrown non-Error uses ?? fallback (branch 32[1]
   });
 });
 
-
 // ─── created_at ?? new Date() fallback in file_ts and metadata (lines 102-103) ─
 
 describe("syncBc2Messages — null created_at row passes through chunks.map (lines 102-103)", () => {
@@ -440,7 +464,11 @@ describe("syncBc2Messages — null created_at row passes through chunks.map (lin
 
     // No `since` → parseSince returns null → no date-filter → null-ts row reaches chunks.map
     // dryRun so we don't need the ingester
-    const result = await syncBc2Messages({ captureDbPath, baseDir, dryRun: true });
+    const result = await syncBc2Messages({
+      captureDbPath,
+      baseDir,
+      dryRun: true,
+    });
     // The null-ts row has non-empty content so it is counted
     expect(result.total).toBeGreaterThanOrEqual(1);
     // Verify no crash — the ?? new Date().toISOString() fallbacks fired without throwing

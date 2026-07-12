@@ -60,10 +60,7 @@ export async function main(
       // Write report
       const reportDir = path.resolve(process.cwd(), "logs");
       fs.mkdirSync(reportDir, { recursive: true });
-      const reportPath = path.join(
-        reportDir,
-        `code-review-${Date.now()}.md`,
-      );
+      const reportPath = path.join(reportDir, `code-review-${Date.now()}.md`);
       fs.writeFileSync(reportPath, result.finalOutput, "utf-8");
       console.log(`\nReport written to: ${reportPath}`);
     } else {
