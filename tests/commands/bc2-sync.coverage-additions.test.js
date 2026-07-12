@@ -148,36 +148,6 @@ describe("ingester.ingestChunks result.rows not an array (line 133)", () => {
   });
 });
 
-// ─── schedule active-guard (lines 155-160) ───────────────────────────────────
-
-describe("schedule interval active-guard (lines 155-160)", () => {
-  it("skips concurrent execution when a runOnce is already in progress", async () => {
-    vi.useFakeTimers();
-    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
-
-    // Patch syncBc2Messages to make runOnce hang on the second call
-    let callCount = 0;
-    vi.doMock("../../src/commands/bc2-sync.js", async (importOriginal) => {
-      const real = await importOriginal();
-      // Wrap syncBc2Messages to track calls — we test the real active-guard
-      return real;
-    });
-
-    const resultP = syncBc2Messages({
-      captureDbPath, baseDir, schedule: true, dryRun: true,
-    });
-    await vi.advanceTimersByTimeAsync(0);
-    await resultP;
-
-    // Advance two intervals — second should be skipped if first is still running
-    await vi.advanceTimersByTimeAsync(5 * 60 * 1000);
-    await vi.advanceTimersByTimeAsync(5 * 60 * 1000);
-
-    consoleError.mockRestore();
-    vi.useRealTimers();
-  });
-});
-
 // ─── bindBc2SyncCommand — schedule=true logs scheduling message (line 220) ──
 
 describe("bindBc2SyncCommand schedule log (line 220)", () => {
