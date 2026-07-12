@@ -102,9 +102,17 @@ function isPlainPath(value: string): boolean {
 function isRetrievePathLike(value: string): boolean {
   if (!isPlainPath(value)) return false;
   if (value.includes("/") || value.includes("\\")) return true;
-  const KNOWN_EXTENSIONS =
-    /\.(ts|tsx|js|jsx|mjs|cjs|json|md|yml|yaml|py|go|rs|java|c|cpp|h|hpp|css|scss|html|sql|sh|txt|toml|xml|env)$/i;
-  return KNOWN_EXTENSIONS.test(value);
+  // Set-based extension lookup replaces 29-branch regex (S5843)
+  const KNOWN_EXTENSIONS = new Set([
+    "ts", "tsx", "js", "jsx", "mjs", "cjs", "json", "md",
+    "yml", "yaml", "py", "go", "rs", "java", "c", "cpp",
+    "h", "hpp", "css", "scss", "html", "sql", "sh", "txt",
+    "toml", "xml", "env",
+  ]);
+  const dotIdx = value.lastIndexOf(".");
+  if (dotIdx === -1) return false;
+  const ext = value.slice(dotIdx + 1).toLowerCase();
+  return KNOWN_EXTENSIONS.has(ext);
 }
 
 /** Does this query look like a single identifier or dotted qualified name? */
