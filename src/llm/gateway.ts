@@ -60,9 +60,7 @@ function logNonFatalError(error: unknown, context: string): void {
  * `changed: true` — the step produced a new (shorter) prompt.
  * `changed: false` — the step could not trim; leave the prompt as-is and fall through.
  */
-type TrimStepResult =
-  | { changed: true; prompt: string }
-  | { changed: false };
+type TrimStepResult = { changed: true; prompt: string } | { changed: false };
 
 /**
  * Marker-fallback result distinguishes "marker found but didn't fit" from
@@ -89,9 +87,7 @@ function tryDropWorkspaceContext(
   const userRequestPrefix = "User request: ";
   if (!remainingPrompt.startsWith(userRequestPrefix)) return { changed: false };
 
-  const userPromptFromMarker = remainingPrompt.slice(
-    userRequestPrefix.length,
-  );
+  const userPromptFromMarker = remainingPrompt.slice(userRequestPrefix.length);
   if (userPromptFromMarker.length > budgetChars) return { changed: false };
 
   logger.warn("gateway.prompt.trimmed", {
@@ -255,7 +251,11 @@ export function enforcePromptBudget(
 
   // Step (a): Try dropping workspace context first if present
   if (workspaceContext) {
-    const a = tryDropWorkspaceContext(trimmedPrompt, workspaceContext, budgetChars);
+    const a = tryDropWorkspaceContext(
+      trimmedPrompt,
+      workspaceContext,
+      budgetChars,
+    );
     if (a.changed) {
       trimmedPrompt = a.prompt;
     }
@@ -293,7 +293,11 @@ export function enforcePromptBudget(
         budgetChars,
         note: "Prompt exceeds budget but cannot be safely trimmed without explicit userPrompt boundary. Passing through untrimmed to avoid losing user content.",
       });
-      return { trimmedPrompt: prompt, originalLength, trimmedLength: originalLength };
+      return {
+        trimmedPrompt: prompt,
+        originalLength,
+        trimmedLength: originalLength,
+      };
     }
     // else: marker was found but couldn't fit within budget —
     // trimmedPrompt stays exactly as steps (a)/(b)/(c) left it. This
