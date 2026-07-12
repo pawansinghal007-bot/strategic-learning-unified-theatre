@@ -232,4 +232,39 @@ describe("enforcePromptBudget", () => {
     expect(result.trimmedLength).toBeLessThanOrEqual(budgetChars + 32); // +32 for compression padding
     expect(result.trimmedLength).toBeLessThan(DEFAULT_BUDGET_CHARS); // Should be less than default
   });
+
+  // -------------------------------------------------------------------------
+  // Test 7: True fail-safe — no marker at all returns original untouched prompt
+  // -------------------------------------------------------------------------
+  it("returns original untouched prompt when no 'User request:' marker exists (true fail-safe)", () => {
+    // Plain over-budget blob with NO "User request:" marker anywhere
+    // This exercises the markerFound:false path (true fail-safe)
+    const uniqueMarker = "UNIQUE_FAILSAFE_MARKER_12345";
+    const prompt = `${uniqueMarker}_${makeString(8000)}`; // 8025 chars, over budget
+    const budgetChars = 1500; // 375 tokens
+
+    const result = enforcePromptBudget(
+      prompt,
+      { maxTokens: 375 },
+      undefined, // no workspace context
+      undefined, // no explicit userPrompt boundary
+    );
+
+    // Must return the ORIGINAL untouched prompt (true fail-safe)
+    expect(result.trimmedPrompt).toBe(prompt);
+    expect(result.trimmedLength).toBe(result.originalLength);
+    expect(result.trimmedLength).toBeGreaterThan(budgetChars); // Over budget, but untrimmed
+
+    // Must log the cannot-truncate-no-boundary warning
+    const cannotTruncateCalls = logger.warn.mock.calls.filter(
+      (call) => call[0] === "gateway.prompt.cannot-truncate-no-boundary",
+    );
+    expect(cannotTruncateCalls).toHaveLength(1);
+    expect(cannotTruncateCalls[0][1]).toMatchObject({
+      reason: "budget_exceeded_but_no_user_prompt_boundary",
+    });
+
+    // Verify the unique marker is still present (prompt was not modified)
+    expect(result.trimmedPrompt).toContain(uniqueMarker);
+  });
 });

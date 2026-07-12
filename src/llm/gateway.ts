@@ -53,6 +53,165 @@ function logNonFatalError(error: unknown, context: string): void {
   });
 }
 
+// ─── enforcePromptBudget helpers (extracted for cyclomatic-complexity reduction) ───
+
+/**
+ * Discriminated return types for trim steps.
+ * `changed: true` — the step produced a new (shorter) prompt.
+ * `changed: false` — the step could not trim; leave the prompt as-is and fall through.
+ */
+type TrimStepResult =
+  | { changed: true; prompt: string }
+  | { changed: false };
+
+/**
+ * Marker-fallback result distinguishes "marker found but didn't fit" from
+ * "no marker at all" — the latter is the true fail-safe that returns the
+ * original untouched prompt.
+ */
+type MarkerFallbackResult =
+  | { changed: true; prompt: string }
+  | { changed: false; markerFound: boolean };
+
+/**
+ * Step (a): Try dropping workspace context first if present.
+ * Returns `{ changed: true, prompt }` if workspace context was found and dropped,
+ * otherwise `{ changed: false }` to signal the next step should run.
+ */
+function tryDropWorkspaceContext(
+  prompt: string,
+  workspaceContext: string,
+  budgetChars: number,
+): TrimStepResult {
+  if (!prompt.startsWith(workspaceContext)) return { changed: false };
+
+  const remainingPrompt = prompt.slice(workspaceContext.length).trimStart();
+  const userRequestPrefix = "User request: ";
+  if (!remainingPrompt.startsWith(userRequestPrefix)) return { changed: false };
+
+  const userPromptFromMarker = remainingPrompt.slice(
+    userRequestPrefix.length,
+  );
+  if (userPromptFromMarker.length > budgetChars) return { changed: false };
+
+  logger.warn("gateway.prompt.trimmed", {
+    reason: "workspace_context_dropped",
+    originalLength: prompt.length,
+    trimmedLength: userPromptFromMarker.length,
+    workspaceContextLength: workspaceContext.length,
+  });
+  return { changed: true, prompt: userPromptFromMarker };
+}
+
+/**
+ * Step (b): Truncate TOOL RESULT content from the end, keeping most recent portion.
+ * Returns `{ changed: true, prompt }` if a tool result pattern was found and truncated,
+ * otherwise `{ changed: false }` to signal the next step should run.
+ */
+function tryTruncateToolResult(
+  prompt: string,
+  budgetChars: number,
+): TrimStepResult {
+  const toolResultPatterns = [
+    /(\n\n)?TOOL RESULT:[\s\S]*$/i,
+    /(\n\n)?Tool output:[\s\S]*$/i,
+    /(\n\n)?TOOL OUTPUT:[\s\S]*$/i,
+  ];
+
+  for (const pattern of toolResultPatterns) {
+    const match = pattern.exec(prompt);
+    if (!match) continue;
+
+    const toolResultStart = match.index ?? 0;
+    const nonToolPart = prompt.slice(0, toolResultStart);
+    const toolResultPart = prompt.slice(toolResultStart);
+
+    if (nonToolPart.length > budgetChars) continue;
+
+    const availableSpace = budgetChars - nonToolPart.length;
+    const truncatedToolResult = truncateToTokens(
+      toolResultPart,
+      Math.max(availableSpace / 4, 100), // min 100 chars worth of tokens
+      { fromEnd: true }, // Keep most recent (tail) portion
+    );
+    return { changed: true, prompt: nonToolPart + truncatedToolResult };
+  }
+  return { changed: false };
+}
+
+/**
+ * Step (c): Use explicit userPrompt boundary if provided.
+ * Returns `{ changed: true, prompt }` if userPrompt is found and fits within budget.
+ * Returns `{ changed: false }` if userPrompt is missing, not found, or exceeds budget —
+ * in which case the original code leaves trimmedPrompt untouched and falls through.
+ */
+function tryPreserveUserPrompt(
+  prompt: string,
+  budgetChars: number,
+  userPrompt: string | undefined,
+): TrimStepResult {
+  if (!userPrompt) return { changed: false };
+
+  const userPromptIndex = prompt.indexOf(userPrompt);
+  if (userPromptIndex < 0) return { changed: false };
+
+  const contextPart = prompt.slice(0, userPromptIndex);
+  const userPromptText = prompt.slice(userPromptIndex);
+  const minContextChars = 500;
+
+  if (userPromptText.length <= budgetChars - minContextChars) {
+    const availableSpace = budgetChars - userPromptText.length;
+    const newPrompt =
+      contextPart.slice(0, availableSpace).trimEnd() + "\n\n" + userPromptText;
+    return { changed: true, prompt: newPrompt };
+  }
+
+  // userPrompt alone exceeds available budget — original code leaves
+  // trimmedPrompt untouched here and falls through to step (d).
+  return { changed: false };
+}
+
+/**
+ * Step (d): Marker-based fallback when no explicit userPrompt boundary.
+ * Returns `{ changed: true, prompt }` if "User request:" marker is found and fits.
+ * Returns `{ changed: false, markerFound: true }` if marker found but doesn't fit budget.
+ * Returns `{ changed: false, markerFound: false }` if no marker at all — this is the
+ * TRUE fail-safe case that signals the caller to return the original untouched prompt.
+ */
+function tryMarkerBasedFallback(
+  prompt: string,
+  budgetChars: number,
+): MarkerFallbackResult {
+  const userRequestMatch = /User request:[\s\S]*$/.exec(prompt);
+
+  if (!userRequestMatch) {
+    // No marker anywhere — this is the TRUE fail-safe case. The caller
+    // is responsible for returning the ORIGINAL prompt param here, not
+    // this function's `prompt` argument (which may already be partially
+    // trimmed by steps a/b/c) — see caller logic below.
+    return { changed: false, markerFound: false };
+  }
+
+  const userRequestStart = userRequestMatch.index ?? 0;
+  const contextPart = prompt.slice(0, userRequestStart);
+  const userPromptFromMarker = prompt.slice(userRequestStart);
+  const minContextChars = 500;
+
+  if (userPromptFromMarker.length <= budgetChars - minContextChars) {
+    const availableSpace = budgetChars - userPromptFromMarker.length;
+    const newPrompt =
+      contextPart.slice(0, availableSpace).trimEnd() +
+      "\n\n" +
+      userPromptFromMarker;
+    return { changed: true, prompt: newPrompt };
+  }
+
+  // Marker found but doesn't fit budget — original code leaves
+  // trimmedPrompt untouched, marker WAS found, so this is NOT the
+  // fail-safe case.
+  return { changed: false, markerFound: true };
+}
+
 /**
  * Budget guard: trim oversized prompts before provider dispatch.
  * Trim order: (a) drop workspace context first, (b) truncate TOOL RESULT from end,
@@ -87,131 +246,58 @@ export function enforcePromptBudget(
       : DEFAULT_BUDGET_CHARS;
 
   const originalLength = prompt.length;
+  let trimmedPrompt = prompt;
 
   // If within budget, return as-is
-  if (originalLength <= budgetChars) {
-    return {
-      trimmedPrompt: prompt,
-      originalLength,
-      trimmedLength: originalLength,
-    };
+  if (trimmedPrompt.length <= budgetChars) {
+    return { trimmedPrompt, originalLength, trimmedLength: originalLength };
   }
 
   // Step (a): Try dropping workspace context first if present
-  if (workspaceContext && prompt.startsWith(workspaceContext)) {
-    const remainingPrompt = prompt.slice(workspaceContext.length).trimStart();
-    // Check if remaining is within budget (accounting for the "User request:" prefix)
-    const userRequestPrefix = "User request: ";
-    if (remainingPrompt.startsWith(userRequestPrefix)) {
-      const userPromptFromMarker = remainingPrompt.slice(
-        userRequestPrefix.length,
-      );
-      // If user prompt alone is within budget, return just it
-      if (userPromptFromMarker.length <= budgetChars) {
-        logger.warn("gateway.prompt.trimmed", {
-          reason: "workspace_context_dropped",
-          originalLength,
-          trimmedLength: userPromptFromMarker.length,
-          workspaceContextLength: workspaceContext.length,
-        });
-        return {
-          trimmedPrompt: userPromptFromMarker,
-          originalLength,
-          trimmedLength: userPromptFromMarker.length,
-        };
-      }
+  if (workspaceContext) {
+    const a = tryDropWorkspaceContext(trimmedPrompt, workspaceContext, budgetChars);
+    if (a.changed) {
+      trimmedPrompt = a.prompt;
     }
   }
 
-  // Step (b): Truncate TOOL RESULT content from the end, keeping most recent portion
-  // Look for patterns like "TOOL RESULT:" or "Tool output:" at the end
-  const toolResultPatterns = [
-    /(\n\n)?TOOL RESULT:[\s\S]*$/i,
-    /(\n\n)?Tool output:[\s\S]*$/i,
-    /(\n\n)?TOOL OUTPUT:[\s\S]*$/i,
-  ];
-
-  let trimmedPrompt = prompt;
-  for (const pattern of toolResultPatterns) {
-    const match = pattern.exec(prompt);
-    if (match) {
-      const toolResultStart = match.index ?? 0;
-      const nonToolPart = prompt.slice(0, toolResultStart);
-      const toolResultPart = prompt.slice(toolResultStart);
-
-      // Keep non-tool part entirely, truncate tool result
-      if (nonToolPart.length <= budgetChars) {
-        const availableSpace = budgetChars - nonToolPart.length;
-        const truncatedToolResult = truncateToTokens(
-          toolResultPart,
-          Math.max(availableSpace / 4, 100), // min 100 chars worth of tokens
-          { fromEnd: true }, // Keep most recent (tail) portion
-        );
-        trimmedPrompt = nonToolPart + truncatedToolResult;
-        break;
-      }
+  // Step (b): Truncate TOOL RESULT content from the end
+  if (trimmedPrompt.length > budgetChars) {
+    const b = tryTruncateToolResult(trimmedPrompt, budgetChars);
+    if (b.changed) {
+      trimmedPrompt = b.prompt;
     }
   }
 
   // Step (c): If still over budget, use explicit userPrompt boundary if provided
-  // This is the PREFERRED approach - explicit boundary via userPrompt parameter
-  if (trimmedPrompt.length > budgetChars && userPrompt) {
-    // Find the userPrompt in the trimmedPrompt to establish the boundary
-    const userPromptIndex = trimmedPrompt.indexOf(userPrompt);
-    if (userPromptIndex >= 0) {
-      const contextPart = trimmedPrompt.slice(0, userPromptIndex);
-      const userPromptText = trimmedPrompt.slice(userPromptIndex);
-
-      // Keep at least some context, but ensure userPrompt is intact
-      const minContextChars = 500; // minimum context to keep
-      if (userPromptText.length <= budgetChars - minContextChars) {
-        const availableSpace = budgetChars - userPromptText.length;
-        trimmedPrompt =
-          contextPart.slice(0, availableSpace).trimEnd() +
-          "\n\n" +
-          userPromptText;
-      }
-      // If userPrompt alone exceeds budget, leave it untrimmed with warning below
+  if (trimmedPrompt.length > budgetChars) {
+    const c = tryPreserveUserPrompt(trimmedPrompt, budgetChars, userPrompt);
+    if (c.changed) {
+      trimmedPrompt = c.prompt;
     }
   }
 
-  // Fallback: If still over budget and no explicit boundary, try marker-based approach
+  // Step (d): Fallback — marker-based approach, or fail-safe pass-through
   if (trimmedPrompt.length > budgetChars) {
-    // Try to find userPrompt marker
-    const userRequestMatch = /User request:[\s\S]*$/.exec(trimmedPrompt);
-    if (userRequestMatch) {
-      const userRequestStart = userRequestMatch.index ?? 0;
-      const contextPart = trimmedPrompt.slice(0, userRequestStart);
-      const userPromptFromMarker = trimmedPrompt.slice(userRequestStart);
-
-      // Keep at least some context, but ensure userPrompt is intact
-      const minContextChars = 500; // minimum context to keep
-      if (userPromptFromMarker.length <= budgetChars - minContextChars) {
-        const availableSpace = budgetChars - userPromptFromMarker.length;
-        trimmedPrompt =
-          contextPart.slice(0, availableSpace).trimEnd() +
-          "\n\n" +
-          userPromptFromMarker;
-      }
-    } else {
-      // No clear marker and no explicit userPrompt boundary
-      // CRITICAL: Do NOT silently truncate - log warning and return untrimmed
-      // Blind end-truncation without a known boundary was rejected as unsafe
-      // because it may silently cut into the user's own prompt text, losing
-      // critical instructions or context. The caller must ensure userPrompt
-      // is provided or accept that oversized prompts will pass through.
+    const d = tryMarkerBasedFallback(trimmedPrompt, budgetChars);
+    if (d.changed) {
+      trimmedPrompt = d.prompt;
+    } else if (!d.markerFound) {
+      // TRUE fail-safe: no "User request:" marker anywhere in the
+      // (possibly already-partially-trimmed) prompt. Original behavior:
+      // discard ALL partial trimming from steps (a)/(b)/(c) and return
+      // the pristine original `prompt` parameter untouched.
       logger.warn("gateway.prompt.cannot-truncate-no-boundary", {
         reason: "budget_exceeded_but_no_user_prompt_boundary",
         originalLength,
         budgetChars,
         note: "Prompt exceeds budget but cannot be safely trimmed without explicit userPrompt boundary. Passing through untrimmed to avoid losing user content.",
       });
-      return {
-        trimmedPrompt: prompt,
-        originalLength,
-        trimmedLength: originalLength,
-      };
+      return { trimmedPrompt: prompt, originalLength, trimmedLength: originalLength };
     }
+    // else: marker was found but couldn't fit within budget —
+    // trimmedPrompt stays exactly as steps (a)/(b)/(c) left it. This
+    // matches the original: neither branch modifies trimmedPrompt here.
   }
 
   const trimmedLength = trimmedPrompt.length;
