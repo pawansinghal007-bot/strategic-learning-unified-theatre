@@ -29,6 +29,18 @@ function isDeclarationFile(fileName: string): boolean {
 }
 
 /**
+ * Returns true if a file entry should be included in the symbol extraction
+ * walk based on its extension and whether it's a test or declaration file.
+ */
+function shouldIncludeFile(entry: string, fullPath: string): boolean {
+  const ext = path.extname(entry);
+  if (!SOURCE_EXTENSIONS.has(ext)) return false;
+  if (isTestFile(entry)) return false;
+  if (isDeclarationFile(entry)) return false;
+  return true;
+}
+
+/**
  * Recursively walks `src/` under PROJECT_ROOT and returns absolute paths
  * of all source files eligible for symbol extraction.
  */
@@ -64,11 +76,9 @@ export function walkSourceFiles(rootDir: string = PROJECT_ROOT): string[] {
         if (EXCLUDED_DIR_NAMES.has(entry)) continue;
         walk(fullPath);
       } else if (stat.isFile()) {
-        const ext = path.extname(entry);
-        if (!SOURCE_EXTENSIONS.has(ext)) continue;
-        if (isTestFile(entry)) continue;
-        if (isDeclarationFile(entry)) continue;
-        results.push(fullPath);
+        if (shouldIncludeFile(entry, fullPath)) {
+          results.push(fullPath);
+        }
       }
     }
   }
