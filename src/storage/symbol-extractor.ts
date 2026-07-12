@@ -152,6 +152,134 @@ function findTopLevelDeclaration(
   return null;
 }
 
+/** Type alias for the addSymbol callback used by all handlers. */
+type AddSymbolFn = (name: string, kind: string, node: ts.Node) => void;
+
+/** Handler: top-level function declaration. */
+function handleFunction(
+  node: ts.FunctionDeclaration,
+  addSymbol: AddSymbolFn,
+): void {
+  if (node.name) {
+    addSymbol(node.name.text, "function", node);
+  }
+}
+
+/** Handler: top-level class declaration + its methods. */
+function handleClass(
+  node: ts.ClassDeclaration,
+  addSymbol: AddSymbolFn,
+): void {
+  if (node.name) {
+    addSymbol(node.name.text, "class", node);
+    // class methods
+    for (const member of node.members) {
+      if (
+        ts.isMethodDeclaration(member) &&
+        member.name &&
+        ts.isIdentifier(member.name)
+      ) {
+        addSymbol(`${node.name.text}.${member.name.text}`, "method", member);
+      }
+    }
+  }
+}
+
+/** Handler: top-level interface declaration. */
+function handleInterface(
+  node: ts.InterfaceDeclaration,
+  addSymbol: AddSymbolFn,
+): void {
+  addSymbol(node.name.text, "interface", node);
+}
+
+/** Handler: top-level type alias declaration. */
+function handleTypeAlias(
+  node: ts.TypeAliasDeclaration,
+  addSymbol: AddSymbolFn,
+): void {
+  addSymbol(node.name.text, "type", node);
+}
+
+/** Handler: top-level enum declaration. */
+function handleEnum(
+  node: ts.EnumDeclaration,
+  addSymbol: AddSymbolFn,
+): void {
+  addSymbol(node.name.text, "enum", node);
+}
+
+/**
+ * Handler: exported variable statement.
+ * Handles the load-bearing object-literal-method extraction pattern:
+ * `export const xTool = { ..., async execute(...) {...} }`
+ */
+function handleExportedVariable(
+  node: ts.VariableStatement,
+  addSymbol: AddSymbolFn,
+): void {
+  if (!node.modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword)) {
+    return;
+  }
+  for (const decl of node.declarationList.declarations) {
+    if (!ts.isIdentifier(decl.name)) continue;
+    const varName = decl.name.text;
+
+    if (
+      decl.initializer &&
+      ts.isObjectLiteralExpression(decl.initializer)
+    ) {
+      // export const xTool = { ..., async execute(...) {...} }
+      // Record the object itself AND each of its method-shorthand
+      // properties, dotted as VarName.methodName.
+      addSymbol(varName, "variable", decl);
+      for (const prop of decl.initializer.properties) {
+        if (
+          ts.isMethodDeclaration(prop) &&
+          prop.name &&
+          ts.isIdentifier(prop.name)
+        ) {
+          addSymbol(`${varName}.${prop.name.text}`, "method", prop);
+        }
+      }
+    } else {
+      addSymbol(varName, "variable", decl);
+    }
+  }
+}
+
+/**
+ * Handler: export default / export = assignment.
+ * Resolves identifier to top-level declaration, with inline fallback.
+ */
+function handleExportAssignment(
+  node: ts.ExportAssignment,
+  addSymbol: AddSymbolFn,
+  sourceFile: ts.SourceFile,
+  relativePath: string,
+): void {
+  if (node.isExportEquals) return;
+  const expr = node.expression;
+  if (ts.isIdentifier(expr)) {
+    const found = findTopLevelDeclaration(sourceFile, expr.text);
+    if (found) {
+      addSymbol(expr.text, found.kind, found.node);
+    } else {
+      // Identifier not declared at top level in this file (e.g.
+      // imported and immediately re-exported) — record the export
+      // statement itself so the name is still findable.
+      addSymbol(expr.text, "default-export", node);
+    }
+  } else {
+    // export default <inline expression> with no separate declared
+    // name — fall back to the file's own base name.
+    const baseName = path
+      .basename(relativePath)
+      .replace(/\.(ts|tsx|js|jsx)$/, "");
+    addSymbol(baseName, "default-export", node);
+  }
+}
+
 /**
  * Extracts top-level function/class/interface/type/enum declarations,
  * plus class methods, from a single source file.
@@ -192,76 +320,13 @@ export function extractSymbolsFromFile(
   }
 
   function visit(node: ts.Node): void {
-    if (ts.isFunctionDeclaration(node) && node.name) {
-      addSymbol(node.name.text, "function", node);
-    } else if (ts.isClassDeclaration(node) && node.name) {
-      addSymbol(node.name.text, "class", node);
-      // class methods
-      for (const member of node.members) {
-        if (
-          ts.isMethodDeclaration(member) &&
-          member.name &&
-          ts.isIdentifier(member.name)
-        ) {
-          addSymbol(`${node.name.text}.${member.name.text}`, "method", member);
-        }
-      }
-    } else if (ts.isInterfaceDeclaration(node)) {
-      addSymbol(node.name.text, "interface", node);
-    } else if (ts.isTypeAliasDeclaration(node)) {
-      addSymbol(node.name.text, "type", node);
-    } else if (ts.isEnumDeclaration(node)) {
-      addSymbol(node.name.text, "enum", node);
-    } else if (
-      ts.isVariableStatement(node) &&
-      node.modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword)
-    ) {
-      for (const decl of node.declarationList.declarations) {
-        if (!ts.isIdentifier(decl.name)) continue;
-        const varName = decl.name.text;
-
-        if (
-          decl.initializer &&
-          ts.isObjectLiteralExpression(decl.initializer)
-        ) {
-          // export const xTool = { ..., async execute(...) {...} }
-          // Record the object itself AND each of its method-shorthand
-          // properties, dotted as VarName.methodName.
-          addSymbol(varName, "variable", decl);
-          for (const prop of decl.initializer.properties) {
-            if (
-              ts.isMethodDeclaration(prop) &&
-              prop.name &&
-              ts.isIdentifier(prop.name)
-            ) {
-              addSymbol(`${varName}.${prop.name.text}`, "method", prop);
-            }
-          }
-        } else {
-          addSymbol(varName, "variable", decl);
-        }
-      }
-    } else if (ts.isExportAssignment(node) && !node.isExportEquals) {
-      const expr = node.expression;
-      if (ts.isIdentifier(expr)) {
-        const found = findTopLevelDeclaration(sourceFile, expr.text);
-        if (found) {
-          addSymbol(expr.text, found.kind, found.node);
-        } else {
-          // Identifier not declared at top level in this file (e.g.
-          // imported and immediately re-exported) — record the export
-          // statement itself so the name is still findable.
-          addSymbol(expr.text, "default-export", node);
-        }
-      } else {
-        // export default <inline expression> with no separate declared
-        // name — fall back to the file's own base name.
-        const baseName = path
-          .basename(relativePath)
-          .replace(/\.(ts|tsx|js|jsx)$/, "");
-        addSymbol(baseName, "default-export", node);
-      }
-    }
+    if (ts.isFunctionDeclaration(node)) return handleFunction(node, addSymbol);
+    if (ts.isClassDeclaration(node)) return handleClass(node, addSymbol);
+    if (ts.isInterfaceDeclaration(node)) return handleInterface(node, addSymbol);
+    if (ts.isTypeAliasDeclaration(node)) return handleTypeAlias(node, addSymbol);
+    if (ts.isEnumDeclaration(node)) return handleEnum(node, addSymbol);
+    if (ts.isVariableStatement(node)) return handleExportedVariable(node, addSymbol);
+    if (ts.isExportAssignment(node)) return handleExportAssignment(node, addSymbol, sourceFile, relativePath);
     ts.forEachChild(node, visit);
   }
 
