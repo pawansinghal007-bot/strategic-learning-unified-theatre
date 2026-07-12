@@ -72,9 +72,7 @@ export function classifyToolCall(
  * semantic split used by the other rules above. Explicit mode override takes
  * precedence, mirroring router.ts's own chooseStrategy() precedence rule.
  */
-function classifyRetrieve(
-  args: Record<string, string>,
-): ToolCallClass {
+function classifyRetrieve(args: Record<string, string>): ToolCallClass {
   const query = args.query ?? "";
   const mode = args.mode ?? "";
 
@@ -113,10 +111,33 @@ function isRetrievePathLike(value: string): boolean {
   if (value.includes("/") || value.includes("\\")) return true;
   // Set-based extension lookup replaces 29-branch regex (S5843)
   const KNOWN_EXTENSIONS = new Set([
-    "ts", "tsx", "js", "jsx", "mjs", "cjs", "json", "md",
-    "yml", "yaml", "py", "go", "rs", "java", "c", "cpp",
-    "h", "hpp", "css", "scss", "html", "sql", "sh", "txt",
-    "toml", "xml", "env",
+    "ts",
+    "tsx",
+    "js",
+    "jsx",
+    "mjs",
+    "cjs",
+    "json",
+    "md",
+    "yml",
+    "yaml",
+    "py",
+    "go",
+    "rs",
+    "java",
+    "c",
+    "cpp",
+    "h",
+    "hpp",
+    "css",
+    "scss",
+    "html",
+    "sql",
+    "sh",
+    "txt",
+    "toml",
+    "xml",
+    "env",
   ]);
   const dotIdx = value.lastIndexOf(".");
   if (dotIdx === -1) return false;
