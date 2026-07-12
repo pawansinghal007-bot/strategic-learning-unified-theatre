@@ -5,7 +5,7 @@ export function resolveSafePath(inputPath: string, root: string): string {
   let resolvedRoot: string;
   try {
     resolvedRoot = fs.realpathSync(root);
-  } catch (err) {
+  } catch {
     throw new Error(`PROJECT_ROOT cannot be resolved: ${root}`);
   }
   let candidate: string;
