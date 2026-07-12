@@ -248,9 +248,14 @@ describe("SecretStore", () => {
     // must operate correctly.
     try {
       await store.set("k-acct", "val");
-      // If we reach here, keytar was either real or mocked successfully —
-      // the important thing is no exception was thrown.
-      expect(true).toBe(true);
+      // Verify the mocked keytar adapter was actually invoked with the
+      // correct account key and secret value — this is a load-bearing
+      // assertion, not a tautology.
+      expect(keytarStub.default.setPassword).toHaveBeenCalledWith(
+        "k-acct",
+        "val",
+        expect.anything(),
+      );
     } catch {
       // keytar not available in this environment — that's fine, the file
       // fallback branch was already tested elsewhere.
