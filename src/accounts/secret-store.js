@@ -73,7 +73,12 @@ export class SecretStore {
   constructor({ adapter, fallbackPath } = {}) {
     this.adapter = adapter ?? null;
     this.fallbackPath =
-      fallbackPath ?? path.join(process.env.HOME || os.homedir(), ".vscode-rotator", "secrets.enc");
+      fallbackPath ??
+      path.join(
+        process.env.HOME || os.homedir(),
+        ".vscode-rotator",
+        "secrets.enc",
+      );
     this.usingFallback = false;
   }
 
@@ -148,7 +153,11 @@ export class SecretStore {
 }
 
 export function defaultProgressPath() {
-  return path.join(process.env.HOME || os.homedir(), ".vscode-rotator", "PROGRESS.md");
+  return path.join(
+    process.env.HOME || os.homedir(),
+    ".vscode-rotator",
+    "PROGRESS.md",
+  );
 }
 
 export async function getSupervisorCredentials(provider = "default") {
