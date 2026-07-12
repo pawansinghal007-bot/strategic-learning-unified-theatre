@@ -58,22 +58,7 @@ export function classifyToolCall(
   // "synthesis" and always paid for a second gateway.ask(), even when the
   // resolved strategy was an exact file read or symbol lookup.
   if (toolName === "retrieve") {
-    const query = args.query ?? "";
-    const mode = args.mode ?? "";
-
-    // Explicit mode override takes precedence, mirroring router.ts's own
-    // chooseStrategy() precedence rule (explicit mode always wins).
-    if (mode === "file" || (mode === "" && isRetrievePathLike(query))) {
-      return "path-like";
-    }
-    if (
-      mode === "symbol" ||
-      mode === "code" ||
-      (mode === "" && isSymbolLikeQuery(query))
-    ) {
-      return "symbol-like";
-    }
-    return "semantic";
+    return classifyRetrieve(args);
   }
 
   // Rule 5: synthesis — fallback for everything else
@@ -81,6 +66,30 @@ export function classifyToolCall(
 }
 
 // ─── private helpers ──────────────────────────────────────────────────────────
+
+/**
+ * Classify a `retrieve` tool call by mirroring the same path-like/symbol-like/
+ * semantic split used by the other rules above. Explicit mode override takes
+ * precedence, mirroring router.ts's own chooseStrategy() precedence rule.
+ */
+function classifyRetrieve(
+  args: Record<string, string>,
+): ToolCallClass {
+  const query = args.query ?? "";
+  const mode = args.mode ?? "";
+
+  if (mode === "file" || (mode === "" && isRetrievePathLike(query))) {
+    return "path-like";
+  }
+  if (
+    mode === "symbol" ||
+    mode === "code" ||
+    (mode === "" && isSymbolLikeQuery(query))
+  ) {
+    return "symbol-like";
+  }
+  return "semantic";
+}
 
 /** Is this a plain relative/absolute file path (no wildcards, no spaces)? */
 function isPlainPath(value: string): boolean {
