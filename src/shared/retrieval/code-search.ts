@@ -72,6 +72,44 @@ export function resolveGlob(glob?: string): string {
 const MAX_RESULTS = 50;
 
 /**
+ * Handles ripgrep execution errors: treats exit-code-1 with empty stdout
+ * as "no matches" (returns []), re-throws AbortError as timeout, and
+ * throws for all other exit codes.
+ */
+function handleRgError(
+  err: unknown,
+  pattern: string,
+  glob: string | undefined,
+): CodeSearchHit[] {
+  const execErr = err as NodeJS.ErrnoException & {
+    stdout?: string;
+    stderr?: string;
+  };
+
+  // Check for timeout (AbortError)
+  if (err instanceof Error && err.name === "AbortError") {
+    throw new Error(`searchCode: timed out after ${RETRIEVAL_TIMEOUT_MS}ms`);
+  }
+
+  // rg exits with code 1 when there are no matches — not a real error.
+  // execFile surfaces the exit code as the string "1" on ErrnoException.code.
+  const exitCode = String(execErr.code ?? "");
+
+  if (exitCode === "1" && !execErr.stdout?.trim()) {
+    logger.info("retrieval.code-search", {
+      pattern,
+      glob,
+      hits: 0,
+    });
+    return [];
+  }
+
+  throw new Error(
+    `searchCode: rg failed (code ${exitCode}): ${execErr.stderr ?? String(err)}`,
+  );
+}
+
+/**
  * Searches the codebase using ripgrep (`rg`) with JSON output.
  *
  * @param pattern - Regex pattern passed to `rg`
@@ -112,32 +150,8 @@ export async function searchCode(
     });
     stdout = result.stdout;
   } catch (err) {
-    const execErr = err as NodeJS.ErrnoException & {
-      stdout?: string;
-      stderr?: string;
-    };
-
-    // rg exits with code 1 when there are no matches — not a real error.
-    // execFile surfaces the exit code as the string "1" on ErrnoException.code.
-    const exitCode = String(execErr.code ?? "");
-
-    // Check for timeout (AbortError)
-    if (err instanceof Error && err.name === "AbortError") {
-      throw new Error(`searchCode: timed out after ${RETRIEVAL_TIMEOUT_MS}ms`);
-    }
-
-    if (exitCode === "1" && !execErr.stdout?.trim()) {
-      logger.info("retrieval.code-search", {
-        pattern,
-        glob,
-        hits: 0,
-      });
-      return [];
-    }
-
-    throw new Error(
-      `searchCode: rg failed (code ${exitCode}): ${execErr.stderr ?? String(err)}`,
-    );
+    const result = handleRgError(err, pattern, glob);
+    return result;
   } finally {
     clearTimeout(timer);
   }
