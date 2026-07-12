@@ -113,6 +113,23 @@ function firstLineOfText(text: string): string {
 }
 
 /**
+ * Searches a variable statement's declarations for one matching the given name.
+ * Handles multi-declaration statements like `const a = 1, b = 2`.
+ * Returns the declaration node and kind, or null if not found.
+ */
+function findVariableDeclaration(
+  stmt: ts.VariableStatement,
+  name: string,
+): { node: ts.Node; kind: string } | null {
+  for (const decl of stmt.declarationList.declarations) {
+    if (ts.isIdentifier(decl.name) && decl.name.text === name) {
+      return { node: decl, kind: "variable" };
+    }
+  }
+  return null;
+}
+
+/**
  * Finds a top-level declaration by name in the source file.
  * Returns the node and its kind, or null if not found.
  */
@@ -128,11 +145,8 @@ function findTopLevelDeclaration(
       return { node: stmt, kind: "class" };
     }
     if (ts.isVariableStatement(stmt)) {
-      for (const decl of stmt.declarationList.declarations) {
-        if (ts.isIdentifier(decl.name) && decl.name.text === name) {
-          return { node: decl, kind: "variable" };
-        }
-      }
+      const result = findVariableDeclaration(stmt, name);
+      if (result) return result;
     }
   }
   return null;
