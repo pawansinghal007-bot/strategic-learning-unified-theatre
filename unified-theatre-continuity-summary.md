@@ -1296,3 +1296,240 @@ needs actual code changes + human/stronger-model review before merging:**
 **Still blocked, no action possible:**
 - Item #2/#3 in Section 22 — still genuinely time-gated on production
   volume.
+
+
+---
+
+## 24. Escalate-Lane Sonar Remediation — Complete (13/13) — Session of July 12, 2026
+
+All 13 escalate-lane issues from Section 19.2 are now implemented,
+verified, and committed (push status noted per tier below — confirm
+`git log --oneline origin/main..main` is empty before treating any of
+this as landed).
+
+### Tier 1 — #1, #2, #10, #12 (trivial/safe)
+
+- `57466d83` — #1 (BLOCKER): deleted structurally broken test in
+  `bc2-sync.coverage-additions.test.js` (mock never intercepted, branch
+  unreachable), added `/* v8 ignore next */` on the guard line.
+- `0679c2ed` — #12: `cli.ts:91`, `&&` guard replaced with optional
+  chaining (provably safe, `process.argv[1]` typed `string | undefined`).
+- `0b66a3e5` — #2 + #10 combined (see note below): explicit
+  `.localeCompare()` sort comparator added to `run-migrations.ts:22`;
+  #10 (`S7785` top-level-await) resolved as **won't-fix**, documented
+  inline with rationale rather than converted (would re-add try/catch
+  nesting the rule is meant to remove) — mirrors the Sprint 88
+  ACKNOWLEDGED-with-evidence pattern for Sonar hotspots.
+- **Pushed**: `0b66a3e5` → origin.
+- **Process note**: an initial 4-commit attempt included one genuinely
+  empty commit (`--allow-empty`) for #10 after its content got silently
+  folded into #2's commit. Caught before push via `git diff
+  origin/main..HEAD --stat` not matching the commit count; squashed
+  down to 3 honest commits before pushing. Lesson already captured
+  informally: **verify commit content against `git show`, not just
+  commit *messages* — a message can claim work a diff doesn't contain.**
+
+### Tier 2 — #9, #11 (needed real assertions / new tests first)
+
+- `e306f4ae` — #9 (MAJOR): `secret-store.test.js:253` tautological
+  `expect(true).toBe(true)` replaced with a real mock-call assertion.
+  **Load-bearing confirmed empirically**: source's `setPassword` call
+  was temporarily broken, confirmed the new assertion actually fails (5
+  tests), then reverted and reconfirmed pass — not just asserted, tested.
+- `43bccf62` — #11 tests-first commit: added 3 edge-case tests
+  (bare filename with/without extension, `"gateway.ask"` anti-pattern)
+  against the **unmodified** 29-branch regex, confirmed green before any
+  implementation change.
+- `9deb1540` — #11 (MAJOR) implementation: 29-branch regex alternation
+  replaced with `Set`-based extension lookup in
+  `tool-call-classifier.ts` (complexity 26→lower). All 46 tests
+  (43 original + 3 new) pass.
+- **Pushed**: `9deb1540` → origin.
+
+### Tier 3 — #3, #4, #8, #27 (extractions + cosmetic)
+
+- `e90c307a` — #3: `shouldIncludeFile` extracted from
+  `walkSourceFiles` in `symbol-extractor.ts` (complexity 21→15). The two
+  intentionally-different `try/catch` blocks (subtree-skip vs.
+  single-entry-skip) deliberately left unmerged.
+- `9ff43810` — #4: `findVariableDeclaration` extracted from
+  `findTopLevelDeclaration` (complexity 17→15).
+- `873e1418` — #8: `handleRgError` extracted from `searchCode` in
+  `code-search.ts` (complexity 16→13). One transient test failure
+  ("No pending execFile call in queue") traced to a stale Vite cache,
+  not the diff — confirmed via full manual diff review before trusting
+  the "cache" explanation, not accepted on narration alone.
+- `b53e3f65` — #27: unused `err` binding removed from the cosmetic
+  catch block in `safe-path.ts:8-10` (bare `catch {}`). The second,
+  unflagged catch block (lines ~22-31) deliberately left untouched —
+  already judged defensible in Section 19.2.
+- **Pushed**: `b53e3f65` → origin.
+- **Recurring pattern this tier**: unscoped Prettier-only formatting
+  commits kept appearing in the working tree at the *start* of sessions
+  (editor format-on-save firing on file-open), across
+  `cli.ts`/test files, `tool-call-classifier.ts`/`gateway.ts`, and
+  `secret-store.js`. Each time: diffed line-by-line to confirm zero
+  logic change, then committed standalone with an explicit
+  `style: ... (Prettier, no logic change)` message rather than folded
+  into a Sonar-fix commit. **New standing pre-flight convention
+  established**: `git status --porcelain -- . ':!unified-theatre-continuity-summary.md'`
+  (excludes this doc, which is routinely mid-edit and not code).
+
+### Tier 4 — #6, #7 (behavior-sensitive, feeds downstream systems)
+
+- `89a7c6d1` — #6: `classifyRetrieve()` extracted from
+  `classifyToolCall` (complexity 16→15). Verified via a full
+  before/after characterization table on representative retrieve-branch
+  inputs (path-like/symbol-like/semantic) — output feeds the
+  per-category readiness gate directly, so behavior identity mattered
+  more than test-green alone.
+- `dbff6d27` — #7: `enforcePromptBudget` decomposed into
+  `tryDropWorkspaceContext`/`tryTruncateToolResult`/
+  `tryPreserveUserPrompt`/`tryMarkerBasedFallback` (complexity 31→15).
+  **A real behavior-preservation bug was caught by characterization
+  before commit**, not after: the initial extraction collapsed two
+  distinct original behaviors into one `undefined`/`null` return —
+  (a) "boundary found but doesn't fit budget" (original: leave
+  `trimmedPrompt` untouched, fall through) and (b) "no `User request:`
+  marker anywhere" (original: true fail-safe, discard all partial
+  trimming and return the **pristine original `prompt` param**). Fixed
+  via a discriminated return contract (`TrimStepResult`,
+  `MarkerFallbackResult` — `{changed: true, prompt}` vs.
+  `{changed: false}`, with step (d) additionally distinguishing
+  `markerFound: true/false`). Root-caused by reading the original
+  source's exact return statements line-by-line rather than trusting
+  what "seemed" correct — the fail-safe returns `prompt`, not
+  `trimmedPrompt`, which is the detail that made the fix correct.
+- `adaaa309`, `a27ea2de`, `31438ff0` — three standalone Prettier-only
+  formatting commits (`tool-call-classifier.ts`, `gateway.ts`,
+  `secret-store.js` respectively), diffed line-by-line and confirmed
+  inert before committing. One of these followed a Copilot session that
+  crashed mid-edit on a network `Headers Timeout Error` after
+  apparently re-running an already-completed patch from scratch;
+  confirmed via full diff review that the only footprint left was
+  reformatting, not a duplicated/clobbered edit.
+- **Pushed**: `31438ff0` → origin.
+- **New codified lesson**: for functions with a documented fail-safe or
+  cascading-fallback design (like this one's "pass through untrimmed
+  rather than blindly truncate" comment), a refactor's return contract
+  must distinguish *why* a step didn't change the prompt, not just
+  *whether* it did — collapsing "couldn't fit" and "no boundary exists
+  at all" into the same signal silently merges two different original
+  behaviors.
+
+### Issue #5 — extractSymbolsFromFile/visit() (44→~12-15), own dedicated session
+
+Run as an explicit two-phase session per this section's original
+guidance (own session, not batched).
+
+**Phase 1 (diagnosis only, no code changes)**: confirmed all 8 branches
+in `visit()`, traced the full Postgres write path
+(`extractSymbolsFromFile` → `indexSymbols()` in `symbol-indexer.ts` →
+transactional DELETE + batched INSERT into `symbols` table, schema in
+`001_symbols_table.sql`), characterized real output on 3 files
+(`code-search.ts`: 4 symbols, `symbol-extractor.ts`: 14, `gateway.ts`:
+25), and proposed 7 named handlers
+(`handleFunction`/`handleClass`/`handleInterface`/`handleTypeAlias`/
+`handleEnum`/`handleExportedVariable`/`handleExportAssignment`) with
+`visit()` reduced to a thin dispatcher. Flagged the
+`export const xTool = { async execute() {} }` object-literal-method
+extraction pattern (inside the `isVariableStatement` branch) as
+**genuinely load-bearing** — it's what makes tool methods discoverable
+via symbol search, not a theoretical edge case.
+
+**Phase 2 (implementation)** — `5f9aab22`: implemented exactly the
+Phase 1 plan as pure code motion. Added a 4th characterization fixture
+beyond Phase 1's three (`retrieve.ts`, exercising the object-literal-
+method pattern specifically) — output unchanged before/after. All 4
+characterization files matched exactly; 35/35 existing tests pass;
+`tsc --noEmit` clean.
+
+**The row-count "hard gate" investigation (worth preserving in full —
+this is the actual interesting part of this session):**
+
+The originally stated gate was "must equal 1322," inherited from
+Section 8 material in this doc. A same-day reconfirmation via
+`SELECT COUNT(*) FROM symbols` returned exactly 1322, which felt like a
+clean baseline — but it was a **stale-table read**, not a fresh index of
+current source. The table had not been reindexed since before Tiers 1-4
+of *this same session* landed, and those tiers added real new named
+top-level symbols to files this extractor walks (`classifyRetrieve`,
+`tryDropWorkspaceContext`, `tryTruncateToolResult`,
+`tryPreserveUserPrompt`, `tryMarkerBasedFallback`, `handleRgError`,
+`shouldIncludeFile`, `findVariableDeclaration`, plus two new type
+aliases). Comparing a stale pre-Tier-1 table against a freshly-reindexed
+post-Tier-4 refactor was never an apples-to-apples comparison, and the
+first real reindex (post-refactor) surfaced as 1339 — a "+17 regression"
+that was actually mostly-explained by unrelated prior work never having
+been indexed at all.
+
+Establishing a trustworthy comparison took several failed attempts,
+each instructive:
+- A `git stash`/reindex/`git stash pop` pre-vs-post comparison initially
+  failed silently (SASL auth errors) because `$DATABASE_URL` wasn't
+  actually exported in the shell context the command ran in — **this
+  export does not reliably persist across separate terminal command
+  invocations in this environment; re-export it explicitly at the start
+  of any session needing DB access, don't assume a prior export in the
+  conversation is still live.**
+- Once fixed, a clean pre/post `indexSymbols()` comparison reproducibly
+  showed **1334 → 1339, a stable +5**, matching the hand-predicted math
+  (−2 removed inner functions, +7 new named handlers) exactly.
+- A follow-up per-file diff script (Node object-key comparison of
+  grouped SQL query results) produced **three different, mutually
+  contradictory deltas across three attempts** (+8, then 14→11, i.e.
+  −3, when every other method agreed on +5) — traced first to two
+  untracked scratch files (`char-baseline.ts`, `check-row-count.ts`)
+  surviving `git stash` (stash does not include untracked files by
+  default) and being indexed as real source both "pre" and "post"; even
+  after removing those, the script still didn't reconcile with the
+  verified whole-DB total, and was abandoned as unreliable rather than
+  further debugged — **out of scope for this sprint, not worth chasing.**
+- Final trust basis: **two independent methods that agreed with each
+  other and with hand-derived predicted math** — (1) direct
+  `extractSymbolsFromFile()` calls with no DB involved (14→19 for
+  `symbol-extractor.ts`, others unchanged), and (2) `indexSymbols()`
+  full-repo reindex reproduced 4 separate times (stable 1334→1339). A
+  single ad hoc verification script's output was explicitly **not**
+  trusted as sufficient on its own after it contradicted itself twice.
+
+**Codified lesson (candidate for the "Confident-wrong vs. honest-unknown"
+family of rules already in Section 1):** a stored numeric baseline
+(row count, coverage %, test count) used as a verification gate must be
+**re-derived fresh, immediately before use, from the actual current
+state being compared** — not read from documentation, and not read from
+a table/artifact that predates other work landed earlier in the same
+session. Sibling work in the same session can silently invalidate a
+gate's stored value before the gate is even checked.
+
+- **Commit**: `5f9aab22` — commit message itself documents the baseline
+  discrepancy and resolution in full, so a future session reading
+  `git log` doesn't need to redo this investigation.
+- **NOT yet pushed** as of this doc update — confirm
+  `git log --oneline origin/main..main` and push before treating Issue
+  #5 as landed.
+
+### Summary
+
+All 13 escalate-lane issues (Section 19.2) implemented: #1, #2, #3, #4,
+#6, #7, #8, #9, #10, #11, #12, #27 pushed to origin; #5 committed
+locally (`5f9aab22`), pending push confirmation.
+
+Two loose ends before this is fully closed:
+
+1. Issue #5's commit (`5f9aab22`) isn't pushed yet. Once you've appended
+   this section (and want to commit that doc edit too), run:
+   ```bash
+   git add unified-theatre-continuity-summary.md
+   git commit -m "docs: log Tier 1-4 and Issue #5 escalate-lane completion"
+   git push
+   git log --oneline origin/main..main   # should be empty
+   ```
+2. The "must equal 1322" language referenced as a still-pending gate in
+   Section 19.2's Issue #5 entry is now superseded — the current live
+   baseline after Tiers 1-4 + Issue #5 is **1339**. Do not use 1322 as
+   a future row-count gate; re-derive fresh from the current table state
+   before any future reindex comparison.
+
+That closes out the entire escalate-lane backlog — 13/13, real bugs
+caught and fixed along the way rather than rubber-stamped.
