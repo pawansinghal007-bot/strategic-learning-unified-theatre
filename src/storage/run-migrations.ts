@@ -19,7 +19,7 @@ export async function runMigrations(databaseUrl: string): Promise<void> {
   const pool = new Pool({ connectionString: databaseUrl });
   const files = readdirSync(MIGRATIONS_DIR)
     .filter((f) => f.endsWith(".sql"))
-    .sort();
+    .sort((a, b) => a.localeCompare(b));
   const client = await pool.connect();
   try {
     await client.query("BEGIN");
@@ -71,6 +71,11 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   }
   runMigrations(url)
     .then(() => process.exit(0))
+    // S7785 (top-level await) intentionally not applied: this file is a CLI
+    // entry point only, not imported elsewhere. Top-level await would lose
+    // the custom "Migration failed:" error message unless wrapped in
+    // try/catch, which re-introduces the nesting this rule is meant to
+    // remove. Promise-chain form is the correct pattern here.
     .catch((err) => {
       console.error("Migration failed:", err);
       process.exit(1);
