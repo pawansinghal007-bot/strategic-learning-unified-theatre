@@ -1938,8 +1938,7 @@ could discover or re-run without already knowing the internals.
 
 **Fix applied this session:** created `src/storage/run-indexer.ts` — a
 small script that calls `indexSymbols(process.env.DATABASE_URL,
-process.cwd())` and logs the result, with an explicit `DATABASE_URL` not
-set`check (matching`run-migrations.ts`'s existing pattern). Ran it live:
+process.cwd())` and logs the result, with an explicit `DATABASE_URL not set` check (matching `run-migrations.ts`'s existing pattern). Ran it live:
 
 ```
 Indexed 1358 symbols across 189 files.
