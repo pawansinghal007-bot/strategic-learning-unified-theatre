@@ -436,15 +436,15 @@ git push
 - Do not run a full distribution analysis until `scripts/measurement-checkpoint.ts` (or `~/.unified-ai-workspace/checkpoint-history.log`) reports the readiness gate as met on `source: "production"` entries specifically.
 - All setup-phase work for this item is committed (`51b648dd`) and confirmed pushed to `origin/main`. There is nothing left to commit for this item until the analysis/decision step (Section 6, item 1b) produces code changes.
 
-
 ## Coverage Hardening Log (pending condensation)
+
 _Raw per-file entries below. To be reviewed and folded into the main
 sections (or deleted if not worth keeping) once the coverage pass is
 complete — do not treat this section as final prose._
 
-| File | Lines targeted | Before | After | Commit | What was actually tested / why skipped |
-|---|---|---|---|---|---|
-| src/agents/tools/retrieve.ts | 61-66 | 90% stmts / 84.21% branches | 100% stmts / 100% branches | fea79ac4 | Two tests for the `case "symbol":` branch: (1) non-empty results assert exact formatted string `"name (kind) at filePath:startLine-endLine"`; (2) empty results assert exact `"No symbol found for \"<query>\"."` fallback message |
+| File                         | Lines targeted | Before                      | After                      | Commit   | What was actually tested / why skipped                                                                                                                                                                                             |
+| ---------------------------- | -------------- | --------------------------- | -------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| src/agents/tools/retrieve.ts | 61-66          | 90% stmts / 84.21% branches | 100% stmts / 100% branches | fea79ac4 | Two tests for the `case "symbol":` branch: (1) non-empty results assert exact formatted string `"name (kind) at filePath:startLine-endLine"`; (2) empty results assert exact `"No symbol found for \"<query>\"."` fallback message |
 
 | src/daemon/watcher.js | 374, 437 | 98.9% stmts / 77.57% branches / 98.87% lines | 100% stmts / 80.37% branches / 100% lines | 1ed41516 | Line 374: throttle guard in runEnhanceCycle — asserts `_spawnEnhance` called exactly once when second tick is within `intervalMs` window; line 437: concurrent `running` flag guard in runCaptureCycle — asserts `captureThread` called exactly once when second tick fires while first cycle is still awaiting |
 
@@ -472,18 +472,16 @@ complete — do not treat this section as final prose._
 
 | src/llm/inference.js | 37-41,68,90,97,114,123,276-277,294,311-313,315-335 | 83.42tmts / 75.8ranches / 84.07 0nes | 83.42tmts / 75.8ranches / 84.07 0nes | c4013e06 | Tested: askOpenAiCompat() returns `""` when the completion payload contains a choice without message content; this is a meaningful fallback branch because it changes the return value rather than merely executing the code. |
 
-
 | src/knowledge/ingest/ingest-repository.js | 60-61,69,75,106,129-130,190,232,266-273,278 | Stmts 81.19% Branch 58.33% Funcs 94.44% Lines 83.49% | Stmts 88.88% Branch 77.08% Funcs 94.44% Lines 92.23% | cc63c061 | Tested: walkFiles isFile() branch (L60-61) — pass file path directly as baseDir, assert insert called; walkFiles subdir recursion (L69) — nested `.md` in subdirectory, assert discovery+insert; walkFiles catch block (L75) — fs.stat throws EACCES, assert console.warn contains "[ingest] Skipping"; large-file skip + skipped-count log (L129-130,232) — maxFileBytes:1, assert insert not called and log contains "Skipped 1 large file(s)"; attachVectors mismatch throw (L190) — embedTextBatch returns [] for 1-chunk file, assert rejects with "embedTextBatch returned"; parseFeatureArea undefined fallback (L106) — file at cwd root has single-segment relative path, assert inserted entity module === "unknown". L266-273 SKIPPED — main() body unreachable in Vitest (VITEST env guard returns early). L278 SKIPPED — isDirectRun() can never return true in Vitest runner. Also fixed pre-existing spy leak in test file by adding afterEach vi.restoreAllMocks(). |
 
-
 ## Pre-existing Unstaged Diffs — Committed (pending condensation)
+
 _Two commits to clear the working tree of diffs that pre-dated the coverage hardening session._
 
-| Commit | Files | What changed |
-|---|---|---|
-| d074fdf3 | `electron-ui/ipc/*.bundled.cjs`, `electron-ui/preload.bundled.cjs` (8 files) | Bundler-generated CJS artifacts updated with error-propagating `__esm` initialiser (added try/catch + `err` param so module-init errors are captured and re-thrown on subsequent calls). No source logic changed — pure build output. |
-| 9101caea | `scripts/measurement-checkpoint.ts`, `tests/llm/document-ingester-coverage.test.js`, `tests/llm/embeddings-coverage.test.js`, `tests/llm/experience-db-coverage.test.js`, `tests/llm/inference-coverage.test.js` (5 files) | Prettier formatting only — long lines reflowed, inline object/array literals expanded to multi-line. Zero logic change confirmed by diff review. |
-
+| Commit   | Files                                                                                                                                                                                                                      | What changed                                                                                                                                                                                                                          |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| d074fdf3 | `electron-ui/ipc/*.bundled.cjs`, `electron-ui/preload.bundled.cjs` (8 files)                                                                                                                                               | Bundler-generated CJS artifacts updated with error-propagating `__esm` initialiser (added try/catch + `err` param so module-init errors are captured and re-thrown on subsequent calls). No source logic changed — pure build output. |
+| 9101caea | `scripts/measurement-checkpoint.ts`, `tests/llm/document-ingester-coverage.test.js`, `tests/llm/embeddings-coverage.test.js`, `tests/llm/experience-db-coverage.test.js`, `tests/llm/inference-coverage.test.js` (5 files) | Prettier formatting only — long lines reflowed, inline object/array literals expanded to multi-line. Zero logic change confirmed by diff review.                                                                                      |
 
 ---
 
@@ -506,25 +504,27 @@ in `src/agents/tools/`, plus `ask-local`, `code-review`, `list-tools` in
 **Verdict: no confirmed bugs.** Every no-result path traced to a real,
 verified `.length === 0` check gated by an underlying function that throws
 (rather than swallows) on actual failure:
+
 - `vectorSearch()` (`vector-client.ts`) — only one success return path,
   reached after a real Qdrant HTTP call; failures re-thrown.
 - `searchCode()` (`code-search.ts`) — `exitCode === "1" && !stdout.trim()`
   returns `[]`, confirmed against `man rg`'s EXIT STATUS section: exit 1 is
-  used *only* for no-matches, exit 2 for errors. All other failure paths
+  used _only_ for no-matches, exit 2 for errors. All other failure paths
   thrown.
 - `formatVectorResults()` / `formatCodeHits()` / `formatSymbolResults()`
   (`format.ts`) — each returns `""` only when its input array's `.length
-  === 0`; non-empty input always produces non-empty output.
+=== 0`; non-empty input always produces non-empty output.
 
 **Two residual fragility notes (not bugs, not fixed, worth remembering):**
+
 1. `vector-client.ts` — the Qdrant response type has `result?:` as
-   **optional**, and the code does `json.result ?? []`. This is *not
-   verified at runtime*: if Qdrant ever returns 200 OK with a malformed
+   **optional**, and the code does `json.result ?? []`. This is _not
+   verified at runtime_: if Qdrant ever returns 200 OK with a malformed
    body lacking `result`, this silently produces `[]` instead of an error.
    Trusts the API contract, doesn't check it.
 2. `code-search.ts` — the `exitCode === "1"` no-match assumption is
-   correct per ripgrep's documented contract today, but also *not verified
-   at runtime* — it trusts `rg`'s behavior doesn't change in a future
+   correct per ripgrep's documented contract today, but also _not verified
+   at runtime_ — it trusts `rg`'s behavior doesn't change in a future
    version.
 
 Neither needs urgent action; both are candidates for a "known fragility"
@@ -565,6 +565,7 @@ Added a per-category breakdown to the existing aggregate readiness gate
 `symbol-like`, `vector-search`, `semantic`, `synthesis`), the script now
 also computes a per-category count of `source: "production"` entries and
 classifies each as:
+
 - `sufficient` — count >= 40 (derived: 200 total / 5 categories)
 - `insufficient` — 1-39
 - `zero` — 0
@@ -581,12 +582,13 @@ actually unsupported for part of the decision. This closes that gap before
 the distribution analysis (Section 6, item 1b / Section 9.9) is ever run.
 
 **Verified:** ran against the real log file (`{"entries": []}` at the time
+
 - zero entries), confirmed the script correctly short-circuits at the
-existing "no production entries yet" guard and the new per-category section
-is simply unreached in that state (correct behavior - nothing to
-classify). `npx tsc --noEmit --project tsconfig.json` clean. Full
-per-category section has NOT yet been exercised against non-empty real
-data - that only happens once production entries actually accumulate.
+  existing "no production entries yet" guard and the new per-category section
+  is simply unreached in that state (correct behavior - nothing to
+  classify). `npx tsc --noEmit --project tsconfig.json` clean. Full
+  per-category section has NOT yet been exercised against non-empty real
+  data - that only happens once production entries actually accumulate.
 
 **Mid-edit incident (self-corrected):** a first edit attempt corrupted the
 file (dropped the `function main() {` line, broken indentation) - caught by
@@ -606,6 +608,7 @@ would NOT catch a fabricated default. Full per-test breakdown was produced
 inline in this session's transcript (not re-copied into this doc - see
 chat history if the literal per-test table is needed) but the pattern
 clusters were:
+
 - Empty array/object return-value expectations (14 tests)
 - Zero-count expectations (4 tests)
 - Null-return expectations from `collector.test.js`'s rejection tests (12
@@ -639,9 +642,11 @@ The intended addition (to be inserted immediately after the existing
 > same commit as the fix, not a follow-up item.
 
 **Before trusting that this bullet exists in Section 1, run:**
+
 ```bash
 grep -n "Confident-wrong vs. honest-unknown" unified-theatre-continuity-summary.md
 ```
+
 If it's absent, the edit described above still needs to be made and
 committed.
 
@@ -669,6 +674,7 @@ commit + push.
 
 **This session ended (pivoted to coverage/Sonar work) before confirming
 the resolution was actually executed.** Do not assume:
+
 - that the stray reformat was discarded,
 - that the Section 10.5 doc bullet was committed,
 - that `1a985ee2` was pushed to `origin/main`.
@@ -740,50 +746,50 @@ corrected inventory below.
 
 ### 12.1 Full issue inventory (33, real line numbers)
 
-| # | Severity | Rule | File:Line | Issue |
-|---|---|---|---|---|
-| 1 | BLOCKER | S2699 | tests/commands/bc2-sync.coverage-additions.test.js:154 | Add at least one assertion |
-| 2 | CRITICAL | S2871 | src/storage/run-migrations.ts:22 | Sort needs localeCompare comparator |
-| 3 | CRITICAL | S3776 | src/storage/symbol-extractor.ts:39 | Complexity 21->15 |
-| 4 | CRITICAL | S3776 | src/storage/symbol-extractor.ts:109 | Complexity 17->15 |
-| 5 | CRITICAL | S3776 | src/storage/symbol-extractor.ts:170 | Complexity 44->15 |
-| 6 | CRITICAL | S3776 | src/agents/tool-call-classifier.ts:22 | Complexity 16->15 |
-| 7 | CRITICAL | S3776 | src/llm/gateway.ts:77 | Complexity 31->15 |
-| 8 | CRITICAL | S3776 | src/shared/retrieval/code-search.ts:85 | Complexity 16->15 - same function verified in Section 10.1 for its exit-code-1 no-match logic; any refactor must preserve that logic exactly |
-| 9 | MAJOR | S5914 | tests/secret-store.test.js:253 | Assertion always succeeds/fails |
-| 10 | MAJOR | S7785 | src/storage/run-migrations.ts:74 | Prefer top-level await |
-| 11 | MAJOR | S5843 | src/agents/tool-call-classifier.ts:106 | Regex complexity 26->20 |
-| 12 | MAJOR | S6582 | src/agents/cli.ts:91 | Prefer optional chaining |
-| 13 | MINOR | S4323 | src/agents/tool-call-measurement-log.ts:9 | Union type -> type alias |
-| 14 | MINOR | S6594 | src/installer/hw-probe/hwProbe.ts:81 | Use RegExp.exec() |
-| 15 | MINOR | S7773 | src/installer/hw-probe/hwProbe.ts:83 | Number.parseFloat |
-| 16 | MINOR | S7773 | src/installer/hw-probe/hwProbe.ts:108 | Number.parseInt |
-| 17 | MINOR | S4325 | src/installer/hw-probe/hwProbe.ts:109 | Unnecessary assertion |
-| 18 | MINOR | S7773 | src/installer/hw-probe/hwProbe.ts:144 | Number.parseInt |
-| 19 | MINOR | S7773 | src/shared/retrieval/repository-id.ts:25 | Number.parseInt |
-| 20 | MINOR | S1128 | src/agents/sub-agent.ts:9 | Unused import ToolCallClass |
-| 21 | MINOR | S6353 | src/agents/tool-call-classifier.ts:116 | [A-Za-z0-9_] -> \w |
-| 22 | MINOR | S1128 | src/llm/gateway.ts:43 | Unused import estimateTokens |
-| 23 | MINOR | S6594 | src/llm/gateway.ts:136 | Use RegExp.exec() |
-| 24 | MINOR | S6594 | src/llm/gateway.ts:181 | Use RegExp.exec() |
-| 25 | MINOR | S1128 | src/agents/tools/read-file.ts:2 | Unused import path |
-| 26 | MINOR | S1128 | src/shared/retrieval/router.ts:12 | Unused import path |
-| 27 | MINOR | S2486 | src/shared/security/safe-path.ts:8-10 | Handle exception or don't catch - 1h effort, highest single cost in the batch; security-adjacent filename; treated as higher-risk than its MINOR label suggests |
-| 28 | MINOR | S7786 | src/shared/retrieval/vector-client.ts:70 | Error -> TypeError |
-| 29 | MINOR | S6551 | src/accounts/profile-manager.js:18 | Object -> string coercion |
-| 30 | MINOR | S6551 | src/security/security-overview/auto-scan.ts:44 | Object -> string (f["type"]) |
-| 31 | MINOR | S6551 | src/security/security-overview/auto-scan.ts:44 | Object -> string (f["path"]) |
-| 32 | MINOR | S6551 | src/security/security-overview/auto-scan.ts:44 | Object -> string (f["message"]/f["title"]) |
-| 33 | INFO | S1135 | src/shared/retrieval/router.ts:125 | Complete TODO comment |
+| #   | Severity | Rule  | File:Line                                              | Issue                                                                                                                                                           |
+| --- | -------- | ----- | ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | BLOCKER  | S2699 | tests/commands/bc2-sync.coverage-additions.test.js:154 | Add at least one assertion                                                                                                                                      |
+| 2   | CRITICAL | S2871 | src/storage/run-migrations.ts:22                       | Sort needs localeCompare comparator                                                                                                                             |
+| 3   | CRITICAL | S3776 | src/storage/symbol-extractor.ts:39                     | Complexity 21->15                                                                                                                                               |
+| 4   | CRITICAL | S3776 | src/storage/symbol-extractor.ts:109                    | Complexity 17->15                                                                                                                                               |
+| 5   | CRITICAL | S3776 | src/storage/symbol-extractor.ts:170                    | Complexity 44->15                                                                                                                                               |
+| 6   | CRITICAL | S3776 | src/agents/tool-call-classifier.ts:22                  | Complexity 16->15                                                                                                                                               |
+| 7   | CRITICAL | S3776 | src/llm/gateway.ts:77                                  | Complexity 31->15                                                                                                                                               |
+| 8   | CRITICAL | S3776 | src/shared/retrieval/code-search.ts:85                 | Complexity 16->15 - same function verified in Section 10.1 for its exit-code-1 no-match logic; any refactor must preserve that logic exactly                    |
+| 9   | MAJOR    | S5914 | tests/secret-store.test.js:253                         | Assertion always succeeds/fails                                                                                                                                 |
+| 10  | MAJOR    | S7785 | src/storage/run-migrations.ts:74                       | Prefer top-level await                                                                                                                                          |
+| 11  | MAJOR    | S5843 | src/agents/tool-call-classifier.ts:106                 | Regex complexity 26->20                                                                                                                                         |
+| 12  | MAJOR    | S6582 | src/agents/cli.ts:91                                   | Prefer optional chaining                                                                                                                                        |
+| 13  | MINOR    | S4323 | src/agents/tool-call-measurement-log.ts:9              | Union type -> type alias                                                                                                                                        |
+| 14  | MINOR    | S6594 | src/installer/hw-probe/hwProbe.ts:81                   | Use RegExp.exec()                                                                                                                                               |
+| 15  | MINOR    | S7773 | src/installer/hw-probe/hwProbe.ts:83                   | Number.parseFloat                                                                                                                                               |
+| 16  | MINOR    | S7773 | src/installer/hw-probe/hwProbe.ts:108                  | Number.parseInt                                                                                                                                                 |
+| 17  | MINOR    | S4325 | src/installer/hw-probe/hwProbe.ts:109                  | Unnecessary assertion                                                                                                                                           |
+| 18  | MINOR    | S7773 | src/installer/hw-probe/hwProbe.ts:144                  | Number.parseInt                                                                                                                                                 |
+| 19  | MINOR    | S7773 | src/shared/retrieval/repository-id.ts:25               | Number.parseInt                                                                                                                                                 |
+| 20  | MINOR    | S1128 | src/agents/sub-agent.ts:9                              | Unused import ToolCallClass                                                                                                                                     |
+| 21  | MINOR    | S6353 | src/agents/tool-call-classifier.ts:116                 | [A-Za-z0-9_] -> \w                                                                                                                                              |
+| 22  | MINOR    | S1128 | src/llm/gateway.ts:43                                  | Unused import estimateTokens                                                                                                                                    |
+| 23  | MINOR    | S6594 | src/llm/gateway.ts:136                                 | Use RegExp.exec()                                                                                                                                               |
+| 24  | MINOR    | S6594 | src/llm/gateway.ts:181                                 | Use RegExp.exec()                                                                                                                                               |
+| 25  | MINOR    | S1128 | src/agents/tools/read-file.ts:2                        | Unused import path                                                                                                                                              |
+| 26  | MINOR    | S1128 | src/shared/retrieval/router.ts:12                      | Unused import path                                                                                                                                              |
+| 27  | MINOR    | S2486 | src/shared/security/safe-path.ts:8-10                  | Handle exception or don't catch - 1h effort, highest single cost in the batch; security-adjacent filename; treated as higher-risk than its MINOR label suggests |
+| 28  | MINOR    | S7786 | src/shared/retrieval/vector-client.ts:70               | Error -> TypeError                                                                                                                                              |
+| 29  | MINOR    | S6551 | src/accounts/profile-manager.js:18                     | Object -> string coercion                                                                                                                                       |
+| 30  | MINOR    | S6551 | src/security/security-overview/auto-scan.ts:44         | Object -> string (f["type"])                                                                                                                                    |
+| 31  | MINOR    | S6551 | src/security/security-overview/auto-scan.ts:44         | Object -> string (f["path"])                                                                                                                                    |
+| 32  | MINOR    | S6551 | src/security/security-overview/auto-scan.ts:44         | Object -> string (f["message"]/f["title"])                                                                                                                      |
+| 33  | INFO     | S1135 | src/shared/retrieval/router.ts:125                     | Complete TODO comment                                                                                                                                           |
 
 Rows 30-32 share one line - fix as a single commit, not three.
 
 ### 12.2 Lane split - by actual risk, not just Sonar's severity label
 
-| Lane | Issues | Rationale |
-|---|---|---|
-| Local/mechanical (safe for a small quantized local model, e.g. Qwen) | #13-26, #28-33 (20 issues) | Single, pre-resolved, mechanical transformations - no judgment call required. |
-| Escalate (needs a stronger model or manual review) | #1-12, plus #27 despite its MINOR label (13 issues) | Complexity refactors, test-assertion integrity, sort/await/exception-handling behavior changes in load-bearing or security-adjacent files. |
+| Lane                                                                 | Issues                                              | Rationale                                                                                                                                  |
+| -------------------------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Local/mechanical (safe for a small quantized local model, e.g. Qwen) | #13-26, #28-33 (20 issues)                          | Single, pre-resolved, mechanical transformations - no judgment call required.                                                              |
+| Escalate (needs a stronger model or manual review)                   | #1-12, plus #27 despite its MINOR label (13 issues) | Complexity refactors, test-assertion integrity, sort/await/exception-handling behavior changes in load-bearing or security-adjacent files. |
 
 **Explicit warning carried forward for issues #1 and #9 (the two
 test-assertion issues):** do NOT resolve these by adding a trivially-true
@@ -810,6 +816,7 @@ against a single issue.
 While smoke-testing the retrieve MCP tool in symbol mode
 (`retrieve("ToolCallClass", mode: "symbol")`) from the VS Code-connected
 unified-theatre-local-llm MCP session, the call failed with:
+
 ```
 Error: SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string
 ```
@@ -865,12 +872,13 @@ symbol lookup.
 - Committed: 3252daa1, 3 files changed (package.json,
   package-lock.json, src/mcp/server.ts), +20/-5.
 - Push status: unconfirmed - verify with `git log --oneline
-  origin/main..main` before assuming pushed.
+origin/main..main` before assuming pushed.
 
 ### 13.4 Verified working post-fix
 
 After a VS Code MCP server restart (required - env is only loaded at
 process start), re-ran the smoke test:
+
 - retrieve("ToolCallClass", mode: "symbol") -> succeeded, returned
   "ToolCallClass (type) at src/agents/tool-call-classifier.ts:16-20".
 - search-code("ToolCallClass", glob: "src/agents") -> unchanged, still
@@ -900,9 +908,9 @@ MCP sessions.
    error message observed during debugging -
    "Error: searchCode: rg failed (code 1):" with nothing after the colon
    - is opaque. Exit code 1 from rg means "no matches" (Section 10.1),
-   which should be caught and returned as [], not surfaced as a bare
-   failure with no detail. Worth a short, separate diagnostic pass; not
-   blocking anything.
+     which should be caught and returned as [], not surfaced as a bare
+     failure with no detail. Worth a short, separate diagnostic pass; not
+     blocking anything.
 
 ---
 
@@ -911,14 +919,14 @@ MCP sessions.
 Confirmed via the actual list-tools MCP call from a live VS Code session -
 6 tools, matching the connection log's "Discovered 6 tools":
 
-| Tool | Params | Notes |
-|---|---|---|
-| ask-local | prompt (required), systemPrompt, workspaceId | Direct local-LLM call, no paid tokens. |
-| code-review | filePath (required), workspaceId | Full review of one file via local LLM + project standards. |
-| list-tools | none | Self-describing. |
-| vector-search | query (required), topK (1-20, default 5) | Semantic, over Qdrant. |
-| search-code | pattern (required, ripgrep regex), glob (optional dir scope) | Lexical/regex, works well when scoped with glob. |
-| retrieve | query (required), mode (code/vector/file/symbol, optional), topK, glob | Auto-routing retrieval. |
+| Tool          | Params                                                                 | Notes                                                      |
+| ------------- | ---------------------------------------------------------------------- | ---------------------------------------------------------- |
+| ask-local     | prompt (required), systemPrompt, workspaceId                           | Direct local-LLM call, no paid tokens.                     |
+| code-review   | filePath (required), workspaceId                                       | Full review of one file via local LLM + project standards. |
+| list-tools    | none                                                                   | Self-describing.                                           |
+| vector-search | query (required), topK (1-20, default 5)                               | Semantic, over Qdrant.                                     |
+| search-code   | pattern (required, ripgrep regex), glob (optional dir scope)           | Lexical/regex, works well when scoped with glob.           |
+| retrieve      | query (required), mode (code/vector/file/symbol, optional), topK, glob | Auto-routing retrieval.                                    |
 
 Also confirmed, not yet built: list-tools reports two planned-but-
 unavailable tools: fix-sonar, run-sprint. If either appears available
@@ -927,6 +935,7 @@ in a future session, that's new - don't assume they exist without checking.
 **Critical correction - retrieve does NOT support file:line query
 syntax.** This was assumed in an earlier version of a prompt template this
 session and is confirmed wrong:
+
 - retrieve("sub-agent.ts:9") (auto mode) -> routes to code search
   internally, but the underlying searchCode call failed (rg failed
   (code 1)) - the ":9" is not parsed as a line number by anything in the
@@ -951,23 +960,23 @@ needs updating before it's used.)
 
 ## 15. Open Items - consolidated master list (supersedes partial lists in Sections 6 / 9.9)
 
-| # | Item | Status |
-|---|---|---|
-| 1 | Real production measurement-log accumulation | In progress since 2026-07-10, still the long-running blocker |
-| 2 | Distribution analysis + skipGatewayAsk widening decision | Blocked on #1, AND now also on per-category gate (Section 10.3) passing, not just the aggregate gate |
-| 3 | Verify 1a985ee2 (per-category gate) is pushed to origin/main | Unconfirmed - check first |
-| 4 | Verify Section 10.5 doc bullet (confident-wrong convention) actually landed in Section 1 | Unconfirmed - check first, see Section 10.6 |
-| 5 | Verify the stray measurement-checkpoint.ts reformat (Section 10.6) was discarded, not accidentally committed | Unconfirmed - check first |
-| 6 | RetrieveResult.matched field | Proposed only, not implemented, not confirmed by a human |
-| 7 | 37-row test-gap backlog (Section 10.4) | Logged, zero acted on - only act once a real fabrication bug is found |
-| 8 | Coverage hardening pass | **DONE** — 15 files processed, raw log in Section 11's Coverage Hardening Log table, not yet condensed into prose |
-| 9 | SonarQube remediation, 33 issues | Corrected inventory ready (Section 12), zero fixed |
-| 10 | Local-lane Sonar prompt template's retrieve("file:line") calls | Confirmed broken syntax (Section 14) - needs correction before use |
-| 11 | recordToolCallForMeasurement() success/failure field | Unknown whether it exists - check before trusting recent log entries (Section 13.5) |
-| 12 | Possible measurement-log contamination from failed retrieve(symbol) debugging calls | Unresolved, depends on #11 |
-| 13 | Opaque "rg failed (code 1):" error message with no detail | Noted, not diagnosed, low priority |
-| 14 | DATABASE_URL / dotenv fix | Done, committed 3252daa1, verified working - push status per #3-style check needed |
-| 15 | MCP tool inventory + retrieve query syntax | Fully documented in Section 14, verified via live list-tools call |
+| #   | Item                                                                                                         | Status                                                                                                            |
+| --- | ------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| 1   | Real production measurement-log accumulation                                                                 | In progress since 2026-07-10, still the long-running blocker                                                      |
+| 2   | Distribution analysis + skipGatewayAsk widening decision                                                     | Blocked on #1, AND now also on per-category gate (Section 10.3) passing, not just the aggregate gate              |
+| 3   | Verify 1a985ee2 (per-category gate) is pushed to origin/main                                                 | Unconfirmed - check first                                                                                         |
+| 4   | Verify Section 10.5 doc bullet (confident-wrong convention) actually landed in Section 1                     | Unconfirmed - check first, see Section 10.6                                                                       |
+| 5   | Verify the stray measurement-checkpoint.ts reformat (Section 10.6) was discarded, not accidentally committed | Unconfirmed - check first                                                                                         |
+| 6   | RetrieveResult.matched field                                                                                 | Proposed only, not implemented, not confirmed by a human                                                          |
+| 7   | 37-row test-gap backlog (Section 10.4)                                                                       | Logged, zero acted on - only act once a real fabrication bug is found                                             |
+| 8   | Coverage hardening pass                                                                                      | **DONE** — 15 files processed, raw log in Section 11's Coverage Hardening Log table, not yet condensed into prose |
+| 9   | SonarQube remediation, 33 issues                                                                             | Corrected inventory ready (Section 12), zero fixed                                                                |
+| 10  | Local-lane Sonar prompt template's retrieve("file:line") calls                                               | Confirmed broken syntax (Section 14) - needs correction before use                                                |
+| 11  | recordToolCallForMeasurement() success/failure field                                                         | Unknown whether it exists - check before trusting recent log entries (Section 13.5)                               |
+| 12  | Possible measurement-log contamination from failed retrieve(symbol) debugging calls                          | Unresolved, depends on #11                                                                                        |
+| 13  | Opaque "rg failed (code 1):" error message with no detail                                                    | Noted, not diagnosed, low priority                                                                                |
+| 14  | DATABASE_URL / dotenv fix                                                                                    | Done, committed 3252daa1, verified working - push status per #3-style check needed                                |
+| 15  | MCP tool inventory + retrieve query syntax                                                                   | Fully documented in Section 14, verified via live list-tools call                                                 |
 
 ---
 
@@ -975,12 +984,14 @@ needs updating before it's used.)
 
 **Do this first, before any other work, regardless of what task you're
 asked to do:**
+
 ```bash
 cd /home/pawan/vscodeagent/Solution
 git status --porcelain
 git log --oneline origin/main..main
 grep -n "Confident-wrong vs. honest-unknown" unified-theatre-continuity-summary.md
 ```
+
 This resolves open items #3, #4, #5 from Section 15 in one pass. Do not
 assume any of them based on this doc's narrative - the doc is written from
 the last known state at the time of writing, and at least two commits
@@ -988,6 +999,7 @@ the last known state at the time of writing, and at least two commits
 status when this revision was written.
 
 **Do not re-run:**
+
 - The Section 9.2 measurement-log diagnosis (resolved, shipped in
   51b648dd).
 - The MCP tool layer audit (Section 10.1) - result was SAFE, don't
@@ -999,6 +1011,7 @@ status when this revision was written.
   scratch.
 
 **Do not assume:**
+
 - RetrieveResult.matched exists - it was proposed, never implemented.
 - Any Sonar issue is fixed - zero commits exist for Section 12's inventory
   as of this doc update.
@@ -1010,6 +1023,7 @@ status when this revision was written.
   (Section 14).
 
 **Immediately actionable, low-risk, no dependencies:**
+
 - Section 15, item #11 - check whether recordToolCallForMeasurement()
   captures call success/failure. Quick to check, meaningfully affects
   trust in the per-category gate (Section 10.3) once real data arrives.
@@ -1019,10 +1033,10 @@ status when this revision was written.
   running it.
 
 **Still blocked, no action possible:**
+
 - Item #1/#2 in Section 15 - genuinely time-gated on real production
   usage volume. Nothing to do here except wait and periodically check
   ~/.unified-ai-workspace/checkpoint-history.log.
-
 
 ---
 
@@ -1034,23 +1048,23 @@ narrated): the coverage-hardening pass ran to completion, 15 files, each
 following the exact pattern specified in Section 11 (one `test:` commit +
 one paired `docs: log coverage fix for X (pending condensation)` commit).
 
-| File | Test commit | Doc-log commit |
-|---|---|---|
-| src/agents/tools/retrieve.ts | fea79ac4 | c6faf2b2 |
-| src/storage/watcher.js | 1ed41516 | 82da7f57 |
-| src/domain/schemas.js | 1d29348b | 014ed8eb |
-| src/domain/types.js | bc005b22 | 1edfe80a |
-| src/agents/tool-call-measurement-log.ts | 5b0ad8fb | e66fb82c |
-| src/agents/tools/base.ts | 2df3ceaf | 9a588e16 |
-| llm.js | 0263e68f | e9d7f690 |
-| src/.../workspace-approvals.ts | 623543dd | e0231a34 |
-| src/.../workspace-quotas.ts | a5f0b35d | 2f858ed2 |
-| src/llm/document-ingester.js | c218f628 | bf95fc1c |
-| src/llm/embeddings.js | 7577cffc | 6b7b8d77 |
-| src/llm/experience-db.js | a9ddfedc | 74b942cf |
-| src/llm/gateway.ts | c6d82070 | 5f5bda31 |
-| src/llm/inference.js | c4013e06 | 9ae4c502 |
-| src/knowledge/ingest/ingest-repository.js | cc63c061 | a2c11416 |
+| File                                      | Test commit | Doc-log commit |
+| ----------------------------------------- | ----------- | -------------- |
+| src/agents/tools/retrieve.ts              | fea79ac4    | c6faf2b2       |
+| src/storage/watcher.js                    | 1ed41516    | 82da7f57       |
+| src/domain/schemas.js                     | 1d29348b    | 014ed8eb       |
+| src/domain/types.js                       | bc005b22    | 1edfe80a       |
+| src/agents/tool-call-measurement-log.ts   | 5b0ad8fb    | e66fb82c       |
+| src/agents/tools/base.ts                  | 2df3ceaf    | 9a588e16       |
+| llm.js                                    | 0263e68f    | e9d7f690       |
+| src/.../workspace-approvals.ts            | 623543dd    | e0231a34       |
+| src/.../workspace-quotas.ts               | a5f0b35d    | 2f858ed2       |
+| src/llm/document-ingester.js              | c218f628    | bf95fc1c       |
+| src/llm/embeddings.js                     | 7577cffc    | 6b7b8d77       |
+| src/llm/experience-db.js                  | a9ddfedc    | 74b942cf       |
+| src/llm/gateway.ts                        | c6d82070    | 5f5bda31       |
+| src/llm/inference.js                      | c4013e06    | 9ae4c502       |
+| src/knowledge/ingest/ingest-repository.js | cc63c061    | a2c11416       |
 
 **Notable, worth remembering:** `src/domain/types.js` and
 `src/agents/tools/base.ts` were correctly identified as NOT needing real
@@ -1061,6 +1075,7 @@ move a percentage. This is the Section 11 discipline working as intended —
 honest "not testable" calls instead of fabricated coverage.
 
 **Also confirmed in the same git range but unrelated to coverage work:**
+
 - `9101caea` — Prettier reformatting only, no logic change (scripts + llm
   test files).
 - `d074fdf3` — bundled CJS build artifacts updated.
@@ -1084,26 +1099,26 @@ Corrects Section 12.3's "zero of the 33 issues have been fixed."
 
 **Confirmed via real commit hashes (not narrated):**
 
-| # | file:line | Real commit | Note |
-|---|---|---|---|
-| 13 | tool-call-measurement-log.ts:9 | `9474e307` | Extracted union to `ToolCallSource` type alias |
-| 14 | hwProbe.ts:81 | `709a6309` | `.match()` → `.exec()` |
-| 15 | hwProbe.ts:83 | `bac78cd3` | `Number.parseFloat` |
-| 16 | hwProbe.ts:108 | `c7f2bdac` | `Number.parseInt` |
-| 17 | hwProbe.ts:109 | `11ea34b5` | Removed `as GpuVendor` assertion |
-| 18 | hwProbe.ts:144 | `0798951b` | `Number.parseInt` |
-| 19 | repository-id.ts:25 | `7345c1b2` | `Number.parseInt` |
-| 20 | sub-agent.ts:9 | `1fbb7ca6` | Removed unused `ToolCallClass` import |
-| 21 | tool-call-classifier.ts:116 | `911fba18` | `[A-Za-z0-9_]` → `\w` (only the exact-match occurrence — a sibling `[A-Za-z_]` class at a different line was correctly left alone since it's not an exact match) |
-| 22 | gateway.ts:43 | `dd55754a` | Removed unused `estimateTokens` import |
-| 23 | gateway.ts:136 | `589bfbc8` | `.match()` → `.exec()` |
-| 24 | gateway.ts:181 | `7d654198` | `.match()` → `.exec()` |
-| 25 | read-file.ts:2 | `f9042126` | Removed unused `path` import |
-| 26 | router.ts:12 | `29cff7f7` | Removed unused `path` import |
-| 28 | vector-client.ts:70 | `d3b5171a` | `Error` → `TypeError` |
-| 29 | profile-manager.js:18 | `00aed83f` | Fixed to extract `.message` rather than a blind `String(error)` wrap — matches an existing pattern already used elsewhere in the codebase (`health.js`'s `String(err?.message ?? err)`) rather than inventing a new convention |
-| 30-32 | auto-scan.ts:44 | none needed | **Already fixed** — the line already reads `String(f["path"] ?? "")\|${String(f["type"] ?? "")}\|${String(f["message"] ?? f["title"] ?? "")}`. Confirmed via direct read before attempting any edit — correct behavior, not a false "already done" claim. |
-| 33 | router.ts:125 | none needed | TODO reads "replace with real client id when available from the MCP transport layer" — correctly judged as an architectural change, not a one-line fix, and left in place per the prompt's own instruction not to delete unresolved TODOs. |
+| #     | file:line                      | Real commit | Note                                                                                                                                                                                                                                                      |
+| ----- | ------------------------------ | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 13    | tool-call-measurement-log.ts:9 | `9474e307`  | Extracted union to `ToolCallSource` type alias                                                                                                                                                                                                            |
+| 14    | hwProbe.ts:81                  | `709a6309`  | `.match()` → `.exec()`                                                                                                                                                                                                                                    |
+| 15    | hwProbe.ts:83                  | `bac78cd3`  | `Number.parseFloat`                                                                                                                                                                                                                                       |
+| 16    | hwProbe.ts:108                 | `c7f2bdac`  | `Number.parseInt`                                                                                                                                                                                                                                         |
+| 17    | hwProbe.ts:109                 | `11ea34b5`  | Removed `as GpuVendor` assertion                                                                                                                                                                                                                          |
+| 18    | hwProbe.ts:144                 | `0798951b`  | `Number.parseInt`                                                                                                                                                                                                                                         |
+| 19    | repository-id.ts:25            | `7345c1b2`  | `Number.parseInt`                                                                                                                                                                                                                                         |
+| 20    | sub-agent.ts:9                 | `1fbb7ca6`  | Removed unused `ToolCallClass` import                                                                                                                                                                                                                     |
+| 21    | tool-call-classifier.ts:116    | `911fba18`  | `[A-Za-z0-9_]` → `\w` (only the exact-match occurrence — a sibling `[A-Za-z_]` class at a different line was correctly left alone since it's not an exact match)                                                                                          |
+| 22    | gateway.ts:43                  | `dd55754a`  | Removed unused `estimateTokens` import                                                                                                                                                                                                                    |
+| 23    | gateway.ts:136                 | `589bfbc8`  | `.match()` → `.exec()`                                                                                                                                                                                                                                    |
+| 24    | gateway.ts:181                 | `7d654198`  | `.match()` → `.exec()`                                                                                                                                                                                                                                    |
+| 25    | read-file.ts:2                 | `f9042126`  | Removed unused `path` import                                                                                                                                                                                                                              |
+| 26    | router.ts:12                   | `29cff7f7`  | Removed unused `path` import                                                                                                                                                                                                                              |
+| 28    | vector-client.ts:70            | `d3b5171a`  | `Error` → `TypeError`                                                                                                                                                                                                                                     |
+| 29    | profile-manager.js:18          | `00aed83f`  | Fixed to extract `.message` rather than a blind `String(error)` wrap — matches an existing pattern already used elsewhere in the codebase (`health.js`'s `String(err?.message ?? err)`) rather than inventing a new convention                            |
+| 30-32 | auto-scan.ts:44                | none needed | **Already fixed** — the line already reads `String(f["path"] ?? "")\|${String(f["type"] ?? "")}\|${String(f["message"] ?? f["title"] ?? "")}`. Confirmed via direct read before attempting any edit — correct behavior, not a false "already done" claim. |
+| 33    | router.ts:125                  | none needed | TODO reads "replace with real client id when available from the MCP transport layer" — correctly judged as an architectural change, not a one-line fix, and left in place per the prompt's own instruction not to delete unresolved TODOs.                |
 
 **16 real fixes, 3 issues needed no code change (already correct), 1 TODO
 correctly left alone.** All 20 local-lane issues are now accounted for —
@@ -1117,17 +1132,17 @@ issue #13's commit says `S1172`, but the live Sonar data says `S4323`.
 This pattern repeats across nearly every local-lane commit (see table
 below) — only issue #29's commit (`S6551`) matches the real rule ID.
 
-| # | Commit's rule ID | Real rule ID (Section 12.1) |
-|---|---|---|
-| 13 | S1172 | S4323 |
-| 14 | S3757 | S6594 |
-| 15,16,18,19 | S3790 | S7773 |
-| 17 | S1139 | S4325 |
-| 20,22,25,26 | S1481 | S1128 |
-| 21 | S5852 | S6353 |
-| 23,24 | S3757 | S6594 |
-| 28 | S3993 | S7786 |
-| 29 | S6551 | S6551 ✓ |
+| #           | Commit's rule ID | Real rule ID (Section 12.1) |
+| ----------- | ---------------- | --------------------------- |
+| 13          | S1172            | S4323                       |
+| 14          | S3757            | S6594                       |
+| 15,16,18,19 | S3790            | S7773                       |
+| 17          | S1139            | S4325                       |
+| 20,22,25,26 | S1481            | S1128                       |
+| 21          | S5852            | S6353                       |
+| 23,24       | S3757            | S6594                       |
+| 28          | S3993            | S7786                       |
+| 29          | S6551            | S6551 ✓                     |
 
 **This looks like the rule IDs were recalled from general ESLint/SonarJS
 knowledge rather than copied from the actual issue data supplied in each
@@ -1177,21 +1192,21 @@ correctly preserving the deliberate trim-order/fail-safe semantics (see
 
 ### 19.2 Per-issue findings (recommendations only — nothing implemented)
 
-| # | Issue | Finding / Recommendation |
-|---|---|---|
-| 1 (BLOCKER) | `bc2-sync.coverage-additions.test.js:154` missing assertion | Test is **structurally broken, not just missing an assertion** — `vi.doMock()` is called after the module is already statically imported, so it never actually intercepts anything, and the `active`-guard branch it's meant to exercise can never be reached (`runOnce()` completes synchronously in dryRun mode). **Recommendation: delete the test**, mark the `if (active) return` line with `/* v8 ignore next */` (matching the existing pattern on adjacent lines), since testing this branch properly would need an architectural change (exporting `runOnce` or adding an injectable delay) disproportionate to the risk. |
-| 27 | `safe-path.ts:8-10` ignored exception | The actually-flagged catch (lines 8-10) is a **cosmetic** fix — bind-and-ignore `err`, either use it in the message or switch to a bare `catch {}`. A **second, unflagged** catch block (lines 19-28) does something more security-relevant (swallows a `realpathSync` failure and falls back to non-symlink-resolved `path.resolve`) — analyzed and judged **defensible, not a confident-wrong bug**: the fallback still blocks string-based traversal via the downstream `path.relative` check; the only gap is a *valid* (non-dangling) symlink inside root pointing outside root, which is an accepted, documented trade-off. Optional low-priority follow-up: add a `console.warn` when the fallback path is taken, for observability — not a correctness fix. |
-| 2 | `run-migrations.ts:22` sort comparator | Confirmed: only **one** migration file (`001_symbols_table.sql`) currently exists, so the bug is latent — default sort happens to work by accident today. Recommendation: add `.sort((a, b) => a.localeCompare(b))` before a second migration file is ever added. Low risk, not urgent given current state, but worth doing before it becomes load-bearing. |
-| 3 | `symbol-extractor.ts:39` `walkSourceFiles`, complexity 21→15 | Cleanest single extraction: pull lines 66-70 (extension check + `isTestFile`/`isDeclarationFile` + push) into a `shouldIncludeFile(entry, fullPath): boolean` helper — drops ~6 points in one move. Two separate `try/catch` blocks (readdir vs. stat) are intentionally different (subtree-skip vs. single-entry-skip) — do not merge them. |
-| 4 | `symbol-extractor.ts:109` `findTopLevelDeclaration`, complexity 17→15 | Nested loop over `declarationList.declarations` (for multi-`const a=1,b=2` statements) is the only real nesting — extracting it into `findVariableDeclaration(stmt, name)` removes the nesting penalty cleanly. **No coupling** with the `walkSourceFiles` function from issue #3 (different domains: filesystem vs. AST). Note: raw visible branching only accounts for ~8 of the reported 17 points — likely Sonar counting `&&` operators (~3 more `&&`-bearing conditions present) plus possible line-number drift since last scan; worth re-confirming exact complexity before treating 17 as gospel. |
-| 5 | `symbol-extractor.ts:170` `extractSymbolsFromFile`/`visit()`, complexity 44→15 (largest item) | Decomposes cleanly into one handler per declaration type (`handleFunction`, `handleClass`, `handleInterface`, `handleTypeAlias`, `handleEnum`, `handleExportedVariable`, `handleExportAssignment`), with `visit()` reduced to a thin dispatcher (est. ~12 post-refactor). **High-impact function** — feeds the Postgres `symbols` table that `retrieve(mode: "symbol")` depends on (Section 13). The `export const xTool = { async execute() {} }` object-literal-method extraction pattern (lines 210-214) is a **real, load-bearing pattern in this codebase**, not a theoretical edge case — breaking it would make tool methods unfindable via symbol search. Flagged as needing a dedicated focused session, not a quick pass; verification strategy given: compare `extractSymbolsFromFile()` output on a known file before/after, and spot-check the `symbols` table row count stays at the expected baseline (Section 8 material: ~1322 rows, per earlier doc content) after a fresh index. |
-| 6 | `tool-call-classifier.ts:22` `classifyToolCall`, complexity 16→15 | Only 1 point over threshold. Minimal fix: extract the `retrieve`-branch logic (lines ~62-84) into `classifyRetrieve(args)`, dropping the main function to ~11-12. **Confirmed this function's output feeds the per-category readiness gate directly** (Section 10.3/9.6) — any behavior change to what counts as `path-like`/`symbol-like`/`semantic` shifts real measurement-log data and could flip the gate's pass/fail. |
-| 7 | `gateway.ts:77` `enforcePromptBudget`, complexity 31→15 | See 19.1 correction above — NOT the skipGatewayAsk logic. Decomposes into 4 named steps (`tryDropWorkspaceContext`, `tryTruncateToolResult`, `tryPreserveUserPrompt`, `tryMarkerBasedFallback`). **Explicit risk flagged:** the deliberate trim-order and the "if no boundary can be found, pass through untrimmed rather than blindly truncate" fail-safe (documented in the function's own JSDoc as a considered rejection of blind end-truncation) must survive any refactor exactly — reordering or merging steps could silently change what gets preserved vs. cut. |
-| 8 | `code-search.ts:85` `searchCode`, complexity 16→15 | **Confirmed the exit-code-1 no-match branch (lines 125-131) is present and unchanged**, matching the audit from Section 10.1/13.5 exactly. Remaining complexity (~10 points) is spread across the JSON-line parsing loop and the outer try/catch, not concentrated in the verified branch. Recommendation: may extract the exit-code-1 handling into a named `handleRgExitCode()` helper for clarity, but its internal logic (the `&&` chain, the `.trim()` check) must not change. |
-| 9 (MAJOR) | `secret-store.test.js:253` always-true assertion | Confirmed: literal assertion is `expect(true).toBe(true)` — genuinely tautological, exactly the pattern flagged as forbidden. Real intended check (from test name/setup): verify the keytar adapter was actually used. Recommended real assertion: `expect(keytarStub.default.setPassword).toHaveBeenCalledWith("k-acct", "val", expect.anything())`. Explicitly warned against `expect(store).toBeDefined()`-style non-fixes. |
-| 10 (MAJOR) | `run-migrations.ts:74` top-level await | Confirmed file is genuinely ESM (`"type": "module"` + `import.meta.url` usage). Confirmed only invoked directly via CLI, no other src file imports it. **Recommendation: leave as-is.** Converting to top-level await loses the custom `"Migration failed:"` error message unless wrapped in try/catch, which re-adds the nesting the "fix" was meant to remove — the promise-chain form is judged the correct idiomatic pattern for a CLI entry point, and S7785 here is a style preference, not a correctness issue. |
-| 11 (MAJOR) | `tool-call-classifier.ts:106` regex complexity 26→20 | The flagged regex is a single 29-branch file-extension alternation. Two viable simplifications identified: split into 2-3 smaller alternation groups, or replace with a `Set`-based extension lookup (cleaner, zero regex complexity). **Real gap found: no existing test exercises this regex branch at all** — the one test that reaches `isRetrievePathLike()` with a path-like query short-circuits on the `/` check before ever reaching the regex. Explicitly flagged edge cases with zero coverage: bare filename with extension (`"config.json"`), bare filename without one (`"Makefile"`), and the specific anti-pattern the closed list exists to prevent (`"gateway.ask"` — a dotted identifier that must NOT match). **New tests are needed before any change here**, not after. |
-| 12 (MAJOR) | `cli.ts:91` optional chaining | Confirmed safe: `process.argv[1]` can only ever be `string \| undefined` per Node's own API contract — never `0`/`""`/`false` — so `&&` and `?.` are provably equivalent here with no edge case to worry about. Exact rewrite given: `process.argv[1]?.endsWith("cli.ts")`. |
+| #           | Issue                                                                                         | Finding / Recommendation                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| ----------- | --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 (BLOCKER) | `bc2-sync.coverage-additions.test.js:154` missing assertion                                   | Test is **structurally broken, not just missing an assertion** — `vi.doMock()` is called after the module is already statically imported, so it never actually intercepts anything, and the `active`-guard branch it's meant to exercise can never be reached (`runOnce()` completes synchronously in dryRun mode). **Recommendation: delete the test**, mark the `if (active) return` line with `/* v8 ignore next */` (matching the existing pattern on adjacent lines), since testing this branch properly would need an architectural change (exporting `runOnce` or adding an injectable delay) disproportionate to the risk.                                                                                                                                                                                                                                                                                                                                                                  |
+| 27          | `safe-path.ts:8-10` ignored exception                                                         | The actually-flagged catch (lines 8-10) is a **cosmetic** fix — bind-and-ignore `err`, either use it in the message or switch to a bare `catch {}`. A **second, unflagged** catch block (lines 19-28) does something more security-relevant (swallows a `realpathSync` failure and falls back to non-symlink-resolved `path.resolve`) — analyzed and judged **defensible, not a confident-wrong bug**: the fallback still blocks string-based traversal via the downstream `path.relative` check; the only gap is a _valid_ (non-dangling) symlink inside root pointing outside root, which is an accepted, documented trade-off. Optional low-priority follow-up: add a `console.warn` when the fallback path is taken, for observability — not a correctness fix.                                                                                                                                                                                                                                 |
+| 2           | `run-migrations.ts:22` sort comparator                                                        | Confirmed: only **one** migration file (`001_symbols_table.sql`) currently exists, so the bug is latent — default sort happens to work by accident today. Recommendation: add `.sort((a, b) => a.localeCompare(b))` before a second migration file is ever added. Low risk, not urgent given current state, but worth doing before it becomes load-bearing.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| 3           | `symbol-extractor.ts:39` `walkSourceFiles`, complexity 21→15                                  | Cleanest single extraction: pull lines 66-70 (extension check + `isTestFile`/`isDeclarationFile` + push) into a `shouldIncludeFile(entry, fullPath): boolean` helper — drops ~6 points in one move. Two separate `try/catch` blocks (readdir vs. stat) are intentionally different (subtree-skip vs. single-entry-skip) — do not merge them.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| 4           | `symbol-extractor.ts:109` `findTopLevelDeclaration`, complexity 17→15                         | Nested loop over `declarationList.declarations` (for multi-`const a=1,b=2` statements) is the only real nesting — extracting it into `findVariableDeclaration(stmt, name)` removes the nesting penalty cleanly. **No coupling** with the `walkSourceFiles` function from issue #3 (different domains: filesystem vs. AST). Note: raw visible branching only accounts for ~8 of the reported 17 points — likely Sonar counting `&&` operators (~3 more `&&`-bearing conditions present) plus possible line-number drift since last scan; worth re-confirming exact complexity before treating 17 as gospel.                                                                                                                                                                                                                                                                                                                                                                                          |
+| 5           | `symbol-extractor.ts:170` `extractSymbolsFromFile`/`visit()`, complexity 44→15 (largest item) | Decomposes cleanly into one handler per declaration type (`handleFunction`, `handleClass`, `handleInterface`, `handleTypeAlias`, `handleEnum`, `handleExportedVariable`, `handleExportAssignment`), with `visit()` reduced to a thin dispatcher (est. ~12 post-refactor). **High-impact function** — feeds the Postgres `symbols` table that `retrieve(mode: "symbol")` depends on (Section 13). The `export const xTool = { async execute() {} }` object-literal-method extraction pattern (lines 210-214) is a **real, load-bearing pattern in this codebase**, not a theoretical edge case — breaking it would make tool methods unfindable via symbol search. Flagged as needing a dedicated focused session, not a quick pass; verification strategy given: compare `extractSymbolsFromFile()` output on a known file before/after, and spot-check the `symbols` table row count stays at the expected baseline (Section 8 material: ~1322 rows, per earlier doc content) after a fresh index. |
+| 6           | `tool-call-classifier.ts:22` `classifyToolCall`, complexity 16→15                             | Only 1 point over threshold. Minimal fix: extract the `retrieve`-branch logic (lines ~62-84) into `classifyRetrieve(args)`, dropping the main function to ~11-12. **Confirmed this function's output feeds the per-category readiness gate directly** (Section 10.3/9.6) — any behavior change to what counts as `path-like`/`symbol-like`/`semantic` shifts real measurement-log data and could flip the gate's pass/fail.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| 7           | `gateway.ts:77` `enforcePromptBudget`, complexity 31→15                                       | See 19.1 correction above — NOT the skipGatewayAsk logic. Decomposes into 4 named steps (`tryDropWorkspaceContext`, `tryTruncateToolResult`, `tryPreserveUserPrompt`, `tryMarkerBasedFallback`). **Explicit risk flagged:** the deliberate trim-order and the "if no boundary can be found, pass through untrimmed rather than blindly truncate" fail-safe (documented in the function's own JSDoc as a considered rejection of blind end-truncation) must survive any refactor exactly — reordering or merging steps could silently change what gets preserved vs. cut.                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| 8           | `code-search.ts:85` `searchCode`, complexity 16→15                                            | **Confirmed the exit-code-1 no-match branch (lines 125-131) is present and unchanged**, matching the audit from Section 10.1/13.5 exactly. Remaining complexity (~10 points) is spread across the JSON-line parsing loop and the outer try/catch, not concentrated in the verified branch. Recommendation: may extract the exit-code-1 handling into a named `handleRgExitCode()` helper for clarity, but its internal logic (the `&&` chain, the `.trim()` check) must not change.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| 9 (MAJOR)   | `secret-store.test.js:253` always-true assertion                                              | Confirmed: literal assertion is `expect(true).toBe(true)` — genuinely tautological, exactly the pattern flagged as forbidden. Real intended check (from test name/setup): verify the keytar adapter was actually used. Recommended real assertion: `expect(keytarStub.default.setPassword).toHaveBeenCalledWith("k-acct", "val", expect.anything())`. Explicitly warned against `expect(store).toBeDefined()`-style non-fixes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| 10 (MAJOR)  | `run-migrations.ts:74` top-level await                                                        | Confirmed file is genuinely ESM (`"type": "module"` + `import.meta.url` usage). Confirmed only invoked directly via CLI, no other src file imports it. **Recommendation: leave as-is.** Converting to top-level await loses the custom `"Migration failed:"` error message unless wrapped in try/catch, which re-adds the nesting the "fix" was meant to remove — the promise-chain form is judged the correct idiomatic pattern for a CLI entry point, and S7785 here is a style preference, not a correctness issue.                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| 11 (MAJOR)  | `tool-call-classifier.ts:106` regex complexity 26→20                                          | The flagged regex is a single 29-branch file-extension alternation. Two viable simplifications identified: split into 2-3 smaller alternation groups, or replace with a `Set`-based extension lookup (cleaner, zero regex complexity). **Real gap found: no existing test exercises this regex branch at all** — the one test that reaches `isRetrievePathLike()` with a path-like query short-circuits on the `/` check before ever reaching the regex. Explicitly flagged edge cases with zero coverage: bare filename with extension (`"config.json"`), bare filename without one (`"Makefile"`), and the specific anti-pattern the closed list exists to prevent (`"gateway.ask"` — a dotted identifier that must NOT match). **New tests are needed before any change here**, not after.                                                                                                                                                                                                       |
+| 12 (MAJOR)  | `cli.ts:91` optional chaining                                                                 | Confirmed safe: `process.argv[1]` can only ever be `string \| undefined` per Node's own API contract — never `0`/`""`/`false` — so `&&` and `?.` are provably equivalent here with no edge case to worry about. Exact rewrite given: `process.argv[1]?.endsWith("cli.ts")`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 
 ---
 
@@ -1223,9 +1238,11 @@ exist and are real, they are simply not on the remote.
 
 **This is now the single highest-priority action item in this document.**
 A large amount of verified, tested work is sitting local-only. Run:
+
 ```bash
 git push
 ```
+
 and confirm with a follow-up `git log --oneline origin/main..main` that it
 returns empty before doing anything else in this repo.
 
@@ -1233,29 +1250,30 @@ returns empty before doing anything else in this repo.
 
 ## 22. Open Items — consolidated master list v2 (supersedes Section 15)
 
-| # | Item | Status |
-|---|---|---|
-| 1 | **Push 40+ local commits to origin/main** | **Not done — do this first, see Section 21** |
-| 2 | Real production measurement-log accumulation | In progress, still the long-running blocker |
-| 3 | Distribution analysis + skipGatewayAsk widening decision | Blocked on #2 AND per-category gate passing |
-| 4 | Doc bullet "confident-wrong vs honest-unknown" landed in Section 1 | Still needs a fresh grep check against the LIVE file, not this upload |
-| 5 | RetrieveResult.matched field | Still proposed only, not implemented |
-| 6 | 37-row test-gap backlog (Section 10.4) | Still logged, zero acted on — act only once a real fabrication bug is found |
-| 7 | Coverage hardening pass | **DONE** — 15 files, see Section 17 |
-| 8 | SonarQube local lane (20 issues) | **DONE** — 16 real fixes + 4 no-change-needed, see Section 18 |
-| 9 | SonarQube escalate lane (13 issues) | **Context-gathered, ZERO implemented** — see Section 19 for the 13 ready-to-implement briefs |
-| 10 | Rule-ID mismatch in local-lane commit messages | Flagged, not corrected — see Section 18.1, don't trust commit-message rule IDs |
-| 11 | `code-review` MCP tool broken | New finding, not diagnosed — see Section 20 |
-| 12 | `recordToolCallForMeasurement()` success/failure field | Still unknown whether it exists — unresolved from Section 13.5 |
-| 13 | Possible measurement-log contamination from earlier failed retrieve(symbol) debugging calls | Still unresolved, depends on #12 |
-| 14 | Opaque `"rg failed (code 1):"` error message with no detail | Still noted, not diagnosed, low priority |
-| 15 | DATABASE_URL / dotenv fix | Done, `3252daa1`, verified working, now confirmed included in the unpushed batch (#1) |
+| #   | Item                                                                                        | Status                                                                                       |
+| --- | ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| 1   | **Push 40+ local commits to origin/main**                                                   | **Not done — do this first, see Section 21**                                                 |
+| 2   | Real production measurement-log accumulation                                                | In progress, still the long-running blocker                                                  |
+| 3   | Distribution analysis + skipGatewayAsk widening decision                                    | Blocked on #2 AND per-category gate passing                                                  |
+| 4   | Doc bullet "confident-wrong vs honest-unknown" landed in Section 1                          | Still needs a fresh grep check against the LIVE file, not this upload                        |
+| 5   | RetrieveResult.matched field                                                                | Still proposed only, not implemented                                                         |
+| 6   | 37-row test-gap backlog (Section 10.4)                                                      | Still logged, zero acted on — act only once a real fabrication bug is found                  |
+| 7   | Coverage hardening pass                                                                     | **DONE** — 15 files, see Section 17                                                          |
+| 8   | SonarQube local lane (20 issues)                                                            | **DONE** — 16 real fixes + 4 no-change-needed, see Section 18                                |
+| 9   | SonarQube escalate lane (13 issues)                                                         | **Context-gathered, ZERO implemented** — see Section 19 for the 13 ready-to-implement briefs |
+| 10  | Rule-ID mismatch in local-lane commit messages                                              | Flagged, not corrected — see Section 18.1, don't trust commit-message rule IDs               |
+| 11  | `code-review` MCP tool broken                                                               | New finding, not diagnosed — see Section 20                                                  |
+| 12  | `recordToolCallForMeasurement()` success/failure field                                      | Still unknown whether it exists — unresolved from Section 13.5                               |
+| 13  | Possible measurement-log contamination from earlier failed retrieve(symbol) debugging calls | Still unresolved, depends on #12                                                             |
+| 14  | Opaque `"rg failed (code 1):"` error message with no detail                                 | Still noted, not diagnosed, low priority                                                     |
+| 15  | DATABASE_URL / dotenv fix                                                                   | Done, `3252daa1`, verified working, now confirmed included in the unpushed batch (#1)        |
 
 ---
 
 ## 23. State handoff for the next agent/session (supersedes Section 16)
 
 **Do this first, no exceptions:**
+
 ```bash
 cd /home/pawan/vscodeagent/Solution
 git push
@@ -1264,11 +1282,13 @@ git status --porcelain                 # must be clean
 grep -n "Confident-wrong vs. honest-unknown" unified-theatre-continuity-summary.md
 grep -n "Coverage Hardening Log" unified-theatre-continuity-summary.md
 ```
+
 The last two confirm whether the doc bullet and the coverage log section
 actually exist in the LIVE file — this uploaded copy cannot confirm that,
 only the git history of commits referencing them.
 
 **Do not re-run:**
+
 - Any of the 20 local-lane Sonar issues (#13-26, #28-33) — all 20 are
   accounted for in Section 18, with real commit hashes for the 16 that
   needed changes.
@@ -1279,6 +1299,7 @@ only the git history of commits referencing them.
 
 **Ready to implement, findings already gathered (Section 19.2), still
 needs actual code changes + human/stronger-model review before merging:**
+
 - All 13 escalate-lane issues. Highest-value next steps if picked up:
   - #1 (BLOCKER) — delete the broken test, add the `v8 ignore` comment.
   - #9 (MAJOR) — swap the tautological assertion for the real one given.
@@ -1288,15 +1309,16 @@ needs actual code changes + human/stronger-model review before merging:**
     recommendation; verify symbol-table row count before/after.
 
 **New, not previously tracked:**
+
 - Section 18.1's rule-ID mismatch — low priority, but don't trust commit
   message rule IDs against live SonarQube data without checking Section
   12.1 first.
 - Section 20's broken `code-review` MCP tool — not diagnosed.
 
 **Still blocked, no action possible:**
+
 - Item #2/#3 in Section 22 — still genuinely time-gated on production
   volume.
-
 
 ---
 
@@ -1324,10 +1346,10 @@ this as landed).
 - **Process note**: an initial 4-commit attempt included one genuinely
   empty commit (`--allow-empty`) for #10 after its content got silently
   folded into #2's commit. Caught before push via `git diff
-  origin/main..HEAD --stat` not matching the commit count; squashed
+origin/main..HEAD --stat` not matching the commit count; squashed
   down to 3 honest commits before pushing. Lesson already captured
   informally: **verify commit content against `git show`, not just
-  commit *messages* — a message can claim work a diff doesn't contain.**
+  commit _messages_ — a message can claim work a diff doesn't contain.**
 
 ### Tier 2 — #9, #11 (needed real assertions / new tests first)
 
@@ -1365,7 +1387,7 @@ this as landed).
   already judged defensible in Section 19.2.
 - **Pushed**: `b53e3f65` → origin.
 - **Recurring pattern this tier**: unscoped Prettier-only formatting
-  commits kept appearing in the working tree at the *start* of sessions
+  commits kept appearing in the working tree at the _start_ of sessions
   (editor format-on-save firing on file-open), across
   `cli.ts`/test files, `tool-call-classifier.ts`/`gateway.ts`, and
   `secret-store.js`. Each time: diffed line-by-line to confirm zero
@@ -1412,8 +1434,8 @@ this as landed).
 - **New codified lesson**: for functions with a documented fail-safe or
   cascading-fallback design (like this one's "pass through untrimmed
   rather than blindly truncate" comment), a refactor's return contract
-  must distinguish *why* a step didn't change the prompt, not just
-  *whether* it did — collapsing "couldn't fit" and "no boundary exists
+  must distinguish _why_ a step didn't change the prompt, not just
+  _whether_ it did — collapsing "couldn't fit" and "no boundary exists
   at all" into the same signal silently merges two different original
   behaviors.
 
@@ -1452,7 +1474,7 @@ Section 8 material in this doc. A same-day reconfirmation via
 `SELECT COUNT(*) FROM symbols` returned exactly 1322, which felt like a
 clean baseline — but it was a **stale-table read**, not a fresh index of
 current source. The table had not been reindexed since before Tiers 1-4
-of *this same session* landed, and those tiers added real new named
+of _this same session_ landed, and those tiers added real new named
 top-level symbols to files this extractor walks (`classifyRetrieve`,
 `tryDropWorkspaceContext`, `tryTruncateToolResult`,
 `tryPreserveUserPrompt`, `tryMarkerBasedFallback`, `handleRgError`,
@@ -1465,6 +1487,7 @@ been indexed at all.
 
 Establishing a trustworthy comparison took several failed attempts,
 each instructive:
+
 - A `git stash`/reindex/`git stash pop` pre-vs-post comparison initially
   failed silently (SASL auth errors) because `$DATABASE_URL` wasn't
   actually exported in the shell context the command ran in — **this
@@ -1533,3 +1556,215 @@ Two loose ends before this is fully closed:
 
 That closes out the entire escalate-lane backlog — 13/13, real bugs
 caught and fixed along the way rather than rubber-stamped.
+
+## 25. SonarQube Remediation — Final 7 Issues + ReDoS Hotspot Batch — Session of July 13, 2026
+
+Picked up the last 7 open SonarQube issues (the batch task-prompt-set
+targeted at the local llama.cpp model) plus a full pass on the 8
+`S5852` (ReDoS) security hotspots. Both are now closed. Two real
+regressions were introduced and caught mid-session — logged in full
+below since the catch pattern is the reusable part, not just the fix.
+
+### 25.1 — Final 7 issues (Tasks 1–5, including the caller-identity TODO)
+
+- **Task 1** (`S7785`, top-level await, `run-migrations.ts:79`) — clean
+  mechanical fix, `.then/.catch` → `try { await ... } catch`.
+- **Task 2** (`S3776`, `symbol-extractor.ts`, 44→15) — this function had
+  _already_ been decomposed in Section 24's Issue #5 work (the 7-handler
+  dispatcher). A fresh scan found one leftover point at a **different**
+  line (16→15, `handleExportedVariable`'s object-literal-method loop) —
+  extracted a small `extractObjectLiteralMethods` helper to close it.
+- **Task 3** (`S3776`, `gateway.ts` `enforcePromptBudget`, 17→15) — see
+  25.3, this one round-tripped through two real regressions before
+  landing correctly.
+- **Task 4 / 4b** (`S1135` TODO → real caller-identity threading) — the
+  TODO at `router.ts:124` fed `recordDecision()`'s hash-chained audit
+  receipt, not a log field, so a guessed fix was explicitly rejected in
+  favor of gathering real context first (three rounds of `NEED_CONTEXT`
+  before a correct 5-file threading plan: `server.ts` →
+  `tool-handlers.ts` → `router.ts` for the MCP-client path,
+  `sub-agent.ts` → `agents/tools/retrieve.ts` for the internal
+  agent-loop path, via a synthetic `__callerIdentity` key injected only
+  onto `retrieve`'s args so the other 3 shared-interface tools stay
+  untouched). Fallback string intentionally changed from
+  `"unknown-mcp-client"` to the more accurate `"unknown-caller"` since
+  callers are no longer exclusively MCP clients.
+- **Task 5** (`S6551` ×3, `auto-scan.ts:44`, toString coercion) — real
+  root-cause fix (`asString()` typed helper using `typeof` guards), not
+  a `String()` paper-over that would have silenced the rule without
+  fixing the underlying `unknown`-typed fallback risk.
+
+### 25.2 — Real regression #1: stale-scan false alarm, then two genuine bugs
+
+A post-batch SonarQube scan appeared to show Tasks 3/4/5 **never
+landed** — same issue `key`/`hash`/`updateDate` as pre-edit. Root cause
+turned out to be a **stale scanner index**, confirmed via
+`git status --porcelain` + direct `sed` of the live file content before
+concluding anything was actually lost — worth naming as the right
+instinct (verify against the filesystem, not against the tool's cached
+output) even though the specific alarm was a false one this time.
+
+The full test suite run that followed the re-scan surfaced two **real**
+bugs, both introduced by Task 3/4's edits and both genuinely missed by
+the "Made changes" / diff-shown confirmation at the time they were made:
+
+1. **`gateway.ts` — undefined-prompt crash (9 test failures).** The
+   guard-clause flattening in `enforcePromptBudget` changed
+   `if (a.changed) { trimmedPrompt = a.prompt }` to an unconditional
+   `trimmedPrompt = tryDropWorkspaceContext(...).prompt`, but
+   `TrimStepResult` is a discriminated union where `.prompt` only
+   exists on the `changed: true` branch — `changed: false` has no
+   `.prompt` field at all. Result: `trimmedPrompt` went `undefined`,
+   next `.length` check threw. Fixed by restoring the "keep prior value
+   unless it truly changed" contract — first via a nested `if` (fixed
+   the bug, but pushed complexity from 17 back up to **19**, since
+   Sonar's nesting penalty came right back), then via a ternary
+   (Sonar counts ternaries identically to `if` for nesting — no
+   improvement), and only landed cleanly via **structural extraction**:
+   a small `applyTrimStep()` helper called three times as a plain
+   function call, which removes the branch from `enforcePromptBudget`'s
+   own body entirely rather than just changing its syntax.
+   Codified: _for this specific rule, only moving conditional logic out
+   of the function reduces its counted complexity — reshaping the
+   conditional in place (if → ternary) does not, regardless of how it
+   reads._
+2. **`tool-handlers.ts` — missing try/catch around `handleRetrieve`
+   (1 test failure, unhandled rejection).** Task 4's edit dropped the
+   try/catch that every sibling handler
+   (`handleVectorSearch`/`handleSearchCode`) still has. Restored it, and
+   gave the new `callerIdentity` parameter a default value
+   (`"unknown-mcp-client"`) so the pre-existing single-argument test
+   call sites kept compiling without needing their own edit.
+
+- One legitimate (non-bug) test-drift fix alongside these: 3 assertions
+  in `sub-agent.test.ts` updated to expect the newly-injected
+  `__callerIdentity` key — this was Task 4b working as designed, not a
+  regression.
+
+### 25.3 — Real regression #2: reverted a fix by editing a stale copy
+
+While fixing the `router.ts:95` ReDoS hotspot (see 25.4), the file was
+re-copied into the editing scratch space from an **earlier upload**
+(the pre-Task-4 version sent during the original TODO investigation)
+instead of the already-fixed current file — silently clawing back the
+caller-identity threading fix (TODO comment and
+`"unknown-mcp-client"` hardcode came back) underneath the new regex
+edit. Caught via a fresh SonarQube scan showing the S1135 TODO issue
+re-open, confirmed by `grep` before re-fixing, and both fixes (identity
+threading + ReDoS) reapplied together on top of the actual current
+file. Named explicitly in-session as the same failure category as the
+external coding model's earlier phantom-diff scare (Section start of
+this doc's Task 4 history) — just self-inflicted this time: **always
+confirm which copy of a file is the live one before treating an old
+upload as an editing base, especially mid-session when a file has
+already been fixed once.**
+
+### 25.4 — ReDoS hotspot batch (`S5852`, 8 total → 0 remaining)
+
+Worked through all 8 flagged regexes. None were fixed by pattern
+alone — each was fuzz-verified (100k–400k random + adversarial inputs
+per regex) against the **true original** implementation as ground
+truth before being applied to the real file, after one early miss
+showed why that discipline matters:
+
+- **`router.ts:95`** (PascalCase heuristic) — the one genuinely
+  dangerous regex in the batch: `/^[A-Z](?:[a-z]+|[A-Z][a-z]+)*$/`'s
+  repeated group allows exponentially many ways to partition a run of
+  lowercase letters across star-iterations (classic `(a+)+` shape), and
+  this runs on every `retrieve()` query. **First fix attempt was wrong**
+  — caught by fuzz test before delivery (1599/100k mismatches; the
+  rewrite incorrectly accepted bare trailing-uppercase strings like
+  `"AB"` that the original correctly rejects, because the `+` on the
+  second alternative's `[a-z]+` is mandatory in the original but the
+  rewrite used `[a-z]*`). Second attempt verified equivalent across
+  100,025 cases, executes instantly on both attack shapes.
+- **`sub-agent.ts:17`/`:113`** (arg-parsing / tool-call-marker regexes)
+  — lower severity (quadratic, not exponential) lazy-`.*?` patterns.
+  First replacement round (still regex, tightened character classes)
+  cleared the exponential risk but **re-triggered the same rule at
+  shifted line numbers**, because `S5852` is a static shape-matcher, not
+  an ambiguity analyzer — any alternation/sequential-quantifier shape
+  gets flagged regardless of provable boundedness. Second round removed
+  regex entirely from both hot paths (hand-rolled `charCodeAt`/`indexOf`
+  character scanning: `parseToolArgs` → `scanKey`/`scanValue`/
+  `scanQuotedValue`/`scanUnquotedValue`; tool-call detection via
+  `findToolCallMarker`), verified byte-identical to the true original
+  regex behavior across 200,031 cases including malformed-input edges.
+  This manual rewrite **introduced two new findings** of its own
+  (`S7758`: `charCodeAt`→`codePointAt`; `S3776`: `parseToolArgs`
+  complexity 22, over budget) — both fixed same-session, the complexity
+  one via extracting `scanKey`/`scanValue`/etc. as named helpers,
+  re-verified against the same 150k-case fuzz suite before touching the
+  real file. Worth flagging as a general tradeoff: eliminating a
+  regex-shape heuristic finding by hand-rolling logic can trade it for
+  a complexity or API-style finding instead — not a free move.
+- **`hwProbe.ts:81`** (`parseVramString`), **`vscode-learn-utils.js:62`**
+  (`sanitizeFilename` dash-trim), **`test-runner.js:83`**
+  (`toSnakeCase` underscore-trim) — none had real backtracking
+  ambiguity (fixed-string alternation or anchored/maximal-run patterns);
+  manually rewritten for consistency with the "restructure everywhere"
+  decision. One self-caught slip here too: the first
+  `vscode-learn-utils.js` edit left the actual vulnerable regex in
+  place behind a comment claiming it had been replaced — caught on a
+  post-edit sanity read, not shipped.
+- **`git-monitor.js:30`** (`[ahead N, behind M]` bracket extraction) —
+  manual rewrite initially missed that the original's
+  `if (match?.[1])` guard is a _truthy_ check (empty-bracket case would
+  skip the block), while the replacement only checked `!== -1`.
+  Verified end-to-end against the real `parseStatusSummary` that an
+  empty bracket produces identical `ahead=0, behind=0` output either
+  way before accepting the fix as equivalent, rather than trusting the
+  narrower reasoning alone.
+- **`test-runner.js:228`** (`parseRobotErrors`) — the second genuinely
+  risky pattern: three sequential unbounded `[^>]*` segments over XML
+  input (polynomial blowup on many attributes/no match). Rewritten to
+  scan per-tag using `indexOf(">")` boundaries so each search is bounded
+  to a single tag's length rather than the whole file.
+
+### 25.5 — Current state as of this update
+
+**Issues (`/api/issues/search`): 2 open**, both new `S3776` findings
+surfaced by the manual ReDoS rewrites, neither yet fixed:
+
+- `hwProbe.ts:89` — complexity 18/15 (in the function containing the
+  `parseVramString`-adjacent code touched during 25.4).
+- `test-runner.js:269` — complexity 18/15 (in the function containing
+  `parseRobotErrors`, touched during 25.4).
+
+**Hotspots (`/api/hotspots/search`): 15 open**, all `TO_REVIEW`, none
+from this session's ReDoS work — that batch is fully clear:
+
+- **12× `S4036`** (unvalidated `PATH` env var) — `hwProbe.ts` (8),
+  `encrypt.js` (3), `auth-capture.js` (1), `dependency-check-runner.ts`
+  (1), `trivy-runner.ts` (1). Not yet reviewed this session; likely
+  mostly false-positive for a local dev tool but each `child_process`/
+  `exec` call site needs an actual look (pin to absolute binary path or
+  explicit allowlist vs. mark Safe) rather than blanket suppression.
+- **2× `S5332`** (`vector-client.ts:17-18`, http vs https) — not
+  reviewed yet.
+- **1× `S4790`** (`repository-id.ts:16`, weak hash algorithm) — not
+  reviewed yet; likely a **mark-Safe** candidate if the hash is used as
+  a stable ID/fingerprint rather than in an actual security context,
+  but that needs confirming against the call site before deciding.
+
+**Tests**: 5479/5479 passing as of the last full run (post all fixes in
+25.1–25.4).
+
+### 25.6 — Next steps for whoever picks this up
+
+1. Fix the 2 new complexity findings (`hwProbe.ts:89`,
+   `test-runner.js:269`) — both are inside functions touched by the
+   25.4 manual ReDoS rewrites, so likely need the same
+   extract-a-helper treatment as `gateway.ts`/`parseToolArgs` did.
+2. Work through the 15 open hotspots — start with the 2 `S5332`
+   (http→https) and 1 `S4790` (weak hash) since they're small and
+   isolated; batch the 12 `S4036` PATH findings by file
+   (`hwProbe.ts` alone is 8 of them) once the actual `exec`/`spawn`
+   call sites are visible.
+3. Re-run full test suite + a fresh Sonar scan (issues **and**
+   hotspots) after each round — same discipline as this session, since
+   two of this session's fixes each introduced their own new finding
+   that only a fresh scan (not the diff itself) surfaced.
+4. Confirm `git log --oneline origin/main..main` is empty (push
+   everything from this session) before treating it as landed — not
+   yet confirmed as of this doc update.
