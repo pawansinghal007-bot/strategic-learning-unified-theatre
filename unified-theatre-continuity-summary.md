@@ -2,7 +2,7 @@
 
 _Read this first if you're an agent (Claude, Copilot, or otherwise) picking up this project. It exists to prevent context loss across sessions and across different tools/providers working on the same repo._
 
-> **Last updated 2026-07-14.** See Section 26 for that session's full detail (live-verified rollout audit of Slices 110a–110e — 110a/110b/110c/110d confirmed **Done**, 110e confirmed **Not started**). Section 27 supersedes Section 22's open-items list; Section 28 supersedes Section 23's handoff. A To-Do list from this session is appended at the very end of this doc. **As of this edit, Section 26's additions have not yet been committed to git** — verify commit status before assuming this version matches what's on `origin/main`.
+> **Last updated 2026-07-14 (updated again same day — see Section 29).** Section 26 documents the live-verified rollout audit of Slices 110a–110e (110a/110b/110c/110d confirmed **Done**, 110e confirmed **Not started**). Section 29 documents four follow-up fixes closed the same day (harness runner, dotenv loading, index:symbols script, repository_id scoping) — all committed and pushed. Section 30 supersedes Section 27's open-items list; Section 31 supersedes Section 28's handoff.
 >
 > _(Prior pointer, retained for history: Last updated 2026-07-10 — see Section 9 for that session's detail, measurement-log root-cause fix, source tagging, automated weekly checkpoint — committed and pushed as `51b648dd`.)_
 
@@ -2100,3 +2100,177 @@ git log --oneline origin/main..main   # re-check item #1 above — still unconfi
 6. **Design and implement Slice 110e** (references table + `findReferences()`), now that 110a–110d are confirmed done. Nothing exists yet.
 
 7. **Add an integration test for `indexSymbols()` against a real (or test) Postgres instance.** Current unit tests mock `pg` entirely — they prove SQL/control-flow correctness but never exercise a live database. This session's manual verification filled that gap ad hoc, not repeatably or CI-enforced.
+
+---
+
+## 29. Follow-Up Fixes — Items 1-4 Closed (Session continuation, July 13-14, 2026)
+
+Immediately following the Section 26 audit, four items from that
+session's To-Do list were fixed, each verified live and committed
+separately per this project's small-slice discipline (Section 1).
+
+### 29.1 — Item 1: Fix broken `harness` npm script — DONE, `c274d4af`
+
+`package.json`'s `"harness"` script changed from `ts-node src/agents/cli.ts`
+to `tsx src/agents/cli.ts`. Verified: `npm run harness -- --help` now fails
+with the expected `Command file not found: .../.claude/commands/--help.md`
+(proving the orchestrator boots and dispatches) instead of
+`ERR_MODULE_NOT_FOUND`. Full suite: 5479/5479 passing (one transient
+`code-search.test.ts` failure on the first run of two, traced to the
+same pre-existing cache flakiness documented below in 29.5 — cleared on
+re-run with zero code changes in between).
+
+### 29.2 — Item 2: Add `dotenv/config` to `src/agents/cli.ts` — DONE, `70f263b1`
+
+Added `import "dotenv/config";` as the first import, matching the
+existing pattern in `src/mcp/server.ts`. Verified with `DATABASE_URL`
+explicitly unset in the shell (`env -u DATABASE_URL npm run harness --
+--help`) — still reached the same expected command-not-found error,
+proving `.env` is now loaded by the script itself rather than depending
+on the invoking shell already having the variable exported. Full suite:
+5479/5479 passing.
+
+### 29.3 — Item 3: Register `run-indexer.ts` as an npm script — DONE, `a57dc331`
+
+Added `"index:symbols": "tsx src/storage/run-indexer.ts"` to
+`package.json`. Verified live: `npm run index:symbols` produced
+`Indexed 1358 symbols across 189 files.`, matching the last known count
+exactly (no code changed between runs, so an identical count is the
+correct result, not a red flag). Confirmed against Postgres directly:
+`SELECT repository_id, count(*) FROM symbols GROUP BY repository_id`
+returned the same `0d3cf5ba-6378-50fb-941f-416d434809bc` / `1358`.
+
+### 29.4 — Item 4: Scope `findSymbolDefinition()` to `repository_id` — DONE, `944bde80`
+
+Added a required `repositoryId: string` second parameter to
+`findSymbolDefinition()` in `src/shared/retrieval/symbol-search.ts`; SQL
+changed to `where name = $1 and repository_id = $2`. Updated the only
+call site (`src/shared/retrieval/router.ts`'s `retrieve()`) to pass
+`getRepositoryId()`. This function had zero test coverage before this
+change (confirmed via a fresh `find`/`grep` pass, not assumed from
+Section 26.3) — added 7 tests to `tests/shared/retrieval/symbol-search.test.ts`
+(6 updated for the new signature + 1 new regression test asserting a
+wrong `repository_id` returns `[]` even when the name matches), and
+updated `tests/shared/retrieval/router.test.ts`'s stale single-argument
+assertion.
+
+**Real gap caught during this work, not narrated away:** the new
+regression test initially failed against a case-sensitivity mismatch
+(`stringContaining("AND repository_id = $2")` vs. the actual lowercase
+`and` in the SQL) — fixed by correcting the test's expectation, not the
+SQL. Separately, `npm test` failed once on `router.test.ts`'s stale
+`toHaveBeenCalledWith("SubAgent")` assertion (missing the new second
+argument) — fixed by importing the real `getRepositoryId()` in the test
+and asserting against it directly, rather than a hardcoded string, so
+the assertion can't silently drift out of sync with the real function
+again.
+
+**Live end-to-end verification, not just mocked-test evidence:**
+
+```
+DATABASE_URL="$DATABASE_URL" npx tsx -e "
+import('./src/shared/retrieval/symbol-search.ts').then(async (m) => {
+  const rows = await m.findSymbolDefinition('indexSymbols', '0d3cf5ba-6378-50fb-941f-416d434809bc');
+  console.log('Correct repo_id result:', JSON.stringify(rows, null, 2));
+  const wrongRepo = await m.findSymbolDefinition('indexSymbols', '00000000-0000-0000-0000-000000000000');
+  console.log('Wrong-repo result (should be empty array):', JSON.stringify(wrongRepo));
+  process.exit(0);
+});
+"
+```
+
+Correct `repository_id` → real row returned (`src/storage/symbol-indexer.ts:61-95`,
+same as the original Section 26.3 finding). Bogus `repository_id` → `[]`,
+even though the symbol name matches. This is the actual bug being fixed,
+confirmed against live Postgres, not inferred from mocked tests alone.
+
+Full suite after this change: 5480/5480 passing (one new test added),
+confirmed twice across separate runs.
+
+### 29.5 — Note: `code-search.test.ts` flakiness reconfirmed
+
+The pre-existing flaky-test pattern already logged in Section 2 (and
+now in the "Known pre-existing flaky tests" list) recurred once during
+29.1's verification — one failing run, one clean run, zero code changes
+between them. Consistent with the cache-related cause already
+documented; not treated as new breakage.
+
+### 29.6 — Summary table
+
+| Item | Description                                        | Commit     | Status |
+| ---- | -------------------------------------------------- | ---------- | ------ |
+| 1    | `harness` npm script: `ts-node` → `tsx`            | `c274d4af` | Done   |
+| 2    | `dotenv/config` load in `src/agents/cli.ts`        | `70f263b1` | Done   |
+| 3    | `index:symbols` npm script for `run-indexer.ts`    | `a57dc331` | Done   |
+| 4    | `findSymbolDefinition()` scoped to `repository_id` | `944bde80` | Done   |
+
+All four pushed to `origin/main`; `git status --porcelain` confirmed
+clean after each.
+
+---
+
+## 30. Open Items — consolidated master list v4 (supersedes Section 27)
+
+| #   | Item                                                                                                     | Status                                                                                         |
+| --- | -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| 1   | Push 40+ local commits to origin/main                                                                    | Carried — unconfirmed whether this refers to commits predating this session; re-check          |
+| 2   | Real production measurement-log accumulation                                                             | Carried — still the long-running blocker                                                       |
+| 3   | Distribution analysis + skipGatewayAsk widening decision                                                 | Carried — blocked on #2 AND per-category gate passing                                          |
+| 4   | Doc bullet "confident-wrong vs honest-unknown" landed in Section 1                                       | Carried — still needs a fresh grep check against the LIVE file                                 |
+| 5   | RetrieveResult.matched field                                                                             | Carried — still proposed only, not implemented                                                 |
+| 6   | 37-row test-gap backlog (Section 10.4)                                                                   | Carried — still logged, zero acted on                                                          |
+| 7   | SonarQube escalate lane (13 issues)                                                                      | Carried — per Section 24, likely COMPLETE (13/13); verify before closing this row              |
+| 8   | Rule-ID mismatch in local-lane commit messages                                                           | Carried — flagged, not corrected                                                               |
+| 9   | `code-review` MCP tool broken                                                                            | Carried — per Section 20, not diagnosed as of that section                                     |
+| 10  | `recordToolCallForMeasurement()` success/failure field                                                   | Carried — still unknown whether it exists                                                      |
+| 11  | Possible measurement-log contamination from earlier failed retrieve(symbol) debugging calls              | Carried — still unresolved, depends on #10                                                     |
+| 12  | Opaque `"rg failed (code 1):"` error message                                                             | Carried — still noted, not diagnosed, low priority                                             |
+| 13  | ~~`npm run harness` broken under `ts-node`~~                                                             | **CLOSED, `c274d4af`** (Section 29.1)                                                          |
+| 14  | ~~`src/agents/cli.ts` missing `dotenv` load~~                                                            | **CLOSED, `70f263b1`** (Section 29.2)                                                          |
+| 15  | ~~`src/storage/run-indexer.ts` not registered as an npm script~~                                         | **CLOSED, `a57dc331`** (Section 29.3)                                                          |
+| 16  | ~~`findSymbolDefinition()` has no `repository_id` scoping~~                                              | **CLOSED, `944bde80`** (Section 29.4)                                                          |
+| 17  | Two parallel "retrieve" tool implementations (`src/agents/tools/retrieve.ts` vs. MCP `tool-handlers.ts`) | Open — needs a deliberate decision (consolidate or keep separate), not just a code fix         |
+| 18  | No integration test for `indexSymbols()` against a real DB                                               | Open — existing tests mock `pg` entirely                                                       |
+| 19  | Slice 110e (references table + `findReferences()`) design                                                | Open — confirmed not started (Section 26.5); recommend its own dedicated session per Section 1 |
+
+---
+
+## 31. State handoff for the next agent/session (supersedes Section 28)
+
+**Do this first:**
+
+```bash
+cd /home/pawan/vscodeagent/Solution
+git status --porcelain    # confirm clean before touching anything
+git log --oneline origin/main..main   # re-check item #1 in Section 30 — still unconfirmed
+```
+
+**Closed this session — do not re-run:**
+
+- Items 1-4 from the original To-Do list (harness runner, dotenv load,
+  index:symbols script, repository_id scoping) — all four verified live
+  and committed (`c274d4af`, `70f263b1`, `a57dc331`, `944bde80`). See
+  Section 29 for full evidence. If something regresses, diff against
+  Section 29's recorded evidence first rather than re-deriving from
+  scratch.
+
+**Needs a decision before implementing, not just a fix:**
+
+- Item #17 (Section 30) — the two parallel "retrieve" tool
+  implementations. Don't consolidate or "fix" this without first
+  deciding whether the duplication is intentional.
+
+**Ready to act on next, similar scope to what was just closed:**
+
+- Item #18 — add a real integration test for `indexSymbols()` against a
+  live (or test) Postgres instance. Current tests mock `pg` entirely.
+
+**Ready to design, not yet started, recommend its own session:**
+
+- Item #19 — Slice 110e (references table + `findReferences()`).
+  Nothing exists yet.
+
+**Still blocked, no action possible:**
+
+- Items #2/#3 in Section 30 — still genuinely time-gated on production
+  volume.
