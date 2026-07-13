@@ -63,6 +63,7 @@
     "test:sonar": "npm run sonar:preflight && npm run sonar:scan && npm run sonar:qualitygate && npm run sonar:issues",
     "build:electron-main": "node scripts/build-electron-main.mjs",
     "harness": "tsx src/agents/cli.ts",
+    "index:symbols": "tsx src/storage/run-indexer.ts",
     "mcp:server": "tsx src/mcp/server.ts"
   },
   "engines": {
