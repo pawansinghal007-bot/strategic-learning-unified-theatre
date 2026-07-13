@@ -1,4 +1,4 @@
-# Code Review Pipeline
+# code-review
 
 Input: { filePath: string }
 
