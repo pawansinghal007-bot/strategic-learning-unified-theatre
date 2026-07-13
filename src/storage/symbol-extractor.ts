@@ -166,10 +166,7 @@ function handleFunction(
 }
 
 /** Handler: top-level class declaration + its methods. */
-function handleClass(
-  node: ts.ClassDeclaration,
-  addSymbol: AddSymbolFn,
-): void {
+function handleClass(node: ts.ClassDeclaration, addSymbol: AddSymbolFn): void {
   if (node.name) {
     addSymbol(node.name.text, "class", node);
     // class methods
@@ -202,11 +199,29 @@ function handleTypeAlias(
 }
 
 /** Handler: top-level enum declaration. */
-function handleEnum(
-  node: ts.EnumDeclaration,
+function handleEnum(node: ts.EnumDeclaration, addSymbol: AddSymbolFn): void {
+  addSymbol(node.name.text, "enum", node);
+}
+
+/**
+ * Extracts method symbols from an object-literal expression, recording them
+ * as VarName.methodName. Handles the load-bearing pattern:
+ * `export const xTool = { ..., async execute(...) {...} }`
+ */
+function extractObjectLiteralMethods(
+  obj: ts.ObjectLiteralExpression,
+  varName: string,
   addSymbol: AddSymbolFn,
 ): void {
-  addSymbol(node.name.text, "enum", node);
+  for (const prop of obj.properties) {
+    if (
+      ts.isMethodDeclaration(prop) &&
+      prop.name &&
+      ts.isIdentifier(prop.name)
+    ) {
+      addSymbol(`${varName}.${prop.name.text}`, "method", prop);
+    }
+  }
 }
 
 /**
@@ -225,23 +240,11 @@ function handleExportedVariable(
     if (!ts.isIdentifier(decl.name)) continue;
     const varName = decl.name.text;
 
-    if (
-      decl.initializer &&
-      ts.isObjectLiteralExpression(decl.initializer)
-    ) {
-      // export const xTool = { ..., async execute(...) {...} }
+    if (decl.initializer && ts.isObjectLiteralExpression(decl.initializer)) {
       // Record the object itself AND each of its method-shorthand
       // properties, dotted as VarName.methodName.
       addSymbol(varName, "variable", decl);
-      for (const prop of decl.initializer.properties) {
-        if (
-          ts.isMethodDeclaration(prop) &&
-          prop.name &&
-          ts.isIdentifier(prop.name)
-        ) {
-          addSymbol(`${varName}.${prop.name.text}`, "method", prop);
-        }
-      }
+      extractObjectLiteralMethods(decl.initializer, varName, addSymbol);
     } else {
       addSymbol(varName, "variable", decl);
     }
@@ -322,11 +325,15 @@ export function extractSymbolsFromFile(
   function visit(node: ts.Node): void {
     if (ts.isFunctionDeclaration(node)) return handleFunction(node, addSymbol);
     if (ts.isClassDeclaration(node)) return handleClass(node, addSymbol);
-    if (ts.isInterfaceDeclaration(node)) return handleInterface(node, addSymbol);
-    if (ts.isTypeAliasDeclaration(node)) return handleTypeAlias(node, addSymbol);
+    if (ts.isInterfaceDeclaration(node))
+      return handleInterface(node, addSymbol);
+    if (ts.isTypeAliasDeclaration(node))
+      return handleTypeAlias(node, addSymbol);
     if (ts.isEnumDeclaration(node)) return handleEnum(node, addSymbol);
-    if (ts.isVariableStatement(node)) return handleExportedVariable(node, addSymbol);
-    if (ts.isExportAssignment(node)) return handleExportAssignment(node, addSymbol, sourceFile, relativePath);
+    if (ts.isVariableStatement(node))
+      return handleExportedVariable(node, addSymbol);
+    if (ts.isExportAssignment(node))
+      return handleExportAssignment(node, addSymbol, sourceFile, relativePath);
     ts.forEachChild(node, visit);
   }
 
