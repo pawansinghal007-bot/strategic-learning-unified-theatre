@@ -1,9 +1,11 @@
 import { spawnSync } from "node:child_process";
+import crypto from "node:crypto";
 import os from "node:os";
 import fs from "node:fs";
 import path from "node:path";
 import type { RiskFinding } from "./schema.js";
 import { normalizeTrivyFinding } from "./parsers.js";
+import { sanitizeEnvForSpawn } from "../../internal/paths.js";
 
 export async function runTrivyImage(imageRef: string): Promise<{
   ok: boolean;
@@ -20,7 +22,10 @@ export async function runTrivyImage(imageRef: string): Promise<{
   try {
     const args = ["image", "--format", "json", "--quiet", "-o", tmp, imageRef];
 
-    spawnSync("trivy", args, { encoding: "utf8" });
+    spawnSync("trivy", args, {
+      encoding: "utf8",
+      env: sanitizeEnvForSpawn(process.env),
+    });
 
     let parsed: any = null;
     try {

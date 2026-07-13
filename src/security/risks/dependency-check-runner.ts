@@ -1,9 +1,11 @@
 import { spawnSync } from "node:child_process";
+import crypto from "node:crypto";
 import os from "node:os";
 import fs from "node:fs";
 import path from "node:path";
 import type { RiskFinding } from "./schema.js";
 import { normalizeDependencyCheckFinding } from "./parsers.js";
+import { sanitizeEnvForSpawn } from "../../internal/paths.js";
 
 export interface RunDependencyCheckOptions {
   baselinePath?: string;
@@ -74,7 +76,10 @@ export async function runDependencyCheck(
       outDir,
     ];
 
-    spawnSync("dependency-check", args, { encoding: "utf8" });
+    spawnSync("dependency-check", args, {
+      encoding: "utf8",
+      env: sanitizeEnvForSpawn(process.env),
+    });
 
     const parsed = parseDependencyCheckReport(reportFile);
     const findings = extractFindings(parsed);
