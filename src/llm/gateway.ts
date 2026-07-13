@@ -63,6 +63,18 @@ function logNonFatalError(error: unknown, context: string): void {
 type TrimStepResult = { changed: true; prompt: string } | { changed: false };
 
 /**
+ * Resolves a trim step's result against the current prompt: returns the
+ * step's new prompt if it made a change, otherwise returns `current`
+ * unchanged. Extracted as its own function (rather than an inline
+ * if/ternary at each call site) specifically so that resolving three
+ * sequential trim steps doesn't add nesting-penalty cognitive complexity
+ * to enforcePromptBudget — a plain function call carries none.
+ */
+function applyTrimStep(result: TrimStepResult, current: string): string {
+  return result.changed ? result.prompt : current;
+}
+
+/**
  * Marker-fallback result distinguishes "marker found but didn't fit" from
  * "no marker at all" — the latter is the true fail-safe that returns the
  * original untouched prompt.
@@ -251,38 +263,32 @@ export function enforcePromptBudget(
 
   // Step (a): Try dropping workspace context first if present
   if (workspaceContext) {
-    const a = tryDropWorkspaceContext(
+    trimmedPrompt = applyTrimStep(
+      tryDropWorkspaceContext(trimmedPrompt, workspaceContext, budgetChars),
       trimmedPrompt,
-      workspaceContext,
-      budgetChars,
     );
-    if (a.changed) {
-      trimmedPrompt = a.prompt;
-    }
   }
 
   // Step (b): Truncate TOOL RESULT content from the end
   if (trimmedPrompt.length > budgetChars) {
-    const b = tryTruncateToolResult(trimmedPrompt, budgetChars);
-    if (b.changed) {
-      trimmedPrompt = b.prompt;
-    }
+    trimmedPrompt = applyTrimStep(
+      tryTruncateToolResult(trimmedPrompt, budgetChars),
+      trimmedPrompt,
+    );
   }
 
   // Step (c): If still over budget, use explicit userPrompt boundary if provided
   if (trimmedPrompt.length > budgetChars) {
-    const c = tryPreserveUserPrompt(trimmedPrompt, budgetChars, userPrompt);
-    if (c.changed) {
-      trimmedPrompt = c.prompt;
-    }
+    trimmedPrompt = applyTrimStep(
+      tryPreserveUserPrompt(trimmedPrompt, budgetChars, userPrompt),
+      trimmedPrompt,
+    );
   }
 
   // Step (d): Fallback — marker-based approach, or fail-safe pass-through
   if (trimmedPrompt.length > budgetChars) {
     const d = tryMarkerBasedFallback(trimmedPrompt, budgetChars);
-    if (d.changed) {
-      trimmedPrompt = d.prompt;
-    } else if (!d.markerFound) {
+    if (!d.changed && !d.markerFound) {
       // TRUE fail-safe: no "User request:" marker anywhere in the
       // (possibly already-partially-trimmed) prompt. Original behavior:
       // discard ALL partial trimming from steps (a)/(b)/(c) and return
@@ -298,6 +304,9 @@ export function enforcePromptBudget(
         originalLength,
         trimmedLength: originalLength,
       };
+    }
+    if (d.changed) {
+      trimmedPrompt = d.prompt;
     }
     // else: marker was found but couldn't fit within budget —
     // trimmedPrompt stays exactly as steps (a)/(b)/(c) left it. This
