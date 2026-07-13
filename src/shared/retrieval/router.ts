@@ -12,6 +12,7 @@ import * as fs from "node:fs";
 import { vectorSearch } from "./vector-client.js";
 import { searchCode } from "./code-search.js";
 import { findSymbolDefinition } from "./symbol-search.js";
+import { getRepositoryId } from "./repository-id.js";
 import { resolveSafePath } from "../security/safe-path.js";
 import { PROJECT_ROOT } from "../config/paths";
 import { recordDecision } from "../audit/decision-receipt.js";
@@ -179,7 +180,7 @@ export async function retrieve(
         break;
       }
       case "symbol": {
-        results = await findSymbolDefinition(query);
+        results = await findSymbolDefinition(query, getRepositoryId());
         break;
       }
       default: {

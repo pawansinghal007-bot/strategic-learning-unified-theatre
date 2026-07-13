@@ -44,20 +44,25 @@ describe("findSymbolDefinition", () => {
   it("returns empty array when no rows found", async () => {
     mockQuery.mockResolvedValueOnce({ rows: [] });
 
-    const results = await findSymbolDefinition("nonExistentSymbol");
+    const results = await findSymbolDefinition(
+      "nonExistentSymbol",
+      "test-repo-id",
+    );
 
     expect(results).toEqual([]);
     expect(mockQuery).toHaveBeenCalledTimes(1);
   });
 
-  it("queries with the correct SQL and parameter", async () => {
+  it("queries with the correct SQL and parameters", async () => {
     mockQuery.mockResolvedValueOnce({ rows: [] });
 
-    await findSymbolDefinition("runSubAgent");
+    await findSymbolDefinition("runSubAgent", "test-repo-id");
 
     expect(mockQuery).toHaveBeenCalledWith(
-      expect.stringContaining("select name, kind, file_path, start_line, end_line, signature"),
-      ["runSubAgent"],
+      expect.stringContaining(
+        "select name, kind, file_path, start_line, end_line, signature",
+      ),
+      ["runSubAgent", "test-repo-id"],
     );
   });
 
@@ -75,7 +80,7 @@ describe("findSymbolDefinition", () => {
       ],
     });
 
-    const results = await findSymbolDefinition("runSubAgent");
+    const results = await findSymbolDefinition("runSubAgent", "test-repo-id");
 
     expect(results).toHaveLength(1);
     expect(results[0]).toEqual({
@@ -102,7 +107,7 @@ describe("findSymbolDefinition", () => {
       ],
     });
 
-    const results = await findSymbolDefinition("SubAgent");
+    const results = await findSymbolDefinition("SubAgent", "test-repo-id");
 
     expect(results).toHaveLength(1);
     expect(results[0].signature).toBeUndefined();
@@ -130,7 +135,7 @@ describe("findSymbolDefinition", () => {
       ],
     });
 
-    const results = await findSymbolDefinition("embed");
+    const results = await findSymbolDefinition("embed", "test-repo-id");
 
     expect(results).toHaveLength(2);
     expect(results[0].filePath).toBe("src/shared/retrieval/vector-client.ts");
@@ -141,8 +146,23 @@ describe("findSymbolDefinition", () => {
   it("propagates database query errors", async () => {
     mockQuery.mockRejectedValueOnce(new Error("connection refused"));
 
-    await expect(findSymbolDefinition("anything")).rejects.toThrow(
-      "connection refused",
+    await expect(
+      findSymbolDefinition("anything", "test-repo-id"),
+    ).rejects.toThrow("connection refused");
+  });
+
+  it("returns empty array for wrong repository_id", async () => {
+    mockQuery.mockResolvedValueOnce({ rows: [] });
+
+    const results = await findSymbolDefinition(
+      "runSubAgent",
+      "00000000-0000-0000-0000-000000000000",
+    );
+
+    expect(results).toEqual([]);
+    expect(mockQuery).toHaveBeenCalledWith(
+      expect.stringContaining("repository_id = $2"),
+      ["runSubAgent", "00000000-0000-0000-0000-000000000000"],
     );
   });
 });

@@ -56,6 +56,7 @@ import {
   chooseStrategy,
   retrieve,
 } from "../../../src/shared/retrieval/router.js";
+import { getRepositoryId } from "../../../src/shared/retrieval/repository-id.js";
 import { routerFixtures } from "./router.fixtures.js";
 
 // ─── tests ────────────────────────────────────────────────────────────────────
@@ -248,7 +249,10 @@ describe("retrieve", () => {
         endLine: 50,
       },
     ]);
-    expect(mockFindSymbolDefinition).toHaveBeenCalledWith("SubAgent");
+    expect(mockFindSymbolDefinition).toHaveBeenCalledWith(
+      "SubAgent",
+      getRepositoryId(),
+    );
   });
 
   it("returns { strategy, error } when findSymbolDefinition throws", async () => {
