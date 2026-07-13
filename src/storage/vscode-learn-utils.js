@@ -53,14 +53,24 @@ export function defaultStagedSignalsDir(config) {
   return path.join(baseDir, "vscode-signals");
 }
 
+/** Trims all leading and trailing occurrences of `char` from `s`. */
+function trimChar(s, char) {
+  let start = 0;
+  while (start < s.length && s[start] === char) start++;
+  let end = s.length;
+  while (end > start && s[end - 1] === char) end--;
+  return s.slice(start, end);
+}
+
 export function sanitizeFilename(value) {
   return (
-    String(value ?? "")
-      .trim()
-      .toLowerCase()
-      .replaceAll(/[^a-z0-9-_.]+/g, "-")
-      .replaceAll(/^-+|-+$/g, "")
-      .slice(0, 64) || "signal"
+    trimChar(
+      String(value ?? "")
+        .trim()
+        .toLowerCase()
+        .replaceAll(/[^a-z0-9-_.]+/g, "-"),
+      "-",
+    ).slice(0, 64) || "signal"
   );
 }
 
