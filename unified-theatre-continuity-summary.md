@@ -81,7 +81,8 @@ This is an **object literal with a method**, not a class — matters for any too
 
 - `tests/sprint85-guard.test.js` — wraps a live `npx tsc --noEmit` subprocess call in a hardcoded 5000ms timeout. Runs in ~650–800ms in isolation; occasionally creeps past 5s under full-suite parallel load.
 - `tests/storage/storage-monitor.test.js` — a `setTimeout(2500)`-based race between an async file write and an immediate read. Same story: timing-sensitive under load, not logic-broken.
-- Both confirmed to pass consistently in isolation and across 3+ repeated full-suite runs. If either fails again, it's very likely this same pre-existing pattern, not new breakage — but verify via repeat-run or `git stash` rather than assuming.
+- `tests/shared/retrieval/code-search.test.ts` — intermittent "No pending execFile call in queue" failure in the `execFile` mock queue. Same symptom previously seen and traced to a stale Vite/transform cache during the `handleRgError` extraction (Section 25.4, commit `873e1418`); reproduced again 2026-07-14 with zero code changes between a failing and passing run, confirming it's cache/timing-related, not logic-broken.
+- All three confirmed to pass consistently in isolation and across repeated full-suite runs. If any fails again, it's very likely one of these same pre-existing patterns, not new breakage — but verify via repeat-run, `git stash` comparison, or (for the third) a cache-clear rather than assuming.
 
 ### Measurement logging (Option A instrumentation)
 
