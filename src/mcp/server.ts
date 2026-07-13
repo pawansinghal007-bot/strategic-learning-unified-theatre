@@ -97,7 +97,9 @@ server.registerTool(
   },
   async (args) => {
     logger.info("mcp.tool-call", { tool: "retrieve" });
-    return handleRetrieve(args);
+    const clientName =
+      server.server.getClientVersion()?.name ?? "unknown-mcp-client";
+    return handleRetrieve(args, clientName);
   },
 );
 

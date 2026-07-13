@@ -196,12 +196,14 @@ export async function handleSearchCode(
 
 export async function handleRetrieve(
   input: RetrieveArgs,
+  callerIdentity: string = "unknown-mcp-client",
 ): Promise<McpToolResult> {
   try {
     const result = await retrieve(input.query, {
       mode: input.mode,
       topK: input.topK,
       glob: input.glob,
+      callerIdentity,
     });
 
     logger.info("mcp.retrieve", {
