@@ -197,7 +197,10 @@ describe("runSubAgent", () => {
 
     const result = await runSubAgent(makeTask({ maxIterations: 5 }));
 
-    expect(mockTool.execute).toHaveBeenCalledWith({ path: "src/foo.ts" });
+    expect(mockTool.execute).toHaveBeenCalledWith({
+      path: "src/foo.ts",
+      __callerIdentity: "agent:test-agent#task-001",
+    });
     expect(result.success).toBe(true);
     expect(result.output).toBe("Reviewed the file.");
   });
@@ -271,6 +274,7 @@ describe("runSubAgent", () => {
     expect(mockTool.execute).toHaveBeenCalledWith({
       path: "quoted/path",
       flag: "unquoted",
+      __callerIdentity: "agent:test-agent#task-001",
     });
   });
 });
@@ -436,7 +440,10 @@ describe("executeToolCall — TOOL ERROR vs TOOL RESULT message format", () => {
     // we can't inspect the intermediate outputText directly here — instead
     // confirm the tool's execute() was called with the right args and that
     // the loop completed successfully via the done marker.
-    expect(mockTool.execute).toHaveBeenCalledWith({ query: "test" });
+    expect(mockTool.execute).toHaveBeenCalledWith({
+      query: "test",
+      __callerIdentity: "agent:test-agent#task-001",
+    });
     expect(result.success).toBe(true);
     expect(result.output).toBe("Finished.");
   });

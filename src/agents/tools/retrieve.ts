@@ -23,9 +23,15 @@ export const retrieveTool: Tool = {
     const mode = args.mode as "code" | "vector" | "file" | "symbol" | undefined;
     const topK = args.topK ? Number(args.topK) : 5;
     const glob = args.glob;
+    const callerIdentity = args.__callerIdentity;
 
     try {
-      const result = await retrieve(args.query, { mode, topK, glob });
+      const result = await retrieve(args.query, {
+        mode,
+        topK,
+        glob,
+        callerIdentity,
+      });
 
       if (result.error) {
         return {
