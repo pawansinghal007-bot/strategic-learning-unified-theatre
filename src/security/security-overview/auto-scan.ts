@@ -40,8 +40,12 @@ function tryLoadJson(filePath: string): unknown {
   }
 }
 
+function asString(v: unknown): string {
+  return typeof v === "string" ? v : "";
+}
+
 function fingerprint(f: Record<string, unknown>): string {
-  return `${String(f["path"] ?? "")}|${String(f["type"] ?? "")}|${String(f["message"] ?? f["title"] ?? "")}`;
+  return `${asString(f["path"])}|${asString(f["type"])}|${asString(f["message"] ?? f["title"])}`;
 }
 
 export async function runSecurityAutoScan(
