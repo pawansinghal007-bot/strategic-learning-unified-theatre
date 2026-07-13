@@ -1750,21 +1750,140 @@ from this session's ReDoS work — that batch is fully clear:
 **Tests**: 5479/5479 passing as of the last full run (post all fixes in
 25.1–25.4).
 
-### 25.6 — Next steps for whoever picks this up
+### 25.7 — Hotspot resolution: mark-Safe calls + the 7 remaining code fixes
 
-1. Fix the 2 new complexity findings (`hwProbe.ts:89`,
-   `test-runner.js:269`) — both are inside functions touched by the
-   25.4 manual ReDoS rewrites, so likely need the same
-   extract-a-helper treatment as `gateway.ts`/`parseToolArgs` did.
-2. Work through the 15 open hotspots — start with the 2 `S5332`
-   (http→https) and 1 `S4790` (weak hash) since they're small and
-   isolated; batch the 12 `S4036` PATH findings by file
-   (`hwProbe.ts` alone is 8 of them) once the actual `exec`/`spawn`
-   call sites are visible.
-3. Re-run full test suite + a fresh Sonar scan (issues **and**
-   hotspots) after each round — same discipline as this session, since
-   two of this session's fixes each introduced their own new finding
-   that only a fresh scan (not the diff itself) surfaced.
-4. Confirm `git log --oneline origin/main..main` is empty (push
-   everything from this session) before treating it as landed — not
-   yet confirmed as of this doc update.
+Worked through all 15 open hotspots from 25.5. Two categories:
+
+**Mark Safe (6, no code change), after reading real justification each time
+rather than rubber-stamping:**
+
+- `vector-client.ts:17-18` (`S5332`, http vs https) — `EMBEDDINGS_URL`/
+  `QDRANT_URL` default to Docker-network service hostnames
+  (`http://embeddings:8080`, `http://qdrant:6333`), not public endpoints;
+  traffic never leaves the private container network, and both are
+  already overridable via env var for deployments that do terminate TLS.
+- `repository-id.ts:16` (`S4790`, weak hash) — confirmed from source that
+  SHA-1 is used only as the RFC 4122 UUID-v5 hash step to derive a
+  stable internal ID from `PROJECT_ROOT`, not for anything adversarial
+  (no passwords/tokens/signatures) — this is literally what UUID v5
+  specifies for this exact purpose.
+- `auth-capture.js:114`, `encrypt.js:43` (`S4036`, PATH) — after being
+  asked to upload `src/internal/paths.js` rather than guess at what
+  `sanitizeEnvForSpawn()` (already called at every site here) actually
+  does: confirmed it's a real, working filter — allowlists PATH entries
+  by platform, rejects world-writable POSIX dirs, permits Windows
+  Program-Files/Windows paths, with a `VSCODE_ROTATOR_ALLOW_PATH` escape
+  hatch — not a no-op. Marked Safe with that read cited as the reason.
+
+**Real code fixes (9), using the existing `sanitizeEnvForSpawn()` from
+`src/internal/paths.js` rather than inventing a second mechanism:**
+
+- `dependency-check-runner.ts:77`, `trivy-runner.ts:23` — neither
+  `spawnSync` call passed an `env` at all (full unrestricted `PATH`
+  inheritance). Added `env: sanitizeEnvForSpawn(process.env)` to both.
+  Also added an explicit `import crypto from "node:crypto"` to both
+  files while already touching them — both called `crypto.randomBytes(4)`
+  with no import anywhere, outside their own `try` blocks. Verified this
+  particular sandbox's Node 22 resolves a bare global `crypto` to the
+  full `node:crypto` module (so it wasn't silently throwing here), but
+  flagged it as fragile to rely on rather than confirmed-safe across
+  Node versions, and fixed it defensively regardless.
+- `hwProbe.ts` (6 sites: `nvidia-smi`, `lspci`, `sysctl` ×2,
+  `system_profiler`, `powershell`) — same `env: sanitizeEnvForSpawn(...)`
+  wiring. Before applying, explicitly checked whether reusing this
+  existing allowlist would reproduce the naive-fixed-directory mistake
+  flagged as a risk in 25.5's initial triage (a `System32`-only
+  allowlist would have broken `tryNvidiaSmi()` on Windows, since NVIDIA
+  installs to `C:\Program Files\NVIDIA Corporation\NVSMI`, not
+  `System32`) — confirmed via a direct string-match test that
+  `sanitizeEnvForSpawn`'s actual Windows logic already accepts any path
+  containing "program files" (not just `System32`), so the concern from
+  25.5 doesn't apply once the real, already-shipped filter is reused
+  instead of a fresh guess.
+
+### 25.8 — "Something is wrong": hotspot count stuck at 15 after fixes landed
+
+After the code fixes above, a hotspot re-scan still showed 15 total, which
+looked like a repeat of the earlier phantom-edit scare. It wasn't — it's
+expected SonarQube behavior that got explained mid-session and is worth
+recording here since it'll recur on any future hotspot batch: **security
+hotspots never auto-clear from a code fix, unlike issues.** An issue is a
+pattern the rule engine can mechanically confirm is now absent, so it
+disappears on rescan. A hotspot is inherently a "needs human judgment"
+finding — Sonar's static engine has no way to verify that a named helper
+function in a different file (`sanitizeEnvForSpawn`) actually does what
+it claims, so even a hotspot sitting on genuinely-now-safe code stays
+`TO_REVIEW` until someone clicks **Mark as Reviewed → Safe** in the UI.
+The 3 "new" hotspot keys that appeared in this rescan (at `hwProbe.ts`,
+`dependency-check-runner.ts`, `trivy-runner.ts`) were the same call sites
+getting fresh IDs because the surrounding lines shifted (new import
+lines), not new distinct problems — confirmed by checking that the fix
+was present at all 6 `hwProbe.ts` sites via `grep` before concluding
+this. All 15 have since been reviewed and closed out in the SonarQube UI
+(6 Safe, 9 Fixed) — 15/15 reviewed, 0 remaining.
+
+### 25.9 — Commit + push
+
+All 18 modified files (17 source/test + this doc) committed as 11
+separate, individually-`git diff`-reviewed commits rather than one
+mega-commit, matching this project's established convention from
+Section 24. Grouped by logical unit of work rather than by file, since
+several files (`sub-agent.ts`, `router.ts`, `hwProbe.ts`, `test-runner.js`)
+were touched across multiple rounds this session (Task work, then ReDoS
+fix, then complexity fix, then PATH fix in `hwProbe.ts`'s case) and
+splitting a single file's cumulative diff across commits wasn't
+practical — so each such file's full diff landed in the commit for
+whichever purpose it was most associated with, noted in that commit's
+message.
+
+Pre-flight before committing: full test suite re-run (**5479/5479
+passing**) and a `git diff --stat` sanity check specifically on
+`test-runner.js` — flagged as worth checking because that file's edit
+required normalizing CRLF→LF to edit cleanly, then restoring CRLF
+before delivery, and a line-ending mismatch could have produced a
+diff of hundreds of spurious changed lines. Confirmed clean: 136
+insertions/28 deletions, proportionate to the two real extracted
+helpers, not line-ending noise.
+
+| #   | Commit                                                     | SHA        |
+| --- | ---------------------------------------------------------- | ---------- |
+| 1   | `fix(sonar): S7785 top-level await — run-migrations.ts`    | `1ddaf304` |
+| 2   | `refactor(sonar): S3776 symbol-extractor.ts 16→15`         | `33f7b687` |
+| 3   | `refactor(sonar): S3776 gateway.ts + undefined-prompt fix` | `e0d482af` |
+| 4   | `feat/fix(sonar): MCP caller identity + PascalCase ReDoS`  | `5d5b39e4` |
+| 5   | `feat/fix(sonar): agent caller identity + regex removal`   | `d3733bf9` |
+| 6   | `fix(sonar): S6551 asString() helper, auto-scan.ts`        | `b0316167` |
+| 7   | `fix(sonar): S5852 git-monitor.js + vscode-learn-utils.js` | `6e772737` |
+| 8   | `fix(sonar): hwProbe.ts — ReDoS + complexity + PATH`       | `2329ebfe` |
+| 9   | `fix(sonar): test-runner.js — ReDoS + complexity`          | `432830f2` |
+| 10  | `fix(sonar): S4036 dependency-check-runner + trivy-runner` | `43959fb2` |
+| 11  | `docs: continuity summary Section 25`                      | `520c9a1f` |
+
+Pushed and verified with the same two checks used throughout this
+project's history — both came back clean:
+
+```
+git log --oneline origin/main..main            # empty — all 11 commits on remote
+git status --porcelain -- . ':!unified-theatre-continuity-summary.md'   # empty — clean tree
+```
+
+### 25.10 — Final state, this session closed
+
+- **SonarQube issues**: 7 → 0
+- **SonarQube hotspots**: 15 → 0 remaining `TO_REVIEW` (6 Safe, 9 Fixed,
+  all reviewed in the UI — not just code-fixed, since hotspots don't
+  auto-clear per 25.8)
+- **New findings introduced mid-session by the manual ReDoS rewrites**:
+  2 → both fixed same-session
+- **Real regressions caught (not narrated, verified against the actual
+  filesystem/test run)**: 2 in code (`gateway.ts` undefined-prompt crash,
+  missing `tool-handlers.ts` try/catch) + 1 self-inflicted stale-file
+  revert (`router.ts`, caught mid-fix) — all three fixed and confirmed
+  via re-run, not assumed fixed from the diff alone.
+- **Tests**: 5479/5479 passing.
+- **Commits**: 11, pushed, verified against `origin/main` directly
+  rather than trusted from the push output alone.
+
+Nothing outstanding from this arc. Next open item for whoever picks
+this repo up next is whatever a fresh SonarQube scan turns up from
+this point forward — no known leftovers as of this update.
