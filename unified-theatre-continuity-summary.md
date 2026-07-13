@@ -2,7 +2,9 @@
 
 _Read this first if you're an agent (Claude, Copilot, or otherwise) picking up this project. It exists to prevent context loss across sessions and across different tools/providers working on the same repo._
 
-> **Last updated 2026-07-10.** See Section 9 for that session's full detail (measurement-log root-cause fix, source tagging, and automated weekly checkpoint) — **fully committed and pushed as `51b648dd`**. Section 5 and Section 6 below have been updated in place to reflect current state; everything else in Sections 1–8 is unchanged from the prior version of this doc.
+> **Last updated 2026-07-14.** See Section 26 for that session's full detail (live-verified rollout audit of Slices 110a–110e — 110a/110b/110c/110d confirmed **Done**, 110e confirmed **Not started**). Section 27 supersedes Section 22's open-items list; Section 28 supersedes Section 23's handoff. A To-Do list from this session is appended at the very end of this doc. **As of this edit, Section 26's additions have not yet been committed to git** — verify commit status before assuming this version matches what's on `origin/main`.
+>
+> _(Prior pointer, retained for history: Last updated 2026-07-10 — see Section 9 for that session's detail, measurement-log root-cause fix, source tagging, automated weekly checkpoint — committed and pushed as `51b648dd`.)_
 
 **This file is now tracked in git at the repo root** (`unified-theatre-continuity-summary.md`) — pull the latest `main` to get the current version rather than relying on a copy pasted into a chat session. If you update this doc, commit and push it like any other change, following the same verification discipline as code.
 
@@ -1887,3 +1889,214 @@ git status --porcelain -- . ':!unified-theatre-continuity-summary.md'   # empty 
 Nothing outstanding from this arc. Next open item for whoever picks
 this repo up next is whatever a fresh SonarQube scan turns up from
 this point forward — no known leftovers as of this update.
+
+---
+
+## 26. Rollout Slice Audit — 110a–110e (Symbol Retrieval Pipeline) — Session of July 14, 2026
+
+### 26.0 What triggered this session
+
+A Perplexity-generated set of prompt templates (originally uploaded under
+this doc's filename by mistake — that upload actually contained the
+templates, not this doc) proposed a slice-by-slice verification pass for
+five rollout slices: 110a (schema/migrations), 110b (extractor/indexer),
+110c (shared definition lookup), 110d (external surface wiring), 110e
+(references table). Claude ran the audit live against the actual repo and
+Postgres instance, one slice at a time, accepting only pasted command
+output as evidence — same discipline as Section 1's verification standard.
+
+### 26.1 — 110a: Postgres schema + symbols table + migration runner — DONE
+
+Confirmed by direct inspection and live re-run:
+
+- `001_symbols_table.sql` and `run-migrations.ts` match what Section 2
+  already documented — no discrepancy found.
+- First `psql`/runner attempt failed because `DATABASE_URL` was unset in
+  the shell (not because anything was broken) — `export $(grep -v '^#'
+.env | xargs)` resolved it.
+- Live confirmed: `symbols` table exists, 1339 rows at time of check (see
+  26.2 for why this differs from Section 2's "1322" and "1306" figures),
+  `schema_migrations` correctly records `001_symbols_table.sql` applied
+  2026-07-10, and the runner is idempotent across two consecutive runs
+  (`Applied 0 new migration(s); 1 already up to date.` both times).
+
+### 26.2 — 110b: TS symbol extractor + index one fixture — DONE (after a real gap was found and closed)
+
+Extractor and indexer logic confirmed correct by inspection — matches
+Section 2's description exactly (position-based dedup, batched 500-row
+inserts, deterministic `repository_id` via `getRepositoryId()`).
+
+**Gap found:** despite Section 2 documenting three separate live
+verification runs (1306, then 1322, then this session's discovered 1339
+symbols), **no reproducible entrypoint for `indexSymbols()` exists
+anywhere in the repo.** `grep -rl "indexSymbols"` across `src/` and
+`scripts/` matched only the function's own definition file, and
+`package.json` has zero reference to indexing or symbols. Every prior
+verified run was evidently a manual, untracked `node -e`/`tsx` one-liner —
+correct each time, but not something a future agent (or Copilot/Codex)
+could discover or re-run without already knowing the internals.
+
+**Fix applied this session:** created `src/storage/run-indexer.ts` — a
+small script that calls `indexSymbols(process.env.DATABASE_URL,
+process.cwd())` and logs the result, with an explicit `DATABASE_URL` not
+set`check (matching`run-migrations.ts`'s existing pattern). Ran it live:
+
+```
+Indexed 1358 symbols across 189 files.
+```
+
+against the same `repository_id` (`0d3cf5ba-6378-50fb-941f-416d434809bc`,
+independently recomputed from `PROJECT_ROOT` and confirmed to match).
+1339 → 1358 is a small, plausible increase consistent with source changes
+since whatever session last ran the untracked version — not a red flag.
+
+**Not yet done:** `run-indexer.ts` is not yet wired into `package.json`
+`scripts` — see To-Dos.
+
+### 26.3 — 110c: Shared symbol-definition lookup — DONE
+
+No function literally named `findDefinition` exists anywhere (`grep -rln`
+across `src/` and `tests/` returned nothing) — the real implementation is
+`findSymbolDefinition()` in `src/shared/retrieval/symbol-search.ts`,
+already referenced in Section 2's Retrieval Strategy paragraph. Confirmed
+live: `findSymbolDefinition("indexSymbols")` correctly returned
+`src/storage/symbol-indexer.ts:61-95` with the right signature.
+
+**New limitation surfaced, not previously documented:** the query
+(`select ... from symbols where name = $1`) has **no `repository_id`
+filter**. Harmless today (one repo in the table), but would return
+cross-repo matches if the `symbols` table ever holds more than one
+repository's data. Not a blocker; added to To-Dos.
+
+### 26.4 — 110d: Wire one external surface (MCP or harness) — DONE
+
+Traced and directly verified the full live chain:
+
+```
+MCP server (src/mcp/server.ts, server.registerTool("retrieve", ...))
+  → handleRetrieve() in src/mcp/tool-handlers.ts
+  → retrieve() in src/shared/retrieval/router.ts
+  → findSymbolDefinition() in src/shared/retrieval/symbol-search.ts
+  → Postgres symbols table
+```
+
+Called `handleRetrieve()` directly (the exact function the registered MCP
+tool invokes) with `{ query: "indexSymbols", mode: "symbol" }` and a mock
+client identity — returned the correctly formatted MCP result
+(`"indexSymbols (function) at src/storage/symbol-indexer.ts:61-95"`) with
+correct `audit.decision-receipt` and `mcp.retrieve` logs.
+
+**New finding, not previously documented:** there are **two parallel
+"retrieve" tool implementations** — `src/agents/tools/retrieve.ts` (a
+`Tool` object registered in `src/agents/tools/registry.ts`, used by the
+harness/orchestrator layer) and the MCP server's own
+`tool-handlers.ts`/`handleRetrieve()` path. Both independently call
+`retrieve()` from `router.ts` and were each verified working live this
+session, but they format/wrap results differently and live in separate
+tool registries. Not a bug, but worth a deliberate decision (see To-Dos).
+
+**Also found:** the harness (`npm run harness` → `ts-node
+src/agents/cli.ts`) is currently **broken** — `ts-node` cannot resolve the
+extensionless import `from "./orchestrator"` under this project's native
+ESM config (`ERR_MODULE_NOT_FOUND`). Confirmed `npx tsx src/agents/cli.ts`
+resolves and runs correctly (got as far as its command-not-found path for
+`--help`, proving the orchestrator boots fine under the right runner).
+This is a real, separate defect — see To-Dos. Also confirmed
+`src/agents/cli.ts` has no `dotenv` import, unlike `src/mcp/server.ts` —
+the harness currently only works because the invoking shell already has
+`DATABASE_URL` exported.
+
+### 26.5 — 110e: References table + `findReferences()` — NOT STARTED
+
+Confirmed: only one migration file exists
+(`src/storage/code-index-migrations/001_symbols_table.sql`); no
+references-related migration. No `findReferences`, `references_table`, or
+`code_references` symbol exists in `src/` or `tests/` (two grep hits were
+noise from TypeScript's own bundled library under
+`src/installer/hw-probe/node_modules/`, unrelated to application code).
+Matches the intended plan — 110e was scoped to start only once 110a–110d
+proved out, which they now have.
+
+### 26.6 — Session summary table
+
+| Slice | Verdict         | Notes                                                                                                                     |
+| ----- | --------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| 110a  | **Done**        | No gaps found; idempotency re-confirmed live                                                                              |
+| 110b  | **Done**        | Required creating `run-indexer.ts` — no entrypoint existed before                                                         |
+| 110c  | **Done**        | Function name differs from spec (`findSymbolDefinition` not `findDefinition`) but is functionally equivalent and reusable |
+| 110d  | **Done**        | Verified through the real MCP code path, not a simulated one                                                              |
+| 110e  | **Not started** | As planned — correctly gated on 110a–110d                                                                                 |
+
+---
+
+## 27. Open Items — consolidated master list v3 (supersedes Section 22)
+
+| #   | Item                                                                                                         | Status                                                                                                                          |
+| --- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Push 40+ local commits to origin/main                                                                        | Carried from v2 — unconfirmed this session, re-check before anything else                                                       |
+| 2   | Real production measurement-log accumulation                                                                 | Carried from v2 — still the long-running blocker                                                                                |
+| 3   | Distribution analysis + skipGatewayAsk widening decision                                                     | Carried from v2 — blocked on #2 AND per-category gate passing                                                                   |
+| 4   | Doc bullet "confident-wrong vs honest-unknown" landed in Section 1                                           | Carried from v2 — still needs a fresh grep check against the LIVE file                                                          |
+| 5   | RetrieveResult.matched field                                                                                 | Carried from v2 — still proposed only, not implemented                                                                          |
+| 6   | 37-row test-gap backlog (Section 10.4)                                                                       | Carried from v2 — still logged, zero acted on                                                                                   |
+| 7   | SonarQube escalate lane (13 issues)                                                                          | Carried from v2 — per Section 24, now COMPLETE (13/13), this row can likely be closed; verify against Section 24 before closing |
+| 8   | Rule-ID mismatch in local-lane commit messages                                                               | Carried from v2 — flagged, not corrected                                                                                        |
+| 9   | `code-review` MCP tool broken                                                                                | Carried from v2 — per Section 20, still not diagnosed as of that section; re-check current status                               |
+| 10  | `recordToolCallForMeasurement()` success/failure field                                                       | Carried from v2 — still unknown whether it exists                                                                               |
+| 11  | Possible measurement-log contamination from earlier failed retrieve(symbol) debugging calls                  | Carried from v2 — still unresolved, depends on #10                                                                              |
+| 12  | Opaque `"rg failed (code 1):"` error message                                                                 | Carried from v2 — still noted, not diagnosed, low priority                                                                      |
+| 13  | **`npm run harness` broken under `ts-node`**                                                                 | **New, this session (26.4)** — fix: point `"harness"` script at `tsx`                                                           |
+| 14  | **`src/agents/cli.ts` missing `dotenv` load**                                                                | **New, this session (26.4)** — harness silently depends on shell already having `DATABASE_URL` exported                         |
+| 15  | **`src/storage/run-indexer.ts` not registered as an npm script**                                             | **New, this session (26.2)** — file exists and works, just not discoverable                                                     |
+| 16  | **`findSymbolDefinition()` has no `repository_id` scoping**                                                  | **New, this session (26.3)** — latent multi-repo bug, harmless today                                                            |
+| 17  | **Two parallel "retrieve" tool implementations** (`src/agents/tools/retrieve.ts` vs. MCP `tool-handlers.ts`) | **New, this session (26.4)** — both work, needs a consolidation decision                                                        |
+| 18  | **No integration test for `indexSymbols()` against a real DB**                                               | **New, this session (26.2)** — existing tests mock `pg` entirely; this session's manual verification isn't CI-enforced          |
+| 19  | **Slice 110e (references table + `findReferences()`) design**                                                | **New status, this session (26.5)** — confirmed genuinely not started, ready to begin now that 110a–110d are done               |
+
+---
+
+## 28. State handoff for the next agent/session (supersedes Section 23)
+
+**Do this first:**
+
+```bash
+cd /home/pawan/vscodeagent/Solution
+git status --porcelain    # confirm current tree state before touching anything
+git log --oneline origin/main..main   # re-check item #1 above — still unconfirmed
+```
+
+**From this session (110a–110e audit), ready to act on immediately:**
+
+- Fix the `harness` npm script (`ts-node` → `tsx`) — trivial, isolated, see 26.4.
+- Add `import "dotenv/config";` to `src/agents/cli.ts` — trivial, isolated, see 26.4.
+- Add `"index:symbols": "tsx src/storage/run-indexer.ts"` to `package.json` scripts — trivial, see 26.2.
+
+**Needs a decision before implementing, not just a fix:**
+
+- Whether to consolidate the two "retrieve" tool implementations (item #17) — this is a design choice, not a bug, don't "fix" it without deciding intent first.
+
+**Ready to design, not yet started:**
+
+- Slice 110e — references table schema + `findReferences()`. Nothing exists yet (26.5). Suggest treating as its own small-slice session per this project's established discipline (Section 1), rather than folding into an unrelated session.
+
+**Do not re-run:**
+
+- The 110a–110d verification itself — all four are confirmed Done this session with live pasted evidence (Section 26). Don't re-derive from scratch; if something regresses, diff against what's recorded in 26.1–26.4 first.
+
+---
+
+## To-Do List (added 2026-07-14, from the 110a–110e rollout audit — Section 26)
+
+1. **Fix broken `harness` npm script.** `npm run harness` invokes `ts-node src/agents/cli.ts`, which fails to resolve the extensionless import `from "./orchestrator"` under Node's native ESM resolver. `npx tsx src/agents/cli.ts` resolves and runs correctly. Action: change the `"harness"` script in `package.json` from `ts-node` to `tsx`.
+
+2. **Add `dotenv` loading to the harness entrypoint.** `src/agents/cli.ts` has no `dotenv` import, unlike `src/mcp/server.ts`. The harness currently only works because `DATABASE_URL` happens to already be exported in the invoking shell. Action: add `import "dotenv/config";` near the top of `src/agents/cli.ts`.
+
+3. **Register `run-indexer.ts` as a discoverable npm script.** The file exists and works (verified live, Section 26.2) but isn't referenced in `package.json`. Action: add `"index:symbols": "tsx src/storage/run-indexer.ts"` to the `scripts` block.
+
+4. **Scope `findSymbolDefinition()` to `repository_id`.** Currently has no `repository_id` filter — harmless with one repo in the table today, a latent cross-repo bug otherwise. Action: add `AND repository_id = $2`, passing the current repo's ID via `getRepositoryId()` at call sites.
+
+5. **Decide on the two parallel "retrieve" tool implementations.** `src/agents/tools/retrieve.ts` (harness/orchestrator-facing) and the MCP server's `handleRetrieve()` path both independently call `retrieve()` from `router.ts` but format results differently and live in separate registries. Action: decide whether this is intentional or should be consolidated.
+
+6. **Design and implement Slice 110e** (references table + `findReferences()`), now that 110a–110d are confirmed done. Nothing exists yet.
+
+7. **Add an integration test for `indexSymbols()` against a real (or test) Postgres instance.** Current unit tests mock `pg` entirely — they prove SQL/control-flow correctness but never exercise a live database. This session's manual verification filled that gap ad hoc, not repeatably or CI-enforced.
