@@ -2,7 +2,7 @@
 
 _Read this first if you're an agent (Claude, Copilot, or otherwise) picking up this project. It exists to prevent context loss across sessions and across different tools/providers working on the same repo._
 
-> **Last updated 2026-07-14 (updated again same day — see Section 29).** Section 26 documents the live-verified rollout audit of Slices 110a–110e (110a/110b/110c/110d confirmed **Done**, 110e confirmed **Not started**). Section 29 documents four follow-up fixes closed the same day (harness runner, dotenv loading, index:symbols script, repository_id scoping) — all committed and pushed. Section 30 supersedes Section 27's open-items list; Section 31 supersedes Section 28's handoff.
+> **Last updated 2026-07-14 (updated again same day — see Section 36).** Section 26 documents the live-verified rollout audit of Slices 110a–110e (110a/110b/110c/110d confirmed **Done**, 110e confirmed **Not started**). Section 29 documents four follow-up fixes closed the same day (harness runner, dotenv loading, index:symbols script, repository_id scoping) — all committed and pushed. Section 35 closed the configuration-fixable portion of Section 34 (`.env`/`.env.example` Qdrant/embeddings fixes). Section 36 documents Item #18 (real-Postgres integration test for `indexSymbols()`) closed and pushed as `13483408`. Section 30 supersedes Section 27's open-items list (Item #18 row updated per Section 36); Section 31 supersedes Section 28's handoff.
 >
 > _(Prior pointer, retained for history: Last updated 2026-07-10 — see Section 9 for that session's detail, measurement-log root-cause fix, source tagging, automated weekly checkpoint — committed and pushed as `51b648dd`.)_
 
@@ -2230,7 +2230,7 @@ clean after each.
 | 15  | ~~`src/storage/run-indexer.ts` not registered as an npm script~~                                         | **CLOSED, `a57dc331`** (Section 29.3)                                                          |
 | 16  | ~~`findSymbolDefinition()` has no `repository_id` scoping~~                                              | **CLOSED, `944bde80`** (Section 29.4)                                                          |
 | 17  | Two parallel "retrieve" tool implementations (`src/agents/tools/retrieve.ts` vs. MCP `tool-handlers.ts`) | Open — needs a deliberate decision (consolidate or keep separate), not just a code fix         |
-| 18  | No integration test for `indexSymbols()` against a real DB                                               | Open — existing tests mock `pg` entirely                                                       |
+| 18  | ~~No integration test for `indexSymbols()` against a real DB~~                                           | **CLOSED, `13483408`** (Section 36)                                                            |
 | 19  | Slice 110e (references table + `findReferences()`) design                                                | Open — confirmed not started (Section 26.5); recommend its own dedicated session per Section 1 |
 
 ---
@@ -2260,10 +2260,13 @@ git log --oneline origin/main..main   # re-check item #1 in Section 30 — still
   implementations. Don't consolidate or "fix" this without first
   deciding whether the duplication is intentional.
 
-**Ready to act on next, similar scope to what was just closed:**
+**Closed later the same day — do not re-run (see Section 36):**
 
-- Item #18 — add a real integration test for `indexSymbols()` against a
-  live (or test) Postgres instance. Current tests mock `pg` entirely.
+- Item #18 — real-Postgres integration test for `indexSymbols()`, added
+  in `tests/storage/symbol-indexer.integration.test.ts`, committed and
+  pushed as `13483408`. Covers delete-then-insert replacement, >500-row
+  batching, forced-failure rollback, and the zero-symbols edge case. If
+  something regresses, diff against Section 36's recorded evidence first.
 
 **Ready to design, not yet started, recommend its own session:**
 
@@ -2289,24 +2292,25 @@ ingestion pipeline, unrelated to the original #17 question. Logged here
 as its own item rather than folded into #17.
 
 ### 32.1 The rule being violated
+
 docs/standing-rules.md:4:- Qdrant is the only supported vector store; Milvus is not permitted.
 This is an explicit, unambiguous project rule. It is currently violated
 by several parts of the live codebase.
 
 ### 32.2 Evidence — what's actually in the repo right now
 
-| Component | Status |
-| --- | --- |
-| `docs/standing-rules.md` | States Milvus is not permitted |
-| `package.json` dependencies | Still lists `@zilliz/milvus2-sdk-node` |
-| `.env.example` | Still configures `MILVUS_ADDRESS=localhost:19530` (no `QDRANT_URL` shown to a new developer) |
-| `src/knowledge/ingest/milvus-client.ts` (+ committed `.js` build output) | Real, working Milvus client code — `MilvusClient` from the banned SDK |
-| `src/knowledge/ingest/ingest-repository.js` / `ingest-sprint-history.ts`+`.js` | Real, tested ingestion pipelines (Sprint 91, coverage-tracked, commit `cc63c061`) — both call `ensureKnowledgeCollection()` from the Milvus client |
-| `src/knowledge/index.ts` | Publicly re-exports the **Milvus** version of `ensureKnowledgeCollection`, not the Qdrant one |
-| `src/llm/qdrant-client.ts` | The intended Qdrant replacement — comment literally states "Qdrant vector store replacing Milvus for RAG." Implements matching `ensureKnowledgeCollection()` and `upsertChunks()`. **Confirmed via `git log` to be untouched since Sprint 98/99 (`c0ac1404`, `0339900a`) — dead code, never wired into `src/knowledge/index.ts` or anything else.** |
-| `src/shared/retrieval/vector-client.ts` | The actual **live, working** query path — talks to Qdrant directly via its own inline `fetch()` calls, bypassing `qdrant-client.ts` entirely. This is what `retrieve()`/`vectorSearchTool`/`handleVectorSearch` all actually use. |
-| Live Qdrant instance (confirmed via `curl http://localhost:6333/collections`) | Running, and already contains a collection named `knowledge_chunks` — matching the `KNOWLEDGE_COLLECTION` constant in both `qdrant-client.ts` and the old Milvus client |
-| Milvus (port 19530) | Confirmed **not running** (socket connect test failed) |
+| Component                                                                      | Status                                                                                                                                                                                                                                                                                                                                              |
+| ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `docs/standing-rules.md`                                                       | States Milvus is not permitted                                                                                                                                                                                                                                                                                                                      |
+| `package.json` dependencies                                                    | Still lists `@zilliz/milvus2-sdk-node`                                                                                                                                                                                                                                                                                                              |
+| `.env.example`                                                                 | Still configures `MILVUS_ADDRESS=localhost:19530` (no `QDRANT_URL` shown to a new developer)                                                                                                                                                                                                                                                        |
+| `src/knowledge/ingest/milvus-client.ts` (+ committed `.js` build output)       | Real, working Milvus client code — `MilvusClient` from the banned SDK                                                                                                                                                                                                                                                                               |
+| `src/knowledge/ingest/ingest-repository.js` / `ingest-sprint-history.ts`+`.js` | Real, tested ingestion pipelines (Sprint 91, coverage-tracked, commit `cc63c061`) — both call `ensureKnowledgeCollection()` from the Milvus client                                                                                                                                                                                                  |
+| `src/knowledge/index.ts`                                                       | Publicly re-exports the **Milvus** version of `ensureKnowledgeCollection`, not the Qdrant one                                                                                                                                                                                                                                                       |
+| `src/llm/qdrant-client.ts`                                                     | The intended Qdrant replacement — comment literally states "Qdrant vector store replacing Milvus for RAG." Implements matching `ensureKnowledgeCollection()` and `upsertChunks()`. **Confirmed via `git log` to be untouched since Sprint 98/99 (`c0ac1404`, `0339900a`) — dead code, never wired into `src/knowledge/index.ts` or anything else.** |
+| `src/shared/retrieval/vector-client.ts`                                        | The actual **live, working** query path — talks to Qdrant directly via its own inline `fetch()` calls, bypassing `qdrant-client.ts` entirely. This is what `retrieve()`/`vectorSearchTool`/`handleVectorSearch` all actually use.                                                                                                                   |
+| Live Qdrant instance (confirmed via `curl http://localhost:6333/collections`)  | Running, and already contains a collection named `knowledge_chunks` — matching the `KNOWLEDGE_COLLECTION` constant in both `qdrant-client.ts` and the old Milvus client                                                                                                                                                                             |
+| Milvus (port 19530)                                                            | Confirmed **not running** (socket connect test failed)                                                                                                                                                                                                                                                                                              |
 
 ### 32.3 The unresolved question
 
@@ -2371,7 +2375,6 @@ not an authorization to act.
 - `ingest-repository.js` has no `.ts` counterpart at all (unlike the
   other two pairs) — unclear if it was always JS-authored or if its
   `.ts` source was deleted at some point. Not investigated further.
-
 
 ---
 
@@ -2468,7 +2471,6 @@ Status: **not started, may remain unresolved.**
   stopping there permanently, which this decision explicitly does not
   do.
 
-
 ---
 
 ## 34. CRITICAL FINDING — `vectorSearch()` is completely non-functional on this host; RAG/vector retrieval strategy has been silently broken (discovered during Item #20 investigation, July 14, 2026)
@@ -2513,7 +2515,7 @@ pipeline, and should be treated as higher priority.
    named `"knowledge_chunks"` — the same name used by both the old
    Milvus client and the unwired `qdrant-client.ts`. Querying
    `unified_theatre` returns `404: Collection 'unified_theatre'
-   doesn't exist`.
+doesn't exist`.
 
 4. **Vector dimension mismatch — NOT fixable via configuration.** After
    correcting all three URLs/names above, the query reaches Qdrant
@@ -2544,7 +2546,7 @@ re-ingesting the knowledge base to match. The two systems were never
 reconciled.
 
 Also consistent with earlier evidence: `docs/mcp-client-verification-sprint107.md`
-documented a *different* vector-search failure at Sprint 107
+documented a _different_ vector-search failure at Sprint 107
 ("Qdrant not running — expected infrastructure gap"). That was a
 simpler problem (the service was down) than what's being reported here
 (the service is up, reachable, and even returns a coherent response —
@@ -2555,6 +2557,7 @@ dimension mismatch predates Sprint 107 or was introduced afterward.
 ### 34.3 What is and isn't fixable immediately
 
 **Fixable via configuration alone (should be done regardless of anything else):**
+
 - Add `QDRANT_URL=http://localhost:6333` to `.env` and `.env.example`
 - Add `EMBEDDINGS_URL=http://localhost:8081` to `.env` and `.env.example`
 - Add `QDRANT_COLLECTION=knowledge_chunks` to `.env` and `.env.example`
@@ -2563,6 +2566,7 @@ dimension mismatch predates Sprint 107 or was introduced afterward.
   this project)
 
 **NOT fixable via configuration — requires a real decision:**
+
 - The dimension mismatch (1024 vs. 2560) means `vectorSearch()` will
   still fail even after all three URL/name fixes above, until one of:
   (a) the `knowledge_chunks` collection is deleted and fully
@@ -2586,6 +2590,7 @@ actually configured to call, or this exact failure mode recurs.
 
 Given the severity (a currently-advertised, tool-registered retrieval
 strategy is completely non-functional), recommend:
+
 1. Apply the three URL/name `.env` fixes immediately — low-risk,
    restores `vectorSearch()` to at least reaching Qdrant correctly
    rather than failing on DNS errors, and is useful regardless of how
@@ -2598,7 +2603,6 @@ strategy is completely non-functional), recommend:
    advertised in `handleListTools()`'s MCP tool description
    ("Semantic similarity search over the project's Qdrant vector
    store") as if it works.
-
 
 ---
 
@@ -2650,7 +2654,7 @@ correction: a fresh clone doesn't include `.env.example` at all, so
 that specific risk only applies if the file is distributed to new
 developers some other way (shared out-of-band, part of onboarding
 instructions, etc.), not via the repository itself. The underlying
-finding (the file's *content* is stale/misleading about Milvus vs.
+finding (the file's _content_ is stale/misleading about Milvus vs.
 Qdrant, now fixed for the Qdrant/embeddings portion at least) still
 stands; only the "new developer following the repo" framing was
 imprecise.
@@ -2660,3 +2664,111 @@ Separately, this is arguably its own small hygiene gap: a template
 purpose. Not treated as urgent, but worth noting alongside Item #20's
 existing `.env`/`.env.example` cleanup work (Section 33's Phase 1).
 
+---
+
+## 36. Item #18 closed — real-Postgres integration test for `indexSymbols()`
+
+### 36.0 What was done
+
+Added `tests/storage/symbol-indexer.integration.test.ts` — a new,
+separate test file (the existing mocked `tests/storage/symbol-indexer.test.ts`
+was left completely untouched, still 9/9 passing). Runs against the real
+local dev Postgres (`DATABASE_URL=postgresql://unified:postgres_CHANGE_ME@localhost:5432/unified_theatre`,
+Docker container `qwen-postgres`) rather than mocking `pg`, closing the
+gap noted in Section 26.2/30 (existing tests only proved SQL/control-flow
+correctness, never exercised a live database).
+
+**Schema was checked directly before writing the rollback test** (`psql
+"$DATABASE_URL" -c "\d symbols"`), rather than assumed — confirmed
+`start_line integer NOT NULL` (and `end_line`, `name`, `kind`, `file_path`
+all `NOT NULL`), which the rollback test exploits by injecting a `null`
+`start_line` partway through a batch to force a real constraint violation.
+
+**Isolation from real data:** all four tests scope to a dedicated,
+literal fake `repository_id` (`00000000-0000-0000-0000-000000000abc`)
+that cannot collide with a real deterministic ID produced by
+`src/shared/retrieval/repository-id.ts` (SHA-1 of an actual
+`PROJECT_ROOT` path). Before/after cleanup deletes any rows for that ID.
+The live table's real data (1358 rows as of this session, up from the
+1322 recorded in Section 3/8.3 — expected growth from ongoing indexing,
+not a discrepancy) was never touched.
+
+**Four test cases:**
+
+| Test                                   | What it proves                                                                                                                                                               |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Delete-then-insert replaces prior rows | Two calls with different symbol sets for the same `repository_id` leave only the second set behind — confirms no-upsert semantics, not assumed                               |
+| Batching at 501 rows                   | 501 synthetic symbols cross the `INSERT_CHUNK_SIZE = 500` boundary; row count verified independently via raw `SELECT COUNT(*)`, not via `indexSymbols()`'s own return value  |
+| Rollback on forced mid-batch failure   | A `null` `start_line` injected at index 501 (second batch) violates the real `NOT NULL` constraint; asserts 0 rows remain afterward — full transaction rollback, not partial |
+| Zero-symbols no-op                     | Empty array completes without error, 0 rows                                                                                                                                  |
+
+The suite is wrapped in `describe.skipIf(!process.env.DATABASE_URL)` so
+it skips cleanly rather than failing in any environment without a
+configured database.
+
+### 36.1 Verification (real, pasted terminal output)
+
+```
+DATABASE_URL is set: yes
+
+# Isolated integration test run
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Duration  863ms
+
+# Existing mocked test — untouched
+ Test Files  1 passed (1)
+      Tests  9 passed (9)
+   Duration  478ms
+
+# npx tsc --noEmit
+(clean, no output)
+
+# Postgres cleanup check
+SELECT COUNT(*) FROM symbols WHERE repository_id = '00000000-0000-0000-0000-000000000abc';
+ count
+-------
+     0
+```
+
+**Full suite, post-change** (compared against the 5480/323 baseline
+recorded in Section 35.0):
+
+```
+ Test Files  324 passed (324)
+      Tests  5484 passed (5484)
+   Duration  18.52s
+```
+
+Exactly +1 file / +4 tests over baseline — no regressions, no unexplained
+delta.
+
+`git status --porcelain` before commit showed exactly one untracked
+file (`tests/storage/symbol-indexer.integration.test.ts`); `.env` and
+`.env.example` confirmed not staged and `.env` confirmed still gitignored
+(`git check-ignore .env` → `.env`).
+
+### 36.2 Commit and push
+
+Committed directly to `main` (small-slice, single coherent change — no
+feature branch needed):
+
+```
+commit 13483408  "Add real-Postgres integration test for indexSymbols()"
+ 1 file changed, 204 insertions(+)
+```
+
+Commit message verified via `git log -1 --format="%B"` (not just trusted
+from terminal echo, per the heredoc-echo caveat in Section 1). Push
+sequence run in full: pre-push log diff, clean `git status --porcelain`,
+`git fetch origin` + diff showing no surprise upstream commits, then
+`git push origin main` (`3600e88d..13483408 main -> main`), then a final
+`git status --porcelain` confirming empty/clean.
+
+### 36.3 Status
+
+**Item #18: CLOSED, `13483408`.** Section 30's table updated accordingly.
+No other open item was touched — Item #17 (retrieve duplication), Item
+#19/110e (references table), Item #20 Phase 1 (Milvus quarantine), and
+Section 34.3 (vector-dimension mismatch) remain exactly as they stood at
+the end of Section 35, all deliberately out of scope for this slice.
