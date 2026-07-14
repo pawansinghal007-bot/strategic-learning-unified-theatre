@@ -2608,9 +2608,13 @@ strategy is completely non-functional), recommend:
 
 The three low-risk configuration fixes from Section 34.3/34.4 were
 applied to both `.env` and `.env.example`:
+
+```
 QDRANT_URL=http://localhost:6333
 EMBEDDINGS_URL=http://localhost:8081
 QDRANT_COLLECTION=knowledge_chunks
+```
+
 Verified live, with real pasted terminal output (not narration):
 
 - Re-running the exact `vectorSearch()` call from Section 34.1 now
