@@ -2372,3 +2372,99 @@ not an authorization to act.
   other two pairs) — unclear if it was always JS-authored or if its
   `.ts` source was deleted at some point. Not investigated further.
 
+
+---
+
+## 33. Decision — Item #20 resolution plan (Milvus/Qdrant migration)
+
+Following Section 32's finding, a decision was made on how to resolve
+the standing-rules.md violation. Of the three options logged in 32.5,
+**Option 1 (finish the migration) was selected**, but phased rather
+than done as a single change, to avoid the same kind of
+assumption-driven risk this project's verification discipline exists
+to prevent.
+
+### 33.1 Why phased, not a single pass
+
+- The Sprint 91 Milvus ingestion code has real, tracked test coverage
+  (81-94%, commit `cc63c061`) — rewriting it against Qdrant's
+  `upsertChunks()` API shape in the same pass as removing the
+  dependency would conflate a low-risk cleanup with a genuine
+  migration, and risks the rewrite being done under pressure to "just
+  make it work" rather than properly re-verified.
+- The origin of the live `knowledge_chunks` Qdrant data (Section 32.3)
+  is still unresolved. Deleting the Milvus ingestion path before that
+  mystery is settled risks removing the only clue to how that data was
+  actually produced, if it turns out to matter later.
+
+### 33.2 Phase 1 — Quarantine (low-risk, no logic changes)
+
+Scope: fix the misleading setup surface only. Does not touch
+`src/knowledge/ingest/*` itself.
+
+- Re-confirm (fresh, not trusting Section 32's grep blindly) that
+  nothing outside `src/knowledge/ingest/` references
+  `@zilliz/milvus2-sdk-node` or `milvus-client`.
+- Replace the Milvus connection block in `.env.example` with a Qdrant
+  one (`QDRANT_URL`), matching the defaults already coded in
+  `vector-client.ts` / `qdrant-client.ts`.
+- Confirm `.env.example` isn't read programmatically by anything
+  before assuming the edit is inert to running code.
+- Remove `@zilliz/milvus2-sdk-node` from `package.json` dependencies,
+  regenerate `package-lock.json` via `npm install`, confirm nothing
+  transitively depended on it.
+- Run the full test suite, plus specifically any
+  `src/knowledge/`-related or Milvus-related test files, to confirm
+  removing the dependency doesn't break anything that still imports it
+  directly (if it does, that's new information contradicting the
+  orphan-status finding and should halt the change, not be worked
+  around).
+
+Status as of this writing: **prompted, not yet executed.**
+
+### 33.3 Phase 2 — Real migration (deferred, recommend its own dedicated session, same as Slice 110e)
+
+- Rewrite `src/knowledge/index.ts` to import from
+  `src/llm/qdrant-client.ts` instead of
+  `src/knowledge/ingest/milvus-client.ts`.
+- Port the Sprint 91 ingestion pipelines
+  (`ingest-repository.js`, `ingest-sprint-history.ts`) to call
+  `upsertChunks()` / `ensureKnowledgeCollection()` from the Qdrant
+  client instead of the Milvus one.
+- Rewrite their test suites against the new target, preserving the
+  same coverage discipline Sprint 91 established — not a lighter bar
+  just because it's a migration.
+- Only after Phase 2 is verified working end-to-end: delete
+  `milvus-client.ts` / `.js` and the committed `.js` build artifacts
+  in `src/knowledge/ingest/` for good.
+
+Status: **not started, no prompt drafted yet.**
+
+### 33.4 Phase 3 — Resolve the data-origin mystery (best-effort, may not be resolvable from the repo alone)
+
+- Determine how the live `knowledge_chunks` Qdrant collection was
+  actually populated, since no ingestion code currently in the repo
+  could have done it (Section 32.3). Likely requires institutional
+  memory / checking outside the repo (deleted branches, manual script
+  history, deployment logs) rather than further code archaeology.
+- If resolved, use it to validate that Phase 2's rewritten ingestion
+  pipeline produces output consistent with what's already live, rather
+  than assuming the new pipeline is correct just because it runs
+  without error.
+
+Status: **not started, may remain unresolved.**
+
+### 33.5 Note on why Options 2/3 (from Section 32.5) were not chosen
+
+- Option 2 (revert the standing rule): no evidence supports this.
+  `qdrant-client.ts`'s own comment states it exists to replace Milvus;
+  the live query path (`vector-client.ts`) already only talks to
+  Qdrant. Nothing found suggests Milvus is still deliberately wanted.
+- Option 3 (leave as-is, flag only): insufficient as a permanent state.
+  A banned dependency in `package.json` and a `.env.example` pointing
+  new developers at a system the live code doesn't use are real,
+  ongoing risks, not just a documentation gap. Section 32 itself
+  already served the "flag it" function — Option 3 alone would mean
+  stopping there permanently, which this decision explicitly does not
+  do.
+
