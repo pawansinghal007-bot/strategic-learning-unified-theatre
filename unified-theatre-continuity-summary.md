@@ -2274,3 +2274,101 @@ git log --oneline origin/main..main   # re-check item #1 in Section 30 — still
 
 - Items #2/#3 in Section 30 — still genuinely time-gated on production
   volume.
+
+---
+
+## 32. Finding — Milvus/Qdrant migration incomplete; violates `docs/standing-rules.md` (discovered during Item #17 investigation, July 14, 2026)
+
+### 32.0 How this was found
+
+While deciding Section 30/Item #17 (the two parallel "retrieve" tool
+implementations), the investigation extended to the RAG/vector-search
+layer to check whether the duplication pattern was isolated or systemic.
+That check surfaced a separate, more serious issue with the knowledge
+ingestion pipeline, unrelated to the original #17 question. Logged here
+as its own item rather than folded into #17.
+
+### 32.1 The rule being violated
+docs/standing-rules.md:4:- Qdrant is the only supported vector store; Milvus is not permitted.
+This is an explicit, unambiguous project rule. It is currently violated
+by several parts of the live codebase.
+
+### 32.2 Evidence — what's actually in the repo right now
+
+| Component | Status |
+| --- | --- |
+| `docs/standing-rules.md` | States Milvus is not permitted |
+| `package.json` dependencies | Still lists `@zilliz/milvus2-sdk-node` |
+| `.env.example` | Still configures `MILVUS_ADDRESS=localhost:19530` (no `QDRANT_URL` shown to a new developer) |
+| `src/knowledge/ingest/milvus-client.ts` (+ committed `.js` build output) | Real, working Milvus client code — `MilvusClient` from the banned SDK |
+| `src/knowledge/ingest/ingest-repository.js` / `ingest-sprint-history.ts`+`.js` | Real, tested ingestion pipelines (Sprint 91, coverage-tracked, commit `cc63c061`) — both call `ensureKnowledgeCollection()` from the Milvus client |
+| `src/knowledge/index.ts` | Publicly re-exports the **Milvus** version of `ensureKnowledgeCollection`, not the Qdrant one |
+| `src/llm/qdrant-client.ts` | The intended Qdrant replacement — comment literally states "Qdrant vector store replacing Milvus for RAG." Implements matching `ensureKnowledgeCollection()` and `upsertChunks()`. **Confirmed via `git log` to be untouched since Sprint 98/99 (`c0ac1404`, `0339900a`) — dead code, never wired into `src/knowledge/index.ts` or anything else.** |
+| `src/shared/retrieval/vector-client.ts` | The actual **live, working** query path — talks to Qdrant directly via its own inline `fetch()` calls, bypassing `qdrant-client.ts` entirely. This is what `retrieve()`/`vectorSearchTool`/`handleVectorSearch` all actually use. |
+| Live Qdrant instance (confirmed via `curl http://localhost:6333/collections`) | Running, and already contains a collection named `knowledge_chunks` — matching the `KNOWLEDGE_COLLECTION` constant in both `qdrant-client.ts` and the old Milvus client |
+| Milvus (port 19530) | Confirmed **not running** (socket connect test failed) |
+
+### 32.3 The unresolved question
+
+The live `knowledge_chunks` Qdrant collection contains real data. **No
+ingestion code currently in this repo could have put it there** —
+`src/knowledge/ingest/*` targets Milvus (not running, and forbidden per
+standing-rules.md), and `qdrant-client.ts` (the only code that could
+write to Qdrant) is confirmed dead/unwired. The data's actual origin —
+a manual one-off script, a since-deleted ingestion path, an out-of-repo
+process — is not determinable from the current codebase and git
+history alone. Not resolved this session; flagged for whoever has
+institutional memory of how that collection was populated.
+
+### 32.4 Supporting evidence from project docs (corroborates, doesn't resolve)
+
+- `docs/ARCHITECTURE_INDEX.md:123` — describes `vector-client.ts` as
+  "Vector search via Qdrant + embeddings (added Sprint 106)," consistent
+  with 32.2's finding that this is the real live path.
+- `docs/mcp-client-verification-sprint107.md:156,168` — documents a
+  Sprint 107 test run where `vector-search` failed with
+  `Error: fetch failed` because Qdrant wasn't running at the time —
+  independent historical confirmation that Qdrant (not Milvus) is the
+  system the live tools actually depend on.
+- No `docs/*.md` file mentions `qdrant-client.ts` by name or references
+  `upsertChunks`/its `ensureKnowledgeCollection` — consistent with it
+  having been written but never integrated or documented as in-use.
+
+### 32.5 Options, not yet decided
+
+1. **Finish the migration** — rewire `src/knowledge/index.ts` to import
+   from `src/llm/qdrant-client.ts` instead of the Milvus client; remove
+   `@zilliz/milvus2-sdk-node` from `package.json`; remove
+   `MILVUS_ADDRESS` from `.env.example`; retire or rewrite
+   `src/knowledge/ingest/milvus-client.ts` and its committed `.js`
+   build artifact. Brings the repo into compliance with its own
+   standing rule. Non-trivial: the existing Milvus ingestion pipelines
+   (`ingest-repository.js`, `ingest-sprint-history.ts`) have real,
+   coverage-tracked test suites from Sprint 91 that would need
+   re-targeting or rewriting against Qdrant's `upsertChunks()` API
+   shape, not just a find-and-replace.
+2. **Revert or amend the standing rule** — only appropriate if Milvus
+   is still intentionally in use for some reason not evident from the
+   code (e.g. a parallel/legacy path kept deliberately). Nothing found
+   this session supports this; the rule's own wording and the
+   commit-history evidence both point to Qdrant being the intended
+   sole system.
+3. **Leave as-is short-term, flag prominently** — lowest-risk immediate
+   choice, but leaves a documented rule violation and dead/duplicated
+   code sitting silently in the repo, plus a misleading `.env.example`
+   that would send a new developer down the wrong path entirely.
+
+No option selected yet — this is logged as a finding for a decision,
+not an authorization to act.
+
+### 32.6 Also found, smaller, same area
+
+- Committed `.js` files alongside `.ts` sources in
+  `src/knowledge/ingest/` (`milvus-client.js`/`.ts`,
+  `ingest-sprint-history.js`/`.ts`) appear to be committed build
+  output — not confirmed whether intentional or accidental. Separate
+  small hygiene question, not investigated further this session.
+- `ingest-repository.js` has no `.ts` counterpart at all (unlike the
+  other two pairs) — unclear if it was always JS-authored or if its
+  `.ts` source was deleted at some point. Not investigated further.
+
