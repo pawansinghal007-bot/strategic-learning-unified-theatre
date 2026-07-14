@@ -2599,3 +2599,60 @@ strategy is completely non-functional), recommend:
    ("Semantic similarity search over the project's Qdrant vector
    store") as if it works.
 
+
+---
+
+## 35. Section 34.3 Item 1 closed — `.env`/`.env.example` config fixes applied and verified
+
+### 35.0 What was done
+
+The three low-risk configuration fixes from Section 34.3/34.4 were
+applied to both `.env` and `.env.example`:
+QDRANT_URL=http://localhost:6333
+EMBEDDINGS_URL=http://localhost:8081
+QDRANT_COLLECTION=knowledge_chunks
+Verified live, with real pasted terminal output (not narration):
+
+- Re-running the exact `vectorSearch()` call from Section 34.1 now
+  fails with the **dimension-mismatch error specifically**
+  (`expected dim: 1024, got 2560`) rather than any DNS/hostname/
+  collection-not-found error — confirming the three URL/name fixes
+  took effect correctly via `.env`, without needing manual shell
+  exports.
+- Full test suite: 5480/5480 passing across 323 files, no regressions.
+- Confirmed both real entrypoints (`src/mcp/server.ts`,
+  `src/agents/cli.ts`) already load `dotenv/config` as their first
+  import, so these `.env` values take effect in actual usage, not just
+  in manual test scripts.
+
+Both files are gitignored — nothing to commit for this change; it's a
+local-environment fix only, not tracked in version control.
+
+The vector-dimension mismatch itself (Section 34.3's items a/b/c)
+remains open and unresolved, as expected — this closes only the
+configuration-fixable portion of Section 34.
+
+### 35.1 Correction to Section 32 — `.env.example` is not actually tracked in git
+
+While verifying this fix, `git check-ignore .env.example` confirmed
+`.env.example` is itself caught by the `.env*` glob in `.gitignore` —
+it is **not tracked in version control at all**
+(`git ls-files --error-unmatch .env.example` fails with
+"did not match any file(s) known to git").
+
+This means Section 32.2's framing — that a new developer cloning the
+repo would "follow `.env.example` and get pointed at Milvus" — needs
+correction: a fresh clone doesn't include `.env.example` at all, so
+that specific risk only applies if the file is distributed to new
+developers some other way (shared out-of-band, part of onboarding
+instructions, etc.), not via the repository itself. The underlying
+finding (the file's *content* is stale/misleading about Milvus vs.
+Qdrant, now fixed for the Qdrant/embeddings portion at least) still
+stands; only the "new developer following the repo" framing was
+imprecise.
+
+Separately, this is arguably its own small hygiene gap: a template
+`.env.example` file that isn't committed at all defeats its usual
+purpose. Not treated as urgent, but worth noting alongside Item #20's
+existing `.env`/`.env.example` cleanup work (Section 33's Phase 1).
+
