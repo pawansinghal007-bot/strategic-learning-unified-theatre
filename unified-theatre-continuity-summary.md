@@ -2468,3 +2468,134 @@ Status: **not started, may remain unresolved.**
   stopping there permanently, which this decision explicitly does not
   do.
 
+
+---
+
+## 34. CRITICAL FINDING — `vectorSearch()` is completely non-functional on this host; RAG/vector retrieval strategy has been silently broken (discovered during Item #20 investigation, July 14, 2026)
+
+### 34.0 Severity and how this was found
+
+While resolving Item #20 (Milvus/Qdrant migration), a side investigation
+into a Qdrant-URL default discrepancy between `vector-client.ts` and
+`qdrant-client.ts` led to actually exercising `vectorSearch()` directly
+for the first time this session — and apparently for the first time in
+recent project history on this host. It failed. Chasing the failure
+surfaced four independent, compounding misconfigurations, the last of
+which is not fixable by configuration alone. **The "vector" strategy —
+one of `retrieve()`'s four core `RetrievalStrategy` modes, wired into
+both the harness `vectorSearchTool` and the MCP `handleVectorSearch`
+tool — currently cannot return a result for any query on this host.**
+This is more severe than Item #20 (Section 32/33), since it affects a
+live, currently-relied-upon path rather than a dormant ingestion
+pipeline, and should be treated as higher priority.
+
+### 34.1 The four compounding problems, in the order they were found
+
+1. **`QDRANT_URL` wrong for host execution.** `vector-client.ts` defaults
+   to `http://qdrant:6333` — a Docker-network-only hostname. Confirmed
+   via `getent hosts qdrant` → not resolvable on the host. The
+   Unified Theatre app runs on the host (confirmed all session — every
+   `tsx`/`npm test`/`npm run harness` invocation has been direct, not
+   containerized), while Qdrant runs in a separate `qwen-stack` Docker
+   Compose project (`/home/pawan/qwen-stack/docker-compose.yml`) with
+   its REST port published to the host (`"6333:6333"`). `.env` has no
+   `QDRANT_URL` override. Fix: `http://localhost:6333`.
+
+2. **`EMBEDDINGS_URL` wrong for host execution, same root cause.**
+   Defaults to `http://embeddings:8080` — also a Docker-network-only
+   hostname. The `qwen-stack` embeddings service publishes
+   `"8081:8080"` to the host. Confirmed failure:
+   `getaddrinfo ENOTFOUND embeddings`. Fix: `http://localhost:8081`.
+
+3. **`QDRANT_COLLECTION` wrong name.** Defaults to `"unified_theatre"`.
+   The actual live collection (confirmed via
+   `curl http://localhost:6333/collections` earlier in Section 32) is
+   named `"knowledge_chunks"` — the same name used by both the old
+   Milvus client and the unwired `qdrant-client.ts`. Querying
+   `unified_theatre` returns `404: Collection 'unified_theatre'
+   doesn't exist`.
+
+4. **Vector dimension mismatch — NOT fixable via configuration.** After
+   correcting all three URLs/names above, the query reaches Qdrant
+   successfully but fails with:
+   `400: Wrong input: Vector dimension error: expected dim: 1024, got 2560`.
+   Confirmed via the embeddings service's own `/v1/models` endpoint:
+   the currently-running model is `qwen3-emb-4b-Q5_K_M.gguf`, reporting
+   `"n_embd":2560`. But `knowledge_chunks` was created expecting 1024
+   dimensions — matching `qdrant-client.ts`'s explicit comment
+   (`VECTOR_DIM = 1024; // BGE-M3`) and consistent with
+   `src/knowledge/ingest/embedder.ts`, which uses `@xenova/transformers`
+   (a local ONNX-based BGE-M3 pipeline) — an entirely different,
+   separate embedding source from the `qwen-stack` llama.cpp
+   embeddings service that `vector-client.ts` is actually configured
+   to call.
+
+### 34.2 What this likely explains, retroactively
+
+This probably resolves part of Section 32.3's open mystery (how
+`knowledge_chunks` was populated when no current ingestion code targets
+Qdrant): the collection was most likely populated via the local
+`@xenova/transformers`/BGE-M3 pipeline at some point — either through
+`src/knowledge/ingest/*` before or during a migration, or through a
+process not currently in the repo — and the project's embedding
+infrastructure was later changed to the `qwen-stack` llama.cpp service
+(a different, larger, differently-dimensioned model), without
+re-ingesting the knowledge base to match. The two systems were never
+reconciled.
+
+Also consistent with earlier evidence: `docs/mcp-client-verification-sprint107.md`
+documented a *different* vector-search failure at Sprint 107
+("Qdrant not running — expected infrastructure gap"). That was a
+simpler problem (the service was down) than what's being reported here
+(the service is up, reachable, and even returns a coherent response —
+but the stored data is incompatible with the currently-configured
+embedding model). It's not clear from available evidence whether the
+dimension mismatch predates Sprint 107 or was introduced afterward.
+
+### 34.3 What is and isn't fixable immediately
+
+**Fixable via configuration alone (should be done regardless of anything else):**
+- Add `QDRANT_URL=http://localhost:6333` to `.env` and `.env.example`
+- Add `EMBEDDINGS_URL=http://localhost:8081` to `.env` and `.env.example`
+- Add `QDRANT_COLLECTION=knowledge_chunks` to `.env` and `.env.example`
+  (or correct the code default directly — either works; `.env` keeps
+  the pattern consistent with how `DATABASE_URL` is already handled in
+  this project)
+
+**NOT fixable via configuration — requires a real decision:**
+- The dimension mismatch (1024 vs. 2560) means `vectorSearch()` will
+  still fail even after all three URL/name fixes above, until one of:
+  (a) the `knowledge_chunks` collection is deleted and fully
+  re-ingested using the current 2560-dim `qwen3-emb-4b` model (requires
+  a working, correctly-wired ingestion pipeline — which per Section 32
+  does not currently exist for Qdrant at all); or
+  (b) `vector-client.ts` is repointed to call a 1024-dim embedding
+  source instead (e.g. the same `@xenova/transformers`/BGE-M3 pipeline
+  the original data was embedded with), abandoning use of the
+  `qwen-stack` embeddings service for this purpose; or
+  (c) a second Qdrant collection is created at 2560 dimensions, and the
+  existing `knowledge_chunks` (1024-dim) is either kept for a different
+  purpose or retired.
+
+No option selected yet. This decision is coupled to Item #20's Phase 2
+(the ingestion migration) — whichever embedding model is chosen for the
+rebuilt ingestion pipeline must match whatever `vector-client.ts` is
+actually configured to call, or this exact failure mode recurs.
+
+### 34.4 Immediate recommendation
+
+Given the severity (a currently-advertised, tool-registered retrieval
+strategy is completely non-functional), recommend:
+1. Apply the three URL/name `.env` fixes immediately — low-risk,
+   restores `vectorSearch()` to at least reaching Qdrant correctly
+   rather than failing on DNS errors, and is useful regardless of how
+   34.3's larger decision resolves.
+2. Do NOT attempt (a)/(b)/(c) from 34.3 without a dedicated session —
+   this is now entangled with Item #20's Phase 2 migration planning and
+   deserves to be decided together, not bolted on as an afterthought.
+3. Until 34.3 is resolved, `vectorSearch()`/the "vector" `RetrievalStrategy`
+   should be understood as **not currently usable**, despite being
+   advertised in `handleListTools()`'s MCP tool description
+   ("Semantic similarity search over the project's Qdrant vector
+   store") as if it works.
+
