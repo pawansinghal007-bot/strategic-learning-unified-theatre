@@ -1,10 +1,5 @@
 import { Tool, ToolResult } from "./base";
-import { retrieve } from "../../shared/retrieval/router.js";
-import {
-  formatVectorResults,
-  formatCodeHits,
-  formatSymbolResults,
-} from "../../shared/retrieval/format.js";
+import { executeRetrieve } from "../../shared/retrieval/execute-retrieve.js";
 
 export const retrieveTool: Tool = {
   name: "retrieve",
@@ -26,66 +21,26 @@ export const retrieveTool: Tool = {
     const callerIdentity = args.__callerIdentity;
 
     try {
-      const result = await retrieve(args.query, {
+      const result = await executeRetrieve(args.query, {
         mode,
         topK,
         glob,
         callerIdentity,
       });
 
-      if (result.error) {
+      if ("error" in result) {
         return {
           toolName: this.name,
           success: false,
           output: "",
-          error: `retrieve failed: ${result.error}`,
+          error: result.error,
         };
-      }
-
-      // Format based on strategy
-      let output: string;
-      switch (result.strategy) {
-        case "vector": {
-          const formatted = formatVectorResults(result.results as any);
-          if (formatted === "") {
-            output = "No matching results in the vector store.";
-          } else {
-            output = formatted;
-          }
-          break;
-        }
-        case "code": {
-          const formatted = formatCodeHits(result.results as any);
-          if (formatted === "") {
-            output = `No matches for "${args.query}".`;
-          } else {
-            output = formatted;
-          }
-          break;
-        }
-        case "symbol": {
-          const formatted = formatSymbolResults(result.results as any);
-          output =
-            formatted === ""
-              ? `No symbol found for "${args.query}".`
-              : formatted;
-          break;
-        }
-        case "file": {
-          // File strategy returns raw content, no formatting needed
-          output = result.results as string;
-          break;
-        }
-        default: {
-          const _exhaustive: never = result.strategy;
-          throw new Error(`Unknown strategy: ${_exhaustive}`);
-        }
       }
 
       return {
         toolName: this.name,
         success: true,
-        output,
+        output: result.text,
       };
     } catch (error) {
       return {

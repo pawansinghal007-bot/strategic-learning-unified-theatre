@@ -527,7 +527,7 @@ describe("handleRetrieve", () => {
     expect(result.content[0].text).toBe("file contents here");
   });
 
-  it("returns 'No results found' for empty vector results", async () => {
+  it("returns the vector-specific no-results message for empty vector results", async () => {
     mockRetrieve.mockResolvedValueOnce({
       strategy: "vector",
       results: [],
@@ -536,10 +536,12 @@ describe("handleRetrieve", () => {
     const result = await handleRetrieve({ query: "obscure query", topK: 5 });
 
     expect(result.isError).toBeUndefined();
-    expect(result.content[0].text).toContain("No results found");
+    expect(result.content[0].text).toContain(
+      "No matching results in the vector store.",
+    );
   });
 
-  it("returns 'No results found' for empty code results", async () => {
+  it("returns the code-specific no-results message for empty code results", async () => {
     mockRetrieve.mockResolvedValueOnce({
       strategy: "code",
       results: [],
@@ -548,7 +550,7 @@ describe("handleRetrieve", () => {
     const result = await handleRetrieve({ query: "nothing", mode: "code" });
 
     expect(result.isError).toBeUndefined();
-    expect(result.content[0].text).toContain("No results found");
+    expect(result.content[0].text).toContain('No matches for "nothing".');
   });
 
   it("returns isError:true when router returns error field", async () => {
@@ -561,7 +563,7 @@ describe("handleRetrieve", () => {
 
     expect(result.isError).toBe(true);
     expect(result.content[0].text).toContain(
-      "Error: Qdrant connection refused",
+      "retrieve failed: Qdrant connection refused",
     );
   });
 
@@ -571,6 +573,6 @@ describe("handleRetrieve", () => {
     const result = await handleRetrieve({ query: "query", topK: 5 });
 
     expect(result.isError).toBe(true);
-    expect(result.content[0].text).toContain("Error: Router crash");
+    expect(result.content[0].text).toContain("retrieve failed: Router crash");
   });
 });

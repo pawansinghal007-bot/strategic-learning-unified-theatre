@@ -2,11 +2,10 @@ import { gateway } from "../llm/gateway.ts";
 import { runOrchestrator } from "../agents/orchestrator.ts";
 import { vectorSearch } from "../shared/retrieval/vector-client.js";
 import { searchCode } from "../shared/retrieval/code-search.js";
-import { retrieve } from "../shared/retrieval/router.js";
+import { executeRetrieve } from "../shared/retrieval/execute-retrieve.js";
 import {
   formatVectorResults,
   formatCodeHits,
-  formatSymbolResults,
 } from "../shared/retrieval/format.js";
 import { logger } from "../shared/logging/logger.ts";
 import type { McpToolResult } from "./types";
@@ -199,7 +198,7 @@ export async function handleRetrieve(
   callerIdentity: string = "unknown-mcp-client",
 ): Promise<McpToolResult> {
   try {
-    const result = await retrieve(input.query, {
+    const result = await executeRetrieve(input.query, {
       mode: input.mode,
       topK: input.topK,
       glob: input.glob,
@@ -210,52 +209,21 @@ export async function handleRetrieve(
       query: input.query,
       mode: input.mode,
       topK: input.topK ?? 5,
-      strategy: result.strategy,
+      strategy: input.mode ?? "vector",
     });
 
-    if (result.error) {
+    if ("error" in result) {
       return {
-        content: [{ type: "text", text: `Error: ${result.error}` }],
+        content: [{ type: "text", text: result.error }],
         isError: true,
       };
     }
 
-    // Format based on strategy
-    switch (result.strategy) {
-      case "vector": {
-        const formatted = formatVectorResults(result.results as any);
-        if (formatted === "") {
-          return { content: [{ type: "text", text: "No results found." }] };
-        }
-        return { content: [{ type: "text", text: formatted }] };
-      }
-      case "code": {
-        const formatted = formatCodeHits(result.results as any);
-        if (formatted === "") {
-          return { content: [{ type: "text", text: "No results found." }] };
-        }
-        return { content: [{ type: "text", text: formatted }] };
-      }
-      case "file": {
-        // File strategy returns raw content
-        return { content: [{ type: "text", text: result.results as string }] };
-      }
-      case "symbol": {
-        const formatted = formatSymbolResults(result.results as any);
-        if (formatted === "") {
-          return { content: [{ type: "text", text: "No results found." }] };
-        }
-        return { content: [{ type: "text", text: formatted }] };
-      }
-      default: {
-        const _exhaustive: never = result.strategy;
-        throw new Error(`Unknown strategy: ${_exhaustive}`);
-      }
-    }
+    return { content: [{ type: "text", text: result.text }] };
   } catch (err: any) {
     logger.error("mcp.retrieve.error", { error: err.message });
     return {
-      content: [{ type: "text", text: `Error: ${err.message}` }],
+      content: [{ type: "text", text: `retrieve failed: ${err.message}` }],
       isError: true,
     };
   }
