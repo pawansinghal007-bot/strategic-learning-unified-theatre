@@ -2,7 +2,7 @@
 
 _Read this first if you're an agent (Claude, Copilot, or otherwise) picking up this project. It exists to prevent context loss across sessions and across different tools/providers working on the same repo._
 
-> **Last updated 2026-07-14 (updated again same day — see Section 36).** Section 26 documents the live-verified rollout audit of Slices 110a–110e (110a/110b/110c/110d confirmed **Done**, 110e confirmed **Not started**). Section 29 documents four follow-up fixes closed the same day (harness runner, dotenv loading, index:symbols script, repository_id scoping) — all committed and pushed. Section 35 closed the configuration-fixable portion of Section 34 (`.env`/`.env.example` Qdrant/embeddings fixes). Section 36 documents Item #18 (real-Postgres integration test for `indexSymbols()`) closed and pushed as `13483408`. Section 30 supersedes Section 27's open-items list (Item #18 row updated per Section 36); Section 31 supersedes Section 28's handoff.
+> **Last updated 2026-07-14 (updated again same day — see Section 37).** Section 26 documents the live-verified rollout audit of Slices 110a–110e (110a/110b/110c/110d confirmed **Done**, 110e confirmed **Not started**). Section 29 documents four follow-up fixes closed the same day (harness runner, dotenv loading, index:symbols script, repository_id scoping) — all committed and pushed. Section 35 closed the configuration-fixable portion of Section 34 (`.env`/`.env.example` Qdrant/embeddings fixes). Section 36 documents Item #18 (real-Postgres integration test for `indexSymbols()`) closed and pushed as `13483408`. Section 37 documents Item #17 (retrieve execution core consolidation, Option B) decided and closed, pushed as `f1d2447b`. Section 30 supersedes Section 27's open-items list (Items #17/#18 rows updated per Sections 36-37); Section 31 supersedes Section 28's handoff.
 >
 > _(Prior pointer, retained for history: Last updated 2026-07-10 — see Section 9 for that session's detail, measurement-log root-cause fix, source tagging, automated weekly checkpoint — committed and pushed as `51b648dd`.)_
 
@@ -2211,27 +2211,27 @@ clean after each.
 
 ## 30. Open Items — consolidated master list v4 (supersedes Section 27)
 
-| #   | Item                                                                                                     | Status                                                                                         |
-| --- | -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| 1   | Push 40+ local commits to origin/main                                                                    | Carried — unconfirmed whether this refers to commits predating this session; re-check          |
-| 2   | Real production measurement-log accumulation                                                             | Carried — still the long-running blocker                                                       |
-| 3   | Distribution analysis + skipGatewayAsk widening decision                                                 | Carried — blocked on #2 AND per-category gate passing                                          |
-| 4   | Doc bullet "confident-wrong vs honest-unknown" landed in Section 1                                       | Carried — still needs a fresh grep check against the LIVE file                                 |
-| 5   | RetrieveResult.matched field                                                                             | Carried — still proposed only, not implemented                                                 |
-| 6   | 37-row test-gap backlog (Section 10.4)                                                                   | Carried — still logged, zero acted on                                                          |
-| 7   | SonarQube escalate lane (13 issues)                                                                      | Carried — per Section 24, likely COMPLETE (13/13); verify before closing this row              |
-| 8   | Rule-ID mismatch in local-lane commit messages                                                           | Carried — flagged, not corrected                                                               |
-| 9   | `code-review` MCP tool broken                                                                            | Carried — per Section 20, not diagnosed as of that section                                     |
-| 10  | `recordToolCallForMeasurement()` success/failure field                                                   | Carried — still unknown whether it exists                                                      |
-| 11  | Possible measurement-log contamination from earlier failed retrieve(symbol) debugging calls              | Carried — still unresolved, depends on #10                                                     |
-| 12  | Opaque `"rg failed (code 1):"` error message                                                             | Carried — still noted, not diagnosed, low priority                                             |
-| 13  | ~~`npm run harness` broken under `ts-node`~~                                                             | **CLOSED, `c274d4af`** (Section 29.1)                                                          |
-| 14  | ~~`src/agents/cli.ts` missing `dotenv` load~~                                                            | **CLOSED, `70f263b1`** (Section 29.2)                                                          |
-| 15  | ~~`src/storage/run-indexer.ts` not registered as an npm script~~                                         | **CLOSED, `a57dc331`** (Section 29.3)                                                          |
-| 16  | ~~`findSymbolDefinition()` has no `repository_id` scoping~~                                              | **CLOSED, `944bde80`** (Section 29.4)                                                          |
-| 17  | Two parallel "retrieve" tool implementations (`src/agents/tools/retrieve.ts` vs. MCP `tool-handlers.ts`) | Open — needs a deliberate decision (consolidate or keep separate), not just a code fix         |
-| 18  | ~~No integration test for `indexSymbols()` against a real DB~~                                           | **CLOSED, `13483408`** (Section 36)                                                            |
-| 19  | Slice 110e (references table + `findReferences()`) design                                                | Open — confirmed not started (Section 26.5); recommend its own dedicated session per Section 1 |
+| #   | Item                                                                                                         | Status                                                                                         |
+| --- | ------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
+| 1   | Push 40+ local commits to origin/main                                                                        | Carried — unconfirmed whether this refers to commits predating this session; re-check          |
+| 2   | Real production measurement-log accumulation                                                                 | Carried — still the long-running blocker                                                       |
+| 3   | Distribution analysis + skipGatewayAsk widening decision                                                     | Carried — blocked on #2 AND per-category gate passing                                          |
+| 4   | Doc bullet "confident-wrong vs honest-unknown" landed in Section 1                                           | Carried — still needs a fresh grep check against the LIVE file                                 |
+| 5   | RetrieveResult.matched field                                                                                 | Carried — still proposed only, not implemented                                                 |
+| 6   | 37-row test-gap backlog (Section 10.4)                                                                       | Carried — still logged, zero acted on                                                          |
+| 7   | SonarQube escalate lane (13 issues)                                                                          | Carried — per Section 24, likely COMPLETE (13/13); verify before closing this row              |
+| 8   | Rule-ID mismatch in local-lane commit messages                                                               | Carried — flagged, not corrected                                                               |
+| 9   | `code-review` MCP tool broken                                                                                | Carried — per Section 20, not diagnosed as of that section                                     |
+| 10  | `recordToolCallForMeasurement()` success/failure field                                                       | Carried — still unknown whether it exists                                                      |
+| 11  | Possible measurement-log contamination from earlier failed retrieve(symbol) debugging calls                  | Carried — still unresolved, depends on #10                                                     |
+| 12  | Opaque `"rg failed (code 1):"` error message                                                                 | Carried — still noted, not diagnosed, low priority                                             |
+| 13  | ~~`npm run harness` broken under `ts-node`~~                                                                 | **CLOSED, `c274d4af`** (Section 29.1)                                                          |
+| 14  | ~~`src/agents/cli.ts` missing `dotenv` load~~                                                                | **CLOSED, `70f263b1`** (Section 29.2)                                                          |
+| 15  | ~~`src/storage/run-indexer.ts` not registered as an npm script~~                                             | **CLOSED, `a57dc331`** (Section 29.3)                                                          |
+| 16  | ~~`findSymbolDefinition()` has no `repository_id` scoping~~                                                  | **CLOSED, `944bde80`** (Section 29.4)                                                          |
+| 17  | ~~Two parallel "retrieve" tool implementations (`src/agents/tools/retrieve.ts` vs. MCP `tool-handlers.ts`)~~ | **CLOSED, `f1d2447b`** (Section 37) — decided: Option B, shared execution core                 |
+| 18  | ~~No integration test for `indexSymbols()` against a real DB~~                                               | **CLOSED, `13483408`** (Section 36)                                                            |
+| 19  | Slice 110e (references table + `findReferences()`) design                                                    | Open — confirmed not started (Section 26.5); recommend its own dedicated session per Section 1 |
 
 ---
 
@@ -2254,19 +2254,20 @@ git log --oneline origin/main..main   # re-check item #1 in Section 30 — still
   Section 29's recorded evidence first rather than re-deriving from
   scratch.
 
-**Needs a decision before implementing, not just a fix:**
-
-- Item #17 (Section 30) — the two parallel "retrieve" tool
-  implementations. Don't consolidate or "fix" this without first
-  deciding whether the duplication is intentional.
-
-**Closed later the same day — do not re-run (see Section 36):**
+**Closed later the same day — do not re-run (see Sections 36-37):**
 
 - Item #18 — real-Postgres integration test for `indexSymbols()`, added
   in `tests/storage/symbol-indexer.integration.test.ts`, committed and
   pushed as `13483408`. Covers delete-then-insert replacement, >500-row
   batching, forced-failure rollback, and the zero-symbols edge case. If
   something regresses, diff against Section 36's recorded evidence first.
+- Item #17 — decided as Option B (consolidate into a shared execution
+  core) and implemented: new `src/shared/retrieval/execute-retrieve.ts`,
+  both `retrieve.ts` and `tool-handlers.ts` thinned to adapters, pushed
+  as `f1d2447b`. Canonical behavior (strategy-specific empty messages,
+  `"retrieve failed:"` prefix) now applies to both paths — this changed
+  the literal text MCP clients receive, intentionally. If something
+  regresses, diff against Section 37's recorded evidence first.
 
 **Ready to design, not yet started, recommend its own session:**
 
@@ -2772,3 +2773,138 @@ No other open item was touched — Item #17 (retrieve duplication), Item
 #19/110e (references table), Item #20 Phase 1 (Milvus quarantine), and
 Section 34.3 (vector-dimension mismatch) remain exactly as they stood at
 the end of Section 35, all deliberately out of scope for this slice.
+
+---
+
+## 37. Item #17 decided and closed — consolidated `retrieve` execution core (Option B)
+
+### 37.0 The decision
+
+Two parallel "retrieve" implementations existed:
+`src/agents/tools/retrieve.ts` (harness/orchestrator-facing, called from
+`sub-agent.ts`) and `handleRetrieve()` in `src/mcp/tool-handlers.ts`
+(MCP-facing, called from `server.ts`). Both called `retrieve()` from
+`router.ts` independently. A decision-gathering investigation (real code
+read, not assumption) found:
+
+- Both already shared the underlying formatter functions in `format.ts`.
+- What was actually duplicated between them: the strategy-dispatch
+  switch, the empty-result message text, and the error-handling/prefix
+  logic — not just the envelope wrapping.
+- The envelope wrapping itself (`ToolResult` vs `McpToolResult`) is a
+  genuine, forced difference between the two consumer contracts, not
+  accidental duplication.
+- Content differences found: harness used strategy-specific empty
+  messages (e.g. `"No symbol found for \"query\"."`) and an
+  `"retrieve failed: ..."` error prefix; MCP used a generic
+  `"No results found."` and an `"Error: ..."` prefix.
+
+**Decision made: Option B** — extract a single shared execution core
+(`retrieve()` call + format dispatch + error handling) that both adapters
+call, rather than only extracting the formatting switch (Option A) or
+leaving the duplication as-is (Option C). Canonical behavior chosen for
+the previously-divergent content: the harness's strategy-specific
+empty-result messages and its `"retrieve failed:"` error prefix now win
+and apply to **both** paths.
+
+**Known, accepted consequence:** external MCP clients (Copilot, Codex,
+etc.) now receive different literal text for empty results and errors
+than before. This is intentional, not a regression — logged here
+explicitly so a future agent doesn't mistake it for a bug.
+
+`mcp.retrieve` logging was deliberately kept out of the shared core and
+left in `tool-handlers.ts` only, so harness calls don't start emitting
+MCP-specific logs.
+
+### 37.1 What was implemented
+
+- **New:** `src/shared/retrieval/execute-retrieve.ts` — the shared core.
+  Calls `retrieve()`, dispatches on `result.strategy` to the `format.ts`
+  formatters using the harness's original strategy-specific empty
+  messages, and returns errors prefixed with `"retrieve failed:"`.
+  Contains no envelope-shaped objects (no `ToolResult`, no
+  `McpToolResult`) — envelope wrapping stays entirely in the two adapters.
+- **Thinned:** `src/agents/tools/retrieve.ts` — now a thin adapter: keeps
+  its `Number(args.topK)` coercion and `args.__callerIdentity` resolution
+  (both genuinely specific to its untyped `Record<string, string>` input
+  shape), calls the shared core, wraps into `ToolResult`.
+- **Thinned:** `handleRetrieve()` in `src/mcp/tool-handlers.ts` — keeps
+  its Zod-validated input handling and its `logger.info("mcp.retrieve",
+...)` call, calls the shared core, wraps into `McpToolResult`.
+- **Updated:** `tests/mcp/tool-handlers.test.ts` — the four tests that
+  previously asserted the old generic `"No results found."` / `"Error:
+..."` text were rewritten to assert the new real strategy-specific
+  messages and `"retrieve failed:"` prefix (verified against actual
+  output, not guessed). `tests/agents/tools/retrieve.test.ts` needed no
+  content changes (its asserted behavior is what became canonical) —
+  one test did briefly regress mid-implementation when the error prefix
+  was first left out of the shared core (caught immediately by the
+  verification step, fixed by moving the prefix into
+  `execute-retrieve.ts`, re-verified green before proceeding).
+
+### 37.2 Verification (real, pasted terminal output)
+
+```
+# Harness adapter tests
+ Test Files  1 passed (1)
+      Tests  16 passed (16)
+
+# MCP adapter tests
+ Test Files  1 passed (1)
+      Tests  35 passed (35)
+
+# Shared retrieval tests (router.ts, format.ts, etc.)
+ Test Files  6 passed (6)
+      Tests  105 passed (105)
+
+# npx tsc --noEmit
+(clean, no output)
+```
+
+`git status --porcelain` before commit showed exactly the expected set:
+modified `src/agents/tools/retrieve.ts`, modified
+`src/mcp/tool-handlers.ts`, modified `tests/mcp/tool-handlers.test.ts`,
+new `src/shared/retrieval/execute-retrieve.ts`. The full diff on the MCP
+test file was reviewed directly (not summarized) before committing, to
+confirm the message-text changes were real and intentional rather than
+loosened assertions.
+
+**Full suite, post-change:**
+
+```
+ Test Files  324 passed (324)
+      Tests  5484 passed (5484)
+```
+
+Matches the 324/5484 baseline from Section 36 exactly — no regressions,
+no unexplained delta (expected, since this was a pure refactor of
+existing behavior into a new shape, not new test cases).
+
+`.env`/`.env.example` confirmed not staged (`git diff --cached -- .env
+.env.example` → empty).
+
+### 37.3 Commit and push
+
+Committed directly to `main` as one coherent logical change
+(implementation + both adapters + the one test file that needed real
+content changes):
+
+```
+commit f1d2447b  "Consolidate retrieve execution core (Item #17, Option B)"
+ 4 files changed, 87 insertions(+), 95 deletions(-)
+ create mode 100644 src/shared/retrieval/execute-retrieve.ts
+```
+
+Commit message verified via `git log -1 --format="%B"`. Full push
+sequence run: pre-push log diff, clean `git status --porcelain`,
+`git fetch origin` + diff showing no surprise upstream commits, then
+`git push origin main` (`a45b466c..f1d2447b main -> main`), then a final
+`git status --porcelain` confirming empty/clean.
+
+### 37.4 Status
+
+**Item #17: CLOSED, `f1d2447b`.** Section 30's table and Section 31's
+handoff updated accordingly. No other open item was touched — Item
+#19/110e (references table), Item #20 Phase 1 (Milvus quarantine), and
+Section 34.3 (vector-dimension mismatch) remain exactly as they stood at
+the end of Section 36, all deliberately out of scope for this slice.
