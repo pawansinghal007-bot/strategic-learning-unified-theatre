@@ -13,7 +13,9 @@ import {
 } from "../../src/llm/qdrant-client.js";
 
 // ── helpers ───────────────────────────────────────────────────────────────────
-function mockFetch(impl: (url: string, init?: RequestInit) => Promise<Response>) {
+function mockFetch(
+  impl: (url: string, init?: RequestInit) => Promise<Response>,
+) {
   const spy = vi.fn(impl as typeof fetch);
   vi.stubGlobal("fetch", spy);
   return spy;
@@ -27,7 +29,9 @@ function okResponse(body: unknown = {}): Response {
   } as unknown as Response;
 }
 
-function notFoundResponse(body: unknown = { status: { error: "Collection doesn't exist" } }): Response {
+function notFoundResponse(
+  body: unknown = { status: { error: "Collection doesn't exist" } },
+): Response {
   return {
     ok: false,
     status: 404,
@@ -64,16 +68,19 @@ describe("ensureKnowledgeCollection", () => {
     expect(putCall![0]).toContain(KNOWLEDGE_COLLECTION);
 
     const putBody = JSON.parse(putCall![1]!.body as string);
-    expect(putBody.vectors).toMatchObject({ size: 1024, distance: "Cosine" });
+    expect(putBody.vectors).toMatchObject({ size: 2560, distance: "Cosine" });
   });
 
   it("does NOT create collection when GET fails with non-404 and no 'doesn't exist' error", async () => {
     // Returns not-ok but the error text does NOT include "doesn't exist"
-    const spy = mockFetch(async () => ({
-      ok: false,
-      status: 500,
-      json: async () => ({ status: { error: "internal server error" } }),
-    } as unknown as Response));
+    const spy = mockFetch(
+      async () =>
+        ({
+          ok: false,
+          status: 500,
+          json: async () => ({ status: { error: "internal server error" } }),
+        }) as unknown as Response,
+    );
 
     await ensureKnowledgeCollection();
     // Only 1 call (the GET); PUT should not be issued because condition short-circuits
@@ -98,7 +105,6 @@ describe("ensureKnowledgeCollection", () => {
     expect(putCall).toBeDefined();
   });
 });
-
 
 // ── upsertChunks ──────────────────────────────────────────────────────────────
 describe("upsertChunks", () => {
@@ -138,7 +144,10 @@ describe("upsertChunks", () => {
 
     const body = JSON.parse(init!.body as string);
     expect(body.points).toHaveLength(2);
-    expect(body.points[0].id).toBe("chunk-1");
+    // Point IDs are now deterministic UUIDs derived from SHA-256 hash of chunk_id
+    expect(body.points[0].id).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+    );
     expect(body.points[0].vector).toEqual([0.1, 0.2, 0.3]);
     // dense_vector should be stripped from payload
     expect(body.points[0].payload.dense_vector).toBeUndefined();
@@ -159,30 +168,32 @@ describe("searchChunks", () => {
   afterEach(() => vi.restoreAllMocks());
 
   it("returns mapped results from Qdrant search response", async () => {
-    const spy = mockFetch(async () => okResponse({
-      result: [
-        {
-          score: 0.92,
-          payload: {
-            content: "Relevant content",
-            section: "intro",
-            feature_area: "auth",
-            sprint: 5,
-            source_type: "md",
+    const spy = mockFetch(async () =>
+      okResponse({
+        result: [
+          {
+            score: 0.92,
+            payload: {
+              content: "Relevant content",
+              section: "intro",
+              feature_area: "auth",
+              sprint: 5,
+              source_type: "md",
+            },
           },
-        },
-        {
-          score: 0.75,
-          payload: {
-            text: "Fallback text field",   // uses text when content is absent
-            section: "body",
-            feature_area: "storage",
-            sprint: 3,
-            source_type: "ts",
+          {
+            score: 0.75,
+            payload: {
+              text: "Fallback text field", // uses text when content is absent
+              section: "body",
+              feature_area: "storage",
+              sprint: 3,
+              source_type: "ts",
+            },
           },
-        },
-      ],
-    }));
+        ],
+      }),
+    );
 
     const vector = new Array(1024).fill(0.1);
     const results = await searchChunks(vector, 5, 0.5);
@@ -207,7 +218,7 @@ describe("searchChunks", () => {
   });
 
   it("returns empty array when response is not ok", async () => {
-    mockFetch(async () => ({ ok: false, status: 503 } as unknown as Response));
+    mockFetch(async () => ({ ok: false, status: 503 }) as unknown as Response);
     const results = await searchChunks(new Array(1024).fill(0));
     expect(results).toEqual([]);
   });
@@ -222,11 +233,13 @@ describe("searchChunks", () => {
   });
 
   it("handles missing payload fields gracefully (defaults to empty string / 0)", async () => {
-    mockFetch(async () => okResponse({
-      result: [
-        { score: 0.5, payload: {} },  // all fields missing
-      ],
-    }));
+    mockFetch(async () =>
+      okResponse({
+        result: [
+          { score: 0.5, payload: {} }, // all fields missing
+        ],
+      }),
+    );
 
     const results = await searchChunks(new Array(1024).fill(0));
     expect(results[0].content).toBe("");

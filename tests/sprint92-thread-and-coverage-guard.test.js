@@ -36,8 +36,7 @@ describe("Sprint 92 thread fix and coverage alignment guard", () => {
       expect(props).toContain("src/ai-memory/index.js");
       expect(props).toContain("src/knowledge/rag-dedup.js");
       expect(props).toContain("src/knowledge/ingest/ingest-repository.js");
-      expect(props).toContain("src/knowledge/ingest/ingest-sprint-history.ts");
-      expect(props).toContain("src/knowledge/ingest/milvus-client.ts");
+      expect(props).toContain("src/llm/qdrant-client.js");
     });
 
     it("sonar-project.properties still points lcov to coverage/lcov.info", () => {

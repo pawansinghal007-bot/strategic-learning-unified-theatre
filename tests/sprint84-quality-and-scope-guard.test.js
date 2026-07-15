@@ -48,7 +48,7 @@ describe("Sprint 84 quality and scope guard", () => {
 
   it("ingest sprint history preserves top-level await guard", () => {
     const ingest = fs.readFileSync(
-      p("src/knowledge/ingest/ingest-sprint-history.ts"),
+      p("src/knowledge/ingest/ingest-sprint-history.js"),
       "utf8",
     );
     expect(ingest).toContain("await main");

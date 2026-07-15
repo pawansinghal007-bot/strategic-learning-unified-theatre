@@ -10,20 +10,18 @@ function read(rel) {
 }
 
 describe("Sprint 77 — build and scope guard", () => {
-  it("ingest-sprint-history.ts uses top-level await pattern", () => {
-    const text = read("src/knowledge/ingest/ingest-sprint-history.ts");
-    const lines = text.split(/\r?\n/);
-
-    // Top-level await appears at column 0 or with no indentation before it.
-    // await inside function bodies is always indented by at least 2 spaces.
-    const topLevelAwaits = lines.filter((line) => /^await\s/.test(line));
-
-    expect(topLevelAwaits).toHaveLength(1);
-    expect(topLevelAwaits[0]).toBe("await main();");
+  it("ingest-sprint-history.js uses top-level await pattern", () => {
+    const text = read("src/knowledge/ingest/ingest-sprint-history.js");
+    // The .js file uses: if (process.argv[1] === __filename) { await main(); }
+    // This is a synchronous module detection with top-level await inside the guard.
+    expect(text).toContain("if (process.argv[1] === __filename)");
+    expect(text).toContain("await main();");
+    // Should NOT have require.main guard (that's CommonJS)
+    expect(text).not.toContain("require.main === module");
   });
 
-  it("ingest-sprint-history.ts has no require.main === module guard", () => {
-    const text = read("src/knowledge/ingest/ingest-sprint-history.ts");
+  it("ingest-sprint-history.js has no require.main === module guard", () => {
+    const text = read("src/knowledge/ingest/ingest-sprint-history.js");
     expect(text).not.toContain("require.main === module");
   });
 

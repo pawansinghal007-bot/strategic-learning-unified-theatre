@@ -61,9 +61,6 @@ export default defineConfig({
         "**/__tests__/**",
         "**/*.test.*",
         "**/node_modules/**",
-        // confirmed-dead .ts spec companions — excluded to avoid phantom coverage
-        "src/knowledge/ingest/milvus-client.ts",
-        "src/knowledge/ingest/ingest-sprint-history.ts",
         "**/*.d.ts", // excludes types.d.ts and any other declaration files
         // Browser-only coverage report UI scripts — no exports, DOM-dependent
         "src/coverage/**",

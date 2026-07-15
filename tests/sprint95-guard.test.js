@@ -50,10 +50,10 @@ describe("Sprint 95 guard test", () => {
       expect(fs.existsSync(path.resolve("src/local-llm.js"))).toBe(false);
     });
 
-    it("vitest.config.ts excludes the confirmed-dead .ts spec companions", () => {
+    it("vitest.config.ts no longer excludes deleted Milvus files", () => {
       const config = fs.readFileSync(path.resolve("vitest.config.ts"), "utf8");
-      expect(config).toContain("src/knowledge/ingest/milvus-client.ts");
-      expect(config).toContain("src/knowledge/ingest/ingest-sprint-history.ts");
+      expect(config).not.toContain("milvus-client");
+      expect(config).not.toContain("ingest-sprint-history.ts");
     });
 
     it("repo root contains no stray garbage files from the broken-paste incident", () => {

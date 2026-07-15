@@ -79,8 +79,7 @@ These files contain pure functions, class methods with injectable dependencies, 
 | `src/llm/local-llm.js`                            | Pure LLM provider routing logic          | Yes           |
 | `src/llm/prompt-generator.js`                     | Pure prompt building logic               | Yes           |
 | `src/daemon/watcher.js`                           | Pure event routing logic                 | Yes           |
-| `src/knowledge/ingest/milvus-client.ts`           | Pure Milvus client logic                 | Yes           |
-| `src/knowledge/ingest/embedder.ts`                | Pure embedding logic                     | Yes           |
+| `src/knowledge/ingest/embedder.js`                | Pure embedding logic                     | Yes           |
 | `src/encrypt.js`                                  | Pure encryption logic                    | Yes           |
 | `src/browser-bridge.js`                           | Pure browser automation logic            | Yes           |
 | `src/storage/storage-monitor.js`                  | Pure file monitoring logic               | Yes           |

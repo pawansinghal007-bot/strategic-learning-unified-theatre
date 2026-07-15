@@ -4,34 +4,19 @@ import path from "node:path";
 import os from "node:os";
 
 const mocks = vi.hoisted(() => ({
-  insert: vi.fn(),
-  hasCollection: vi.fn(),
-  createCollection: vi.fn(),
-  createIndex: vi.fn(),
-  loadCollection: vi.fn(),
-  flush: vi.fn(),
+  upsertChunks: vi.fn(),
   ensureKnowledgeCollection: vi.fn(),
   embedTextBatch: vi.fn(),
 }));
 
-vi.mock(
-  "../../../src/knowledge/ingest/milvus-client.js",
-  async (importOriginal) => {
-    const actual = await importOriginal();
-    return {
-      ...actual,
-      getMilvusClient: vi.fn().mockReturnValue({
-        insert: mocks.insert,
-        hasCollection: mocks.hasCollection,
-        createCollection: mocks.createCollection,
-        createIndex: mocks.createIndex,
-        loadCollection: mocks.loadCollection,
-        flush: mocks.flush,
-      }),
-      ensureKnowledgeCollection: mocks.ensureKnowledgeCollection,
-    };
-  },
-);
+vi.mock("../../../src/llm/qdrant-client.js", async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    upsertChunks: mocks.upsertChunks,
+    ensureKnowledgeCollection: mocks.ensureKnowledgeCollection,
+  };
+});
 
 vi.mock("../../../src/knowledge/ingest/embedder.js", () => ({
   embedTextBatch: mocks.embedTextBatch,
@@ -51,11 +36,9 @@ describe("ingestRepository", () => {
     tempDir = await fs.mkdtemp(
       path.join(os.tmpdir(), "ingest-repository-test-"),
     );
-    mocks.insert.mockClear();
+    mocks.upsertChunks.mockClear();
     mocks.ensureKnowledgeCollection.mockClear();
     mocks.embedTextBatch.mockClear();
-    mocks.flush.mockClear();
-    mocks.flush.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -78,7 +61,7 @@ describe("ingestRepository", () => {
     await ingestRepository({ baseDir: tempDir });
 
     expect(mocks.ensureKnowledgeCollection).toHaveBeenCalled();
-    expect(mocks.insert).not.toHaveBeenCalled();
+    expect(mocks.upsertChunks).not.toHaveBeenCalled();
   });
 
   it("processes supported file types", async () => {
@@ -97,7 +80,7 @@ describe("ingestRepository", () => {
     await ingestRepository({ baseDir: tempDir });
 
     expect(mocks.ensureKnowledgeCollection).toHaveBeenCalled();
-    expect(mocks.insert).toHaveBeenCalled();
+    expect(mocks.upsertChunks).toHaveBeenCalled();
   });
 
   it("skips unsupported file types", async () => {
@@ -113,7 +96,7 @@ describe("ingestRepository", () => {
     await ingestRepository({ baseDir: tempDir });
 
     // Should not insert anything since file is unsupported
-    expect(mocks.insert).not.toHaveBeenCalled();
+    expect(mocks.upsertChunks).not.toHaveBeenCalled();
   });
 
   it("skips excluded directories", async () => {
@@ -131,7 +114,7 @@ describe("ingestRepository", () => {
     await ingestRepository({ baseDir: tempDir });
 
     // Should not process files in excluded directories
-    expect(mocks.insert).not.toHaveBeenCalled();
+    expect(mocks.upsertChunks).not.toHaveBeenCalled();
   });
 
   it("handles file read errors gracefully", async () => {
@@ -166,12 +149,12 @@ describe("ingestRepository", () => {
     await ingestRepository({ baseDir: testFile });
 
     // The file was discovered via the isFile() branch and ingested
-    expect(mocks.insert).toHaveBeenCalledTimes(1);
-    const insertedData = mocks.insert.mock.calls[0][0].data;
+    expect(mocks.upsertChunks).toHaveBeenCalledTimes(1);
+    const insertedData = mocks.upsertChunks.mock.calls[0][0];
     expect(insertedData.length).toBeGreaterThan(0);
     // doc_id is built from the relativePath; when baseDir == filePath the
     // relative path is "" so doc_id becomes "repo:" — what matters is that
-    // exactly one insert happened (the isFile branch was taken)
+    // exactly one upsert happened (the isFile branch was taken)
     expect(insertedData[0].chunk_id).toMatch(/^repo:/);
   });
 
@@ -182,14 +165,17 @@ describe("ingestRepository", () => {
 
     const subDir = path.join(tempDir, "docs");
     await fs.mkdir(subDir, { recursive: true });
-    await fs.writeFile(path.join(subDir, "nested.md"), "nested subdirectory content for ingestion");
+    await fs.writeFile(
+      path.join(subDir, "nested.md"),
+      "nested subdirectory content for ingestion",
+    );
 
     mocks.embedTextBatch.mockResolvedValue([[0.1, 0.2, 0.3]]);
 
     await ingestRepository({ baseDir: tempDir });
 
-    expect(mocks.insert).toHaveBeenCalledTimes(1);
-    const insertedData = mocks.insert.mock.calls[0][0].data;
+    expect(mocks.upsertChunks).toHaveBeenCalledTimes(1);
+    const insertedData = mocks.upsertChunks.mock.calls[0][0];
     expect(insertedData[0].path).toMatch("nested.md");
   });
 
@@ -199,7 +185,9 @@ describe("ingestRepository", () => {
       await import("../../../src/knowledge/ingest/ingest-repository.js");
 
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const statSpy = vi.spyOn(fs, "stat").mockRejectedValue(new Error("EACCES: permission denied"));
+    const statSpy = vi
+      .spyOn(fs, "stat")
+      .mockRejectedValue(new Error("EACCES: permission denied"));
 
     mocks.embedTextBatch.mockResolvedValue([]);
 
@@ -209,7 +197,7 @@ describe("ingestRepository", () => {
     expect(warnSpy).toHaveBeenCalledWith(
       expect.stringContaining("[ingest] Skipping"),
     );
-    expect(mocks.insert).not.toHaveBeenCalled();
+    expect(mocks.upsertChunks).not.toHaveBeenCalled();
 
     warnSpy.mockRestore();
     statSpy.mockRestore();
@@ -231,7 +219,7 @@ describe("ingestRepository", () => {
     await ingestRepository({ baseDir: tempDir, maxFileBytes: 1 });
 
     // File was skipped — nothing inserted
-    expect(mocks.insert).not.toHaveBeenCalled();
+    expect(mocks.upsertChunks).not.toHaveBeenCalled();
     // The skipped-count log line must have fired (L232)
     expect(logSpy).toHaveBeenCalledWith(
       expect.stringContaining("Skipped 1 large file(s)"),
@@ -252,9 +240,9 @@ describe("ingestRepository", () => {
     // Return empty array regardless of how many chunks are produced
     mocks.embedTextBatch.mockResolvedValue([]);
 
-    await expect(
-      ingestRepository({ baseDir: testFile }),
-    ).rejects.toThrow("embedTextBatch returned");
+    await expect(ingestRepository({ baseDir: testFile })).rejects.toThrow(
+      "embedTextBatch returned",
+    );
   });
 
   // L106: parseFeatureArea returns undefined when the relative path has only
@@ -275,8 +263,8 @@ describe("ingestRepository", () => {
       // Pass the exact file path so walkFiles hits the isFile() branch
       await ingestRepository({ baseDir: testFile });
 
-      expect(mocks.insert).toHaveBeenCalledTimes(1);
-      const entity = mocks.insert.mock.calls[0][0].data[0];
+      expect(mocks.upsertChunks).toHaveBeenCalledTimes(1);
+      const entity = mocks.upsertChunks.mock.calls[0][0][0];
       // chunk.module was set to "unknown" because parseFeatureArea returned undefined
       expect(entity.module).toBe("unknown");
     } finally {

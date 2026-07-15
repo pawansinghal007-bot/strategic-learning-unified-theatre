@@ -10,16 +10,19 @@ function read(rel) {
 }
 
 describe("Sprint 79 — Sonar scope guard", () => {
-  it("ingest-sprint-history.ts uses top-level await pattern (Sprint 79 closure)", () => {
-    const text = read("src/knowledge/ingest/ingest-sprint-history.ts");
-    const lines = text.split(/\r?\n/);
-    const topLevelAwaits = lines.filter((line) => /^await\s/.test(line));
-    expect(topLevelAwaits).toHaveLength(1);
-    expect(topLevelAwaits[0]).toBe("await main();");
+  it("ingest-sprint-history.js uses top-level await pattern (Sprint 79 closure)", () => {
+    const text = read("src/knowledge/ingest/ingest-sprint-history.js");
+    // The .js file uses: if (process.argv[1] === __filename) { await main(); }
+    // This is a synchronous module detection with top-level await inside the guard.
+    expect(text).toContain("if (process.argv[1] === __filename)");
+    expect(text).toContain("await main();");
+    // Should NOT have async IIFE
+    expect(text).not.toContain("(async () => {");
+    expect(text).not.toContain("})();");
   });
 
-  it("ingest-sprint-history.ts has no async IIFE (Sprint 79 closure)", () => {
-    const text = read("src/knowledge/ingest/ingest-sprint-history.ts");
+  it("ingest-sprint-history.js has no async IIFE (Sprint 79 closure)", () => {
+    const text = read("src/knowledge/ingest/ingest-sprint-history.js");
     expect(text).not.toContain("(async () => {");
     expect(text).not.toContain("})();");
   });
@@ -48,7 +51,7 @@ describe("Sprint 79 — Sonar scope guard", () => {
     const text = read("tests/sprint77-build-and-scope-guard.test.js");
     expect(text).toContain("Sprint 77 — build and scope guard");
     expect(text).toContain(
-      "ingest-sprint-history.ts uses top-level await pattern",
+      "ingest-sprint-history.js uses top-level await pattern",
     );
     expect(text).toContain("dashboard.js has zero window. references");
   });

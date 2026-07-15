@@ -114,18 +114,16 @@ async function readDocumentText(filePath) {
   return fs.readFile(filePath, "utf8");
 }
 
-export function chunkText(text, { tokens = 512, overlap = 64 } = {}) {
-  const words = String(text || "")
-    .split(/\s+/)
-    .filter(Boolean);
-  if (words.length === 0) return [];
+export function chunkText(text, { maxChars = 3000, overlap = 300 } = {}) {
+  const str = String(text || "");
+  if (str.length === 0) return [];
   const chunks = [];
-  const step = Math.max(1, tokens - overlap);
-  for (let start = 0; start < words.length; start += step) {
-    const slice = words.slice(start, start + tokens);
+  const step = Math.max(1, maxChars - overlap);
+  for (let start = 0; start < str.length; start += step) {
+    const slice = str.slice(start, start + maxChars);
     if (slice.length === 0) break;
-    chunks.push(slice.join(" "));
-    if (start + tokens >= words.length) break;
+    chunks.push(slice);
+    if (start + maxChars >= str.length) break;
   }
   return chunks;
 }

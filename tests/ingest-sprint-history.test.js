@@ -4,30 +4,16 @@ import path from "node:path";
 import os from "node:os";
 
 const mocks = vi.hoisted(() => ({
-  insert: vi.fn(),
-  hasCollection: vi.fn(),
-  createCollection: vi.fn(),
-  createIndex: vi.fn(),
-  loadCollection: vi.fn(),
-  flush: vi.fn(),
+  upsertChunks: vi.fn(),
   ensureKnowledgeCollection: vi.fn(),
   embedTextBatch: vi.fn(),
 }));
 
-// Mock only the heavy external dependencies (Milvus, embedder)
+// Mock only the heavy external dependencies (Qdrant, embedder)
 // Let chunking.js run real code for coverage, even if mocked internally
-vi.mock("../src/knowledge/ingest/milvus-client.js", () => ({
-  getMilvusClient: vi.fn().mockReturnValue({
-    insert: mocks.insert,
-    hasCollection: mocks.hasCollection,
-    createCollection: mocks.createCollection,
-    createIndex: mocks.createIndex,
-    loadCollection: mocks.loadCollection,
-    flush: mocks.flush,
-  }),
+vi.mock("../src/llm/qdrant-client.js", () => ({
+  upsertChunks: mocks.upsertChunks,
   ensureKnowledgeCollection: mocks.ensureKnowledgeCollection,
-  KNOWLEDGE_COLLECTION: "knowledge_chunks",
-  chunkToMilvusEntity: (chunk) => chunk,
 }));
 
 vi.mock("../src/knowledge/ingest/embedder.js", () => ({
@@ -61,16 +47,11 @@ describe("Sprint 83 — ingest-sprint-history module unit tests", () => {
     await fs.mkdir(tmpDir, { recursive: true });
 
     vi.clearAllMocks();
-    mocks.insert.mockResolvedValue(undefined);
-    mocks.hasCollection.mockResolvedValue({ value: true });
-    mocks.createCollection.mockResolvedValue(undefined);
-    mocks.createIndex.mockResolvedValue(undefined);
-    mocks.loadCollection.mockResolvedValue(undefined);
-    mocks.flush.mockResolvedValue(undefined);
+    mocks.upsertChunks.mockResolvedValue(undefined);
     mocks.ensureKnowledgeCollection.mockResolvedValue(undefined);
     // embedTextBatch returns a vector for each text
     mocks.embedTextBatch.mockImplementation((texts) =>
-      texts.map(() => new Array(1024).fill(0)),
+      texts.map(() => new Array(2560).fill(0)),
     );
   });
 
@@ -87,7 +68,7 @@ describe("Sprint 83 — ingest-sprint-history module unit tests", () => {
     ).resolves.not.toThrow();
 
     expect(mocks.ensureKnowledgeCollection).toHaveBeenCalledTimes(1);
-    expect(mocks.insert).not.toHaveBeenCalled();
+    expect(mocks.upsertChunks).not.toHaveBeenCalled();
   });
 
   it("ingestSprintHistory works with a well-formed sprint report", async () => {
@@ -103,7 +84,7 @@ describe("Sprint 83 — ingest-sprint-history module unit tests", () => {
 
     // Real chunkDocument will be called; just verify the downstream mocks were used
     expect(mocks.embedTextBatch).toHaveBeenCalledTimes(1);
-    expect(mocks.insert).toHaveBeenCalledTimes(1);
+    expect(mocks.upsertChunks).toHaveBeenCalledTimes(1);
   });
 
   it("ingestSprintHistory handles malformed/partial records safely", async () => {
@@ -122,12 +103,13 @@ describe("Sprint 83 — ingest-sprint-history module unit tests", () => {
       await import("../src/knowledge/ingest/ingest-sprint-history.js");
 
     // Mock embedTextBatch to return too few vectors (intentional mismatch)
-    mocks.embedTextBatch.mockResolvedValue([new Array(1024).fill(0)]);
+    mocks.embedTextBatch.mockResolvedValue([new Array(2560).fill(0)]);
 
     await fs.writeFile(
       path.join(tmpDir, "sprint-55-report.md"),
-      // Use a long enough text to create multiple chunks (> 512 words with overlap)
-      "word ".repeat(600),
+      // Use a long enough text to create multiple chunks (> 3000 chars = ~600 words per chunk)
+      // 2000 words => ~10000 chars => ~3-4 chunks with overlap
+      "word ".repeat(2000),
     );
 
     await expect(ingestSprintHistory({ baseDir: tmpDir })).rejects.toThrow(
@@ -147,7 +129,7 @@ describe("Sprint 83 — ingest-sprint-history module unit tests", () => {
     await ingestSprintHistory({ baseDir: tmpDir });
 
     expect(mocks.embedTextBatch).toHaveBeenCalledTimes(1);
-    expect(mocks.insert).toHaveBeenCalledTimes(1);
+    expect(mocks.upsertChunks).toHaveBeenCalledTimes(1);
   });
 
   it("ingestSprintHistory extracts sprint number from underscore-prefixed filename", async () => {
@@ -164,7 +146,7 @@ describe("Sprint 83 — ingest-sprint-history module unit tests", () => {
 
     // Verify the document was processed
     expect(mocks.embedTextBatch).toHaveBeenCalledTimes(1);
-    expect(mocks.insert).toHaveBeenCalledTimes(1);
+    expect(mocks.upsertChunks).toHaveBeenCalledTimes(1);
   });
 
   it("ingestSprintHistory extracts sprint number from hyphen-prefixed filename", async () => {
@@ -181,7 +163,7 @@ describe("Sprint 83 — ingest-sprint-history module unit tests", () => {
 
     // Verify the document was processed
     expect(mocks.embedTextBatch).toHaveBeenCalledTimes(1);
-    expect(mocks.insert).toHaveBeenCalledTimes(1);
+    expect(mocks.upsertChunks).toHaveBeenCalledTimes(1);
   });
 
   it("ingestSprintHistory skips empty chunks", async () => {
@@ -195,7 +177,7 @@ describe("Sprint 83 — ingest-sprint-history module unit tests", () => {
 
     // Empty report should be skipped
     expect(mocks.embedTextBatch).not.toHaveBeenCalled();
-    expect(mocks.insert).not.toHaveBeenCalled();
+    expect(mocks.upsertChunks).not.toHaveBeenCalled();
   });
 
   it("ingestSprintHistory handles a filename with no parsable sprint number", async () => {
@@ -213,6 +195,6 @@ describe("Sprint 83 — ingest-sprint-history module unit tests", () => {
     await ingestSprintHistory({ baseDir: tmpDir });
 
     expect(mocks.embedTextBatch).toHaveBeenCalledTimes(1);
-    expect(mocks.insert).toHaveBeenCalledTimes(1);
+    expect(mocks.upsertChunks).toHaveBeenCalledTimes(1);
   });
 });

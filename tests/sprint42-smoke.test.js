@@ -3,20 +3,6 @@ import { loadDashboardSurface } from './dashboard-loader.js';
 import { join } from "path";
 import { describe, it, expect, vi } from "vitest";
 
-vi.mock("@zilliz/milvus2-sdk-node", () => ({
-  MilvusClient: vi.fn().mockImplementation(() => ({
-    hasCollection: vi.fn().mockResolvedValue({ value: true }),
-    insert: vi.fn().mockResolvedValue({ insert_count: 1 }),
-    search: vi.fn().mockResolvedValue({ results: [] }),
-  })),
-  DataType: {
-    VarChar: "VarChar",
-    Int64: "Int64",
-    Float: "Float",
-    FloatVector: "FloatVector",
-  },
-}));
-
 vi.mock("@xenova/transformers", () => ({
   pipeline: vi.fn().mockResolvedValue(
     vi.fn().mockResolvedValue({
@@ -71,35 +57,38 @@ describe("Sprint 42 smoke tests — schema and chunking", () => {
 });
 
 describe("Sprint 42 smoke tests — embedder", () => {
-  it("embedTextBatch returns array of vectors", async () => {
-    const { embedTextBatch } =
-      await import("../src/knowledge/ingest/embedder.js");
-    const vectors = await embedTextBatch(["hello world", "test text"]);
-    expect(vectors).toHaveLength(2);
-    expect(vectors[0]).toHaveLength(1024);
-    expect(typeof vectors[0][0]).toBe("number");
-  });
+  it(
+    "embedTextBatch returns array of vectors",
+    async () => {
+      const { embedTextBatch } =
+        await import("../src/knowledge/ingest/embedder.js");
+      const vectors = await embedTextBatch(["hello world", "test text"]);
+      expect(vectors).toHaveLength(2);
+      expect(vectors[0]).toHaveLength(2560);
+      expect(typeof vectors[0][0]).toBe("number");
+    },
+    120000, // 2 min timeout for qwen3-emb-4b cold start + inference
+  );
 });
 
 describe("Sprint 42 smoke tests — file surface", () => {
-  it("milvus-client.ts exists and exports expected symbols", () => {
+  it("qdrant-client.js exists and exports expected symbols", () => {
     const content = readFileSync(
-      join(process.cwd(), "src/knowledge/ingest/milvus-client.ts"),
+      join(process.cwd(), "src/llm/qdrant-client.js"),
       "utf-8",
     );
     expect(content).toContain("KNOWLEDGE_COLLECTION");
-    expect(content).toContain("getMilvusClient");
     expect(content).toContain("ensureKnowledgeCollection");
+    expect(content).toContain("searchChunks");
   });
 
-  it("ingest-sprint-history.ts exists and exports ingestSprintHistory", () => {
+  it("ingest-sprint-history.js exists and exports ingestSprintHistory", () => {
     const content = readFileSync(
-      join(process.cwd(), "src/knowledge/ingest/ingest-sprint-history.ts"),
+      join(process.cwd(), "src/knowledge/ingest/ingest-sprint-history.js"),
       "utf-8",
     );
     expect(content).toContain("ingestSprintHistory");
     expect(content).toContain("parseSprintNumberFromFilename");
-    expect(content).toContain("chunkToMilvusEntity");
   });
 
   it("knowledge-handlers.cjs exists and registers knowledge:ingest and knowledge:search", () => {

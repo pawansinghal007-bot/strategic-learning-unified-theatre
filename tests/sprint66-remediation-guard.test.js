@@ -6,7 +6,7 @@ const dashboardJsPath = path.resolve("src/ui/dashboard.js");
 const dashboardHtmlPath = path.resolve("src/ui/provider-dashboard.html");
 const gatewayPath = path.resolve("src/llm/gateway.ts");
 const ingestPath = path.resolve(
-  "src/knowledge/ingest/ingest-sprint-history.ts",
+  "src/knowledge/ingest/ingest-sprint-history.js",
 );
 
 function read(p) {
@@ -104,28 +104,28 @@ describe("Sprint 66 remediation guard: TypeScript fixes", () => {
     expect(ts).not.toContain("if (!_gateway)");
   });
 
-  it("ingest-sprint-history.ts converted to top-level await per async/await best practice", () => {
-    const ts = read(ingestPath);
+  it("ingest-sprint-history.js converted to top-level await per async/await best practice", () => {
+    const js = read(ingestPath);
     // Verify top-level await/try/catch pattern
-    const match = ts.match(
-      /try\s*\{\s*await ingestSprintHistory\(\s*\{\s*baseDir\s*\}\s*\);/,
+    const match = js.match(
+      /try\s*\{\s*await main\(\);/,
     );
     expect(match).not.toBeNull();
   });
 
-  it("ingest-sprint-history.ts does not use .catch() pattern for top-level call", () => {
-    const ts = read(ingestPath);
+  it("ingest-sprint-history.js does not use .catch() pattern for top-level call", () => {
+    const js = read(ingestPath);
     // Verify the old .catch() pattern is gone from the file
-    // (there might be other .catch() elsewhere, so be specific to the ingestSprintHistory call)
-    const lines = ts.split("\n");
-    let foundIngestCall = false;
+    // (there might be other .catch() elsewhere, so be specific to the main call)
+    const lines = js.split("\n");
+    let foundMainCall = false;
     for (const line of lines) {
-      if (line.includes("ingestSprintHistory") && line.includes("baseDir")) {
-        foundIngestCall = true;
+      if (line.includes("await main()")) {
+        foundMainCall = true;
         expect(line).not.toContain(".catch(");
         break;
       }
     }
-    expect(foundIngestCall).toBe(true);
+    expect(foundMainCall).toBe(true);
   });
 });

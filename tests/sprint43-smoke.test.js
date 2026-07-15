@@ -4,7 +4,7 @@ import { join } from "path";
 import { describe, it, expect } from "vitest";
 import { buildKnowledgePromptBlock } from "../src/knowledge/index.js";
 
-// ── Pure logic tests (no Milvus, no network) ──────────────────────────────
+// ── Pure logic tests (no vector DB, no network) ───────────────────────────
 
 describe("Sprint 43 smoke tests — buildKnowledgePromptBlock", () => {
   const makeHit = (overrides) => ({
@@ -114,8 +114,8 @@ describe("Sprint 43 smoke tests — file surface", () => {
     expect(source).toContain("ingestSprintHistory");
     expect(source).toContain("chunkDocument");
     expect(source).toContain("embedTextBatch");
-    expect(source).toContain("getMilvusClient");
     expect(source).toContain("ensureKnowledgeCollection");
+    expect(source).toContain("searchChunks");
   });
 
   it("knowledge-handlers.cjs contains normalizeHit and toScoreNumber", () => {
@@ -187,6 +187,6 @@ describe("Sprint 43 smoke tests — file surface", () => {
   it("Sprint 42 knowledge schema files still exist", () => {
     expect(existsSync(join(process.cwd(), "src/knowledge/schema/documents.ts"))).toBe(true);
     expect(existsSync(join(process.cwd(), "src/knowledge/schema/metadata.ts"))).toBe(true);
-    expect(existsSync(join(process.cwd(), "src/knowledge/ingest/ingest-sprint-history.ts"))).toBe(true);
+    expect(existsSync(join(process.cwd(), "src/knowledge/ingest/ingest-sprint-history.js"))).toBe(true);
   });
 });

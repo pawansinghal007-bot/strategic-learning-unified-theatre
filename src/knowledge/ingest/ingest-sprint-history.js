@@ -1,11 +1,9 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import {
-  getMilvusClient,
-  KNOWLEDGE_COLLECTION,
   ensureKnowledgeCollection,
-  chunkToMilvusEntity,
-} from "./milvus-client.js";
+  upsertChunks,
+} from "../../llm/qdrant-client.js";
 import { chunkDocument } from "./chunking.js";
 import { embedTextBatch } from "./embedder.js";
 
@@ -89,32 +87,58 @@ export async function ingestSprintHistory(options) {
       continue;
     }
 
-    const vectors = await embedTextBatch(chunks.map((chunk) => chunk.text));
-    if (vectors.length !== chunks.length) {
+    // Safety guard: skip oversized chunks that would exceed embedding context limits
+    const MAX_CHUNK_CHARS = 6000;
+    const safeChunks = [];
+    let skippedCount = 0;
+    for (const c of chunks) {
+      if (String(c.text ?? "").length > MAX_CHUNK_CHARS) {
+        skippedCount++;
+      } else {
+        safeChunks.push(c);
+      }
+    }
+    if (skippedCount > 0) {
+      console.warn(
+        `[knowledge] Skipping ${skippedCount} oversized chunk(s) over ${MAX_CHUNK_CHARS} chars for ${doc.id}`,
+      );
+    }
+    if (safeChunks.length === 0) continue;
+
+    const vectors = await embedTextBatch(safeChunks.map((chunk) => chunk.text));
+    if (vectors.length !== safeChunks.length) {
       throw new Error(
-        `[knowledge] embedTextBatch returned ${vectors.length} vectors for ${chunks.length} chunks`,
+        `[knowledge] embedTextBatch returned ${vectors.length} vectors for ${safeChunks.length} chunks`,
       );
     }
 
-    for (let i = 0; i < chunks.length; i++) {
-      chunks[i].denseVector = vectors[i];
+    for (let i = 0; i < safeChunks.length; i++) {
+      safeChunks[i].denseVector = vectors[i];
     }
 
-    const entities = chunks.map((chunk) => chunkToMilvusEntity(chunk));
-    const client = getMilvusClient();
+    const points = safeChunks.map((chunk) => ({
+      chunk_id: chunk.chunkId,
+      doc_id: chunk.docId,
+      source_type: chunk.sourceType,
+      sprint: chunk.sprint ?? -1,
+      module: chunk.module ?? "",
+      feature_area: chunk.featureArea ?? "",
+      version: chunk.version ?? "",
+      path: chunk.path ?? "",
+      section: chunk.section ?? "",
+      importance: chunk.importance,
+      hash: chunk.hash,
+      created_at: chunk.createdAt,
+      text: String(chunk.text ?? "").slice(0, 16_384),
+      dense_vector: chunk.denseVector,
+      content: String(chunk.text ?? "").slice(0, 16_384),
+    }));
 
-    await client.insert({
-      collection_name: KNOWLEDGE_COLLECTION,
-      data: entities,
-    });
+    await upsertChunks(points);
 
-    console.log(
-      `[knowledge] Inserted ${entities.length} chunk(s) for ${doc.id}`,
-    );
+    console.log(`[knowledge] Inserted ${points.length} chunk(s) for ${doc.id}`);
   }
 
-  const client = getMilvusClient();
-  await client.flush({ collection_names: [KNOWLEDGE_COLLECTION] });
   console.log("[knowledge] Sprint history ingestion complete.");
 }
 

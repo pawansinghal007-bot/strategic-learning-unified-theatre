@@ -3,11 +3,9 @@ import path from "node:path";
 import { createHash } from "node:crypto";
 import { pathToFileURL } from "node:url";
 import {
-  getMilvusClient,
-  KNOWLEDGE_COLLECTION,
   ensureKnowledgeCollection,
-  chunkToMilvusEntity,
-} from "./milvus-client.js";
+  upsertChunks,
+} from "../../llm/qdrant-client.js";
 import { chunkText } from "../../llm/document-ingester.js";
 import { embedTextBatch } from "./embedder.js";
 
@@ -184,27 +182,59 @@ async function buildChunksForBatch(batch, absoluteBaseDir, defaultFeatureArea) {
   return chunks;
 }
 
+const MAX_CHUNK_CHARS = 6000;
+
 async function attachVectors(chunks) {
-  const vectors = await embedTextBatch(chunks.map((chunk) => chunk.text));
-  if (vectors.length !== chunks.length) {
-    throw new Error(
-      `[knowledge] embedTextBatch returned ${vectors.length} vectors for ${chunks.length} chunks`,
+  const safeChunks = [];
+  const skipped = [];
+  for (const c of chunks) {
+    if (c.text.length > MAX_CHUNK_CHARS) {
+      skipped.push(c);
+    } else {
+      safeChunks.push(c);
+    }
+  }
+  if (skipped.length > 0) {
+    console.warn(
+      `[knowledge] Skipping ${skipped.length} oversized chunk(s) over ${MAX_CHUNK_CHARS} chars`,
     );
   }
-  for (let i = 0; i < chunks.length; i++) {
-    chunks[i].denseVector = vectors[i];
+  if (safeChunks.length === 0) return;
+  const vectors = await embedTextBatch(safeChunks.map((chunk) => chunk.text));
+  if (vectors.length !== safeChunks.length) {
+    throw new Error(
+      `[knowledge] embedTextBatch returned ${vectors.length} vectors for ${safeChunks.length} chunks`,
+    );
+  }
+  for (let i = 0; i < safeChunks.length; i++) {
+    safeChunks[i].denseVector = vectors[i];
   }
 }
 
-async function insertChunkBatch(client, chunks) {
-  const entities = chunks.map((chunk) =>
-    chunkToMilvusEntity(chunk, chunk.path),
-  );
-  await client.insert({
-    collection_name: KNOWLEDGE_COLLECTION,
-    data: entities,
-  });
-  return entities.length;
+function chunkToQdrantPoint(chunk) {
+  return {
+    chunk_id: chunk.chunkId,
+    doc_id: chunk.docId,
+    source_type: chunk.sourceType,
+    sprint: chunk.sprint ?? -1,
+    module: chunk.module ?? "",
+    feature_area: chunk.featureArea ?? "",
+    version: chunk.version ?? "",
+    path: chunk.path ?? "",
+    section: chunk.section ?? "",
+    importance: chunk.importance,
+    hash: chunk.hash,
+    created_at: chunk.createdAt,
+    text: String(chunk.text ?? "").slice(0, 16_384),
+    dense_vector: chunk.denseVector,
+    content: String(chunk.text ?? "").slice(0, 16_384),
+  };
+}
+
+async function insertChunkBatch(_client, chunks) {
+  const points = chunks.map((chunk) => chunkToQdrantPoint(chunk));
+  await upsertChunks(points);
+  return points.length;
 }
 
 function isDirectRun() {
@@ -220,7 +250,6 @@ export async function ingestRepository(options) {
   const effectiveMaxFileBytes = getEffectiveMaxFileBytes(options);
 
   await ensureKnowledgeCollection();
-  const client = getMilvusClient();
 
   const { files, skippedLargeFiles } = await discoverSupportedFiles(
     absoluteBaseDir,
@@ -251,12 +280,11 @@ export async function ingestRepository(options) {
     );
 
     await attachVectors(chunks);
-    const insertedCount = await insertChunkBatch(client, chunks);
+    const insertedCount = await insertChunkBatch(null, chunks);
     totalChunks += insertedCount;
     console.log(`[knowledge] Inserted ${insertedCount} chunk(s) from batch`);
   }
 
-  await client.flush({ collection_names: [KNOWLEDGE_COLLECTION] });
   console.log(
     `[knowledge] Repository ingestion complete: ${totalChunks} chunks`,
   );
