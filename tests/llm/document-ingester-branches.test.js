@@ -34,48 +34,49 @@ async function writeFile(dir, name, content) {
 // ── chunkText branch coverage (lines 137, 143) ─────────────────────────────
 
 describe("chunkText — step and overlap branches", () => {
-  // overlap=0 → step = tokens, no overlap, clean windows
+  // overlap=0 → step = maxChars, no overlap, clean character windows
   it("produces non-overlapping chunks when overlap=0 (line 137)", () => {
-    const words = Array.from({ length: 10 }, (_, i) => `w${i}`);
-    const chunks = chunkText(words.join(" "), { tokens: 5, overlap: 0 });
-    expect(chunks).toHaveLength(2); // [w0–w4, w5–w9]
-    expect(chunks[0]).toBe("w0 w1 w2 w3 w4");
-    expect(chunks[1]).toBe("w5 w6 w7 w8 w9");
-  });
-
-  // tokens > overlap by exactly 1 → step = 1 (maximum overlap)
-  it("step clamped to 1 when tokens - overlap = 1", () => {
-    const words = "a b c d e".split(" ");
-    // tokens=3, overlap=2 → step=1
-    const chunks = chunkText(words.join(" "), { tokens: 3, overlap: 2 });
-    expect(chunks.length).toBeGreaterThan(1);
-    // Each window slides by 1
-    expect(chunks[0]).toBe("a b c");
-    expect(chunks[1]).toBe("b c d");
-  });
-
-  // Exact boundary: last chunk's start + tokens === words.length → break (line 143)
-  it("stops exactly at boundary without producing an extra empty chunk (line 143)", () => {
-    // 6 words, tokens=3, overlap=0 → chunks at [0,3) and [3,6) → break
-    const text = "a b c d e f";
-    const chunks = chunkText(text, { tokens: 3, overlap: 0 });
+    // 20-char string, maxChars=10, overlap=0 → step=10 → 2 clean chunks
+    const text = "0123456789abcdefghij";
+    const chunks = chunkText(text, { maxChars: 10, overlap: 0 });
     expect(chunks).toHaveLength(2);
-    expect(chunks[0]).toBe("a b c");
-    expect(chunks[1]).toBe("d e f");
+    expect(chunks[0]).toBe("0123456789");
+    expect(chunks[1]).toBe("abcdefghij");
   });
 
-  // Non-exact boundary: last chunk shorter than tokens window
-  it("last chunk can be smaller than the token window", () => {
-    // 7 words, tokens=3, overlap=0 → starts: 0, 3, 6 → slices: [0-2],[3-5],[6] → 3 chunks
-    const text = "a b c d e f g";
-    const chunks = chunkText(text, { tokens: 3, overlap: 0 });
+  // maxChars - overlap = 1 → step = 1 (maximum overlap)
+  it("step clamped to 1 when maxChars - overlap = 1", () => {
+    // maxChars=5, overlap=4 → step=1
+    const text = "0123456789";
+    const chunks = chunkText(text, { maxChars: 5, overlap: 4 });
+    expect(chunks.length).toBeGreaterThan(1);
+    // Each window slides by 1 character
+    expect(chunks[0]).toBe("01234");
+    expect(chunks[1]).toBe("12345");
+  });
+
+  // Exact boundary: last chunk's start + maxChars === str.length → break (line 143)
+  it("stops exactly at boundary without producing an extra empty chunk (line 143)", () => {
+    // 10-char string, maxChars=5, overlap=0 → chunks at [0:5) and [5:10) → break
+    const text = "0123456789";
+    const chunks = chunkText(text, { maxChars: 5, overlap: 0 });
+    expect(chunks).toHaveLength(2);
+    expect(chunks[0]).toBe("01234");
+    expect(chunks[1]).toBe("56789");
+  });
+
+  // Non-exact boundary: last chunk shorter than maxChars window
+  it("last chunk can be smaller than the maxChars window", () => {
+    // 11-char string, maxChars=5, overlap=0 → starts: 0, 5, 10 → 3 chunks
+    const text = "0123456789a";
+    const chunks = chunkText(text, { maxChars: 5, overlap: 0 });
     expect(chunks).toHaveLength(3);
-    expect(chunks[2]).toBe("g");
+    expect(chunks[2]).toBe("a");
   });
 
   // Single word fits in one chunk
   it("single word produces one chunk", () => {
-    expect(chunkText("hello", { tokens: 5, overlap: 0 })).toEqual(["hello"]);
+    expect(chunkText("hello", { maxChars: 10, overlap: 0 })).toEqual(["hello"]);
   });
 });
 

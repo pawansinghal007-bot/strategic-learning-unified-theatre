@@ -59,23 +59,23 @@ describe("chunkText edge cases", () => {
     expect(chunkText(undefined)).toEqual([]);
   });
 
-  // line 143: single chunk when words fit within one token window
-  it("returns single chunk when text is shorter than token window", () => {
+  // line 143: single chunk when text fits within one maxChars window
+  it("returns single chunk when text is shorter than maxChars window", () => {
     const text = "hello world foo bar";
-    const chunks = chunkText(text, { tokens: 512, overlap: 64 });
+    const chunks = chunkText(text, { maxChars: 512, overlap: 64 });
     expect(chunks).toHaveLength(1);
     expect(chunks[0]).toBe("hello world foo bar");
   });
 
   // overlap boundary: multiple chunks produced with overlap
-  it("produces overlapping chunks when text exceeds token window", () => {
-    // 10 words, window=5, overlap=2 → step=3 → starts: 0, 3, 6, 9
+  it("produces overlapping chunks when text exceeds maxChars window", () => {
+    // 49-char string, maxChars=25, overlap=10 → step=15 → starts: 0, 15, 30, 45
     const words = Array.from({ length: 10 }, (_, i) => `word${i}`);
-    const chunks = chunkText(words.join(" "), { tokens: 5, overlap: 2 });
+    const chunks = chunkText(words.join(" "), { maxChars: 25, overlap: 10 });
     expect(chunks.length).toBeGreaterThan(1);
     // First chunk starts with word0
     expect(chunks[0]).toContain("word0");
-    // Second chunk starts at word3 (step=3)
+    // Second chunk starts at position 15, which includes word3
     expect(chunks[1]).toContain("word3");
   });
 

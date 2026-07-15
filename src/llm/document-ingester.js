@@ -115,7 +115,7 @@ async function readDocumentText(filePath) {
 }
 
 export function chunkText(text, { maxChars = 3000, overlap = 300 } = {}) {
-  const str = String(text || "");
+  const str = String(text || "").trim();
   if (str.length === 0) return [];
   const chunks = [];
   const step = Math.max(1, maxChars - overlap);
