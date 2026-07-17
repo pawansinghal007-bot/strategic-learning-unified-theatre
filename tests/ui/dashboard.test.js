@@ -10,7 +10,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // ─── Full DOM — every id/data-testid touched at module load time ──────────────
 function buildDOM() {
-  const dom = new JSDOM(`<!DOCTYPE html><body>
+  const dom = new JSDOM(
+    `<!DOCTYPE html><body>
     <!-- proof panel -->
     <div data-testid="proof-last-action-value"></div>
     <div data-testid="proof-state-output"></div>
@@ -247,7 +248,9 @@ function buildDOM() {
     <button data-testid="verify-release-blockers-btn"></button>
     <button data-testid="load-release-readiness-btn"></button>
     <button data-testid="refresh-sonar-truth-btn"></button>
-  </body>`, { url: "http://localhost/" });
+  </body>`,
+    { url: "http://localhost/" },
+  );
 
   global.document = dom.window.document;
   global.window = dom.window;
@@ -4439,7 +4442,9 @@ describe("explainIntroducedFindings null output/body guards", () => {
       await new Promise((r) => setTimeout(r, 20));
     });
     // null drift result causes early return — explainIntroduced must never be called
-    expect(globalThis.workspaceSecurity.explainIntroduced).not.toHaveBeenCalled();
+    expect(
+      globalThis.workspaceSecurity.explainIntroduced,
+    ).not.toHaveBeenCalled();
   });
 
   it("does not throw when output/body absent after successful explain", async () => {
@@ -5706,31 +5711,41 @@ describe("compareSecurityBaseline each counter element null guard individually",
     el?.remove();
     await runDrift();
     // The other counters must still have been updated — handler didn't abort
-    expect(document.getElementById("security-drift-baseline").textContent).toBe("1");
+    expect(document.getElementById("security-drift-baseline").textContent).toBe(
+      "1",
+    );
   });
   it("handles absent security-drift-baseline (1332)", async () => {
     const el = document.getElementById("security-drift-baseline");
     el?.remove();
     await runDrift();
-    expect(document.getElementById("security-drift-current").textContent).toBe("2");
+    expect(document.getElementById("security-drift-current").textContent).toBe(
+      "2",
+    );
   });
   it("handles absent security-drift-introduced (1334)", async () => {
     const el = document.getElementById("security-drift-introduced");
     el?.remove();
     await runDrift();
-    expect(document.getElementById("security-drift-current").textContent).toBe("2");
+    expect(document.getElementById("security-drift-current").textContent).toBe(
+      "2",
+    );
   });
   it("handles absent security-drift-persistent (1336)", async () => {
     const el = document.getElementById("security-drift-persistent");
     el?.remove();
     await runDrift();
-    expect(document.getElementById("security-drift-current").textContent).toBe("2");
+    expect(document.getElementById("security-drift-current").textContent).toBe(
+      "2",
+    );
   });
   it("handles absent security-drift-loaded (1338)", async () => {
     const el = document.getElementById("security-drift-loaded");
     el?.remove();
     await runDrift();
-    expect(document.getElementById("security-drift-current").textContent).toBe("2");
+    expect(document.getElementById("security-drift-current").textContent).toBe(
+      "2",
+    );
   });
 });
 
@@ -6987,6 +7002,683 @@ describe("module-level null guards (elements absent at import)", () => {
       expect(document.getElementById("risks-output").textContent).toContain(
         "img err",
       ),
+    );
+  });
+});
+
+// ─── Coverable Branch Coverage — Remaining Uncovered Branches ─────────────────
+// Target: 46 uncovered branches (BRDA choice 1 = true branch) in dashboard.js.
+// Each test triggers the TRUE (choice 1) branch that was previously uncovered.
+
+describe("coverable branch coverage — remaining uncovered branches", () => {
+  // Line 83: setWalkthroughState — demoEl true branch (BRDA:83,22,1,0)
+  it("setWalkthroughState: demoEl exists → sets textContent to mode (BRDA:83)", () => {
+    fns.setWalkthroughState("Step", "Detail", "active");
+    const demoEl = document.querySelector(
+      '[data-testid="walkthrough-demo-value"]',
+    );
+    expect(demoEl?.textContent).toBe("active");
+  });
+
+  // Lines 189, 198, 207: buildLiveReviewEvidence — else branches
+  // buildLiveReviewEvidence() RETURNS a string, it does not write to DOM
+  it("buildLiveReviewEvidence: driftText else branch — non-default drift (BRDA:189)", () => {
+    document.querySelector('[data-testid="drift-history-output"]').textContent =
+      "Custom drift: 5 issues introduced";
+    const result = fns.buildLiveReviewEvidence();
+    expect(result).toContain("Custom drift: 5 issues introduced");
+  });
+
+  it("buildLiveReviewEvidence: complianceText else branch — non-default compliance (BRDA:198)", () => {
+    document.querySelector('[data-testid="compliance-output"]').textContent =
+      "CIS benchmark: 12 controls mapped";
+    const result = fns.buildLiveReviewEvidence();
+    expect(result).toContain("CIS benchmark: 12 controls mapped");
+  });
+
+  it("buildLiveReviewEvidence: proofSummaryText true branch — non-empty proof (BRDA:207)", () => {
+    document.querySelector('[data-testid="proof-summary-output"]').textContent =
+      "Proof summary: 3 actions captured";
+    const result = fns.buildLiveReviewEvidence();
+    expect(result).toContain("Proof summary: 3 actions captured");
+  });
+
+  // Line 419: getFilter — valid date → sets filter.endTime (BRDA:419,84,1,0)
+  it("getFilter: valid end date → sets filter.endTime (BRDA:419)", () => {
+    document.getElementById("filter-end").value = "2026-07-16";
+    const filter = fns.getFilter();
+    expect(filter.endTime).toBeDefined();
+    expect(Number.isNaN(filter.endTime)).toBe(false);
+  });
+
+  // Lines 515, 518: setQuotaForm — null policy + missing dailyLimit
+  it("setQuotaForm: null policy → early return (BRDA:515)", () => {
+    fns.setQuotaForm(null);
+    // Should not throw
+    expect(document.getElementById("quota-daily-limit").value).toBe("");
+  });
+
+  it("setQuotaForm: missing dailyLimit → uses '' fallback (BRDA:518)", () => {
+    fns.setQuotaForm({ weeklyLimit: 100 });
+    expect(document.getElementById("quota-daily-limit").value).toBe("");
+  });
+
+  // Lines 880-881: compliance benchmark IIFE click handler
+  it("map-compliance-benchmarks-btn click: benchmark + output elements exist (BRDA:880-881)", async () => {
+    document
+      .querySelector('[data-testid="map-compliance-benchmarks-btn"]')
+      .dispatchEvent(new global.window.Event("click"));
+    await new Promise((r) => setTimeout(r, 20));
+    expect(
+      document.querySelector('[data-testid="compliance-benchmark-value"]')
+        ?.textContent,
+    ).toBe("Mapped");
+    expect(
+      document.querySelector('[data-testid="compliance-output"]')?.textContent,
+    ).toContain("CIS benchmark surface: mapped");
+  });
+
+  // Lines 1007, 1026, 1044, 1047: release blockers/readiness IIFE click handlers
+  it("verify-release-blockers-btn click: blockersOutput exists (BRDA:1007)", async () => {
+    document
+      .querySelector('[data-testid="verify-release-blockers-btn"]')
+      .dispatchEvent(new global.window.Event("click"));
+    await new Promise((r) => setTimeout(r, 20));
+    expect(
+      document.querySelector('[data-testid="release-blockers-output"]')
+        ?.textContent,
+    ).toContain("Release blockers verified");
+  });
+
+  it("load-release-readiness-btn click: readinessOutput exists (BRDA:1026)", async () => {
+    document
+      .querySelector('[data-testid="load-release-readiness-btn"]')
+      .dispatchEvent(new global.window.Event("click"));
+    await new Promise((r) => setTimeout(r, 20));
+    expect(
+      document.querySelector('[data-testid="release-readiness-output"]')
+        ?.textContent,
+    ).toContain("Quality gate currently FAILED");
+  });
+
+  it("refresh-sonar-truth-btn click: releasePanel + readinessOutput exist (BRDA:1044-1047)", async () => {
+    document
+      .querySelector('[data-testid="refresh-sonar-truth-btn"]')
+      .dispatchEvent(new global.window.Event("click"));
+    await new Promise((r) => setTimeout(r, 20));
+    expect(
+      document.querySelector('[data-testid="executive-release-panel"]')?.dataset
+        ?.releaseReadiness,
+    ).toBe("blocked");
+    expect(
+      document.querySelector('[data-testid="release-readiness-output"]')
+        ?.textContent,
+    ).toContain("Release remains blocked");
+  });
+
+  // Line 1211: updateSecurityMetrics — el exists (BRDA:1211,177,1,0)
+  it("updateSecurityMetrics: elements exist → sets textContent (BRDA:1211)", () => {
+    fns.updateSecurityMetrics({
+      total: 100,
+      critical: 5,
+      high: 10,
+      secrets: 3,
+      risks: 20,
+      suppressed: 2,
+      open: 60,
+      accepted: 5,
+      resolved: 10,
+    });
+    expect(document.getElementById("security-total")?.textContent).toBe("100");
+    expect(document.getElementById("security-critical")?.textContent).toBe("5");
+    expect(document.getElementById("security-high")?.textContent).toBe("10");
+    expect(document.getElementById("security-secrets")?.textContent).toBe("3");
+  });
+
+  // Lines 1224, 1227: saveSecurityBaseline — output exists (BRDA:1224,1227)
+  it("saveSecurityBaseline: output exists + valid path (BRDA:1224-1227)", async () => {
+    globalThis.workspaceSecurity = {
+      summarize: vi.fn(),
+      saveBaseline: vi
+        .fn()
+        .mockResolvedValue({ ok: true, path: "/baseline.json" }),
+      compareBaseline: vi.fn(),
+      getDriftClassification: vi.fn(),
+      explainIntroduced: vi.fn(),
+      loadTriage: vi.fn(),
+      setTriage: vi.fn(),
+    };
+    document.getElementById("security-baseline-path").value = "/baseline.json";
+    document
+      .getElementById("security-save-baseline")
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() =>
+      expect(globalThis.workspaceSecurity.saveBaseline).toHaveBeenCalled(),
+    );
+    expect(
+      document.getElementById("security-overview-output")?.textContent,
+    ).toContain('"ok"');
+  });
+
+  // Lines 1255, 1273, 1282, 1289: compareSecurityBaseline — drift classification + elements
+  it("compareSecurityBaseline: drift classification + all drift elements (BRDA:1255,1273,1282,1289)", async () => {
+    globalThis.workspaceSecurity = {
+      summarize: vi.fn(),
+      saveBaseline: vi.fn(),
+      compareBaseline: vi.fn().mockResolvedValue({
+        counts: {
+          current: 100,
+          baseline: 90,
+          introduced: 15,
+          persistent: 10,
+          resolved: 5,
+        },
+        baselineLoaded: true,
+        introduced: [],
+        resolved: [],
+        persistent: [],
+      }),
+      getDriftClassification: vi.fn().mockResolvedValue({
+        ok: true,
+        classification: "minor-regression",
+      }),
+      explainIntroduced: vi.fn(),
+      loadTriage: vi.fn(),
+      setTriage: vi.fn(),
+    };
+    document.getElementById("security-overview-output").textContent =
+      JSON.stringify({
+        total: 1,
+      });
+    document.getElementById("security-drift-baseline-path").value =
+      "/baseline.json";
+    document
+      .getElementById("security-drift-compare-btn")
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() =>
+      expect(
+        document.getElementById("security-drift-current")?.textContent,
+      ).toBe("100"),
+    );
+    expect(
+      document.getElementById("driftClassificationLabel")?.textContent,
+    ).toBe("minor-regression");
+    expect(
+      document.getElementById("security-drift-introduced")?.textContent,
+    ).toBe("15");
+    expect(
+      document.getElementById("security-drift-resolved")?.textContent,
+    ).toBe("5");
+  });
+
+  // Lines 1307-1309: explainIntroducedFindings — output + body with items array
+  it("explainIntroducedFindings: output + body with items array (BRDA:1307-1309)", async () => {
+    globalThis.workspaceSecurity = {
+      summarize: vi.fn(),
+      saveBaseline: vi.fn(),
+      compareBaseline: vi.fn().mockResolvedValue({
+        counts: { current: 10 },
+        introduced: [{ severity: "high", title: "Test" }],
+        resolved: [],
+        persistent: [],
+      }),
+      getDriftClassification: vi.fn().mockResolvedValue({
+        ok: true,
+        classification: "ok",
+      }),
+      explainIntroduced: vi.fn().mockResolvedValue({
+        items: [
+          {
+            severity: "high",
+            title: "Test Finding",
+            file: "test.js",
+            explanation: "Test explanation",
+            recommendation: "Fix it",
+          },
+        ],
+      }),
+      loadTriage: vi.fn(),
+      setTriage: vi.fn(),
+    };
+    // First set up latestSecurityDriftResult by running compare
+    document.getElementById("security-overview-output").textContent =
+      JSON.stringify({
+        total: 1,
+      });
+    document.getElementById("security-drift-baseline-path").value =
+      "/baseline.json";
+    document
+      .getElementById("security-drift-compare-btn")
+      .dispatchEvent(new global.window.Event("click"));
+    await new Promise((r) => setTimeout(r, 40));
+    // Now trigger explain
+    document
+      .getElementById("security-ai-explain-btn")
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() =>
+      expect(globalThis.workspaceSecurity.explainIntroduced).toHaveBeenCalled(),
+    );
+    // Check that body has rows
+    const body = document.getElementById("security-ai-body");
+    expect(body?.children.length).toBeGreaterThan(0);
+  });
+
+  // Line 1330: explainIntroducedFindings — error catch with output
+  it("explainIntroducedFindings: error catch → output sets error text (BRDA:1330)", async () => {
+    globalThis.workspaceSecurity = {
+      summarize: vi.fn(),
+      saveBaseline: vi.fn(),
+      compareBaseline: vi.fn().mockResolvedValue({
+        counts: { current: 10 },
+        introduced: [],
+        resolved: [],
+        persistent: [],
+      }),
+      getDriftClassification: vi.fn().mockResolvedValue({
+        ok: true,
+        classification: "ok",
+      }),
+      explainIntroduced: vi
+        .fn()
+        .mockRejectedValue(new Error("AI explanation failed")),
+      loadTriage: vi.fn(),
+      setTriage: vi.fn(),
+    };
+    // First set up latestSecurityDriftResult
+    document.getElementById("security-overview-output").textContent =
+      JSON.stringify({
+        total: 1,
+      });
+    document.getElementById("security-drift-baseline-path").value =
+      "/baseline.json";
+    document
+      .getElementById("security-drift-compare-btn")
+      .dispatchEvent(new global.window.Event("click"));
+    await new Promise((r) => setTimeout(r, 40));
+    // Now trigger explain (should throw)
+    document
+      .getElementById("security-ai-explain-btn")
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() =>
+      expect(
+        document.getElementById("security-ai-output")?.textContent,
+      ).toContain("AI explanation failed"),
+    );
+  });
+
+  // Lines 1332, 1334, 1336, 1338: triage functions
+  it("loadSecurityTriage: output exists (BRDA:1332)", async () => {
+    globalThis.workspaceSecurity = {
+      summarize: vi.fn(),
+      saveBaseline: vi.fn(),
+      compareBaseline: vi.fn(),
+      getDriftClassification: vi.fn(),
+      explainIntroduced: vi.fn(),
+      loadTriage: vi.fn().mockResolvedValue({ ok: true, count: 5 }),
+      setTriage: vi.fn(),
+    };
+    document.getElementById("security-triage-path").value = "/triage.json";
+    document
+      .getElementById("security-load-triage")
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() =>
+      expect(
+        document.getElementById("security-overview-output")?.textContent,
+      ).toContain('"ok"'),
+    );
+  });
+
+  it("applySecurityTriage: missing fingerprint → early return (BRDA:1334)", async () => {
+    globalThis.workspaceSecurity = {
+      summarize: vi.fn(),
+      saveBaseline: vi.fn(),
+      compareBaseline: vi.fn(),
+      getDriftClassification: vi.fn(),
+      explainIntroduced: vi.fn(),
+      loadTriage: vi.fn(),
+      setTriage: vi.fn().mockResolvedValue({ ok: true }),
+    };
+    document.getElementById("security-triage-path").value = "/triage.json";
+    document.getElementById("security-triage-fingerprint").value = "";
+    document
+      .getElementById("security-set-triage")
+      .dispatchEvent(new global.window.Event("click"));
+    await new Promise((r) => setTimeout(r, 40));
+    expect(globalThis.workspaceSecurity.setTriage).not.toHaveBeenCalled();
+  });
+
+  it("applySecurityTriage: valid path + fingerprint → calls setTriage (BRDA:1336-1338)", async () => {
+    globalThis.workspaceSecurity = {
+      summarize: vi.fn(),
+      saveBaseline: vi.fn(),
+      compareBaseline: vi.fn(),
+      getDriftClassification: vi.fn(),
+      explainIntroduced: vi.fn(),
+      loadTriage: vi.fn(),
+      setTriage: vi.fn().mockResolvedValue({ ok: true, fingerprint: "fp1" }),
+    };
+    document.getElementById("security-triage-path").value = "/triage.json";
+    document.getElementById("security-triage-fingerprint").value = "fp1";
+    const triageStatusEl = document.getElementById("security-triage-status");
+    const acceptedOpt = document.createElement("option");
+    acceptedOpt.value = "accepted";
+    triageStatusEl.appendChild(acceptedOpt);
+    triageStatusEl.value = "accepted";
+    document.getElementById("security-triage-reason").value = "False positive";
+    document
+      .getElementById("security-set-triage")
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() =>
+      expect(
+        document.getElementById("security-overview-output")?.textContent,
+      ).toContain('"ok"'),
+    );
+    expect(globalThis.workspaceSecurity.setTriage).toHaveBeenCalledWith(
+      "/triage.json",
+      "fp1",
+      "accepted",
+      "False positive",
+      "dashboard",
+    );
+  });
+
+  // Lines 1374: runSecretsScan — body exists → appends rows (BRDA:1374)
+  it("runSecretsScan: body exists → appends rows (BRDA:1374)", async () => {
+    globalThis.secrets = {
+      scan: vi.fn().mockResolvedValue({
+        summary: {
+          findings: 2,
+          unsuppressed: 1,
+          suppressed: 1,
+          baselineMatched: 0,
+        },
+        findings: [
+          {
+            severity: "high",
+            ruleId: "SLI001",
+            file: "test.js",
+            startLine: 10,
+            secretPreview: "sk-...",
+            baselineMatched: false,
+            suppressed: false,
+          },
+          {
+            severity: "low",
+            ruleId: "AWSC001",
+            file: "config.js",
+            startLine: 5,
+            secretPreview: null,
+            baselineMatched: true,
+            suppressed: true,
+            suppressionReason: "known",
+          },
+        ],
+      }),
+    };
+    document.getElementById("secrets-repo-path").value = "/repo";
+    document
+      .getElementById("secrets-scan-btn")
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() => {
+      const body = document.getElementById("secrets-findings-body");
+      expect(body?.children.length).toBe(2);
+    });
+  });
+
+  // Lines 1383, 1391: runKnowledgeSearch — body exists → appends rows (BRDA:1383,1391)
+  it("runKnowledgeSearch: body exists → appends rows (BRDA:1383-1391)", async () => {
+    globalThis.workspaceKnowledge = {
+      search: vi.fn().mockResolvedValue([
+        {
+          score: 0.95,
+          sprint: "S1",
+          feature_area: "auth",
+          section: "setup",
+          path: "docs/sprint1.md",
+        },
+        {
+          score: 0.82,
+          sprint: "S2",
+          feature_area: "ui",
+          section: "dashboard",
+          path: "docs/sprint2.md",
+        },
+      ]),
+      ingest: vi.fn(),
+    };
+    document.getElementById("knowledge-query").value = "authentication";
+    document
+      .getElementById("knowledge-search-btn")
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() => {
+      const body = document.getElementById("knowledge-results-body");
+      expect(body?.children.length).toBe(2);
+    });
+  });
+
+  // Lines 1394-1398: risks-scan-deps success path (BRDA:1394-1398)
+  it("risks-scan-deps: valid path → full success path (BRDA:1394-1398)", async () => {
+    globalThis.workspaceRisks = {
+      scanDependency: vi.fn().mockResolvedValue({
+        result: {
+          findings: [
+            {
+              severity: "high",
+              scanner: "npm-audit",
+              package: "express@4.0.0",
+              ruleId: "CVE-2023-1234",
+              title: "XSS vulnerability",
+            },
+          ],
+        },
+      }),
+    };
+    document.getElementById("risks-scan-path").value = "/repo";
+    document
+      .getElementById("risks-scan-deps")
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() =>
+      expect(document.getElementById("risks-total")?.textContent).toBe("1"),
+    );
+    expect(document.getElementById("risks-output")?.textContent).toContain(
+      '"severity"',
+    );
+  });
+
+  // Line 1423: risks-scan-image empty target (BRDA:1423)
+  it("risks-scan-image: empty target → error message (BRDA:1423)", async () => {
+    globalThis.workspaceRisks = {
+      scanImage: vi.fn(),
+    };
+    document.getElementById("risks-scan-path").value = "";
+    document
+      .getElementById("risks-scan-image")
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() =>
+      expect(document.getElementById("risks-output")?.textContent).toContain(
+        "Enter an image ref",
+      ),
+    );
+    expect(globalThis.workspaceRisks.scanImage).not.toHaveBeenCalled();
+  });
+
+  // Lines 1481, 1511, 1605, 1631, 1649: quota notification output
+  // workspaceQuotaNotificationsOutput is a module-level variable captured at import time.
+  // buildDOM() creates the element with id="workspace-quota-notifications-output",
+  // so the variable should be non-null after module import.
+
+  it("load-workspace-quota-notifications: workspaceQuotaNotificationsOutput exists (BRDA:1481)", async () => {
+    globalThis.workspaceQuota = {
+      get: vi.fn(),
+      set: vi.fn(),
+      recordUsage: vi.fn(),
+      evaluate: vi.fn(),
+      rollup: vi.fn(),
+      latestNotification: vi.fn(),
+      notifications: vi
+        .fn()
+        .mockResolvedValue([
+          { id: "n1", type: "warning", message: "Approaching limit" },
+        ]),
+      resetDaily: vi.fn(),
+      clearUsage: vi.fn(),
+    };
+    document.getElementById("workspace-id").value = "ws-1";
+    document
+      .getElementById("load-workspace-quota-notifications")
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() =>
+      expect(
+        document.getElementById("workspace-quota-notifications-output")
+          ?.textContent,
+      ).toContain("Approaching limit"),
+    );
+  });
+
+  it("load-workspace-quota-latest-notification: workspaceQuotaNotificationsOutput exists (BRDA:1511)", async () => {
+    globalThis.workspaceQuota = {
+      get: vi.fn(),
+      set: vi.fn(),
+      recordUsage: vi.fn(),
+      evaluate: vi.fn(),
+      rollup: vi.fn(),
+      latestNotification: vi.fn().mockResolvedValue({
+        id: "n1",
+        type: "info",
+        message: "Latest notification",
+      }),
+      notifications: vi.fn(),
+      resetDaily: vi.fn(),
+      clearUsage: vi.fn(),
+    };
+    document.getElementById("workspace-id").value = "ws-1";
+    document
+      .getElementById("load-workspace-quota-latest-notification")
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() =>
+      expect(
+        document.getElementById("workspace-quota-notifications-output")
+          ?.textContent,
+      ).toContain("Latest notification"),
+    );
+  });
+
+  it("reset-workspace-quota-daily: workspaceQuotaNotificationsOutput exists (BRDA:1605)", async () => {
+    globalThis.workspaceQuota = {
+      get: vi.fn(),
+      set: vi.fn(),
+      recordUsage: vi.fn(),
+      evaluate: vi.fn(),
+      rollup: vi.fn(),
+      latestNotification: vi.fn(),
+      notifications: vi.fn(),
+      resetDaily: vi
+        .fn()
+        .mockResolvedValue({ ok: true, resetAt: "2026-07-16" }),
+      clearUsage: vi.fn(),
+    };
+    document
+      .getElementById("reset-workspace-quota-daily")
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() =>
+      expect(
+        document.getElementById("workspace-quota-notifications-output")
+          ?.textContent,
+      ).toContain('"ok"'),
+    );
+  });
+
+  it("clear-workspace-quota-usage: workspaceQuotaOutput exists (BRDA:1631)", async () => {
+    globalThis.workspaceQuota = {
+      get: vi.fn(),
+      set: vi.fn(),
+      recordUsage: vi.fn(),
+      evaluate: vi.fn(),
+      rollup: vi.fn(),
+      latestNotification: vi.fn(),
+      notifications: vi.fn(),
+      resetDaily: vi.fn(),
+      clearUsage: vi
+        .fn()
+        .mockResolvedValue({ ok: true, clearedAt: "2026-07-16" }),
+    };
+    document.getElementById("quota-workspace-id").value = "ws-1";
+    document
+      .getElementById("clear-workspace-quota-usage")
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() =>
+      expect(
+        document.getElementById("workspace-quota-output")?.textContent,
+      ).toContain('"ok"'),
+    );
+  });
+
+  // Lines 1605, 1631: res?.result?.findings ?? [] — the ?? [] fallback
+  // Trigger when result object exists but has no "findings" property
+  it("risks-scan-deps: findings ?? [] fallback when result has no findings property (BRDA:1605)", async () => {
+    globalThis.workspaceRisks = {
+      scanDependency: vi.fn().mockResolvedValue({
+        result: { scanned: true }, // No "findings" property → triggers ?? []
+      }),
+    };
+    document.getElementById("risks-scan-path").value = "/repo";
+    document.getElementById("risks-filter-severity").value = "";
+    document
+      .getElementById("risks-scan-deps")
+      .dispatchEvent(new global.window.Event("click"));
+    // When findings is empty, risks-total should be 0
+    await vi.waitFor(() =>
+      expect(document.getElementById("risks-total").textContent).toBe("0"),
+    );
+  });
+
+  it("risks-scan-image: findings ?? [] fallback when result has no findings property (BRDA:1631)", async () => {
+    globalThis.workspaceRisks = {
+      scanImage: vi.fn().mockResolvedValue({
+        result: { scanned: true }, // No "findings" property → triggers ?? []
+      }),
+    };
+    document.getElementById("risks-scan-path").value = "nginx:latest";
+    document.getElementById("risks-filter-severity").value = "";
+    document
+      .getElementById("risks-scan-image")
+      .dispatchEvent(new global.window.Event("click"));
+    // When findings is empty, risks-total should be 0
+    await vi.waitFor(() =>
+      expect(document.getElementById("risks-total").textContent).toBe("0"),
+    );
+  });
+
+  // Line 1649: if (workspaceQuotaNotificationsOutput) — true branch
+  // workspaceQuotaNotificationsOutput is captured at module import time via getElementById.
+  // buildDOM() creates the element, so the variable should be non-null.
+  // This test explicitly triggers the reset-daily handler to hit the true branch.
+  it("reset-workspace-quota-daily: workspaceQuotaNotificationsOutput truthy branch (BRDA:1649)", async () => {
+    globalThis.workspaceQuota = {
+      get: vi.fn(),
+      set: vi.fn(),
+      recordUsage: vi.fn(),
+      evaluate: vi.fn(),
+      rollup: vi.fn(),
+      latestNotification: vi.fn(),
+      notifications: vi.fn(),
+      resetDaily: vi
+        .fn()
+        .mockResolvedValue({ ok: true, resetAt: "2026-07-16" }),
+      clearUsage: vi.fn(),
+    };
+    // Verify the element exists (buildDOM creates it)
+    expect(
+      document.getElementById("workspace-quota-notifications-output"),
+    ).toBeTruthy();
+    document
+      .getElementById("reset-workspace-quota-daily")
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() =>
+      expect(
+        document.getElementById("workspace-quota-notifications-output")
+          ?.textContent,
+      ).toContain('"ok"'),
     );
   });
 });

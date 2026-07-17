@@ -107,9 +107,7 @@ describe("Sprint 66 remediation guard: TypeScript fixes", () => {
   it("ingest-sprint-history.js converted to top-level await per async/await best practice", () => {
     const js = read(ingestPath);
     // Verify top-level await/try/catch pattern
-    const match = js.match(
-      /try\s*\{\s*await main\(\);/,
-    );
+    const match = js.match(/try\s*\{\s*await main\(\);/);
     expect(match).not.toBeNull();
   });
 

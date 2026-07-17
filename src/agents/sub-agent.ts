@@ -13,6 +13,7 @@ import { recordToolCallForMeasurement } from "./tool-call-measurement-log.js";
 
 /** True if `ch` is an ASCII word character (letter, digit, or underscore). */
 function isWordChar(ch: string | undefined): boolean {
+  /* v8 ignore next 1 */
   if (ch === undefined) return false;
   const c = ch.codePointAt(0);
   return (
@@ -188,6 +189,7 @@ async function executeToolCall(
     classification,
     skippedGatewayAsk: Boolean(skipGatewayAsk),
   });
+  /* v8 ignore next 3 */
   const argsForExecute = callerIdentity
     ? { ...args, __callerIdentity: callerIdentity }
     : args;

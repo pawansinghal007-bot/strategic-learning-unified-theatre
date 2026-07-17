@@ -1,15 +1,7 @@
 import { existsSync, readFileSync } from "fs";
-import { loadDashboardSurface } from './dashboard-loader.js';
+import { loadDashboardSurface } from "./dashboard-loader.js";
 import { join } from "path";
-import { describe, it, expect, vi } from "vitest";
-
-vi.mock("@xenova/transformers", () => ({
-  pipeline: vi.fn().mockResolvedValue(
-    vi.fn().mockResolvedValue({
-      data: new Float32Array(1024).fill(0.1),
-    }),
-  ),
-}));
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 
 describe("Sprint 42 smoke tests — schema and chunking", () => {
   it("KnowledgeDocument interface file exists", () => {
@@ -57,18 +49,34 @@ describe("Sprint 42 smoke tests — schema and chunking", () => {
 });
 
 describe("Sprint 42 smoke tests — embedder", () => {
-  it(
-    "embedTextBatch returns array of vectors",
-    async () => {
-      const { embedTextBatch } =
-        await import("../src/knowledge/ingest/embedder.js");
-      const vectors = await embedTextBatch(["hello world", "test text"]);
-      expect(vectors).toHaveLength(2);
-      expect(vectors[0]).toHaveLength(2560);
-      expect(typeof vectors[0][0]).toBe("number");
-    },
-    120000, // 2 min timeout for qwen3-emb-4b cold start + inference
-  );
+  beforeEach(() => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: vi.fn().mockResolvedValue({
+          data: [
+            { embedding: new Array(2560).fill(0.1) },
+            { embedding: new Array(2560).fill(0.1) },
+          ],
+        }),
+      }),
+    );
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("embedTextBatch returns array of vectors", async () => {
+    vi.resetModules();
+    const { embedTextBatch } =
+      await import("../src/knowledge/ingest/embedder.js");
+    const vectors = await embedTextBatch(["hello world", "test text"]);
+    expect(vectors).toHaveLength(2);
+    expect(vectors[0]).toHaveLength(2560);
+    expect(typeof vectors[0][0]).toBe("number");
+  });
 });
 
 describe("Sprint 42 smoke tests — file surface", () => {

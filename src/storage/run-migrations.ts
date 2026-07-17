@@ -63,6 +63,7 @@ export async function runMigrations(databaseUrl: string): Promise<void> {
 }
 
 // Allow running directly: npx tsx src/storage/run-migrations.ts
+/* v8 ignore next 12 — CLI entry block; unreachable when imported by test runner */
 if (import.meta.url === `file://${process.argv[1]}`) {
   const url = process.env.DATABASE_URL;
   if (!url) {

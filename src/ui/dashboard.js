@@ -347,6 +347,278 @@ function refreshReleaseTruth() {
   setReleaseState("Prepared", evidence);
 }
 
+let latestSecurityDriftResult = null;
+
+/** Resets module-level state. Call from tests between runs to avoid cross-test leakage. */
+export function resetDashboardState() {
+  latestSecurityDriftResult = null;
+}
+
+// Helper to attach click handler if button exists, reducing IIFE complexity
+function attachIfExists(selector, handler) {
+  const btn = document.querySelector(selector);
+  if (btn) {
+    btn.addEventListener("click", handler);
+  }
+}
+
+function updateSecurityMetrics(snapshot) {
+  const ids = [
+    ["security-total", "total"],
+    ["security-critical", "critical"],
+    ["security-high", "high"],
+    ["security-secrets", "secrets"],
+    ["security-risks", "risks"],
+    ["security-suppressed", "suppressed"],
+    ["security-open", "open"],
+    ["security-accepted", "accepted"],
+    ["security-resolved", "resolved"],
+  ];
+  for (const [id, key] of ids) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = String(snapshot?.[key] ?? 0);
+  }
+}
+
+function severityOrder(s) {
+  switch ((s || "").toLowerCase()) {
+    case "critical":
+      return 5;
+    case "high":
+      return 4;
+    case "medium":
+      return 3;
+    case "low":
+      return 2;
+    case "info":
+      return 1;
+    default:
+      return 0;
+  }
+}
+
+function setReleaseState(label, detail) {
+  const t = normalizeStateToken(label, "idle");
+  const releaseOutput = document.querySelector(
+    '[data-testid="release-output"]',
+  );
+  const releasePanel = document.querySelector(
+    '[data-testid="executive-release-panel"]',
+  );
+  const releaseValue = document.querySelector(
+    '[data-testid="release-export-value"]',
+  );
+  if (releaseOutput) {
+    releaseOutput.textContent = detail || "Release truth idle.";
+    releaseOutput.dataset.releaseOutput = normalizeStateToken(label, "idle");
+  }
+  if (releasePanel) {
+    releasePanel.dataset.releaseTruth = t;
+  }
+  if (releaseValue && /export/i.test(String(label || ""))) {
+    releaseValue.textContent = label;
+  }
+}
+
+function getFilter() {
+  const filter = {};
+  const provider = document.getElementById("filter-provider")?.value.trim();
+  const start = document.getElementById("filter-start")?.value;
+  const end = document.getElementById("filter-end")?.value;
+
+  if (provider) filter.provider = provider;
+  if (start) {
+    const ts = new Date(start).getTime();
+    if (!Number.isNaN(ts)) filter.startTime = ts;
+  }
+  if (end) {
+    const ts = new Date(end).getTime();
+    if (!Number.isNaN(ts)) filter.endTime = ts;
+  }
+
+  return Object.keys(filter).length > 0 ? filter : undefined;
+}
+
+// ─── Module-scope utility functions (exported for unit tests) ────────────────
+// These use document.getElementById() directly so they work at module scope.
+
+function clearQuotaStatus() {
+  const workspaceQuotaStatus = document.getElementById("workspace-quota-status");
+  const workspaceQuotaAlert = document.getElementById("workspace-quota-alert");
+  if (workspaceQuotaStatus) {
+    workspaceQuotaStatus.textContent = "Status: —";
+  }
+  if (workspaceQuotaAlert) {
+    workspaceQuotaAlert.style.display = "none";
+  }
+}
+
+function renderQuotaResult(result) {
+  const workspaceQuotaOutput = document.getElementById("workspace-quota-output");
+  if (workspaceQuotaOutput) {
+    workspaceQuotaOutput.textContent = JSON.stringify(result, null, 2);
+  }
+}
+
+function updateQuotaAlert(exceeded) {
+  const workspaceQuotaAlert = document.getElementById("workspace-quota-alert");
+  if (!workspaceQuotaAlert) return;
+  workspaceQuotaAlert.style.display = exceeded ? "block" : "none";
+}
+
+function updateQuotaStatus(message, exceeded = false) {
+  const workspaceQuotaStatus = document.getElementById("workspace-quota-status");
+  if (workspaceQuotaStatus) {
+    workspaceQuotaStatus.textContent = `Status: ${message}`;
+  }
+  updateQuotaAlert(exceeded);
+}
+
+function renderQuotaState(result, message) {
+  const workspaceQuotaStatus = document.getElementById("workspace-quota-status");
+  const workspaceQuotaAlert = document.getElementById("workspace-quota-alert");
+  if (!workspaceQuotaStatus || !workspaceQuotaAlert) return;
+  if (result.thresholdReached && !result.exceeded) {
+    workspaceQuotaStatus.textContent =
+      "Status: workspace quota threshold reached";
+    workspaceQuotaAlert.textContent = "workspace quota threshold reached";
+    workspaceQuotaAlert.style.display = "block";
+    return;
+  }
+  workspaceQuotaStatus.textContent = `Status: ${message}`;
+  workspaceQuotaAlert.textContent = "workspace quota exceeded";
+  workspaceQuotaAlert.style.display = result.exceeded ? "block" : "none";
+}
+
+function renderLiveNotification(payload) {
+  const liveAlert = document.getElementById("workspace-quota-live-alert");
+  const output = document.getElementById(
+    "workspace-quota-notifications-output",
+  );
+
+  if (liveAlert) {
+    if (payload) {
+      const label = `${payload.type.toUpperCase()} :: ${payload.workspaceId} :: ${new Date(payload.timestamp).toLocaleString()}`;
+      liveAlert.textContent = `Live notification: ${label}`;
+    } else {
+      liveAlert.textContent = "Live notification: waiting for quota event.";
+    }
+  }
+
+  if (output) {
+    output.textContent = JSON.stringify(payload ?? null, null, 2);
+  }
+}
+
+function formatQuotaModeValue(value) {
+  return value || "alert";
+}
+
+function parseLimit(value) {
+  if (value === undefined || value === null || String(value).trim() === "") {
+    return null;
+  }
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function setQuotaForm(policy) {
+  if (!policy) return;
+  const quotaDailyLimit = document.getElementById("quota-daily-limit");
+  const quotaWeeklyLimit = document.getElementById("quota-weekly-limit");
+  const quotaMode = document.getElementById("quota-mode");
+  const quotaFallbackProvider = document.getElementById("quota-fallback-provider");
+  const quotaThresholdPct = document.getElementById("quota-threshold-pct");
+  if (quotaDailyLimit) {
+    quotaDailyLimit.value = policy.dailyLimit ?? "";
+  }
+  if (quotaWeeklyLimit) {
+    quotaWeeklyLimit.value = policy.weeklyLimit ?? "";
+  }
+  if (quotaMode) {
+    quotaMode.value = policy.mode;
+  }
+  if (quotaFallbackProvider) {
+    quotaFallbackProvider.value = policy.fallbackProvider ?? "";
+  }
+  if (quotaThresholdPct) {
+    quotaThresholdPct.value = policy.alertThresholdPct ?? "";
+  }
+}
+
+function setMetrics(summary) {
+  document.getElementById("metric-total").textContent = String(
+    summary?.total ?? 0,
+  );
+  document.getElementById("metric-success-rate").textContent =
+    `${summary?.successRate ?? 0}%`;
+  document.getElementById("metric-error-rate").textContent =
+    `${summary?.errorRate ?? 0}%`;
+  document.getElementById("metric-latency").textContent =
+    `${summary?.avgLatencyMs ?? 0}ms`;
+  document.getElementById("metric-latest").textContent =
+    summary?.latest?.provider ?? "—";
+}
+
+function renderTrends(trends) {
+  const trendsBody = document.getElementById("trends-table-body");
+  if (!trendsBody) return;
+  trendsBody.innerHTML = "";
+  for (const item of trends || []) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+                <td>${item.provider}</td><td>${item.count}</td>
+                <td>${item.successCount}</td><td>${item.failureCount}</td>
+                <td>${item.avgLatencyMs}ms</td>`;
+    trendsBody.appendChild(tr);
+  }
+}
+
+function renderTimeline(timeline) {
+  const timelineOutput = document.getElementById("timeline-output");
+  if (!timelineOutput) return;
+  timelineOutput.innerHTML = "";
+  for (const item of timeline || []) {
+    const div = document.createElement("div");
+    div.className = `timeline-item ${item.severity}`;
+    div.innerHTML = `
+                <strong>${item.title}</strong>
+                <div class="small">${new Date(item.timestamp).toLocaleString()}</div>
+                <div>${item.detail}</div>`;
+    timelineOutput.appendChild(div);
+  }
+}
+
+function setAuditVerificationState(result) {
+  if (!result || typeof result.ok !== "boolean") return;
+  const badge = document.getElementById("audit-verification-badge");
+  const alert = document.getElementById("audit-verification-alert");
+  if (!badge || !alert) return;
+
+  if (result.ok) {
+    badge.textContent = "verified";
+    badge.className = "badge-ok";
+    alert.style.display = "none";
+  } else {
+    badge.textContent = "failed";
+    badge.className = "badge-fail";
+    alert.style.display = "block";
+  }
+}
+
+async function verifyAuditIntegrity() {
+  const id = document.getElementById("workspace-id")?.value?.trim();
+  const res = await globalThis.audit.verify(
+    id ? { workspaceId: id } : undefined,
+  );
+  const auditVerifyOutput = document.getElementById("audit-verify-output");
+  if (auditVerifyOutput) auditVerifyOutput.textContent = JSON.stringify(res, null, 2);
+  setAuditVerificationState(res);
+}
+
+// ─── initDashboard — wires up all event listeners ────────────────────────────
+
+export function initDashboard() {
 const workspaceIdInput = document.getElementById("workspace-id");
 const policyOutput = document.getElementById("policy-output");
 const contextSummary = document.getElementById("context-summary");
@@ -397,106 +669,13 @@ const knowledgeOutput = document.getElementById("knowledge-output");
 const securityOverviewOutput = document.getElementById(
   "security-overview-output",
 );
-let latestSecurityDriftResult = null;
 
 function wsId() {
   return workspaceIdInput.value.trim();
 }
 
-function getFilter() {
-  const filter = {};
-  const provider = filterProvider.value.trim();
-  const start = filterStart.value;
-  const end = filterEnd.value;
-
-  if (provider) filter.provider = provider;
-  if (start) {
-    const ts = new Date(start).getTime();
-    if (!Number.isNaN(ts)) filter.startTime = ts;
-  }
-  if (end) {
-    const ts = new Date(end).getTime();
-    if (!Number.isNaN(ts)) filter.endTime = ts;
-  }
-
-  return Object.keys(filter).length > 0 ? filter : undefined;
-}
-
 function quotaWsId() {
   return quotaWorkspaceId?.value.trim() || "";
-}
-
-function clearQuotaStatus() {
-  if (workspaceQuotaStatus) {
-    workspaceQuotaStatus.textContent = "Status: —";
-  }
-  if (workspaceQuotaAlert) {
-    workspaceQuotaAlert.style.display = "none";
-  }
-}
-
-function renderQuotaResult(result) {
-  if (workspaceQuotaOutput) {
-    workspaceQuotaOutput.textContent = JSON.stringify(result, null, 2);
-  }
-}
-
-function updateQuotaAlert(exceeded) {
-  if (!workspaceQuotaAlert) return;
-  workspaceQuotaAlert.style.display = exceeded ? "block" : "none";
-}
-
-function updateQuotaStatus(message, exceeded = false) {
-  if (workspaceQuotaStatus) {
-    workspaceQuotaStatus.textContent = `Status: ${message}`;
-  }
-  updateQuotaAlert(exceeded);
-}
-
-function renderQuotaState(result, message) {
-  if (!workspaceQuotaStatus || !workspaceQuotaAlert) return;
-  if (result.thresholdReached && !result.exceeded) {
-    workspaceQuotaStatus.textContent =
-      "Status: workspace quota threshold reached";
-    workspaceQuotaAlert.textContent = "workspace quota threshold reached";
-    workspaceQuotaAlert.style.display = "block";
-    return;
-  }
-  workspaceQuotaStatus.textContent = `Status: ${message}`;
-  workspaceQuotaAlert.textContent = "workspace quota exceeded";
-  workspaceQuotaAlert.style.display = result.exceeded ? "block" : "none";
-}
-
-function renderLiveNotification(payload) {
-  const liveAlert = document.getElementById("workspace-quota-live-alert");
-  const output = document.getElementById(
-    "workspace-quota-notifications-output",
-  );
-
-  if (liveAlert) {
-    if (payload) {
-      const label = `${payload.type.toUpperCase()} :: ${payload.workspaceId} :: ${new Date(payload.timestamp).toLocaleString()}`;
-      liveAlert.textContent = `Live notification: ${label}`;
-    } else {
-      liveAlert.textContent = "Live notification: waiting for quota event.";
-    }
-  }
-
-  if (output) {
-    output.textContent = JSON.stringify(payload ?? null, null, 2);
-  }
-}
-
-function formatQuotaModeValue(value) {
-  return value || "alert";
-}
-
-function parseLimit(value) {
-  if (value === undefined || value === null || String(value).trim() === "") {
-    return null;
-  }
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : null;
 }
 
 function getQuotaPayload() {
@@ -509,88 +688,6 @@ function getQuotaPayload() {
   };
 }
 
-function setQuotaForm(policy) {
-  if (!policy) return;
-  if (quotaDailyLimit) {
-    quotaDailyLimit.value = policy.dailyLimit ?? "";
-  }
-  if (quotaWeeklyLimit) {
-    quotaWeeklyLimit.value = policy.weeklyLimit ?? "";
-  }
-  if (quotaMode) {
-    quotaMode.value = policy.mode;
-  }
-  if (quotaFallbackProvider) {
-    quotaFallbackProvider.value = policy.fallbackProvider ?? "";
-  }
-  if (quotaThresholdPct) {
-    quotaThresholdPct.value = policy.alertThresholdPct ?? "";
-  }
-}
-
-function setMetrics(summary) {
-  document.getElementById("metric-total").textContent = String(
-    summary?.total ?? 0,
-  );
-  document.getElementById("metric-success-rate").textContent =
-    `${summary?.successRate ?? 0}%`;
-  document.getElementById("metric-error-rate").textContent =
-    `${summary?.errorRate ?? 0}%`;
-  document.getElementById("metric-latency").textContent =
-    `${summary?.avgLatencyMs ?? 0}ms`;
-  document.getElementById("metric-latest").textContent =
-    summary?.latest?.provider ?? "—";
-}
-
-function renderTrends(trends) {
-  trendsBody.innerHTML = "";
-  for (const item of trends || []) {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-                <td>${item.provider}</td><td>${item.count}</td>
-                <td>${item.successCount}</td><td>${item.failureCount}</td>
-                <td>${item.avgLatencyMs}ms</td>`;
-    trendsBody.appendChild(tr);
-  }
-}
-
-function renderTimeline(timeline) {
-  timelineOutput.innerHTML = "";
-  for (const item of timeline || []) {
-    const div = document.createElement("div");
-    div.className = `timeline-item ${item.severity}`;
-    div.innerHTML = `
-                <strong>${item.title}</strong>
-                <div class="small">${new Date(item.timestamp).toLocaleString()}</div>
-                <div>${item.detail}</div>`;
-    timelineOutput.appendChild(div);
-  }
-}
-
-function setAuditVerificationState(result) {
-  if (!result || typeof result.ok !== "boolean") return;
-  const badge = document.getElementById("audit-verification-badge");
-  const alert = document.getElementById("audit-verification-alert");
-  if (!badge || !alert) return;
-
-  if (result.ok) {
-    badge.textContent = "verified";
-    badge.className = "badge-ok";
-    alert.style.display = "none";
-  } else {
-    badge.textContent = "failed";
-    badge.className = "badge-fail";
-    alert.style.display = "block";
-  }
-}
-
-async function verifyAuditIntegrity() {
-  const res = await globalThis.audit.verify(
-    wsId() ? { workspaceId: wsId() } : undefined,
-  );
-  auditVerifyOutput.textContent = JSON.stringify(res, null, 2);
-  setAuditVerificationState(res);
-}
 
 async function loadUnifiedView() {
   const id = wsId();
@@ -749,14 +846,6 @@ document.getElementById("save-html").addEventListener("click", async () => {
   const result = await globalThis.workspaceReport.save(id, "html", getFilter());
   reportOut.textContent = JSON.stringify(result, null, 2);
 });
-
-// Helper to attach click handler if button exists, reducing IIFE complexity
-function attachIfExists(selector, handler) {
-  const btn = document.querySelector(selector);
-  if (btn) {
-    btn.addEventListener("click", handler);
-  }
-}
 
 (function () {
   const govVal = document.querySelector(
@@ -1229,24 +1318,6 @@ document
     }
   });
 
-function updateSecurityMetrics(snapshot) {
-  const ids = [
-    ["security-total", "total"],
-    ["security-critical", "critical"],
-    ["security-high", "high"],
-    ["security-secrets", "secrets"],
-    ["security-risks", "risks"],
-    ["security-suppressed", "suppressed"],
-    ["security-open", "open"],
-    ["security-accepted", "accepted"],
-    ["security-resolved", "resolved"],
-  ];
-  for (const [id, key] of ids) {
-    const el = document.getElementById(id);
-    if (el) el.textContent = String(snapshot?.[key] ?? 0);
-  }
-}
-
 async function loadSecurityOverview() {
   const payload = {
     secrets: [],
@@ -1481,23 +1552,6 @@ async function runSecretsScan() {
                   <td>${row.suppressed ? row.suppressionReason || "yes" : "no"}</td>
                 `;
     if (body) body.appendChild(tr);
-  }
-}
-
-function severityOrder(s) {
-  switch ((s || "").toLowerCase()) {
-    case "critical":
-      return 5;
-    case "high":
-      return 4;
-    case "medium":
-      return 3;
-    case "low":
-      return 2;
-    case "info":
-      return 1;
-    default:
-      return 0;
   }
 }
 
@@ -1945,28 +1999,10 @@ document.getElementById("build-prompt").addEventListener("click", async () => {
 // data-review-surface="proof-summary"
 // data-review-surface="governance"
 // data-review-surface="timeline"
-function setReleaseState(label, detail) {
-  const t = normalizeStateToken(label, "idle");
-  const releaseOutput = document.querySelector(
-    '[data-testid="release-output"]',
-  );
-  const releasePanel = document.querySelector(
-    '[data-testid="executive-release-panel"]',
-  );
-  const releaseValue = document.querySelector(
-    '[data-testid="release-export-value"]',
-  );
-  if (releaseOutput) {
-    releaseOutput.textContent = detail || "Release truth idle.";
-    releaseOutput.dataset.releaseOutput = normalizeStateToken(label, "idle");
-  }
-  if (releasePanel) {
-    releasePanel.dataset.releaseTruth = t;
-  }
-  if (releaseValue && /export/i.test(String(label || ""))) {
-    releaseValue.textContent = label;
-  }
-}
+
+} // end initDashboard
+
+initDashboard();
 
 // ─── Exports for unit-test coverage ──────────────────────────────────────────
 export {

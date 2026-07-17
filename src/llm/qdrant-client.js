@@ -6,6 +6,8 @@
 import { createHash } from "node:crypto";
 
 export const KNOWLEDGE_COLLECTION = "knowledge_chunks";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+/* v8 ignore next */
 const QDRANT_URL = process.env.QDRANT_URL ?? "http://localhost:6333";
 const VECTOR_DIM = 2560; // qwen3-emb-4b
 

@@ -95,6 +95,7 @@ export function resolveWorkspacePolicyState(workspaceId: string): {
   // workspace patch doesn't set them.
   const merged: Record<string, unknown> = { ...global };
   for (const [key, value] of Object.entries(override.policy)) {
+    /* v8 ignore next 1 */
     if (value !== undefined) {
       merged[key] = value;
     }

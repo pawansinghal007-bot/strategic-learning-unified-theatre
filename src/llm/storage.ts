@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import * as nodeFs from "node:fs";
 import { dirname, join } from "node:path";
 import { homedir } from "node:os";
 import { logger } from "../shared/logging/logger";
@@ -10,7 +10,7 @@ function getAppDir() {
 }
 
 function ensureDir(path: string) {
-  mkdirSync(dirname(path), { recursive: true });
+  nodeFs.mkdirSync(dirname(path), { recursive: true });
 }
 
 export function getStoragePath(fileName: string) {
@@ -21,11 +21,11 @@ export function readJsonFile<T>(fileName: string, fallback: T): T {
   const filePath = getStoragePath(fileName);
 
   try {
-    if (!existsSync(filePath)) {
+    if (!nodeFs.existsSync(filePath)) {
       return fallback;
     }
 
-    const raw = readFileSync(filePath, "utf-8");
+    const raw = nodeFs.readFileSync(filePath, "utf-8");
     return JSON.parse(raw) as T;
   } catch (error) {
     logger.warn("storage.read.failed", {
@@ -41,7 +41,7 @@ export function writeJsonFile(fileName: string, value: unknown) {
 
   try {
     ensureDir(filePath);
-    writeFileSync(filePath, JSON.stringify(value, null, 2), "utf-8");
+    nodeFs.writeFileSync(filePath, JSON.stringify(value, null, 2), "utf-8");
   } catch (error) {
     logger.error("storage.write.failed", {
       fileName,

@@ -277,6 +277,105 @@ describe("runSubAgent", () => {
       __callerIdentity: "agent:test-agent#task-001",
     });
   });
+
+  it("handles malformed tool arg with trailing equals and no value", async () => {
+    const mockTool = {
+      name: "read-file",
+      description: "reads a file",
+      execute: vi.fn().mockResolvedValue({
+        toolName: "read-file",
+        success: true,
+        output: "ok",
+      }),
+    };
+    mockGetTool.mockReturnValue(mockTool);
+
+    // malformed= at the end has no value — should be silently skipped
+    // by the !valueResult branch (lines 119-120 of sub-agent.ts)
+    mockGatewayAsk
+      .mockReturnValueOnce(
+        makeResponse('[TOOL:read-file path="test.ts" malformed=]'),
+      )
+      .mockReturnValueOnce(makeResponse("[DONE]"));
+
+    await runSubAgent(makeTask({ maxIterations: 5 }));
+
+    // The malformed key with no value should not appear in the parsed args
+    expect(mockTool.execute).toHaveBeenCalledWith({
+      path: "test.ts",
+      __callerIdentity: "agent:test-agent#task-001",
+    });
+    // malformed should NOT be present
+    const callArgs = mockTool.execute.mock.calls[0][0];
+    expect("malformed" in callArgs).toBe(false);
+  });
+
+  it("handles unterminated quoted value (missing closing quote)", async () => {
+    const mockTool = {
+      name: "read-file",
+      description: "reads a file",
+      execute: vi.fn().mockResolvedValue({
+        toolName: "read-file",
+        success: true,
+        output: "ok",
+      }),
+    };
+    mockGetTool.mockReturnValue(mockTool);
+
+    // path="unclosed — no closing quote means scanQuotedValue returns null
+    // (exercises the closingQuote === -1 branch at line 63 of sub-agent.ts)
+    mockGatewayAsk
+      .mockReturnValueOnce(makeResponse('[TOOL:read-file path="unclosed]'))
+      .mockReturnValueOnce(makeResponse("[DONE]"));
+
+    await runSubAgent(makeTask({ maxIterations: 5 }));
+
+    // The unterminated quote means the path arg is not parsed,
+    // so the tool is called without a path argument
+    const callArgs = mockTool.execute.mock.calls[0][0];
+    expect("path" in callArgs).toBe(false);
+  });
+
+  it("handles [TOOL:] with empty tool name (no name after marker)", async () => {
+    // [TOOL: ] — space immediately after colon means name-scan sees whitespace first,
+    // so i === nameStart at line 151 returns null (no tool name)
+    mockGatewayAsk
+      .mockReturnValueOnce(makeResponse("[TOOL: ] something here"))
+      .mockReturnValueOnce(makeResponse("Recovery text. [DONE]"));
+
+    const result = await runSubAgent(makeTask({ maxIterations: 5 }));
+
+    expect(result.success).toBe(true);
+    expect(result.output).toBe("Recovery text.");
+  });
+
+  it("handles [TOOL:toolname] with no args separator (no space after name)", async () => {
+    // [TOOL:mytool — name at EOF with no trailing whitespace means wsStart === i,
+    // so the i === wsStart check at line 157 returns null (no \s+ after name)
+    mockGatewayAsk
+      .mockReturnValueOnce(makeResponse("[TOOL:mytool"))
+      .mockReturnValueOnce(makeResponse("Recovery text. [DONE]"));
+
+    const result = await runSubAgent(makeTask({ maxIterations: 5 }));
+
+    expect(result.success).toBe(true);
+    expect(result.output).toBe("Recovery text.");
+  });
+
+  it("handles [TOOL:toolname args with no closing bracket", async () => {
+    // [TOOL:read-file path="test.ts" — no closing ] → parseToolCallMarker returns null
+    // (exercises the closeBracket === -1 branch at line 160 of sub-agent.ts)
+    mockGatewayAsk
+      .mockReturnValueOnce(
+        makeResponse('[TOOL:read-file path="test.ts" no closing bracket'),
+      )
+      .mockReturnValueOnce(makeResponse("Recovery text. [DONE]"));
+
+    const result = await runSubAgent(makeTask({ maxIterations: 5 }));
+
+    expect(result.success).toBe(true);
+    expect(result.output).toBe("Recovery text.");
+  });
 });
 
 // ─── executeToolCall error-propagation (Step 1 fix) ──────────────────────────

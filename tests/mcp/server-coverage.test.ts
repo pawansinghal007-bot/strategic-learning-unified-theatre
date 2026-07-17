@@ -41,9 +41,10 @@ vi.mock("../../src/agents/orchestrator.ts", () => ({
 }));
 
 vi.mock("@modelcontextprotocol/sdk/server/mcp.js", async (importOriginal) => {
-  const original = await importOriginal<
-    typeof import("@modelcontextprotocol/sdk/server/mcp.js")
-  >();
+  const original =
+    await importOriginal<
+      typeof import("@modelcontextprotocol/sdk/server/mcp.js")
+    >();
   const OriginalMcpServer = original.McpServer;
   class PatchedMcpServer extends OriginalMcpServer {
     override connect(_transport: unknown): Promise<void> {
@@ -64,6 +65,15 @@ vi.mock("../../src/mcp/tool-handlers.ts", () => ({
   handleListTools: vi.fn().mockResolvedValue({
     content: [{ type: "text", text: "list-tools stub response" }],
   }),
+  handleVectorSearch: vi.fn().mockResolvedValue({
+    content: [{ type: "text", text: "vector-search stub response" }],
+  }),
+  handleSearchCode: vi.fn().mockResolvedValue({
+    content: [{ type: "text", text: "search-code stub response" }],
+  }),
+  handleRetrieve: vi.fn().mockResolvedValue({
+    content: [{ type: "text", text: "retrieve stub response" }],
+  }),
 }));
 
 // ---------------------------------------------------------------------------
@@ -76,6 +86,9 @@ import {
   handleAskLocal,
   handleCodeReview,
   handleListTools,
+  handleVectorSearch,
+  handleSearchCode,
+  handleRetrieve,
 } from "../../src/mcp/tool-handlers.ts";
 
 // ---------------------------------------------------------------------------
@@ -151,5 +164,66 @@ describe("MCP server startup — coverage of main() lines 67-68", () => {
     expect(logger.info).toHaveBeenCalledWith("mcp.server.started", {
       name: "unified-theatre-local-llm",
     });
+  });
+});
+
+describe("MCP server tool callbacks — vector-search, search-code, retrieve", () => {
+  it("vector-search callback: logs mcp.tool-call and delegates to handleVectorSearch", async () => {
+    const callback = getToolCallback("vector-search");
+
+    const args = { query: "semantic search test" };
+    const result = await callback(args);
+
+    expect(logger.info).toHaveBeenCalledWith("mcp.tool-call", {
+      tool: "vector-search",
+    });
+    expect(handleVectorSearch).toHaveBeenCalledWith(args);
+    expect(result.content[0].text).toBe("vector-search stub response");
+  });
+
+  it("search-code callback: logs mcp.tool-call and delegates to handleSearchCode", async () => {
+    const callback = getToolCallback("search-code");
+
+    const args = { pattern: "function.*test" };
+    const result = await callback(args);
+
+    expect(logger.info).toHaveBeenCalledWith("mcp.tool-call", {
+      tool: "search-code",
+    });
+    expect(handleSearchCode).toHaveBeenCalledWith(args);
+    expect(result.content[0].text).toBe("search-code stub response");
+  });
+
+  it("retrieve callback: logs mcp.tool-call and delegates to handleRetrieve with client name", async () => {
+    const callback = getToolCallback("retrieve");
+
+    // Mock getClientVersion to return a known client name (hits the "truthy" branch of ??)
+    (server.server as any).getClientVersion = vi.fn().mockReturnValue({
+      name: "test-client",
+    });
+
+    const args = { query: "retrieve test" };
+    const result = await callback(args);
+
+    expect(logger.info).toHaveBeenCalledWith("mcp.tool-call", {
+      tool: "retrieve",
+    });
+    expect(handleRetrieve).toHaveBeenCalledWith(args, "test-client");
+    expect(result.content[0].text).toBe("retrieve stub response");
+  });
+
+  it("retrieve callback: falls back to 'unknown-mcp-client' when getClientVersion returns undefined", async () => {
+    const callback = getToolCallback("retrieve");
+
+    // Mock getClientVersion to return undefined (hits the "falsy" branch of ??)
+    (server.server as any).getClientVersion = vi
+      .fn()
+      .mockReturnValue(undefined);
+
+    const args = { query: "retrieve test fallback" };
+    const result = await callback(args);
+
+    expect(handleRetrieve).toHaveBeenCalledWith(args, "unknown-mcp-client");
+    expect(result.content[0].text).toBe("retrieve stub response");
   });
 });

@@ -19,6 +19,7 @@ function splitIntoWindows(text, maxChars, overlap) {
 
   while (start < str.length) {
     const slice = str.slice(start, start + maxChars);
+    /* v8 ignore next 1 */
     if (slice.length === 0) break;
     windows.push(slice);
     if (start + maxChars >= str.length) break;

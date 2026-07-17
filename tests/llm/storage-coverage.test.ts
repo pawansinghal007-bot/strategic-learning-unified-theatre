@@ -28,8 +28,24 @@ vi.mock("../../src/shared/logging/logger.js", () => ({
   },
 }));
 
+// ---------------------------------------------------------------------------
+// Mock node:fs — pass-through to real fs by default, but allows per-test
+// overrides of specific exports (readFileSync, writeFileSync, etc.)
+// ---------------------------------------------------------------------------
+vi.mock("node:fs", async (importActual) => {
+  const actual = await importActual<typeof import("node:fs")>();
+  return {
+    ...actual,
+    readFileSync: vi.fn(actual.readFileSync.bind(actual)),
+    writeFileSync: vi.fn(actual.writeFileSync.bind(actual)),
+    existsSync: vi.fn(actual.existsSync.bind(actual)),
+    mkdirSync: vi.fn(actual.mkdirSync.bind(actual)),
+  };
+});
+
 import { readJsonFile, writeJsonFile, getStoragePath } from "../../src/llm/storage.js";
 import { logger } from "../../src/shared/logging/logger.js";
+import * as fsSync from "node:fs";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -198,6 +214,49 @@ describe("writeJsonFile — writeFileSync throws → logger.error (line 46)", ()
     const content = await fs.readFile(path.join(tempDir, "pretty.json"), "utf8");
     expect(content).toContain("  \"a\": 1");
     expect(JSON.parse(content)).toEqual({ a: 1, b: [1, 2] });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Branch-gap closure (Prompt 11) — BRDA:33,2,1 / BRDA:48,3,1
+// Cover the `error instanceof Error` false path (String(error) fallback)
+// in both readJsonFile and writeJsonFile catch blocks.
+// Strategy: override the already-mocked node:fs exports (from top-level vi.mock).
+// ---------------------------------------------------------------------------
+describe("readJsonFile — non-Error thrown triggers String(error) fallback (BRDA:33,2,1)", () => {
+  it("handles a string thrown by readFileSync via String(error) path", () => {
+    // Override the mocked existsSync to return true (file "exists")
+    vi.mocked(fsSync.existsSync).mockReturnValue(true);
+    // Override readFileSync to throw a non-Error string
+    vi.mocked(fsSync.readFileSync).mockImplementation(() => {
+      throw "raw string error";
+    });
+
+    const fallback = { ok: true };
+    const result = readJsonFile("trigger-string.json", fallback);
+
+    expect(result).toBe(fallback);
+    expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
+      "storage.read.failed",
+      expect.objectContaining({ error: "raw string error" }),
+    );
+  });
+});
+
+describe("writeJsonFile — non-Error thrown triggers String(error) fallback (BRDA:48,3,1)", () => {
+  it("handles a string thrown by writeFileSync via String(error) path", () => {
+    // Override mkdirSync to be a no-op
+    vi.mocked(fsSync.mkdirSync).mockImplementation(() => {});
+    // Override writeFileSync to throw a non-Error string
+    vi.mocked(fsSync.writeFileSync).mockImplementation(() => {
+      throw "write failed as string";
+    });
+
+    expect(() => writeJsonFile("fail.json", { data: 1 })).not.toThrow();
+    expect(vi.mocked(logger.error)).toHaveBeenCalledWith(
+      "storage.write.failed",
+      expect.objectContaining({ error: "write failed as string" }),
+    );
   });
 });
 

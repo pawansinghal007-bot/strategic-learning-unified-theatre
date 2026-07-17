@@ -33,6 +33,7 @@ async function fileExists(filePath) {
   }
 }
 
+// v8 ignore start
 function getWindowsOllamaCandidates() {
   const localAppData = process.env.LOCALAPPDATA;
   const programFiles = process.env.ProgramFiles;
@@ -48,12 +49,14 @@ function getWindowsOllamaCandidates() {
       : []),
   ];
 }
+// v8 ignore end
 
 async function findOllamaBinary() {
   const candidates = [
     ...(typeof OLLAMA_BIN_ENV === "string" && OLLAMA_BIN_ENV.trim()
       ? [OLLAMA_BIN_ENV.trim()]
       : []),
+    // v8 ignore next
     ...(process.platform === "win32" ? getWindowsOllamaCandidates() : []),
     "ollama",
     "ollama.exe",
@@ -212,10 +215,14 @@ async function runOllama({
   const modelArg = modelPath ?? DEFAULT_OLLAMA_MODEL;
 
   try {
-    const { stdout } = await getExecFileAsync()(binary, ["run", modelArg, prompt], {
-      timeout,
-      maxBuffer: 50 * 1024 * 1024,
-    });
+    const { stdout } = await getExecFileAsync()(
+      binary,
+      ["run", modelArg, prompt],
+      {
+        timeout,
+        maxBuffer: 50 * 1024 * 1024,
+      },
+    );
     return parseOllamaOutput(stdout);
   } catch (error) {
     throw new Error(

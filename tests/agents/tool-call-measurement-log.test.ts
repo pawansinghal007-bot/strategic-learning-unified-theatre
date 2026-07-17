@@ -21,7 +21,7 @@ vi.mock("../../src/llm/storage.js", () => ({
   readJsonFile: vi.fn((_file: string, defaultVal: any) =>
     storedData.entries.length > 0
       ? { entries: [...storedData.entries] }
-      : defaultVal
+      : defaultVal,
   ),
   writeJsonFile: vi.fn((_file: string, value: any) => {
     storedData = { entries: [...value.entries] };
@@ -59,7 +59,7 @@ afterEach(() => {
 // detectSource — line 14: explicit UNIFIED_AI_ENV override
 // ---------------------------------------------------------------------------
 describe("detectSource", () => {
-  it('returns the UNIFIED_AI_ENV value directly when the env-var is set (line 14)', () => {
+  it("returns the UNIFIED_AI_ENV value directly when the env-var is set (line 14)", () => {
     // Covers the `if (env) return env` branch (line 14).
     process.env.UNIFIED_AI_ENV = "dev";
     expect(detectSource()).toBe("dev");
@@ -90,6 +90,20 @@ describe("detectSource", () => {
       // Always restore VITEST so subsequent tests run correctly.
       if (savedVitest !== undefined) process.env.VITEST = savedVitest;
       delete process.env.CI;
+    }
+  });
+
+  it('returns "production" as final fallback when no env vars are set (line 17)', () => {
+    // Covers the final `return "production"` branch — requires UNIFIED_AI_ENV,
+    // CI, and VITEST to all be unset.
+    delete process.env.UNIFIED_AI_ENV;
+    delete process.env.CI;
+    const savedVitest = process.env.VITEST;
+    delete process.env.VITEST;
+    try {
+      expect(detectSource()).toBe("production");
+    } finally {
+      if (savedVitest !== undefined) process.env.VITEST = savedVitest;
     }
   });
 });

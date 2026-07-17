@@ -75,6 +75,16 @@ export default defineConfig({
         "src/mcp/types.ts",
         "src/agents/types.ts",
         "src/agents/tools/base.ts", // ToolResult + Tool interfaces only — zero executable statements
+        // Shadowed by .js runtime counterparts — TS files are never executed at runtime
+        "src/knowledge/ingest/chunking.ts",
+        "src/knowledge/ingest/embedder.ts",
+        "src/llm/qdrant-client.ts",
+        // Pure type definitions — no runtime code
+        "src/shared/contracts/provider.ts",
+        // Barrel re-export only — no executable statements
+        "src/shared/errors/index.ts",
+        // CLI entry with import.meta.url guard — blocks test execution
+        "src/storage/run-indexer.ts",
       ],
 
       thresholds: {

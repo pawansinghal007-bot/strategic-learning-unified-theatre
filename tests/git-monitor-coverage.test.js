@@ -4,7 +4,12 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { GitMonitor, __setExecFileAsync } from "../src/internal/git-monitor.js";
+import {
+  GitMonitor,
+  __setExecFileAsync,
+  parseStatusSummary,
+  parseLastCommitLine,
+} from "../src/internal/git-monitor.js";
 
 const execFileAsync = vi.fn();
 
@@ -222,5 +227,52 @@ describe("GitMonitor class", () => {
     expect(monitor.timer).toBeNull();
     expect(() => monitor.stop()).not.toThrow();
     expect(monitor.timer).toBeNull();
+  });
+
+  // ---- parseStatusSummary edge cases (branch coverage) ----
+
+  it("parseStatusSummary empty string hits lines[0] ?? '' fallback (BRDA:17,0,1,0)", () => {
+    const s = parseStatusSummary("");
+    expect(s.branch).toBe("");
+    expect(s.uncommitted).toBe(0);
+  });
+
+  it("parseStatusSummary '## ' hits parts[0] ?? '' fallback (BRDA:24,1,1,0)", () => {
+    const s = parseStatusSummary("## \n");
+    expect(s.branch).toBe("");
+    expect(s.uncommitted).toBe(0);
+  });
+
+  it("parseStatusSummary with '[' but no ']' hits indexOf -1 path (BRDA:28,3,1,0)", () => {
+    const s = parseStatusSummary("## main [no-closing-bracket\n M file.js\n");
+    expect(s.branch).toBe("main");
+    expect(s.ahead).toBe(0);
+    expect(s.behind).toBe(0);
+    expect(s.uncommitted).toBe(1);
+  });
+
+  it("parseStatusSummary non-## line hits branch ?? '' fallback (BRDA:42,7,1,0)", () => {
+    const s = parseStatusSummary("M file.js\n D other.ts\n");
+    expect(s.branch).toBe("");
+    expect(s.uncommitted).toBe(2);
+  });
+
+  // ---- parseLastCommitLine edge cases (branch coverage) ----
+
+  it("parseLastCommitLine(null) hits String(line ?? '') fallback (BRDA:50,9,1,0)", () => {
+    const r = parseLastCommitLine(null);
+    expect(r).toBeNull();
+  });
+
+  it("parseLastCommitLine short line hits parts.length < 3 (BRDA:51,10,1,0)", () => {
+    const r = parseLastCommitLine("only|two");
+    expect(r).toBeNull();
+  });
+
+  it("parseLastCommitLine invalid date hits Number.isFinite false path (BRDA:52,11,1,0)", () => {
+    const r = parseLastCommitLine("abc123|Fix thing|not-a-date");
+    expect(r.sha).toBe("abc123");
+    expect(r.msg).toBe("Fix thing");
+    expect(r.date).toBeNull();
   });
 });

@@ -25,20 +25,20 @@ import { writeFileSync } from "node:fs";
 
 // ─── mocks (must match idea.test.js patterns) ────────────────────────────────
 
-const createIdea     = vi.fn();
-const findIdeaById   = vi.fn();
-const listIdeas      = vi.fn();
-const markIdeaDone   = vi.fn();
+const createIdea = vi.fn();
+const findIdeaById = vi.fn();
+const listIdeas = vi.fn();
+const markIdeaDone = vi.fn();
 const linkIdeaToSprint = vi.fn();
-const exportIdeas    = vi.fn();
+const exportIdeas = vi.fn();
 
 vi.mock("../../src/idea-store.js", () => ({
-  createIdea:       (...a) => createIdea(...a),
-  findIdeaById:     (...a) => findIdeaById(...a),
-  listIdeas:        (...a) => listIdeas(...a),
-  markIdeaDone:     (...a) => markIdeaDone(...a),
+  createIdea: (...a) => createIdea(...a),
+  findIdeaById: (...a) => findIdeaById(...a),
+  listIdeas: (...a) => listIdeas(...a),
+  markIdeaDone: (...a) => markIdeaDone(...a),
   linkIdeaToSprint: (...a) => linkIdeaToSprint(...a),
-  exportIdeas:      (...a) => exportIdeas(...a),
+  exportIdeas: (...a) => exportIdeas(...a),
 }));
 
 const parsePriority = vi.fn((v) => {
@@ -69,10 +69,10 @@ vi.mock("chalk", () => ({
 
 vi.mock("ora", () => ({
   default: vi.fn(() => ({
-    start:   vi.fn().mockReturnThis(),
-    stop:    vi.fn().mockReturnThis(),
+    start: vi.fn().mockReturnThis(),
+    stop: vi.fn().mockReturnThis(),
     succeed: vi.fn().mockReturnThis(),
-    fail:    vi.fn().mockReturnThis(),
+    fail: vi.fn().mockReturnThis(),
     text: "",
   })),
 }));
@@ -104,15 +104,17 @@ async function makeProgram() {
   const prog = new Command();
   prog.exitOverride();
   prog.configureOutput({ writeOut() {}, writeErr() {} });
-  await bindIdeaCommands(prog);   // ← async bind
+  await bindIdeaCommands(prog); // ← async bind
   return prog;
 }
 
 async function run(args) {
   const prog = await makeProgram();
-  const logSpy    = vi.spyOn(console, "log").mockImplementation(() => {});
-  const errorSpy  = vi.spyOn(console, "error").mockImplementation(() => {});
-  const stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+  const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+  const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+  const stdoutSpy = vi
+    .spyOn(process.stdout, "write")
+    .mockImplementation(() => true);
   process.exitCode = undefined;
   try {
     await prog.parseAsync(["node", "cli", ...args]);
@@ -138,7 +140,9 @@ describe("idea.js — async bindIdeaCommands coverage additions", () => {
     it("formats Zod-style issues[] (true branch, line 31)", async () => {
       // parsePriority throws with .issues — default mock behaviour
       const { errorSpy } = await run(["idea", "add", "--priority", "99"]);
-      expect(errorSpy.mock.calls[0][0]).toContain("Priority must be an integer between 1 and 5");
+      expect(errorSpy.mock.calls[0][0]).toContain(
+        "Priority must be an integer between 1 and 5",
+      );
       expect(process.exitCode).toBe(1);
     });
 
@@ -200,7 +204,9 @@ describe("idea.js — async bindIdeaCommands coverage additions", () => {
 
       const { logSpy } = await run(["idea", "add"]);
       expect(createIdea).toHaveBeenCalledWith(
-        expect.objectContaining({ body: "# Editor Idea Title\n\nWritten by editor" }),
+        expect.objectContaining({
+          body: "# Editor Idea Title\n\nWritten by editor",
+        }),
       );
       expect(logSpy.mock.calls.flat().join(" ")).toContain("idea-editor");
     });
@@ -217,7 +223,9 @@ describe("idea.js — async bindIdeaCommands coverage additions", () => {
 
       const { logSpy } = await run(["idea", "add"]);
       expect(createIdea).toHaveBeenCalledWith(
-        expect.objectContaining({ body: "# Fallback Title\n\nInline body text" }),
+        expect.objectContaining({
+          body: "# Fallback Title\n\nInline body text",
+        }),
       );
     });
   });
@@ -233,11 +241,26 @@ describe("idea.js — async bindIdeaCommands coverage additions", () => {
 
     it("renders table for non-empty result", async () => {
       const tableSpy = vi.spyOn(console, "table").mockImplementation(() => {});
-      listIdeas.mockResolvedValue([{
-        id: "i1", project: "p", status: "active",
-        priority: 2, tags: ["a"], created: "2026-01-01T00:00:00Z",
-      }]);
-      await run(["idea", "list", "--project", "p", "--tag", "a", "--status", "active"]);
+      listIdeas.mockResolvedValue([
+        {
+          id: "i1",
+          project: "p",
+          status: "active",
+          priority: 2,
+          tags: ["a"],
+          created: "2026-01-01T00:00:00Z",
+        },
+      ]);
+      await run([
+        "idea",
+        "list",
+        "--project",
+        "p",
+        "--tag",
+        "a",
+        "--status",
+        "active",
+      ]);
       expect(tableSpy).toHaveBeenCalled();
     });
 
@@ -308,19 +331,76 @@ describe("idea.js — async bindIdeaCommands coverage additions", () => {
       exportIdeas.mockResolvedValue("# Export\n\ncontent");
       const { stdoutSpy } = await run(["idea", "export"]);
       expect(stdoutSpy).toHaveBeenCalledWith("# Export\n\ncontent\n");
-      expect(exportIdeas).toHaveBeenCalledWith({ project: undefined, status: "active" });
+      expect(exportIdeas).toHaveBeenCalledWith({
+        project: undefined,
+        status: "active",
+      });
     });
 
     it("passes explicit --project and --status", async () => {
       exportIdeas.mockResolvedValue("output");
       await run(["idea", "export", "--project", "p1", "--status", "done"]);
-      expect(exportIdeas).toHaveBeenCalledWith({ project: "p1", status: "done" });
+      expect(exportIdeas).toHaveBeenCalledWith({
+        project: "p1",
+        status: "done",
+      });
     });
 
     it("errors when exportIdeas rejects", async () => {
       exportIdeas.mockRejectedValue(new Error("export fail"));
       const { errorSpy } = await run(["idea", "export"]);
       expect(errorSpy.mock.calls[0][0]).toContain("export fail");
+      expect(process.exitCode).toBe(1);
+    });
+  });
+
+  // ── non-Error throw branches (err?.message ?? err branch 1) ──────────────
+  // Lines 142/178/193/210/226/244: when err is a string (not Error object),
+  // err?.message is undefined so ?? falls through to err itself.
+
+  describe("catch blocks — non-Error rejection (err?.message ?? err branch 1)", () => {
+    it("idea add: createIdea rejects with string hits err?.message ?? err branch 1 (line 142)", async () => {
+      answerQueue = ["Title", "Body line", ""];
+      createIdea.mockRejectedValue("string error no .message property");
+      const { errorSpy } = await run(["idea", "add"]);
+      expect(errorSpy.mock.calls[0][0]).toContain(
+        "string error no .message property",
+      );
+      expect(process.exitCode).toBe(1);
+    });
+
+    it("idea list: listIdeas rejects with string hits err?.message ?? err branch 1 (line 178)", async () => {
+      listIdeas.mockRejectedValue("list string error");
+      const { errorSpy } = await run(["idea", "list"]);
+      expect(errorSpy.mock.calls[0][0]).toContain("list string error");
+      expect(process.exitCode).toBe(1);
+    });
+
+    it("idea view: findIdeaById rejects with string hits err?.message ?? err branch 1 (line 193)", async () => {
+      findIdeaById.mockRejectedValue("view string error");
+      const { errorSpy } = await run(["idea", "view", "bad-id"]);
+      expect(errorSpy.mock.calls[0][0]).toContain("view string error");
+      expect(process.exitCode).toBe(1);
+    });
+
+    it("idea link: linkIdeaToSprint rejects with string hits err?.message ?? err branch 1 (line 210)", async () => {
+      linkIdeaToSprint.mockRejectedValue("link string error");
+      const { errorSpy } = await run(["idea", "link", "i1", "--sprint", "s1"]);
+      expect(errorSpy.mock.calls[0][0]).toContain("link string error");
+      expect(process.exitCode).toBe(1);
+    });
+
+    it("idea done: markIdeaDone rejects with string hits err?.message ?? err branch 1 (line 226)", async () => {
+      markIdeaDone.mockRejectedValue("done string error");
+      const { errorSpy } = await run(["idea", "done", "i1"]);
+      expect(errorSpy.mock.calls[0][0]).toContain("done string error");
+      expect(process.exitCode).toBe(1);
+    });
+
+    it("idea export: exportIdeas rejects with string hits err?.message ?? err branch 1 (line 244)", async () => {
+      exportIdeas.mockRejectedValue("export string error");
+      const { errorSpy } = await run(["idea", "export"]);
+      expect(errorSpy.mock.calls[0][0]).toContain("export string error");
       expect(process.exitCode).toBe(1);
     });
   });

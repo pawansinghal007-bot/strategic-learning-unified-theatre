@@ -27,6 +27,14 @@ describe("Journal", () => {
       const journal = new Journal({ filePath: "/custom/path.md" });
       expect(journal.filePath).toBe("/custom/path.md");
     });
+
+    it("falls back to os.homedir() when process.env.HOME is undefined (line 15)", () => {
+      const originalHome = process.env.HOME;
+      delete process.env.HOME;
+      const journal = new Journal();
+      process.env.HOME = originalHome;
+      expect(journal.filePath).toContain(".vscode-rotator/PROGRESS.md");
+    });
   });
 
   describe("append", () => {
@@ -43,6 +51,25 @@ describe("Journal", () => {
 
       await expect(journal.append({ type: "" })).rejects.toThrow(
         "Invalid journal event type: ",
+      );
+    });
+
+    it("throws error when event.type is undefined (line 28)", async () => {
+      const journal = new Journal({ filePath: path.join(testDir, "test.md") });
+
+      await expect(journal.append({})).rejects.toThrow(
+        "Invalid journal event type: ",
+      );
+    });
+
+    it("handles undefined event.detail (line 32)", async () => {
+      const journal = new Journal({ filePath: path.join(testDir, "test.md") });
+
+      await journal.append({ type: "SWITCH" });
+
+      const content = await fs.readFile(path.join(testDir, "test.md"), "utf8");
+      expect(content).toMatch(
+        /- \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z \| SWITCH \| /,
       );
     });
 
@@ -225,6 +252,28 @@ describe("Journal", () => {
 
       expect(typeof bak).toBe("string");
       expect(bak).toContain(testDir);
+    });
+
+    it("rethrows non-ENOENT errors in clear() (line 60)", async () => {
+      const filePath = path.join(testDir, "clear-error.md");
+      const journal = new Journal({ filePath });
+      await fs.writeFile(filePath, "content");
+
+      // Mock fs.rename to throw a non-ENOENT error
+      const originalRename = fs.rename;
+      fs.rename = async () => {
+        const err = new Error("EACCES: permission denied");
+        err.code = "EACCES";
+        throw err;
+      };
+
+      try {
+        await expect(journal.clear()).rejects.toThrow(
+          "EACCES: permission denied",
+        );
+      } finally {
+        fs.rename = originalRename;
+      }
     });
   });
 });

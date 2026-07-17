@@ -104,6 +104,52 @@ describe("ensureKnowledgeCollection", () => {
     const putCall = spy.mock.calls.find(([, init]) => init?.method === "PUT");
     expect(putCall).toBeDefined();
   });
+
+  it("throws Error when collection creation PUT returns non-ok (lines 52-58)", async () => {
+    const spy = mockFetch(async (url, init) => {
+      if (!init?.method || init.method === "GET") {
+        return notFoundResponse();
+      }
+      // PUT — collection creation fails
+      return {
+        ok: false,
+        status: 500,
+        text: async () => "Internal server error",
+      } as unknown as Response;
+    });
+
+    await expect(ensureKnowledgeCollection()).rejects.toThrow(
+      "Collection creation failed",
+    );
+
+    expect(spy).toHaveBeenCalledTimes(2);
+  });
+
+  it("uses .catch() fallback when res.json() throws during error response (line 29)", async () => {
+    // GET returns non-ok, then res.json() throws — .catch() returns {}
+    // With body={}, the condition at line 33 short-circuits to false for
+    // the first clause (undefined === false is false), so we proceed to PUT
+    let callCount = 0;
+    const spy = mockFetch(async (url, init) => {
+      callCount++;
+      if (!init?.method || init.method === "GET") {
+        // First call: GET — json() throws, triggering .catch(() => ({}))
+        return {
+          ok: false,
+          status: 502,
+          json: async () => {
+            throw new Error("JSON parse error");
+          },
+        } as unknown as Response;
+      }
+      // Second call: PUT — collection creation succeeds
+      return okResponse({ result: true });
+    });
+
+    await ensureKnowledgeCollection();
+    // 2 calls: GET (json throws, catch fallback), then PUT (succeeds)
+    expect(spy).toHaveBeenCalledTimes(2);
+  });
 });
 
 // ── upsertChunks ──────────────────────────────────────────────────────────────
@@ -160,6 +206,29 @@ describe("upsertChunks", () => {
     expect(spy).toHaveBeenCalledTimes(1);
     const body = JSON.parse(spy.mock.calls[0][1]!.body as string);
     expect(body.points).toEqual([]);
+  });
+
+  it("throws Error when upsert PUT returns non-ok (lines 78-80)", async () => {
+    const spy = mockFetch(
+      async () =>
+        ({
+          ok: false,
+          status: 503,
+          text: async () => "Service unavailable",
+        }) as unknown as Response,
+    );
+
+    const chunks = [
+      {
+        chunk_id: "chunk-1",
+        dense_vector: [0.1, 0.2, 0.3],
+        content: "Content",
+      },
+    ];
+
+    await expect(upsertChunks(chunks)).rejects.toThrow("Upsert failed");
+
+    expect(spy).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -254,5 +323,17 @@ describe("searchChunks", () => {
     mockFetch(async () => okResponse({ result: null }));
     const results = await searchChunks(new Array(1024).fill(0));
     expect(results).toEqual([]);
+  });
+
+  it("defaults score to 0 when hit.score is undefined (line 106 branch)", async () => {
+    mockFetch(async () =>
+      okResponse({
+        result: [
+          { score: undefined, payload: { content: "No score field" } },
+        ],
+      }),
+    );
+    const results = await searchChunks(new Array(1024).fill(0));
+    expect(results[0].score).toBe(0);
   });
 });

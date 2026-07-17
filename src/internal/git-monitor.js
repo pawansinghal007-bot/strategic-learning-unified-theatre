@@ -44,7 +44,7 @@ export function parseStatusSummary(sbPorcelainText) {
     }
   }
 
-  const uncommitted = rest.length;
+  const uncommitted = first.startsWith("##") ? rest.length : lines.length;
 
   return {
     branch: branch ?? "",

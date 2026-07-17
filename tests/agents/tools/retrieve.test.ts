@@ -17,12 +17,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // ─── hoisted mocks ────────────────────────────────────────────────────────────
 
-const { mockRetrieve } = vi.hoisted(() => ({
-  mockRetrieve: vi.fn(),
+const { mockExecuteRetrieve } = vi.hoisted(() => ({
+  mockExecuteRetrieve: vi.fn(),
 }));
 
-vi.mock("../../../src/shared/retrieval/router", () => ({
-  retrieve: (...args: unknown[]) => mockRetrieve(...args),
+vi.mock("../../../src/shared/retrieval/execute-retrieve.js", () => ({
+  executeRetrieve: (...args: unknown[]) => mockExecuteRetrieve(...args),
 }));
 
 // ─── module under test ────────────────────────────────────────────────────────
@@ -58,10 +58,10 @@ describe("retrieveTool", () => {
     expect(result.error).toMatch(/Missing required arg: query/);
   });
 
-  it("does NOT call retrieve when query is missing", async () => {
+  it("does NOT call executeRetrieve when query is missing", async () => {
     await retrieveTool.execute({});
 
-    expect(mockRetrieve).not.toHaveBeenCalled();
+    expect(mockExecuteRetrieve).not.toHaveBeenCalled();
   });
 
   it("returns success:false when query is empty string", async () => {
@@ -69,18 +69,14 @@ describe("retrieveTool", () => {
 
     expect(result.success).toBe(false);
     expect(result.error).toMatch(/Missing required arg: query/);
-    expect(mockRetrieve).not.toHaveBeenCalled();
+    expect(mockExecuteRetrieve).not.toHaveBeenCalled();
   });
 
   // ── successful vector search ───────────────────────────────────────────────
 
   it("returns success:true with formatted vector results on successful search", async () => {
-    mockRetrieve.mockResolvedValueOnce({
-      strategy: "vector",
-      results: [
-        { score: 0.95, source: "src/foo.ts", text: "function foo()" },
-        { score: 0.82, source: "src/bar.ts", text: "const bar = 1" },
-      ],
+    mockExecuteRetrieve.mockResolvedValueOnce({
+      text: "1. src/foo.ts (0.950)\nfunction foo()\n2. src/bar.ts (0.820)\nconst bar = 1",
     });
 
     const result = await retrieveTool.execute({ query: "how does foo work" });
@@ -97,9 +93,8 @@ describe("retrieveTool", () => {
   });
 
   it("returns success:true with a no-results message when vector results are empty", async () => {
-    mockRetrieve.mockResolvedValueOnce({
-      strategy: "vector",
-      results: [],
+    mockExecuteRetrieve.mockResolvedValueOnce({
+      text: "No matching results in the vector store.",
     });
 
     const result = await retrieveTool.execute({ query: "obscure query" });
@@ -111,15 +106,8 @@ describe("retrieveTool", () => {
   // ── successful code search ─────────────────────────────────────────────────
 
   it("returns success:true with formatted code results on successful search", async () => {
-    mockRetrieve.mockResolvedValueOnce({
-      strategy: "code",
-      results: [
-        {
-          file: "src/agents/sub-agent.ts",
-          line: 42,
-          text: "export async function runSubAgent(",
-        },
-      ],
+    mockExecuteRetrieve.mockResolvedValueOnce({
+      text: "src/agents/sub-agent.ts:42: export async function runSubAgent(",
     });
 
     const result = await retrieveTool.execute({
@@ -134,9 +122,8 @@ describe("retrieveTool", () => {
   });
 
   it("returns success:true with a no-results message when code results are empty", async () => {
-    mockRetrieve.mockResolvedValueOnce({
-      strategy: "code",
-      results: [],
+    mockExecuteRetrieve.mockResolvedValueOnce({
+      text: 'No matches for "nothing".',
     });
 
     const result = await retrieveTool.execute({
@@ -151,17 +138,8 @@ describe("retrieveTool", () => {
   // ── successful symbol search ───────────────────────────────────────────────
 
   it("returns success:true with formatted symbol results when symbols are found", async () => {
-    mockRetrieve.mockResolvedValueOnce({
-      strategy: "symbol",
-      results: [
-        {
-          name: "runSubAgent",
-          kind: "function",
-          filePath: "src/agents/sub-agent.ts",
-          startLine: 42,
-          endLine: 68,
-        },
-      ],
+    mockExecuteRetrieve.mockResolvedValueOnce({
+      text: "runSubAgent (function) at src/agents/sub-agent.ts:42-68",
     });
 
     const result = await retrieveTool.execute({
@@ -177,9 +155,8 @@ describe("retrieveTool", () => {
   });
 
   it("returns success:true with a no-symbol message when symbol results are empty", async () => {
-    mockRetrieve.mockResolvedValueOnce({
-      strategy: "symbol",
-      results: [],
+    mockExecuteRetrieve.mockResolvedValueOnce({
+      text: 'No symbol found for "ghostFunction".',
     });
 
     const result = await retrieveTool.execute({
@@ -194,9 +171,8 @@ describe("retrieveTool", () => {
   // ── successful file search ─────────────────────────────────────────────────
 
   it("returns success:true with raw file content on successful file search", async () => {
-    mockRetrieve.mockResolvedValueOnce({
-      strategy: "file",
-      results: "file contents here",
+    mockExecuteRetrieve.mockResolvedValueOnce({
+      text: "file contents here",
     });
 
     const result = await retrieveTool.execute({
@@ -211,10 +187,9 @@ describe("retrieveTool", () => {
 
   // ── error handling ─────────────────────────────────────────────────────────
 
-  it("returns success:false when retrieve returns error field", async () => {
-    mockRetrieve.mockResolvedValueOnce({
-      strategy: "vector",
-      error: "Qdrant connection refused",
+  it("returns success:false when executeRetrieve returns error field", async () => {
+    mockExecuteRetrieve.mockResolvedValueOnce({
+      error: "retrieve failed: Qdrant connection refused",
     });
 
     const result = await retrieveTool.execute({ query: "query", topK: 5 });
@@ -225,8 +200,8 @@ describe("retrieveTool", () => {
     );
   });
 
-  it("returns success:false when retrieve throws", async () => {
-    mockRetrieve.mockRejectedValueOnce(new Error("Router crash"));
+  it("returns success:false when executeRetrieve throws an Error instance", async () => {
+    mockExecuteRetrieve.mockRejectedValueOnce(new Error("Router crash"));
 
     const result = await retrieveTool.execute({ query: "query", topK: 5 });
 
@@ -234,24 +209,12 @@ describe("retrieveTool", () => {
     expect(result.error).toContain("retrieve failed: Router crash");
   });
 
-  it("returns success:false when retrieve throws a non-Error value", async () => {
-    mockRetrieve.mockRejectedValueOnce("Router crash");
+  it("returns success:false when executeRetrieve throws a non-Error string", async () => {
+    mockExecuteRetrieve.mockRejectedValueOnce("Router crash");
 
     const result = await retrieveTool.execute({ query: "query", topK: 5 });
 
     expect(result.success).toBe(false);
     expect(result.error).toContain("retrieve failed: Router crash");
-  });
-
-  it("returns success:false when retrieve returns unknown strategy", async () => {
-    mockRetrieve.mockResolvedValueOnce({
-      strategy: "bogus" as any,
-      results: [],
-    });
-
-    const result = await retrieveTool.execute({ query: "query" });
-
-    expect(result.success).toBe(false);
-    expect(result.error).toMatch(/Unknown strategy/);
   });
 });
