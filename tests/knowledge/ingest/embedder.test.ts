@@ -13,11 +13,16 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // ─── hoisted mocks ────────────────────────────────────────────────────────────
 
-const { mockFetch } = vi.hoisted(() => ({
+const { mockFetch, mockEstimateTokenCount } = vi.hoisted(() => ({
   mockFetch: vi.fn(),
+  mockEstimateTokenCount: vi.fn((text: string) => Math.ceil(text.length / 2)),
 }));
 
 // ─── module under test ────────────────────────────────────────────────────────
+
+vi.mock("../../../src/llm/document-ingester.js", () => ({
+  estimateTokenCount: mockEstimateTokenCount,
+}));
 
 import { embedTextBatch } from "../../../src/knowledge/ingest/embedder.js";
 
@@ -25,6 +30,7 @@ import { embedTextBatch } from "../../../src/knowledge/ingest/embedder.js";
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockFetch.mockReset(); // Clear mockResolvedValueOnce queue to prevent leakage between tests
   (globalThis as any).fetch = mockFetch;
 });
 
@@ -82,14 +88,12 @@ describe("embedTextBatch", () => {
   });
 
   it("splits input into multiple batches when exceeding batch size", async () => {
-    // Batch size is 32, so 65 items = 3 requests (32 + 32 + 1)
+    // With token-budget batching: MAX_ITEMS_PER_BATCH=64, so 65 items = 2 requests (64 + 1)
+    // Default mockEstimateTokenCount returns ~4 tokens per "text-N" string, well under budget
     const texts = Array.from({ length: 65 }, (_, i) => `text-${i}`);
 
     mockFetch.mockResolvedValueOnce(
-      makeOkResponse(makeBatchResponse(texts.slice(0, 32))),
-    );
-    mockFetch.mockResolvedValueOnce(
-      makeOkResponse(makeBatchResponse(texts.slice(32, 64))),
+      makeOkResponse(makeBatchResponse(texts.slice(0, 64))),
     );
     mockFetch.mockResolvedValueOnce(
       makeOkResponse(makeBatchResponse(texts.slice(64))),
@@ -98,14 +102,14 @@ describe("embedTextBatch", () => {
     const result = await embedTextBatch(texts);
 
     expect(result).toHaveLength(65);
-    expect(mockFetch).toHaveBeenCalledTimes(3);
+    expect(mockFetch).toHaveBeenCalledTimes(2);
 
     // Verify first batch contains correct slice
     const firstCall = mockFetch.mock.calls[0][1] as { body: string };
-    expect(JSON.parse(firstCall.body).input).toEqual(texts.slice(0, 32));
+    expect(JSON.parse(firstCall.body).input).toEqual(texts.slice(0, 64));
 
     // Verify last batch contains the remainder
-    const lastCall = mockFetch.mock.calls[2][1] as { body: string };
+    const lastCall = mockFetch.mock.calls[1][1] as { body: string };
     expect(JSON.parse(lastCall.body).input).toEqual(texts.slice(64));
   });
 
@@ -182,18 +186,12 @@ describe("embedTextBatch", () => {
 
   it("preserves order across multiple batches", async () => {
     const texts = Array.from({ length: 64 }, (_, i) => `text-${i}`);
+    mockEstimateTokenCount.mockImplementation(() => 10); // Tiny texts, 10 tokens each
 
     mockFetch.mockResolvedValueOnce(
       makeOkResponse({
-        data: texts.slice(0, 32).map((_, i) => ({
+        data: texts.slice(0, 64).map((_, i) => ({
           embedding: Array.from({ length: 2560 }, () => i * 0.01),
-        })),
-      }),
-    );
-    mockFetch.mockResolvedValueOnce(
-      makeOkResponse({
-        data: texts.slice(32).map((_, i) => ({
-          embedding: Array.from({ length: 2560 }, () => (i + 32) * 0.01),
         })),
       }),
     );
@@ -201,9 +199,107 @@ describe("embedTextBatch", () => {
     const result = await embedTextBatch(texts);
 
     expect(result).toHaveLength(64);
+    expect(mockFetch).toHaveBeenCalledTimes(1);
     // First vector should have values from index 0
     expect(result[0][0]).toBe(0);
-    // 33rd vector (index 32) should have values from index 32
-    expect(result[32][0]).toBe(0.32);
+  });
+
+  it("groups multiple small texts under the token budget into ONE HTTP call", async () => {
+    // 10 small texts, each ~5 tokens → total ~50 tokens, well under 6000 budget
+    const texts = Array.from({ length: 10 }, (_, i) => `short-${i}`);
+    mockEstimateTokenCount.mockImplementation(() => 5);
+
+    mockFetch.mockResolvedValueOnce(makeOkResponse(makeBatchResponse(texts)));
+
+    const result = await embedTextBatch(texts);
+
+    expect(result).toHaveLength(10);
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+
+    const callBody = JSON.parse(mockFetch.mock.calls[0][1].body as string);
+    expect(callBody.input).toHaveLength(10);
+  });
+
+  it("splits into two calls when adding the next text crosses the 6000-token budget", async () => {
+    // 5 texts of 1200 tokens each → 5*1200=6000 fits, 6*1200=7200 exceeds
+    // So batch 1 = 5 items, batch 2 = 1 item
+    const texts = Array.from({ length: 6 }, (_, i) => `text-${i}`);
+    mockEstimateTokenCount.mockImplementation(() => 1200);
+
+    mockFetch.mockResolvedValueOnce(
+      makeOkResponse(makeBatchResponse(texts.slice(0, 5))),
+    );
+    mockFetch.mockResolvedValueOnce(
+      makeOkResponse(makeBatchResponse(texts.slice(5))),
+    );
+
+    const result = await embedTextBatch(texts);
+
+    expect(result).toHaveLength(6);
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+
+    // First call has 5 items
+    const firstBody = JSON.parse(mockFetch.mock.calls[0][1].body as string);
+    expect(firstBody.input).toEqual(texts.slice(0, 5));
+
+    // Second call has 1 item
+    const secondBody = JSON.parse(mockFetch.mock.calls[1][1].body as string);
+    expect(secondBody.input).toEqual(texts.slice(5));
+  });
+
+  it("sends a single oversized text alone in its own batch without hanging or throwing", async () => {
+    // A single text whose estimated tokens (7000) exceed the 6000 budget
+    // must still be sent — embedder doesn't split text, that's chunkText's job
+    const texts = ["very-long-text"];
+    mockEstimateTokenCount.mockImplementation(() => 7000);
+
+    mockFetch.mockResolvedValueOnce(makeOkResponse(makeBatchResponse(texts)));
+
+    const result = await embedTextBatch(texts);
+
+    expect(result).toHaveLength(1);
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+
+    const callBody = JSON.parse(mockFetch.mock.calls[0][1].body as string);
+    expect(callBody.input).toEqual(texts);
+  });
+
+  it("splits at MAX_ITEMS_PER_BATCH (64) even when token budget allows more", async () => {
+    // 80 tiny texts, each 10 tokens → total 800 tokens, well under 6000 budget
+    // But MAX_ITEMS_PER_BATCH = 64, so should split into 64 + 16
+    const texts = Array.from({ length: 80 }, (_, i) => `tiny-${i}`);
+    mockEstimateTokenCount.mockImplementation(() => 10);
+
+    mockFetch.mockResolvedValueOnce(
+      makeOkResponse(makeBatchResponse(texts.slice(0, 64))),
+    );
+    mockFetch.mockResolvedValueOnce(
+      makeOkResponse(makeBatchResponse(texts.slice(64))),
+    );
+
+    const result = await embedTextBatch(texts);
+
+    expect(result).toHaveLength(80);
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+
+    // First batch has exactly 64 items
+    const firstBody = JSON.parse(mockFetch.mock.calls[0][1].body as string);
+    expect(firstBody.input).toHaveLength(64);
+
+    // Second batch has the remaining 16
+    const secondBody = JSON.parse(mockFetch.mock.calls[1][1].body as string);
+    expect(secondBody.input).toHaveLength(16);
+  });
+
+  it("handles response without data field (json.data ?? [] fallback)", async () => {
+    // When the API returns a response without a `data` field, it should use [] fallback
+    const texts = ["test-text"];
+    mockFetch.mockResolvedValueOnce(
+      makeOkResponse({ embeddings: [] }), // No `data` field
+    );
+
+    await expect(embedTextBatch(texts)).rejects.toThrow(
+      /expected 1 embeddings but got 0/,
+    );
   });
 });

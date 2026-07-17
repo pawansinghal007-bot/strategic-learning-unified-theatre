@@ -108,3 +108,88 @@ export async function searchChunks(vector, limit = 6, scoreThreshold = 0.4) {
     score: hit.score ?? 0,
   }));
 }
+
+/**
+ * Fetch all existing file hashes from Qdrant by scrolling the collection
+ * with payload-only responses.
+ *
+ * @returns {Promise<Map<string, string>>} Map from doc_id to file_hash.
+ */
+export async function getExistingFileHashes() {
+  const hashes = new Map();
+  let next_page_offset = undefined;
+
+  do {
+    const body = {
+      limit: 100,
+      with_payload: ["doc_id", "file_hash"],
+      with_vector: false,
+    };
+    if (next_page_offset) {
+      body.offset = next_page_offset;
+    }
+
+    const res = await fetch(
+      `${QDRANT_URL}/collections/${KNOWLEDGE_COLLECTION}/points/scroll`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      },
+    );
+
+    if (!res.ok) {
+      throw new Error("Failed to fetch existing file hashes");
+    }
+
+    const data = await res.json();
+    const points = data.result?.points ?? [];
+
+    for (const point of points) {
+      const docId = point.payload?.doc_id;
+      const fileHash = point.payload?.file_hash;
+      if (docId && fileHash) {
+        hashes.set(docId, fileHash);
+      }
+    }
+
+    // next_page_offset is truthy when there are more pages
+    next_page_offset = data.result?.next_page_offset;
+  } while (next_page_offset);
+
+  return hashes;
+}
+
+/**
+ * Delete all chunks from Qdrant that match a given doc_id.
+ *
+ * @param {string} docId - The doc_id to delete chunks for.
+ * @throws if docId is falsy.
+ */
+export async function deleteChunksByDocId(docId) {
+  if (!docId) {
+    throw new Error("deleteChunksByDocId: docId must be a non-empty string");
+  }
+
+  const res = await fetch(
+    `${QDRANT_URL}/collections/${KNOWLEDGE_COLLECTION}/points/delete`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        filter: {
+          must: [
+            {
+              key: "doc_id",
+              match: { value: docId },
+            },
+          ],
+        },
+      }),
+    },
+  );
+
+  if (!res.ok) {
+    throw new Error("Failed to delete chunks");
+  }
+}

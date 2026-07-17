@@ -9,6 +9,8 @@ import {
   ensureKnowledgeCollection,
   upsertChunks,
   searchChunks,
+  getExistingFileHashes,
+  deleteChunksByDocId,
   KNOWLEDGE_COLLECTION,
 } from "../../src/llm/qdrant-client.js";
 
@@ -328,12 +330,311 @@ describe("searchChunks", () => {
   it("defaults score to 0 when hit.score is undefined (line 106 branch)", async () => {
     mockFetch(async () =>
       okResponse({
-        result: [
-          { score: undefined, payload: { content: "No score field" } },
-        ],
+        result: [{ score: undefined, payload: { content: "No score field" } }],
       }),
     );
     const results = await searchChunks(new Array(1024).fill(0));
     expect(results[0].score).toBe(0);
+  });
+});
+
+// ── getExistingFileHashes ─────────────────────────────────────────────────────
+describe("getExistingFileHashes", () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it("returns empty map when collection has no points", async () => {
+    const spy = mockFetch(async () =>
+      okResponse({ result: { points: [], next_page_offset: null } }),
+    );
+
+    const hashes = await getExistingFileHashes();
+
+    expect(hashes).toBeInstanceOf(Map);
+    expect(hashes.size).toBe(0);
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns file_hash map from a single page of results", async () => {
+    const spy = mockFetch(async () =>
+      okResponse({
+        result: {
+          points: [
+            {
+              payload: {
+                doc_id: "doc-1",
+                file_hash: "abc123",
+                content: "chunk 1",
+              },
+            },
+            {
+              payload: {
+                doc_id: "doc-1",
+                file_hash: "abc123",
+                content: "chunk 2",
+              },
+            },
+            {
+              payload: {
+                doc_id: "doc-2",
+                file_hash: "def456",
+                content: "chunk 3",
+              },
+            },
+          ],
+          next_page_offset: null,
+        },
+      }),
+    );
+
+    const hashes = await getExistingFileHashes();
+
+    expect(hashes.size).toBe(2);
+    expect(hashes.get("doc-1")).toBe("abc123");
+    expect(hashes.get("doc-2")).toBe("def456");
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
+
+  it("paginates through multiple pages using next_page_offset", async () => {
+    let callCount = 0;
+    const spy = mockFetch(async (url: string, init?: RequestInit) => {
+      callCount++;
+      if (callCount === 1) {
+        // First page: has next_page_offset
+        return okResponse({
+          result: {
+            points: [
+              {
+                payload: {
+                  doc_id: "doc-1",
+                  file_hash: "hash-1",
+                },
+              },
+            ],
+            next_page_offset: "page2",
+          },
+        });
+      }
+      // Second page: no more pages
+      return okResponse({
+        result: {
+          points: [
+            {
+              payload: {
+                doc_id: "doc-2",
+                file_hash: "hash-2",
+              },
+            },
+          ],
+          next_page_offset: null,
+        },
+      });
+    });
+
+    const hashes = await getExistingFileHashes();
+
+    expect(hashes.size).toBe(2);
+    expect(hashes.get("doc-1")).toBe("hash-1");
+    expect(hashes.get("doc-2")).toBe("hash-2");
+    expect(spy).toHaveBeenCalledTimes(2);
+
+    // Verify second call includes offset in the request body (not URL parameter)
+    const secondBody = JSON.parse(
+      (spy.mock.calls[1][1] as { body: string }).body as string,
+    );
+    expect(secondBody.offset).toBe("page2");
+  });
+
+  it("skips points that have no file_hash in payload", async () => {
+    const spy = mockFetch(async () =>
+      okResponse({
+        result: {
+          points: [
+            {
+              payload: {
+                doc_id: "doc-1",
+                file_hash: "hash-1",
+              },
+            },
+            {
+              payload: {
+                doc_id: "doc-2",
+                // no file_hash field
+              },
+            },
+            {
+              payload: {
+                doc_id: "doc-3",
+                file_hash: "hash-3",
+              },
+            },
+          ],
+          next_page_offset: null,
+        },
+      }),
+    );
+
+    const hashes = await getExistingFileHashes();
+
+    expect(hashes.size).toBe(2);
+    expect(hashes.get("doc-1")).toBe("hash-1");
+    expect(hashes.get("doc-3")).toBe("hash-3");
+    expect(hashes.has("doc-2")).toBe(false);
+  });
+
+  it("stops pagination when next_page_offset is null", async () => {
+    const spy = mockFetch(async () =>
+      okResponse({
+        result: {
+          points: [
+            {
+              payload: {
+                doc_id: "doc-1",
+                file_hash: "hash-1",
+              },
+            },
+          ],
+          next_page_offset: null,
+        },
+      }),
+    );
+
+    const hashes = await getExistingFileHashes();
+
+    expect(hashes.size).toBe(1);
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
+
+  it("stops pagination when next_page_offset is undefined", async () => {
+    const spy = mockFetch(async () =>
+      okResponse({
+        result: {
+          points: [
+            {
+              payload: {
+                doc_id: "doc-1",
+                file_hash: "hash-1",
+              },
+            },
+          ],
+          next_page_offset: undefined,
+        },
+      }),
+    );
+
+    const hashes = await getExistingFileHashes();
+
+    expect(hashes.size).toBe(1);
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
+
+  it("stops pagination when next_page_offset key is absent from response", async () => {
+    const spy = mockFetch(async () =>
+      okResponse({
+        result: {
+          points: [
+            {
+              payload: {
+                doc_id: "doc-1",
+                file_hash: "hash-1",
+              },
+            },
+          ],
+          // next_page_offset key is completely absent
+        },
+      }),
+    );
+
+    const hashes = await getExistingFileHashes();
+
+    expect(hashes.size).toBe(1);
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
+
+  it("throws when Qdrant returns non-ok response", async () => {
+    const spy = mockFetch(
+      async () =>
+        ({
+          ok: false,
+          status: 500,
+          text: async () => "Internal error",
+        }) as unknown as Response,
+    );
+
+    await expect(getExistingFileHashes()).rejects.toThrow(
+      "Failed to fetch existing file hashes",
+    );
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
+
+  it("handles response without result.points (data.result?.points ?? [] fallback)", async () => {
+    const spy = mockFetch(async () =>
+      okResponse({
+        result: {
+          // No `points` field — should use [] fallback
+          next_page_offset: null,
+        },
+      }),
+    );
+
+    const hashes = await getExistingFileHashes();
+
+    expect(hashes.size).toBe(0);
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
+});
+
+// ── deleteChunksByDocId ───────────────────────────────────────────────────────
+describe("deleteChunksByDocId", () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it("sends POST delete request with correct filter for valid docId", async () => {
+    const spy = mockFetch(async () => okResponse({ result: { deleted: 3 } }));
+
+    await deleteChunksByDocId("doc-123");
+
+    expect(spy).toHaveBeenCalledTimes(1);
+    const [url, init] = spy.mock.calls[0];
+    expect(url).toContain("/points/delete");
+    expect(url).toContain(KNOWLEDGE_COLLECTION);
+    expect(init?.method).toBe("POST");
+
+    const body = JSON.parse(init!.body as string);
+    expect(body.filter.must).toEqual([
+      {
+        key: "doc_id",
+        match: { value: "doc-123" },
+      },
+    ]);
+  });
+
+  it("throws when Qdrant returns non-ok response", async () => {
+    const spy = mockFetch(
+      async () =>
+        ({
+          ok: false,
+          status: 500,
+          text: async () => "Server error",
+        }) as unknown as Response,
+    );
+
+    await expect(deleteChunksByDocId("doc-123")).rejects.toThrow(
+      "Failed to delete chunks",
+    );
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
+
+  it("throws synchronously when docId is falsy without making an HTTP call", async () => {
+    const spy = mockFetch(async () => okResponse());
+
+    await expect(deleteChunksByDocId("")).rejects.toThrow("docId");
+    expect(spy).not.toHaveBeenCalled();
+
+    await expect(deleteChunksByDocId(null as any)).rejects.toThrow("docId");
+    expect(spy).not.toHaveBeenCalled();
+
+    await expect(deleteChunksByDocId(undefined as any)).rejects.toThrow(
+      "docId",
+    );
+    expect(spy).not.toHaveBeenCalled();
   });
 });

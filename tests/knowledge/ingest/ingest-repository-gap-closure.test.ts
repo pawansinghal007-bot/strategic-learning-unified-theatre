@@ -27,6 +27,8 @@ const mocks = {
   embedTextBatch: vi.fn(),
   upsertChunks: vi.fn(),
   ensureKnowledgeCollection: vi.fn(),
+  getExistingFileHashes: vi.fn(),
+  deleteChunksByDocId: vi.fn(),
 };
 
 vi.mock("../../../src/knowledge/ingest/embedder.js", () => ({
@@ -36,6 +38,8 @@ vi.mock("../../../src/knowledge/ingest/embedder.js", () => ({
 vi.mock("../../../src/llm/qdrant-client.js", () => ({
   upsertChunks: mocks.upsertChunks,
   ensureKnowledgeCollection: mocks.ensureKnowledgeCollection,
+  getExistingFileHashes: mocks.getExistingFileHashes,
+  deleteChunksByDocId: mocks.deleteChunksByDocId,
 }));
 
 describe("ingest-repository.js — gap closure", () => {
@@ -46,6 +50,9 @@ describe("ingest-repository.js — gap closure", () => {
     mocks.embedTextBatch.mockReset();
     mocks.upsertChunks.mockReset();
     mocks.ensureKnowledgeCollection.mockReset();
+    mocks.getExistingFileHashes.mockReset();
+    mocks.getExistingFileHashes.mockResolvedValue(new Map());
+    mocks.deleteChunksByDocId.mockReset();
   });
 
   afterEach(async () => {
@@ -203,6 +210,38 @@ describe("ingest-repository.js — gap closure", () => {
       await expect(ingestRepository({ baseDir: tempDir })).rejects.toThrow(
         "embedTextBatch returned",
       );
+    });
+  });
+
+  // =====================================================================
+  // Category 6: buildChunksForBatch catch branch (lines 175-190)
+  // =====================================================================
+
+  describe("buildChunksForBatch branches", () => {
+    // BRDA:186,20,0,0 — catch (err) branch when readFile fails
+    it("BRDA:186 — buildChunksForBatch catches readFile errors and continues", async () => {
+      const { ingestRepository } =
+        await import("../../../src/knowledge/ingest/ingest-repository.js");
+
+      // Create a readable file and an unreadable file
+      await fs.writeFile(path.join(tempDir, "good.md"), "good content");
+      const badFile = path.join(tempDir, "bad.md");
+      await fs.writeFile(badFile, "bad content");
+      // Make the file unreadable by removing permissions
+      await fs.chmod(badFile, 0o000);
+
+      mocks.embedTextBatch.mockResolvedValue([[0.1, 0.2, 0.3]]);
+
+      // Should not throw — the catch branch should skip the unreadable file
+      await ingestRepository({ baseDir: tempDir });
+
+      // Should have processed the good file
+      expect(mocks.upsertChunks).toHaveBeenCalledTimes(1);
+      const insertedData = mocks.upsertChunks.mock.calls[0][0];
+      expect(insertedData[0].path).toMatch("good.md");
+
+      // Cleanup: restore permissions so temp dir can be removed
+      await fs.chmod(badFile, 0o644).catch(() => {});
     });
   });
 });

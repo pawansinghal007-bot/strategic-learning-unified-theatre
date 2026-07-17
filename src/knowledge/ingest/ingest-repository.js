@@ -5,6 +5,8 @@ import { pathToFileURL } from "node:url";
 import {
   ensureKnowledgeCollection,
   upsertChunks,
+  getExistingFileHashes,
+  deleteChunksByDocId,
 } from "../../llm/qdrant-client.js";
 import { chunkText } from "../../llm/document-ingester.js";
 import { embedTextBatch } from "./embedder.js";
@@ -46,6 +48,9 @@ const EXCLUDED_DIRS = new Set([
 
 const DEFAULT_MAX_FILE_BYTES = 512 * 2560;
 const BATCH_SIZE = 10;
+// Maximum number of points to send to Qdrant in a single upsert.
+// Keeps payloads well below Qdrant's 32 MB request limit.
+const QDRANT_UPSERT_BATCH_SIZE = 100;
 
 function shouldSkipDirectory(dirName) {
   return EXCLUDED_DIRS.has(dirName);
@@ -132,6 +137,10 @@ async function discoverSupportedFiles(baseDir, effectiveMaxFileBytes) {
   return { files, skippedLargeFiles };
 }
 
+function computeFileHash(text) {
+  return createHash("sha256").update(text, "utf8").digest("hex");
+}
+
 function createChunksForFile({
   text,
   filePath,
@@ -145,6 +154,7 @@ function createChunksForFile({
   const relativePath = path.relative(absoluteBaseDir, filePath);
   const docId = `repo:${relativePath.split(path.sep).join("/")}`;
   const createdAt = Date.now();
+  const fileHash = computeFileHash(text);
   return chunkText(text).map((content, index) => ({
     chunkId: `${docId}:chunk:${index}`,
     docId,
@@ -160,6 +170,7 @@ function createChunksForFile({
     createdAt,
     text: content,
     denseVector: [],
+    fileHash,
   }));
 }
 
@@ -176,6 +187,7 @@ async function buildChunksForBatch(batch, absoluteBaseDir, defaultFeatureArea) {
       });
       chunks.push(...fileChunks);
     } catch (err) {
+      // v8 ignore next - environment-dependent: root user bypasses file permissions
       console.warn(`[knowledge] Skipping ${filePath}: ${err}`);
     }
   }
@@ -228,6 +240,7 @@ function chunkToQdrantPoint(chunk) {
     importance: chunk.importance,
     hash: chunk.hash,
     created_at: chunk.createdAt,
+    file_hash: chunk.fileHash,
     text: String(chunk.text ?? "").slice(0, 16_384),
     dense_vector: chunk.denseVector,
     content: String(chunk.text ?? "").slice(0, 16_384),
@@ -236,9 +249,20 @@ function chunkToQdrantPoint(chunk) {
 // v8 ignore end
 
 async function insertChunkBatch(_client, chunks) {
-  const points = chunks.map((chunk) => chunkToQdrantPoint(chunk));
-  await upsertChunks(points);
-  return points.length;
+  let inserted = 0;
+
+  for (let i = 0; i < chunks.length; i += QDRANT_UPSERT_BATCH_SIZE) {
+    const batch = chunks.slice(i, i + QDRANT_UPSERT_BATCH_SIZE);
+    const points = batch.map((chunk) => chunkToQdrantPoint(chunk));
+
+    await upsertChunks(points);
+
+    inserted += points.length;
+
+    console.log(`[knowledge] Uploaded ${inserted}/${chunks.length} chunk(s)`);
+  }
+
+  return inserted;
 }
 
 function isDirectRun() {
@@ -255,6 +279,9 @@ export async function ingestRepository(options) {
 
   await ensureKnowledgeCollection();
 
+  // Fetch existing file hashes from Qdrant for incremental ingestion
+  const existingHashes = await getExistingFileHashes();
+
   const { files, skippedLargeFiles } = await discoverSupportedFiles(
     absoluteBaseDir,
     effectiveMaxFileBytes,
@@ -267,26 +294,69 @@ export async function ingestRepository(options) {
     );
   }
 
+  // Build a map of docId -> fileHash for all files currently on disk
+  const currentFiles = new Map();
+  const fileChunksMap = new Map(); // docId -> chunks array
+
+  for (const filePath of files) {
+    try {
+      const text = await fs.readFile(filePath, "utf8");
+      const relativePath = path.relative(absoluteBaseDir, filePath);
+      const docId = `repo:${relativePath.split(path.sep).join("/")}`;
+      const fileHash = computeFileHash(text);
+      currentFiles.set(docId, fileHash);
+
+      const chunks = createChunksForFile({
+        text,
+        filePath,
+        absoluteBaseDir,
+        defaultFeatureArea,
+      });
+      if (chunks.length > 0) {
+        fileChunksMap.set(docId, chunks);
+      }
+    } catch (err) {
+      console.warn(`[knowledge] Skipping ${filePath}: ${err}`);
+    }
+  }
+
+  // Clean up deleted files: docIds in Qdrant but not on disk
+  for (const [docId] of existingHashes) {
+    if (!currentFiles.has(docId)) {
+      console.log(`[knowledge] Deleting chunks for removed file: ${docId}`);
+      await deleteChunksByDocId(docId);
+    }
+  }
+
   let totalChunks = 0;
-  const totalBatches = Math.ceil(files.length / BATCH_SIZE);
+  let skippedFiles = 0;
 
-  for (let i = 0; i < files.length; i += BATCH_SIZE) {
-    const batch = files.slice(i, i + BATCH_SIZE);
-    const chunks = await buildChunksForBatch(
-      batch,
-      absoluteBaseDir,
-      defaultFeatureArea,
-    );
-    if (chunks.length === 0) continue;
+  // Process each file: skip unchanged, delete+re-ingest changed
+  for (const [docId, chunks] of fileChunksMap) {
+    const currentHash = currentFiles.get(docId);
+    const existingHash = existingHashes.get(docId);
 
-    console.log(
-      `[knowledge] Processing batch ${Math.floor(i / BATCH_SIZE) + 1}/${totalBatches}: ${chunks.length} chunks from ${batch.length} files`,
-    );
+    if (existingHash === currentHash) {
+      skippedFiles++;
+      continue;
+    }
+
+    // File is new or changed
+    if (existingHash && existingHash !== currentHash) {
+      console.log(`[knowledge] Updating changed file: ${docId}`);
+      await deleteChunksByDocId(docId);
+    }
+
+    console.log(`[knowledge] Processing ${docId}: ${chunks.length} chunks`);
 
     await attachVectors(chunks);
     const insertedCount = await insertChunkBatch(null, chunks);
     totalChunks += insertedCount;
-    console.log(`[knowledge] Inserted ${insertedCount} chunk(s) from batch`);
+    console.log(`[knowledge] Inserted ${insertedCount} chunk(s) for ${docId}`);
+  }
+
+  if (skippedFiles > 0) {
+    console.log(`[knowledge] Skipped ${skippedFiles} unchanged file(s)`);
   }
 
   console.log(

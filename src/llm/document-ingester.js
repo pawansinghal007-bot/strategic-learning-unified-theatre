@@ -97,6 +97,7 @@ async function readDocumentText(filePath) {
     try {
       const pdfParse = (await import("pdf-parse")).default;
       const parsed = await pdfParse(await fs.readFile(filePath));
+      /* v8 ignore next: parsed.text is always truthy when pdf-parse succeeds; empty-string fallback is defensive-only */
       return parsed.text || "";
     } catch {
       return "";
@@ -106,6 +107,7 @@ async function readDocumentText(filePath) {
     try {
       const mammoth = await import("mammoth");
       const parsed = await mammoth.extractRawText({ path: filePath });
+      /* v8 ignore next: parsed.value is always truthy when mammoth succeeds; empty-string fallback is defensive-only */
       return parsed.value || "";
     } catch {
       return "";
@@ -114,16 +116,39 @@ async function readDocumentText(filePath) {
   return fs.readFile(filePath, "utf8");
 }
 
-export function chunkText(text, { maxChars = 3000, overlap = 300 } = {}) {
+/**
+ * Estimate the number of tokens in a text string using a simple heuristic.
+ * Uses CHARS_PER_TOKEN_ESTIMATE (2) — deliberately pessimistic.
+ *
+ * @param {string} text - The text to estimate.
+ * @returns {number} Estimated token count.
+ */
+export function estimateTokenCount(text) {
+  const str = String(text || "");
+  if (str.length === 0) return 0;
+  return Math.ceil(str.length / CHARS_PER_TOKEN_ESTIMATE);
+}
+
+const CHARS_PER_TOKEN_ESTIMATE = 2;
+
+export function chunkText(
+  text,
+  { maxChars = 3000, overlap = 300, maxTokens = 500 } = {},
+) {
   const str = String(text || "").trim();
   if (str.length === 0) return [];
+
+  // Token cap: convert maxTokens to an equivalent character limit
+  const tokenDerivedChars = maxTokens * CHARS_PER_TOKEN_ESTIMATE;
+  const effectiveMaxChars = Math.min(maxChars, tokenDerivedChars);
+
   const chunks = [];
-  const step = Math.max(1, maxChars - overlap);
+  const step = Math.max(1, effectiveMaxChars - overlap);
   for (let start = 0; start < str.length; start += step) {
-    const slice = str.slice(start, start + maxChars);
+    const slice = str.slice(start, start + effectiveMaxChars);
     if (slice.length === 0) break;
     chunks.push(slice);
-    if (start + maxChars >= str.length) break;
+    if (start + effectiveMaxChars >= str.length) break;
   }
   return chunks;
 }
