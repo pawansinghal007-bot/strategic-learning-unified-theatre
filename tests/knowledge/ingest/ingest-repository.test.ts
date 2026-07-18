@@ -123,6 +123,246 @@ describe("ingestRepository", () => {
     expect(mocks.upsertChunks).not.toHaveBeenCalled();
   });
 
+  it("stops traversal when a discovered path is neither a file nor a directory", async () => {
+    const { ingestRepository } =
+      await import("../../../src/knowledge/ingest/ingest-repository.js");
+
+    const specialPath = path.join(tempDir, "special-entry");
+    const statSpy = vi.spyOn(fs, "stat").mockImplementation(async (target) => {
+      if (target === specialPath) {
+        return {
+          isDirectory: () => false,
+          isFile: () => false,
+        } as any;
+      }
+
+      const actualFs =
+        await vi.importActual<typeof import("node:fs/promises")>(
+          "node:fs/promises",
+        );
+      return actualFs.stat(target as string);
+    });
+
+    const opendirSpy = vi.spyOn(fs, "opendir").mockImplementation(
+      async () =>
+        ({
+          async *[Symbol.asyncIterator]() {
+            yield {
+              name: "special-entry",
+              isDirectory: () => false,
+              isFile: () => false,
+            };
+          },
+        }) as any,
+    );
+
+    mocks.embedTextBatch.mockResolvedValue([]);
+
+    await ingestRepository({ baseDir: tempDir });
+
+    expect(mocks.upsertChunks).not.toHaveBeenCalled();
+    statSpy.mockRestore();
+    opendirSpy.mockRestore();
+  });
+
+  it("walks file entries when the directory entry is a regular file", async () => {
+    const { ingestRepository } =
+      await import("../../../src/knowledge/ingest/ingest-repository.js");
+
+    const fileEntryPath = path.join(tempDir, "nested", "real-file.md");
+    await fs.mkdir(path.dirname(fileEntryPath), { recursive: true });
+    await fs.writeFile(fileEntryPath, "content");
+
+    const originalOpendir = fs.opendir;
+    const opendirSpy = vi
+      .spyOn(fs, "opendir")
+      .mockImplementation(async (target) => {
+        if (target === tempDir) {
+          return {
+            async *[Symbol.asyncIterator]() {
+              yield {
+                name: "nested",
+                isDirectory: () => true,
+                isFile: () => false,
+              };
+            },
+          } as any;
+        }
+
+        return originalOpendir(target as any);
+      });
+
+    mocks.embedTextBatch.mockResolvedValue([[0.1, 0.2, 0.3]]);
+
+    await ingestRepository({ baseDir: tempDir });
+
+    expect(mocks.upsertChunks).toHaveBeenCalledTimes(1);
+    opendirSpy.mockRestore();
+  });
+
+  it("excludes files inside a baselines directory anywhere in the tree", async () => {
+    const { ingestRepository } =
+      await import("../../../src/knowledge/ingest/ingest-repository.js");
+
+    const nestedBaselinesFile = path.join(
+      tempDir,
+      "docs",
+      "archive",
+      "baselines",
+      "anything.md",
+    );
+    await fs.mkdir(path.dirname(nestedBaselinesFile), { recursive: true });
+    await fs.writeFile(nestedBaselinesFile, "should be excluded");
+
+    const deepBaselinesFile = path.join(
+      tempDir,
+      "some",
+      "other",
+      "path",
+      "baselines",
+      "x.md",
+    );
+    await fs.mkdir(path.dirname(deepBaselinesFile), { recursive: true });
+    await fs.writeFile(deepBaselinesFile, "also should be excluded");
+
+    mocks.embedTextBatch.mockResolvedValue([[0.1, 0.2, 0.3]]);
+
+    await ingestRepository({ baseDir: tempDir });
+
+    expect(mocks.upsertChunks).not.toHaveBeenCalled();
+  });
+
+  it("excludes PROJECT_ARCHITECTURE_BASELINE markdown snapshots by pattern", async () => {
+    const { ingestRepository } =
+      await import("../../../src/knowledge/ingest/ingest-repository.js");
+
+    const files = [
+      path.join(tempDir, "PROJECT_ARCHITECTURE_BASELINE.md"),
+      path.join(
+        tempDir,
+        "docs",
+        "archive",
+        "PROJECT_ARCHITECTURE_BASELINE-2026-06-17T23-57-49.md",
+      ),
+      path.join(
+        tempDir,
+        "some",
+        "other",
+        "PROJECT_ARCHITECTURE_BASELINE-20260605-071822.md",
+      ),
+    ];
+
+    for (const file of files) {
+      await fs.mkdir(path.dirname(file), { recursive: true });
+      await fs.writeFile(file, "baseline snapshot content");
+    }
+
+    mocks.embedTextBatch.mockResolvedValue([[0.1, 0.2, 0.3]]);
+
+    await ingestRepository({ baseDir: tempDir });
+
+    expect(mocks.upsertChunks).not.toHaveBeenCalled();
+  });
+
+  it("excludes project_audit_dump.txt by exact basename", async () => {
+    const { ingestRepository } =
+      await import("../../../src/knowledge/ingest/ingest-repository.js");
+
+    const auditFile = path.join(
+      tempDir,
+      "some",
+      "nested",
+      "project_audit_dump.txt",
+    );
+    await fs.mkdir(path.dirname(auditFile), { recursive: true });
+    await fs.writeFile(auditFile, "audit dump content");
+
+    mocks.embedTextBatch.mockResolvedValue([[0.1, 0.2, 0.3]]);
+
+    await ingestRepository({ baseDir: tempDir });
+
+    expect(mocks.upsertChunks).not.toHaveBeenCalled();
+  });
+
+  it("keeps the existing exact-basename exclusions working", async () => {
+    const { ingestRepository } =
+      await import("../../../src/knowledge/ingest/ingest-repository.js");
+
+    const excludedFiles = [
+      path.join(tempDir, "package-lock.json"),
+      path.join(tempDir, "sonar-all-issues.json"),
+      path.join(tempDir, "repo-tree.txt"),
+    ];
+
+    for (const file of excludedFiles) {
+      await fs.writeFile(file, "excluded content");
+    }
+
+    mocks.embedTextBatch.mockResolvedValue([[0.1, 0.2, 0.3]]);
+
+    await ingestRepository({ baseDir: tempDir });
+
+    expect(mocks.upsertChunks).not.toHaveBeenCalled();
+  });
+
+  it("keeps unrelated files included", async () => {
+    const { ingestRepository } =
+      await import("../../../src/knowledge/ingest/ingest-repository.js");
+
+    const realFile = path.join(tempDir, "src", "some-real-file.ts");
+    await fs.mkdir(path.dirname(realFile), { recursive: true });
+    await fs.writeFile(realFile, "export const x = 1;");
+
+    mocks.embedTextBatch.mockResolvedValue([[0.1, 0.2, 0.3]]);
+
+    await ingestRepository({ baseDir: tempDir });
+
+    expect(mocks.upsertChunks).toHaveBeenCalledTimes(1);
+  });
+
+  it("excludes bundled JavaScript files that are not real source documents", async () => {
+    const { ingestRepository } =
+      await import("../../../src/knowledge/ingest/ingest-repository.js");
+
+    const bundledFile = path.join(tempDir, "src", "app.bundled.cjs");
+    await fs.mkdir(path.dirname(bundledFile), { recursive: true });
+    await fs.writeFile(bundledFile, "module.exports = {};");
+
+    mocks.embedTextBatch.mockResolvedValue([[0.1, 0.2, 0.3]]);
+
+    await ingestRepository({ baseDir: tempDir });
+
+    expect(mocks.upsertChunks).not.toHaveBeenCalled();
+  });
+
+  it("skips empty files without creating chunks", async () => {
+    const { ingestRepository } =
+      await import("../../../src/knowledge/ingest/ingest-repository.js");
+
+    const emptyFile = path.join(tempDir, "empty.md");
+    await fs.writeFile(emptyFile, "");
+
+    mocks.embedTextBatch.mockResolvedValue([[0.1, 0.2, 0.3]]);
+
+    await ingestRepository({ baseDir: tempDir });
+
+    expect(mocks.upsertChunks).not.toHaveBeenCalled();
+  });
+
+  it("treats basename exclusions case-sensitively", async () => {
+    const { ingestRepository } =
+      await import("../../../src/knowledge/ingest/ingest-repository.js");
+
+    const mixedCaseFile = path.join(tempDir, "PROJECT_AUDIT_DUMP.TXT");
+    await fs.writeFile(mixedCaseFile, "mixed case audit content");
+
+    mocks.embedTextBatch.mockResolvedValue([[0.1, 0.2, 0.3]]);
+
+    await ingestRepository({ baseDir: tempDir });
+
+    expect(mocks.upsertChunks).toHaveBeenCalledTimes(1);
+  });
+
   it("handles file read errors gracefully", async () => {
     const { ingestRepository } =
       await import("../../../src/knowledge/ingest/ingest-repository.js");

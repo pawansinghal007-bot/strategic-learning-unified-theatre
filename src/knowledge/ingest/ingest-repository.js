@@ -27,6 +27,7 @@ const EXCLUDED_FILES = new Set([
   "sonar-all-issues.json",
   "sonar-security-issues.json",
   "repo-tree.txt",
+  "project_audit_dump.txt",
   "PROJECT_ARCHITECTURE_BASELINE.md",
   "docs/archive/baselines/PROJECT_ARCHITECTURE_BASELINE.md",
 ]);
@@ -40,6 +41,7 @@ const EXCLUDED_DIRS = new Set([
   ".tmp",
   ".venv",
   "electron-ui",
+  "baselines",
   "reports",
   "release",
   "test-results",
@@ -82,6 +84,7 @@ async function* walkFiles(root) {
 function isSupported(filePath) {
   const base = path.basename(filePath);
   if (EXCLUDED_FILES.has(base)) return false;
+  if (/^PROJECT_ARCHITECTURE_BASELINE.*\.md$/.test(base)) return false;
   if (base.endsWith(".bundled.cjs")) return false;
   const ext = path.extname(filePath).toLowerCase();
   return SUPPORTED_EXTENSIONS.has(ext);
@@ -99,6 +102,7 @@ function getSourceType(filePath) {
     ".tsx": "tsx",
     ".json": "json",
   };
+  // v8 ignore next - getSourceType is only called for supported extensions from isSupported(), so the fallback is effectively unreachable in normal ingestion.
   return map[ext] || "text";
 }
 
@@ -176,6 +180,7 @@ function createChunksForFile({
 
 async function buildChunksForBatch(batch, absoluteBaseDir, defaultFeatureArea) {
   const chunks = [];
+  const fileChunksMap = new Map();
   for (const filePath of batch) {
     try {
       const text = await fs.readFile(filePath, "utf8");
@@ -186,12 +191,17 @@ async function buildChunksForBatch(batch, absoluteBaseDir, defaultFeatureArea) {
         defaultFeatureArea,
       });
       chunks.push(...fileChunks);
+      if (fileChunks.length > 0) {
+        const relativePath = path.relative(absoluteBaseDir, filePath);
+        const docId = `repo:${relativePath.split(path.sep).join("/")}`;
+        fileChunksMap.set(docId, fileChunks);
+      }
     } catch (err) {
       // v8 ignore next - environment-dependent: root user bypasses file permissions
       console.warn(`[knowledge] Skipping ${filePath}: ${err}`);
     }
   }
-  return chunks;
+  return { chunks, fileChunksMap };
 }
 
 const MAX_CHUNK_CHARS = 6000;
@@ -305,18 +315,19 @@ export async function ingestRepository(options) {
       const docId = `repo:${relativePath.split(path.sep).join("/")}`;
       const fileHash = computeFileHash(text);
       currentFiles.set(docId, fileHash);
-
-      const chunks = createChunksForFile({
-        text,
-        filePath,
-        absoluteBaseDir,
-        defaultFeatureArea,
-      });
-      if (chunks.length > 0) {
-        fileChunksMap.set(docId, chunks);
-      }
     } catch (err) {
       console.warn(`[knowledge] Skipping ${filePath}: ${err}`);
+    }
+  }
+
+  const { fileChunksMap: builtFileChunksMap } = await buildChunksForBatch(
+    files,
+    absoluteBaseDir,
+    defaultFeatureArea,
+  );
+  for (const [docId, chunks] of builtFileChunksMap) {
+    if (chunks.length > 0) {
+      fileChunksMap.set(docId, chunks);
     }
   }
 
