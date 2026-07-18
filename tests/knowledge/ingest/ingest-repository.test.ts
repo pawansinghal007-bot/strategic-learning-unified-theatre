@@ -123,45 +123,82 @@ describe("ingestRepository", () => {
     expect(mocks.upsertChunks).not.toHaveBeenCalled();
   });
 
-  it("stops traversal when a discovered path is neither a file nor a directory", async () => {
+  it("stops walking when the root entry is neither a file nor a directory", async () => {
     const { ingestRepository } =
       await import("../../../src/knowledge/ingest/ingest-repository.js");
 
-    const specialPath = path.join(tempDir, "special-entry");
+    const realStat = fs.stat;
     const statSpy = vi.spyOn(fs, "stat").mockImplementation(async (target) => {
-      if (target === specialPath) {
+      if (target === tempDir) {
         return {
-          isDirectory: () => false,
           isFile: () => false,
+          isDirectory: () => false,
         } as any;
       }
-
-      const actualFs =
-        await vi.importActual<typeof import("node:fs/promises")>(
-          "node:fs/promises",
-        );
-      return actualFs.stat(target as string);
+      return realStat(target as any);
     });
 
-    const opendirSpy = vi.spyOn(fs, "opendir").mockImplementation(
-      async () =>
-        ({
-          async *[Symbol.asyncIterator]() {
-            yield {
-              name: "special-entry",
-              isDirectory: () => false,
-              isFile: () => false,
-            };
-          },
-        }) as any,
-    );
-
-    mocks.embedTextBatch.mockResolvedValue([]);
+    mocks.embedTextBatch.mockResolvedValue([[0.1, 0.2, 0.3]]);
 
     await ingestRepository({ baseDir: tempDir });
 
     expect(mocks.upsertChunks).not.toHaveBeenCalled();
+
     statSpy.mockRestore();
+  });
+
+  it("skips a directory entry that is neither a file nor a directory", async () => {
+    const { ingestRepository } =
+      await import("../../../src/knowledge/ingest/ingest-repository.js");
+
+    const normalFile = path.join(tempDir, "normal.md");
+    await fs.writeFile(normalFile, "normal content");
+
+    const realOpendir = fs.opendir;
+    const opendirSpy = vi
+      .spyOn(fs, "opendir")
+      .mockImplementation(async (target) => {
+        if (target !== tempDir) return realOpendir(target as any);
+
+        const realDir = await realOpendir(target as any);
+        const realEntries = [] as Array<{
+          name: string;
+          isDirectory: () => boolean;
+          isFile: () => boolean;
+        }>;
+        for await (const dirent of realDir) {
+          realEntries.push(dirent as any);
+        }
+
+        const oddDirent = {
+          name: "weird-fifo",
+          isDirectory: () => false,
+          isFile: () => false,
+        };
+
+        const allEntries = [...realEntries, oddDirent];
+
+        return {
+          [Symbol.asyncIterator]() {
+            let i = 0;
+            return {
+              async next() {
+                if (i < allEntries.length) {
+                  return { value: allEntries[i++], done: false };
+                }
+                return { value: undefined, done: true };
+              },
+            };
+          },
+        } as any;
+      });
+
+    mocks.embedTextBatch.mockResolvedValue([[0.1, 0.2, 0.3]]);
+
+    await ingestRepository({ baseDir: tempDir });
+
+    expect(mocks.upsertChunks).toHaveBeenCalledTimes(1);
+
     opendirSpy.mockRestore();
   });
 
@@ -198,6 +235,21 @@ describe("ingestRepository", () => {
 
     expect(mocks.upsertChunks).toHaveBeenCalledTimes(1);
     opendirSpy.mockRestore();
+  });
+
+  it("recurses into nested directories when the dirent is a directory", async () => {
+    const { ingestRepository } =
+      await import("../../../src/knowledge/ingest/ingest-repository.js");
+
+    const nestedFile = path.join(tempDir, "nested", "deep.md");
+    await fs.mkdir(path.dirname(nestedFile), { recursive: true });
+    await fs.writeFile(nestedFile, "nested content");
+
+    mocks.embedTextBatch.mockResolvedValue([[0.1, 0.2, 0.3]]);
+
+    await ingestRepository({ baseDir: tempDir });
+
+    expect(mocks.upsertChunks).toHaveBeenCalledTimes(1);
   });
 
   it("excludes files inside a baselines directory anywhere in the tree", async () => {
