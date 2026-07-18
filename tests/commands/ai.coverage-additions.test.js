@@ -232,6 +232,58 @@ describe("ai.js — additional manifest branch coverage (lines 304-309)", () => 
 
 // ─── renderArray non-empty items path (line 36) ──────────────────────────────
 
+describe("renderArray — empty and fallback output paths", () => {
+  beforeEach(() => {
+    _ctx = makeCtx();
+    process.exitCode = undefined;
+    mockLoadLatest.mockReset();
+    mockMapSnapshot.mockReset();
+    mockMapHandoff.mockReset();
+    mockLoadLatest.mockResolvedValue(null);
+    mockMapSnapshot.mockImplementation((m) => m);
+    mockMapHandoff.mockImplementation((m) => m);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    process.exitCode = undefined;
+  });
+
+  it("renders the empty-state fallback for empty arrays and missing values", async () => {
+    _ctx.sprintRepo.getLatest.mockReturnValue({
+      sprint_name: "Sprint-Empty",
+      status: "active",
+      current_goal: "g",
+      blockers: [],
+      next_steps: [],
+      updated_at: "2026-01-01T00:00:00Z",
+    });
+
+    const { consoleSpy } = await run(["ai", "snapshot"]);
+    const out = consoleSpy.mock.calls.flat().join(" ");
+
+    expect(out).toContain("Blockers: None");
+    expect(out).toContain("Next steps: None");
+  });
+
+  it("renders a fallback summary when the handoff has no content", async () => {
+    _ctx.handoffRepo.getLatest.mockReturnValue({
+      resume_summary: undefined,
+      completed_steps: [],
+      pending_tasks: [],
+      last_agent_output: undefined,
+      updated_at: "2026-01-01T00:00:00Z",
+    });
+
+    const { consoleSpy } = await run(["ai", "snapshot"]);
+    const out = consoleSpy.mock.calls.flat().join(" ");
+
+    expect(out).toContain("Handoff summary:");
+    expect(out).toContain("<none>");
+    expect(out).toContain("Completed steps: None");
+  });
+});
+
 describe("renderArray — non-empty items renders joined string (line 36)", () => {
   beforeEach(() => {
     _ctx = makeCtx();

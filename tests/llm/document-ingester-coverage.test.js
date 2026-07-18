@@ -13,6 +13,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   DocumentIngester,
   chunkText,
+  estimateTokenCount,
 } from "../../src/llm/document-ingester.js";
 import { ExperienceDb } from "../../src/llm/experience-db.js";
 
@@ -86,6 +87,17 @@ describe("chunkText edge cases", () => {
     const chunks = chunkText(text, { tokens: 5, overlap: 0 });
     expect(chunks).toHaveLength(1);
     expect(chunks[0]).toBe("a b c d e");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Helper branches — estimateTokenCount
+// ---------------------------------------------------------------------------
+describe("DocumentIngester helper branches", () => {
+  it("returns 0 for empty text and an estimate for non-empty text", () => {
+    expect(estimateTokenCount("")).toBe(0);
+    expect(estimateTokenCount("abc")).toBe(2);
+    expect(estimateTokenCount("abcd")).toBe(2);
   });
 });
 
@@ -193,6 +205,59 @@ It is 4.
     });
     expect(result.skipped).toBe(false);
     expect(result.chunks).toBe(2);
+    await ingester.db.close();
+  });
+
+  it("falls back to regular chunking when thread frontmatter is not of type thread", async () => {
+    const content = `---
+type: note
+---
+
+## Turn 1 — User
+
+This is a note with turn-like content.
+`;
+    const filePath = await writeFile(tempDir, "thread-note.md", content);
+    const ingester = new DocumentIngester({ baseDir: tempDir });
+    await ingester.db.open();
+    const result = await ingester.ingestFile(filePath);
+    expect(result.skipped).toBe(false);
+    expect(result.chunks).toBeGreaterThan(0);
+    await ingester.db.close();
+  });
+
+  it("falls back to regular chunking when a thread has no usable turn sections", async () => {
+    const content = `---
+type: thread
+---
+
+This thread body has no turn headings.
+`;
+    const filePath = await writeFile(tempDir, "thread-no-turns.md", content);
+    const ingester = new DocumentIngester({ baseDir: tempDir });
+    await ingester.db.open();
+    const result = await ingester.ingestFile(filePath);
+    expect(result.skipped).toBe(false);
+    expect(result.chunks).toBeGreaterThan(0);
+    await ingester.db.close();
+  });
+
+  it("falls back to regular chunking when thread turns are empty after trimming", async () => {
+    const content = `---
+type: thread
+---
+
+## Turn 1 — User
+
+## Turn 2 — Assistant
+
+`;
+    const filePath = await writeFile(tempDir, "thread-empty-turns.md", content);
+    const ingester = new DocumentIngester({ baseDir: tempDir });
+    await ingester.db.open();
+    const result = await ingester.ingestFile(filePath);
+    expect(result.skipped).toBe(false);
+    expect(result.chunks).toBeGreaterThan(0);
     await ingester.db.close();
   });
 });
@@ -389,6 +454,42 @@ describe("DocumentIngester.ingestFromSnapshot — deleted actions", () => {
     expect(result.actions[0].chunks).toBe(0);
   });
 
+  it("marks a snapshot entry as changed when the logged timestamp is older", async () => {
+    const docFile = path.join(tempDir, "changed.md");
+    await fs.writeFile(docFile, "# Changed\nNew content.", "utf8");
+
+    const snapshotPath = path.join(tempDir, "storage-snapshot.json");
+    await fs.writeFile(
+      snapshotPath,
+      JSON.stringify({
+        paths: {
+          [docFile]: { ts: "2026-01-01T00:00:00.000Z", ingestible: true },
+        },
+      }),
+      "utf8",
+    );
+
+    const ingester1 = new DocumentIngester({ baseDir: tempDir });
+    await ingester1.ingestFromSnapshot({ snapshotPath });
+
+    await fs.writeFile(
+      snapshotPath,
+      JSON.stringify({
+        paths: {
+          [docFile]: { ts: "2026-02-01T00:00:00.000Z", ingestible: true },
+        },
+      }),
+      "utf8",
+    );
+
+    const ingester2 = new DocumentIngester({ baseDir: tempDir });
+    const result = await ingester2.ingestFromSnapshot({ snapshotPath });
+
+    expect(result.actions).toHaveLength(1);
+    expect(result.actions[0].type).toBe("changed");
+    expect(result.actions[0].path).toBe(docFile);
+  });
+
   // ingestFromSnapshot: force=true re-ingests already-ingested file
   it("re-ingests existing files when force=true", async () => {
     const docFile = path.join(tempDir, "guide.md");
@@ -483,6 +584,34 @@ describe("DocumentIngester.ingestThread — new thread with 0 chunks", () => {
     );
     expect(result.skipped).toBe(true);
     expect(result.chunks).toBe(0);
+  });
+
+  it("returns skipped when thread file is already logged", async () => {
+    const threadFile = path.join(tempDir, "already-thread.md");
+    await fs.writeFile(
+      threadFile,
+      `---
+type: thread
+platform: chatgpt
+captured_at: 2026-01-01T00:00:00.000Z
+turn_count: 1
+---
+
+## Turn 1 — User
+
+Hello world!
+`,
+      "utf8",
+    );
+
+    const ingester = new DocumentIngester({ baseDir: tempDir });
+    await ingester.ingestThread(threadFile, { platform: "chatgpt" });
+
+    const second = await ingester.ingestThread(threadFile, {
+      platform: "chatgpt",
+    });
+    expect(second.skipped).toBe(true);
+    expect(second.chunks).toBe(0);
   });
 
   // line 73: thread file already in log (covered by existing test; this tests

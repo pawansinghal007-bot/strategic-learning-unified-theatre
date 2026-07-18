@@ -39,6 +39,9 @@ import {
   getWorkspaceRoutingTimeline,
   getRoutingHistory,
   resetRoutingHistory,
+  getWorkspaceTimeBuckets,
+  getGlobalWorkspaceAnalytics,
+  getWorkspaceRoutingSummary,
 } from "../../src/llm/routing-history.js";
 
 // ---------------------------------------------------------------------------
@@ -280,6 +283,83 @@ describe("getWorkspaceRoutingTimeline — mixed severities in same workspace", (
     expect(timelineB).toHaveLength(1);
     expect(timelineA.every((e) => e.workspaceId === "ws-A")).toBe(true);
     expect(timelineB[0].workspaceId).toBe("ws-B");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// analytics helpers — time buckets / global summaries / empty workspace
+// ---------------------------------------------------------------------------
+describe("routing-history analytics helpers", () => {
+  it("groups entries into hour/day buckets and calculates aggregate metrics", () => {
+    recordDecision({
+      request: makeRequest({ workspaceId: "ws-analytics" }),
+      provider: "openai",
+      success: true,
+      latencyMs: 120,
+    });
+    recordDecision({
+      request: makeRequest({ workspaceId: "ws-analytics" }),
+      provider: "local",
+      success: false,
+      errorMessage: "offline",
+    });
+
+    const hourBuckets = getWorkspaceTimeBuckets("ws-analytics", "hour");
+    const dayBuckets = getWorkspaceTimeBuckets("ws-analytics", "day");
+
+    expect(hourBuckets).toHaveLength(1);
+    expect(hourBuckets[0]).toMatchObject({
+      total: 2,
+      successCount: 1,
+      failureCount: 1,
+      successRate: 50,
+      avgLatencyMs: 120,
+    });
+
+    expect(dayBuckets).toHaveLength(1);
+    expect(dayBuckets[0].bucket).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it("uses the unscoped workspace bucket and provider filter for global analytics", () => {
+    recordDecision({
+      request: makeRequest({ workspaceId: undefined }),
+      provider: "openai",
+      success: true,
+      latencyMs: 80,
+    });
+    recordDecision({
+      request: makeRequest({ workspaceId: "ws-filter" }),
+      provider: "gemini",
+      success: false,
+      latencyMs: 200,
+    });
+
+    const analytics = getGlobalWorkspaceAnalytics({ provider: "openai" });
+
+    expect(analytics).toHaveLength(1);
+    expect(analytics[0]).toMatchObject({
+      workspaceId: "unscoped",
+      total: 1,
+      successRate: 100,
+      errorRate: 0,
+      avgLatencyMs: 80,
+    });
+  });
+
+  it("returns an empty summary when a workspace has no matching history", () => {
+    const summary = getWorkspaceRoutingSummary("missing-workspace");
+
+    expect(summary).toMatchObject({
+      workspaceId: "missing-workspace",
+      total: 0,
+      successCount: 0,
+      failureCount: 0,
+      successRate: 0,
+      avgLatencyMs: 0,
+      errorRate: 0,
+    });
+    expect(summary.providerCounts).toEqual({});
+    expect(summary.latest).toBeNull();
   });
 });
 

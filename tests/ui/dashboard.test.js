@@ -258,10 +258,15 @@ function buildDOM() {
 }
 
 let fns;
-beforeEach(async () => {
+
+async function loadDashboardModule() {
   buildDOM();
   vi.resetModules();
-  fns = await import("../../src/ui/dashboard.js");
+  return import("../../src/ui/dashboard.js");
+}
+
+beforeEach(async () => {
+  fns = await loadDashboardModule();
 });
 
 // ─── normalizeStateToken ──────────────────────────────────────────────────────
@@ -289,6 +294,14 @@ describe("normalizeStateToken", () => {
 
   it("handles value that is already lowercase with hyphens", () => {
     expect(fns.normalizeStateToken("already-fine")).toBe("already-fine");
+  });
+});
+
+// ─── resetDashboardState ─────────────────────────────────────────────────────
+
+describe("resetDashboardState", () => {
+  it("resets the module-scoped security drift state without throwing", () => {
+    expect(() => fns.resetDashboardState()).not.toThrow();
   });
 });
 
@@ -7671,6 +7684,878 @@ describe("coverable branch coverage — remaining uncovered branches", () => {
     expect(
       document.getElementById("workspace-quota-notifications-output"),
     ).toBeTruthy();
+    document
+      .getElementById("reset-workspace-quota-daily")
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() =>
+      expect(
+        document.getElementById("workspace-quota-notifications-output")
+          ?.textContent,
+      ).toContain('"ok"'),
+    );
+  });
+});
+
+// ============================================================================
+// COVERAGE-100-ANALYSIS.md — Section 4: dashboard.js uncovered branches
+// Target: 40 uncovered branches (BRDA:...,0) across 7 groups (A-G)
+// Strategy: Build minimal DOM without specific elements, then vi.resetModules() + re-import
+// ============================================================================
+
+// ─── Helper: build minimal DOM without specific elements ──────────────────────
+// Builds full DOM then removes specified elements BEFORE module import
+// CRITICAL: Must call vi.resetModules() AFTER this, then import module
+function buildMinimalDOM(excludeIds = [], excludeTestIds = []) {
+  buildDOM();
+  // Remove specified elements AFTER buildDOM but BEFORE module import
+  for (const id of excludeIds) {
+    const el = document.getElementById(id);
+    if (el) el.remove();
+  }
+  for (const testId of excludeTestIds) {
+    const el = document.querySelector(`[data-testid="${testId}"]`);
+    if (el) el.remove();
+  }
+}
+
+function removeElementsById(ids = [], testIds = []) {
+  for (const id of ids) {
+    const el = document.getElementById(id);
+    if (el) el.remove();
+  }
+  for (const testId of testIds) {
+    document.querySelectorAll(`[data-testid="${testId}"]`).forEach((el) => {
+      el.remove();
+    });
+  }
+}
+
+// ─── GROUP A: State Setter Functions (4 branches) ────────────────────────────
+// BRDA:83,22,1,0 — setWalkthroughState: syncEl null check
+// BRDA:189,47,1,0 — setDriftHistoryState: driftValueEl null check
+// BRDA:198,50,1,0 — setDemoPersistenceState: persistenceEl null check
+// BRDA:207,53,1,0 — setDemoPersistenceState: standby label check (setComplianceState NOT called)
+
+describe("Group A — State Setter Functions (null element branches)", () => {
+  beforeEach(async () => {
+    fns = await loadDashboardModule();
+  });
+
+  it("setWalkthroughState: syncEl missing → no error (BRDA:83,22,1,0)", async () => {
+    const mod = await import("../../src/ui/dashboard.js");
+    removeElementsById([], ["walkthrough-sync-value"]);
+    expect(() => {
+      mod.setWalkthroughState("Step1", "detail", "active");
+    }).not.toThrow();
+    const stepEl = document.querySelector(
+      '[data-testid="walkthrough-step-value"]',
+    );
+    expect(stepEl?.textContent).toBe("Step1");
+  });
+
+  it("setDriftHistoryState: driftValueEl missing → no error (BRDA:189,47,1,0)", async () => {
+    const mod = await import("../../src/ui/dashboard.js");
+    removeElementsById([], ["compliance-drift-value"]);
+    expect(() => {
+      mod.setDriftHistoryState("DriftLabel", "drift text");
+    }).not.toThrow();
+    const driftEl = document.querySelector(
+      '[data-testid="drift-history-output"]',
+    );
+    expect(driftEl?.textContent).toBe("drift text");
+  });
+
+  it("setDemoPersistenceState: persistenceEl missing → no error (BRDA:198,50,1,0)", async () => {
+    const mod = await import("../../src/ui/dashboard.js");
+    removeElementsById([], ["compliance-persistence-value"]);
+    expect(() => {
+      mod.setDemoPersistenceState("Persisted", "detail");
+    }).not.toThrow();
+  });
+
+  it('setDemoPersistenceState: label="Standby" → setComplianceState NOT called (BRDA:207,53,1,0)', async () => {
+    const mod = await import("../../src/ui/dashboard.js");
+    // Spy on setComplianceState to verify it is NOT called when label is "Standby"
+    const spy = vi.spyOn(mod, "setComplianceState");
+    mod.setDemoPersistenceState("Standby", "detail");
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
+  });
+});
+
+// ─── GROUP B: Filter/Quota Functions (2 branches) ────────────────────────────
+// BRDA:436,95,1,0 — getFilter: returns undefined when no filter
+// BRDA:536,121,1,0 — setQuotaForm: quotaThresholdPct null check
+
+describe("Group B — Filter/Quota Functions", () => {
+  beforeEach(async () => {
+    fns = await loadDashboardModule();
+  });
+
+  it("getFilter: empty filter elements → returns undefined (BRDA:436,95,1,0)", async () => {
+    const mod = await import("../../src/ui/dashboard.js");
+    document.getElementById("filter-provider").value = "";
+    document.getElementById("filter-start").value = "";
+    document.getElementById("filter-end").value = "";
+    const result = mod.getFilter();
+    expect(result).toBeUndefined();
+  });
+
+  it("setQuotaForm: quotaThresholdPct missing → no error (BRDA:536,121,1,0)", async () => {
+    const mod = await import("../../src/ui/dashboard.js");
+    removeElementsById(["quota-threshold-pct"]);
+    expect(() => {
+      mod.setQuotaForm({
+        dailyLimit: 100,
+        weeklyLimit: 500,
+        mode: "alert",
+        fallbackProvider: "gpt-4",
+        alertThresholdPct: 80,
+      });
+    }).not.toThrow();
+    expect(document.getElementById("quota-daily-limit")?.value).toBe("100");
+  });
+});
+
+// ─── GROUP C: Render Functions (2 branches) ──────────────────────────────────
+// BRDA:565,132,0,0 — renderTrends: trendsBody null early return
+// BRDA:579,134,0,0 — renderTimeline: timelineOutput null early return
+
+describe("Group C — Render Functions (null element early returns)", () => {
+  beforeEach(async () => {
+    fns = await loadDashboardModule();
+  });
+
+  it("renderTrends: trendsBody missing → early return no error (BRDA:565,132,0,0)", async () => {
+    const mod = await import("../../src/ui/dashboard.js");
+    removeElementsById(["trends-table-body"]);
+    expect(() => {
+      mod.renderTrends([
+        {
+          provider: "gpt-4",
+          count: 10,
+          successCount: 9,
+          failureCount: 1,
+          avgLatencyMs: 120,
+        },
+      ]);
+    }).not.toThrow();
+  });
+
+  it("renderTimeline: timelineOutput missing → early return no error (BRDA:579,134,0,0)", async () => {
+    const mod = await import("../../src/ui/dashboard.js");
+    removeElementsById(["timeline-output"]);
+    expect(() => {
+      mod.renderTimeline([
+        {
+          title: "Event 1",
+          severity: "info",
+          timestamp: Date.now(),
+          detail: "details",
+        },
+      ]);
+    }).not.toThrow();
+  });
+});
+
+// ─── GROUP D: Audit Functions (1 branch) ─────────────────────────────────────
+// BRDA:615,142,1,0 — setAuditVerificationState: badge/alert guard (only badge present)
+
+describe("Group D — Audit Functions", () => {
+  beforeEach(async () => {
+    fns = await loadDashboardModule();
+  });
+
+  it("setAuditVerificationState: only badge present (no alert) → no error (BRDA:615,142,1,0)", async () => {
+    const mod = await import("../../src/ui/dashboard.js");
+    removeElementsById(["audit-verification-alert"]);
+    expect(() => {
+      mod.setAuditVerificationState({ ok: true });
+    }).not.toThrow();
+    // Function should return early because !badge || !alert
+    const badge = document.getElementById("audit-verification-badge");
+    expect(badge?.textContent).toBe("");
+  });
+});
+
+// ─── GROUP E: Event Handler Callbacks (6 branches) ───────────────────────────
+// BRDA:969,163,1,0 — map-compliance-benchmarks-btn callback
+// BRDA:970,164,1,0 — map-compliance-benchmarks-btn callback (benchmark element)
+// BRDA:1096,167,1,0 — verify-release-blockers-btn callback
+// BRDA:1115,168,1,0 — load-release-readiness-btn callback
+// BRDA:1133,169,1,0 — refresh-sonar-truth-btn callback (releasePanel branch)
+// BRDA:1136,170,1,0 — refresh-sonar-truth-btn callback (readinessOutput branch)
+
+describe("Group E — Event Handler Callbacks", () => {
+  beforeEach(async () => {
+    fns = await loadDashboardModule();
+  });
+
+  it("map-compliance-benchmarks-btn: click → benchmark and output updated (BRDA:969-970)", async () => {
+    await import("../../src/ui/dashboard.js");
+    document
+      .querySelector('[data-testid="map-compliance-benchmarks-btn"]')
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() =>
+      expect(
+        document.querySelector('[data-testid="compliance-benchmark-value"]')
+          ?.textContent,
+      ).toBe("Mapped"),
+    );
+    expect(
+      document.querySelector('[data-testid="compliance-output"]')?.textContent,
+    ).toContain("OWASP Top 10");
+  });
+
+  it("verify-release-blockers-btn: click → blockers output updated (BRDA:1096)", async () => {
+    await import("../../src/ui/dashboard.js");
+    document
+      .querySelector('[data-testid="verify-release-blockers-btn"]')
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() =>
+      expect(
+        document.querySelector('[data-testid="release-blockers-output"]')
+          ?.textContent,
+      ).toContain("quality gate FAILED"),
+    );
+  });
+
+  it("load-release-readiness-btn: click → readiness output updated (BRDA:1115)", async () => {
+    await import("../../src/ui/dashboard.js");
+    document
+      .querySelector('[data-testid="load-release-readiness-btn"]')
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() =>
+      expect(
+        document.querySelector('[data-testid="release-readiness-output"]')
+          ?.textContent,
+      ).toContain("Quality gate currently FAILED"),
+    );
+  });
+
+  it("refresh-sonar-truth-btn: click → releasePanel and readinessOutput updated (BRDA:1133-1136)", async () => {
+    await import("../../src/ui/dashboard.js");
+    document
+      .querySelector('[data-testid="refresh-sonar-truth-btn"]')
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() => {
+      const panel = document.querySelector(
+        '[data-testid="executive-release-panel"]',
+      );
+      expect(panel?.dataset.releaseReadiness).toBe("blocked");
+      const readiness = document.querySelector(
+        '[data-testid="release-readiness-output"]',
+      );
+      expect(readiness?.textContent).toContain(
+        "Sonar quality gate truth re-checked",
+      );
+    });
+  });
+
+  it("missing output elements: click handlers stay safe when targets are absent (BRDA:969-970,1096,1115,1133-1136)", async () => {
+    await import("../../src/ui/dashboard.js");
+    removeElementsById(
+      [],
+      [
+        "compliance-benchmark-value",
+        "compliance-output",
+        "release-blockers-output",
+        "release-readiness-output",
+      ],
+    );
+    document.querySelector('[data-testid="executive-release-panel"]').remove();
+
+    document
+      .querySelector('[data-testid="map-compliance-benchmarks-btn"]')
+      .dispatchEvent(new global.window.Event("click"));
+    document
+      .querySelector('[data-testid="verify-release-blockers-btn"]')
+      .dispatchEvent(new global.window.Event("click"));
+    document
+      .querySelector('[data-testid="load-release-readiness-btn"]')
+      .dispatchEvent(new global.window.Event("click"));
+    document
+      .querySelector('[data-testid="refresh-sonar-truth-btn"]')
+      .dispatchEvent(new global.window.Event("click"));
+
+    expect(
+      document.querySelector('[data-testid="compliance-benchmark-value"]'),
+    ).toBeNull();
+    expect(
+      document.querySelector('[data-testid="release-readiness-output"]'),
+    ).toBeNull();
+    expect(
+      document.querySelector('[data-testid="executive-release-panel"]'),
+    ).toBeNull();
+  });
+});
+
+// ─── GROUP F: Security Functions (20 branches) ───────────────────────────────
+// BRDA:1300,190,1,0 — loadSecurityOverview: output null check
+// BRDA:1313,191,1,0 — saveSecurityBaseline: empty path
+// BRDA:1316,192,1,0 — saveSecurityBaseline: output null check (empty path path)
+// BRDA:1326,193,1,0 — saveSecurityBaseline: output null check (success path)
+// BRDA:1344,198,1,0 — compareSecurityBaseline: currentEl null check
+// BRDA:1353,199,1,0 — compareSecurityBaseline: baselineEl null check
+// BRDA:1360,200,1,0 — compareSecurityBaseline: introducedEl null check
+// BRDA:1378,202,1,0 — compareSecurityBaseline: persistentEl null check
+// BRDA:1379,203,1,0 — compareSecurityBaseline: resolvedEl null check
+// BRDA:1380,204,1,0 — compareSecurityBaseline: loadedEl null check
+// BRDA:1401,208,1,0 — compareSecurityBaseline: outputEl null check
+// BRDA:1445,228,1,0 — explainIntroducedFindings: output null check
+// BRDA:1454,229,1,0 — explainIntroducedFindings: body null check
+// BRDA:1462,232,1,0 — explainIntroducedFindings: error path
+// BRDA:1465,233,1,0 — loadSecurityTriage: empty path
+// BRDA:1466,234,1,0 — loadSecurityTriage: output null
+// BRDA:1467,235,1,0 — applySecurityTriage: empty path/fingerprint
+// BRDA:1468,236,1,0 — applySecurityTriage: output null
+// BRDA:1469,237,1,0 — runSecretsScan: body null check
+// BRDA:1494,244,1,0 — runSecretsScan: body null check in loop
+
+describe("Group F — Security Functions", () => {
+  beforeEach(async () => {
+    fns = await loadDashboardModule();
+  });
+
+  // BRDA:1300,190,1,0 — loadSecurityOverview: output null check
+  it("loadSecurityOverview: output exists → updated (BRDA:1300,190,1,0)", async () => {
+    await import("../../src/ui/dashboard.js");
+    globalThis.workspaceSecurity = {
+      summarize: vi.fn().mockResolvedValue({
+        snapshot: {
+          total: 5,
+          critical: 1,
+          high: 2,
+          secrets: 1,
+          risks: 1,
+          suppressed: 0,
+          open: 4,
+          accepted: 0,
+          resolved: 1,
+        },
+      }),
+    };
+    document
+      .getElementById("security-load-overview")
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() =>
+      expect(
+        document.getElementById("security-overview-output")?.textContent,
+      ).toContain('"total"'),
+    );
+  });
+
+  it("loadSecurityOverview: output missing → no error (BRDA:1300,190,1,0)", async () => {
+    await import("../../src/ui/dashboard.js");
+    removeElementsById(["security-overview-output"]);
+    globalThis.workspaceSecurity = {
+      summarize: vi.fn().mockResolvedValue({
+        snapshot: {
+          total: 1,
+          critical: 0,
+          high: 0,
+          secrets: 0,
+          risks: 0,
+          suppressed: 0,
+          open: 1,
+          accepted: 0,
+          resolved: 0,
+        },
+      }),
+    };
+    document
+      .getElementById("security-load-overview")
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() =>
+      expect(globalThis.workspaceSecurity.summarize).toHaveBeenCalled(),
+    );
+  });
+
+  // BRDA:1313,191,1,0 — saveSecurityBaseline: empty path → early return
+  it("saveSecurityBaseline: empty path → early return message (BRDA:1313,191,1,0)", async () => {
+    await import("../../src/ui/dashboard.js");
+    document.getElementById("security-baseline-path").value = "";
+    globalThis.workspaceSecurity = {
+      saveBaseline: vi.fn(),
+      summarize: vi.fn(),
+    };
+    document
+      .getElementById("security-save-baseline")
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() =>
+      expect(
+        document.getElementById("security-overview-output")?.textContent,
+      ).toContain("Enter a baseline output path"),
+    );
+    expect(globalThis.workspaceSecurity.saveBaseline).not.toHaveBeenCalled();
+  });
+
+  // BRDA:1316,192,1,0 & BRDA:1326,193,1,0 — saveSecurityBaseline: output exists → updated
+  it("saveSecurityBaseline: valid path → output updated (BRDA:1316,192,1,0 & BRDA:1326,193,1,0)", async () => {
+    await import("../../src/ui/dashboard.js");
+    document.getElementById("security-baseline-path").value =
+      "/tmp/baseline.json";
+    globalThis.workspaceSecurity = {
+      saveBaseline: vi
+        .fn()
+        .mockResolvedValue({ ok: true, path: "/tmp/baseline.json" }),
+      summarize: vi.fn(),
+    };
+    document
+      .getElementById("security-save-baseline")
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() =>
+      expect(
+        document.getElementById("security-overview-output")?.textContent,
+      ).toContain('"ok"'),
+    );
+  });
+
+  it("saveSecurityBaseline: output missing → no error (BRDA:1316,192,1,0 & BRDA:1326,193,1,0)", async () => {
+    await import("../../src/ui/dashboard.js");
+    removeElementsById(["security-overview-output"]);
+    document.getElementById("security-baseline-path").value =
+      "/tmp/baseline.json";
+    globalThis.workspaceSecurity = {
+      saveBaseline: vi
+        .fn()
+        .mockResolvedValue({ ok: true, path: "/tmp/baseline.json" }),
+      summarize: vi.fn(),
+    };
+    document
+      .getElementById("security-save-baseline")
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() =>
+      expect(globalThis.workspaceSecurity.saveBaseline).toHaveBeenCalled(),
+    );
+  });
+
+  // BRDA:1344-1380 — compareSecurityBaseline: drift elements null checks
+  it("compareSecurityBaseline: all drift elements missing → no error (BRDA:1344-1380)", async () => {
+    await import("../../src/ui/dashboard.js");
+    removeElementsById([
+      "security-drift-current",
+      "security-drift-baseline",
+      "security-drift-introduced",
+      "security-drift-persistent",
+      "security-drift-resolved",
+      "security-drift-loaded",
+      "security-drift-output",
+    ]);
+    document.getElementById("security-overview-output").textContent =
+      JSON.stringify({ total: 5 });
+    document.getElementById("security-drift-baseline-path").value =
+      "/tmp/baseline.json";
+    globalThis.workspaceSecurity = {
+      compareBaseline: vi.fn().mockResolvedValue({
+        counts: {
+          current: 5,
+          baseline: 3,
+          introduced: 2,
+          persistent: 1,
+          resolved: 1,
+        },
+        baselineLoaded: true,
+      }),
+      getDriftClassification: vi
+        .fn()
+        .mockResolvedValue({ ok: true, classification: "minor" }),
+      summarize: vi.fn(),
+    };
+    document
+      .getElementById("security-drift-compare-btn")
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() => {
+      expect(globalThis.workspaceSecurity.compareBaseline).toHaveBeenCalled();
+    });
+  });
+
+  // BRDA:1401,208,1,0 — compareSecurityBaseline: outputEl null check
+  it("compareSecurityBaseline: outputEl missing → no error (BRDA:1401,208,1,0)", async () => {
+    await import("../../src/ui/dashboard.js");
+    removeElementsById(["security-drift-output"]);
+    document.getElementById("security-overview-output").textContent =
+      JSON.stringify({ total: 5 });
+    globalThis.workspaceSecurity = {
+      compareBaseline: vi.fn().mockResolvedValue({
+        counts: {
+          current: 5,
+          baseline: 3,
+          introduced: 2,
+          persistent: 1,
+          resolved: 1,
+        },
+        baselineLoaded: true,
+      }),
+      getDriftClassification: vi
+        .fn()
+        .mockResolvedValue({ ok: true, classification: "minor" }),
+      summarize: vi.fn(),
+    };
+    document
+      .getElementById("security-drift-compare-btn")
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() => {
+      expect(globalThis.workspaceSecurity.compareBaseline).toHaveBeenCalled();
+    });
+  });
+
+  // BRDA:1445,228,1,0 — explainIntroducedFindings: no drift result → error message
+  it("explainIntroducedFindings: no drift result → error message (BRDA:1445,228,1,0)", async () => {
+    await import("../../src/ui/dashboard.js");
+    globalThis.workspaceSecurity = {
+      explainIntroduced: vi.fn(),
+      summarize: vi.fn(),
+    };
+    document
+      .getElementById("security-ai-explain-btn")
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() =>
+      expect(
+        document.getElementById("security-ai-output")?.textContent,
+      ).toContain("No drift result available"),
+    );
+  });
+
+  // BRDA:1454,229,1,0 — explainIntroducedFindings: body null check
+  it("explainIntroducedFindings: body missing → no error (BRDA:1454,229,1,0)", async () => {
+    await import("../../src/ui/dashboard.js");
+    removeElementsById([], ["security-ai-body"]);
+    // Set up drift result via compareBaseline first
+    document.getElementById("security-overview-output").textContent =
+      JSON.stringify({ total: 5 });
+    document.getElementById("security-drift-baseline-path").value =
+      "/tmp/baseline.json";
+    globalThis.workspaceSecurity = {
+      compareBaseline: vi.fn().mockResolvedValue({
+        counts: {
+          current: 5,
+          baseline: 3,
+          introduced: 2,
+          persistent: 1,
+          resolved: 1,
+        },
+        baselineLoaded: true,
+        introduced: [],
+        resolved: [],
+        persistent: [],
+      }),
+      getDriftClassification: vi
+        .fn()
+        .mockResolvedValue({ ok: true, classification: "minor" }),
+      explainIntroduced: vi.fn().mockResolvedValue({ items: [] }),
+      summarize: vi.fn(),
+    };
+    // Trigger compare first to set module-level drift result
+    document
+      .getElementById("security-drift-compare-btn")
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() => {
+      expect(globalThis.workspaceSecurity.compareBaseline).toHaveBeenCalled();
+    });
+    // Now trigger explain
+    document
+      .getElementById("security-ai-explain-btn")
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() => {
+      expect(globalThis.workspaceSecurity.explainIntroduced).toHaveBeenCalled();
+    });
+  });
+
+  // BRDA:1462,232,1,0 — explainIntroducedFindings: error path
+  it("explainIntroducedFindings: API error → error message displayed (BRDA:1462,232,1,0)", async () => {
+    await import("../../src/ui/dashboard.js");
+    // Set up drift result first
+    document.getElementById("security-overview-output").textContent =
+      JSON.stringify({ total: 5 });
+    document.getElementById("security-drift-baseline-path").value =
+      "/tmp/baseline.json";
+    globalThis.workspaceSecurity = {
+      compareBaseline: vi.fn().mockResolvedValue({
+        counts: {
+          current: 5,
+          baseline: 3,
+          introduced: 2,
+          persistent: 1,
+          resolved: 1,
+        },
+        baselineLoaded: true,
+        introduced: [],
+        resolved: [],
+        persistent: [],
+      }),
+      getDriftClassification: vi
+        .fn()
+        .mockResolvedValue({ ok: true, classification: "minor" }),
+      explainIntroduced: vi.fn().mockRejectedValue(new Error("API timeout")),
+      summarize: vi.fn(),
+    };
+    // Trigger compare first
+    document
+      .getElementById("security-drift-compare-btn")
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() => {
+      expect(globalThis.workspaceSecurity.compareBaseline).toHaveBeenCalled();
+    });
+    // Now trigger explain which will fail
+    document
+      .getElementById("security-ai-explain-btn")
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() =>
+      expect(
+        document.getElementById("security-ai-output")?.textContent,
+      ).toContain("API timeout"),
+    );
+  });
+
+  // BRDA:1465,233,1,0 — loadSecurityTriage: empty path → early return
+  it("loadSecurityTriage: empty path → early return (BRDA:1465,233,1,0)", async () => {
+    await import("../../src/ui/dashboard.js");
+    document.getElementById("security-triage-path").value = "";
+    globalThis.workspaceSecurity = {
+      loadTriage: vi.fn(),
+      summarize: vi.fn(),
+    };
+    document
+      .getElementById("security-load-triage")
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() => {
+      expect(globalThis.workspaceSecurity.loadTriage).not.toHaveBeenCalled();
+    });
+  });
+
+  // BRDA:1466,234,1,0 — loadSecurityTriage: output null check (tested with output existing)
+  it("loadSecurityTriage: valid path → output updated (BRDA:1466,234,1,0)", async () => {
+    await import("../../src/ui/dashboard.js");
+    document.getElementById("security-triage-path").value = "/tmp/triage.json";
+    globalThis.workspaceSecurity = {
+      loadTriage: vi.fn().mockResolvedValue({ ok: true, count: 5 }),
+      summarize: vi.fn(),
+    };
+    document
+      .getElementById("security-load-triage")
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() =>
+      expect(
+        document.getElementById("security-overview-output")?.textContent,
+      ).toContain('"ok"'),
+    );
+  });
+
+  // BRDA:1467,235,1,0 — applySecurityTriage: empty path/fingerprint → early return
+  it("applySecurityTriage: empty fingerprint → early return (BRDA:1467,235,1,0)", async () => {
+    await import("../../src/ui/dashboard.js");
+    document.getElementById("security-triage-path").value = "/tmp/triage.json";
+    document.getElementById("security-triage-fingerprint").value = "";
+    globalThis.workspaceSecurity = {
+      setTriage: vi.fn(),
+      summarize: vi.fn(),
+    };
+    document
+      .getElementById("security-set-triage")
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() => {
+      expect(globalThis.workspaceSecurity.setTriage).not.toHaveBeenCalled();
+    });
+  });
+
+  // BRDA:1468,236,1,0 — applySecurityTriage: output null check (tested with output existing)
+  it("applySecurityTriage: valid inputs → output updated (BRDA:1468,236,1,0)", async () => {
+    await import("../../src/ui/dashboard.js");
+    document.getElementById("security-triage-path").value = "/tmp/triage.json";
+    document.getElementById("security-triage-fingerprint").value = "fp-123";
+    document.getElementById("security-triage-status").value = "accepted";
+    document.getElementById("security-triage-reason").value = "False positive";
+    globalThis.workspaceSecurity = {
+      setTriage: vi.fn().mockResolvedValue({ ok: true, fingerprint: "fp-123" }),
+      summarize: vi.fn(),
+    };
+    document
+      .getElementById("security-set-triage")
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() =>
+      expect(
+        document.getElementById("security-overview-output")?.textContent,
+      ).toContain('"ok"'),
+    );
+  });
+
+  // BRDA:1469,237,1,0 & BRDA:1494,244,1,0 — runSecretsScan: body null checks
+  it("runSecretsScan: body missing → no error (BRDA:1469,237,1,0 & BRDA:1494,244,1,0)", async () => {
+    await import("../../src/ui/dashboard.js");
+    removeElementsById(["secrets-findings-body"]);
+    document.getElementById("secrets-repo-path").value = "/repo";
+    globalThis.secrets = {
+      scan: vi.fn().mockResolvedValue({
+        summary: {
+          findings: 2,
+          unsuppressed: 1,
+          suppressed: 1,
+          baselineMatched: 1,
+        },
+        findings: [
+          {
+            severity: "high",
+            ruleId: "AWS001",
+            file: "creds.js",
+            startLine: 10,
+            secretPreview: "sk-...",
+            baselineMatched: false,
+            suppressed: false,
+          },
+        ],
+      }),
+    };
+    document
+      .getElementById("secrets-scan-btn")
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() =>
+      expect(document.getElementById("secrets-findings")?.textContent).toBe(
+        "2",
+      ),
+    );
+  });
+});
+
+// ─── GROUP G: Knowledge/Risk Functions (7 branches) ──────────────────────────
+// BRDA:1552,256,1,0 — runKnowledgeSearch: body null check
+// BRDA:1565,259,1,0 — runKnowledgeSearch: body null check in loop
+// BRDA:1612,271,1,0 — risks-scan-deps: empty target
+// BRDA:1613,272,1,0 — risks-scan-deps: minSev fallback
+// BRDA:1614,273,1,0 — risks-scan-deps: output null
+// BRDA:1615,274,1,0 — risks-scan-deps: error catch
+// BRDA:1703,282,1,0 — reset-workspace-quota-daily: notifications output null
+
+describe("Group G — Knowledge/Risk Functions", () => {
+  beforeEach(async () => {
+    fns = await loadDashboardModule();
+  });
+
+  // BRDA:1552,256,1,0 & BRDA:1565,259,1,0 — runKnowledgeSearch: body null checks
+  it("runKnowledgeSearch: body missing → no error (BRDA:1552,256,1,0 & BRDA:1565,259,1,0)", async () => {
+    await import("../../src/ui/dashboard.js");
+    removeElementsById(["knowledge-results-body"]);
+    document.getElementById("knowledge-query").value = "test query";
+    globalThis.workspaceKnowledge = {
+      search: vi.fn().mockResolvedValue([
+        {
+          score: 0.95,
+          sprint: "S1",
+          feature_area: "auth",
+          section: "setup",
+          path: "docs/sprint1.md",
+        },
+      ]),
+      ingest: vi.fn(),
+    };
+    document
+      .getElementById("knowledge-search-btn")
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() =>
+      expect(
+        document.getElementById("knowledge-output")?.textContent,
+      ).toContain('"score"'),
+    );
+  });
+
+  // BRDA:1612,271,1,0 — risks-scan-deps: empty target → error message
+  it("risks-scan-deps: empty target → error message (BRDA:1612,271,1,0)", async () => {
+    await import("../../src/ui/dashboard.js");
+    document.getElementById("risks-scan-path").value = "";
+    globalThis.workspaceRisks = {
+      scanDependency: vi.fn(),
+    };
+    document
+      .getElementById("risks-scan-deps")
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() =>
+      expect(document.getElementById("risks-output")?.textContent).toContain(
+        "Enter a repo path",
+      ),
+    );
+    expect(globalThis.workspaceRisks.scanDependency).not.toHaveBeenCalled();
+  });
+
+  // BRDA:1613,272,1,0 — risks-scan-deps: minSev fallback (null when empty)
+  it("risks-scan-deps: minSev fallback when severity filter empty (BRDA:1613,272,1,0)", async () => {
+    await import("../../src/ui/dashboard.js");
+    document.getElementById("risks-scan-path").value = "/repo";
+    document.getElementById("risks-filter-severity").value = "";
+    globalThis.workspaceRisks = {
+      scanDependency: vi.fn().mockResolvedValue({
+        result: {
+          findings: [
+            {
+              severity: "low",
+              scanner: "npm-audit",
+              package: "pkg@1.0",
+              ruleId: "R1",
+              title: "Low issue",
+            },
+          ],
+        },
+      }),
+    };
+    document
+      .getElementById("risks-scan-deps")
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() =>
+      expect(document.getElementById("risks-total")?.textContent).toBe("1"),
+    );
+  });
+
+  // BRDA:1614,273,1,0 — risks-scan-deps: output null check (tested with output existing)
+  it("risks-scan-deps: output exists → updated (BRDA:1614,273,1,0)", async () => {
+    await import("../../src/ui/dashboard.js");
+    document.getElementById("risks-scan-path").value = "/repo";
+    globalThis.workspaceRisks = {
+      scanDependency: vi.fn().mockResolvedValue({
+        result: { findings: [] },
+      }),
+    };
+    document
+      .getElementById("risks-scan-deps")
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() =>
+      expect(document.getElementById("risks-output")?.textContent).toContain(
+        '"findings"',
+      ),
+    );
+  });
+
+  // BRDA:1615,274,1,0 — risks-scan-deps: error catch path
+  it("risks-scan-deps: API error → error message displayed (BRDA:1615,274,1,0)", async () => {
+    await import("../../src/ui/dashboard.js");
+    document.getElementById("risks-scan-path").value = "/repo";
+    globalThis.workspaceRisks = {
+      scanDependency: vi.fn().mockRejectedValue(new Error("Trivy not found")),
+    };
+    document
+      .getElementById("risks-scan-deps")
+      .dispatchEvent(new global.window.Event("click"));
+    await vi.waitFor(() =>
+      expect(document.getElementById("risks-output")?.textContent).toContain(
+        "Trivy not found",
+      ),
+    );
+  });
+
+  // BRDA:1703,282,1,0 — reset-workspace-quota-daily: notifications output null
+  it("reset-workspace-quota-daily: notifications output exists → updated (BRDA:1703,282,1,0)", async () => {
+    await import("../../src/ui/dashboard.js");
+    globalThis.workspaceQuota = {
+      get: vi.fn(),
+      set: vi.fn(),
+      recordUsage: vi.fn(),
+      evaluate: vi.fn(),
+      rollup: vi.fn(),
+      latestNotification: vi.fn(),
+      notifications: vi.fn(),
+      resetDaily: vi
+        .fn()
+        .mockResolvedValue({ ok: true, resetAt: "2026-07-16" }),
+      clearUsage: vi.fn(),
+    };
     document
       .getElementById("reset-workspace-quota-daily")
       .dispatchEvent(new global.window.Event("click"));

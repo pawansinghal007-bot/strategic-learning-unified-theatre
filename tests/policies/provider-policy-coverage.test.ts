@@ -32,6 +32,7 @@ import {
   setManualProvider,
   setRoutingMode,
   applyPolicyPreset,
+  applyPolicyToCandidates,
   applyPolicyToCandidatesForWorkspace,
   applyPolicyToCandidatesWithReasonForWorkspace,
   applyPolicyToCandidatesWithReason,
@@ -269,11 +270,7 @@ describe("selectCandidates — line 201-202 (sensitive forceLocal)", () => {
       routingMode: "hybrid",
       allowedProviders: [...ALL],
     });
-    const result = selectCandidates(
-      state,
-      [...ALL],
-      "My SSN is 000-00-0000",
-    );
+    const result = selectCandidates(state, [...ALL], "My SSN is 000-00-0000");
     expect(result).toEqual(["local"]);
   });
 
@@ -313,7 +310,10 @@ describe("selectCandidates — line 201-202 (sensitive forceLocal)", () => {
 
 describe("selectPolicyExplanation — restricted providers + manual provider messages", () => {
   it("includes Restricted message for a finance-sensitive prompt (line 232)", () => {
-    const state = makeState({ routingMode: "hybrid", allowedProviders: [...ALL] });
+    const state = makeState({
+      routingMode: "hybrid",
+      allowedProviders: [...ALL],
+    });
     const explanation = selectPolicyExplanation(
       state,
       "Review this invoice for the balance sheet",
@@ -470,7 +470,10 @@ describe("applyPolicyToCandidatesForWorkspace (lines 364-373)", () => {
 
   it("passes a string request through to selectCandidates", () => {
     // String request → prompt extracted from the string itself
-    const result = applyPolicyToCandidatesForWorkspace([...ALL], "plain string request" as any);
+    const result = applyPolicyToCandidatesForWorkspace(
+      [...ALL],
+      "plain string request" as any,
+    );
     expect(Array.isArray(result)).toBe(true);
   });
 
@@ -610,5 +613,249 @@ describe("selectCandidates — manualProvider pinning", () => {
     // groq is not allowed, so it cannot be pinned
     expect(result).not.toContain("groq");
     // manualProvider gets cleared by sanitizePolicy since it's not in allowed
+  });
+});
+// ---------------------------------------------------------------------------
+// BRDA:66,7,0,0 — sanitizePolicy: cloud mode + manualProvider="local" → null
+// BRDA:73,10,0,0 — sanitizePolicy: manualProvider not in allowedProviders → null
+// BRDA:222,37,1,0 — selectPolicyExplanation: activePreset falsy (false branch)
+// ---------------------------------------------------------------------------
+
+describe("sanitizePolicy — inconsistent state via RESET (lines 66, 73)", () => {
+  it("clears manualProvider='local' when routingMode is cloud (line 66)", () => {
+    // Construct inconsistent state: cloud mode with manualProvider="local"
+    // The reducer prevents this, but sanitizePolicy handles corrupt loaded data
+    const inconsistentState: PolicyState = {
+      routingMode: "cloud",
+      allowedProviders: [...ALL],
+      blockedProviders: [],
+      manualProvider: "local",
+      activePreset: "default",
+      updatedAt: Date.now(),
+    };
+    const afterReset = policyReducer(makeState(), {
+      type: "RESET",
+      defaultState: inconsistentState,
+    });
+    // RESET returns the raw state without sanitization; use ALLOW_PROVIDER
+    // to trigger sanitizePolicy while preserving manualProvider="local"
+    const afterSanitize = policyReducer(afterReset, {
+      type: "ALLOW_PROVIDER",
+      provider: "groq",
+    });
+    expect(afterSanitize.manualProvider).toBeNull();
+  });
+
+  it("clears manualProvider when not in allowedProviders (line 73)", () => {
+    // Construct inconsistent state: manualProvider="groq" but groq not in allowed
+    const inconsistentState: PolicyState = {
+      routingMode: "hybrid",
+      allowedProviders: ["gemini", "openai", "local"],
+      blockedProviders: [],
+      manualProvider: "groq",
+      activePreset: "default",
+      updatedAt: Date.now(),
+    };
+    const afterReset = policyReducer(makeState(), {
+      type: "RESET",
+      defaultState: inconsistentState,
+    });
+    // Use SET_MANUAL_PROVIDER with the same value to trigger sanitizePolicy
+    // without changing manualProvider — sanitizePolicy sees groq not in allowed
+    const afterSanitize = policyReducer(afterReset, {
+      type: "SET_MANUAL_PROVIDER",
+      provider: "groq",
+    });
+    expect(afterSanitize.manualProvider).toBeNull();
+  });
+
+  it("selectPolicyExplanation omits Preset when activePreset is empty (line 222)", () => {
+    const state = makeState({ activePreset: "" });
+    const explanation = selectPolicyExplanation(state, "explain sorting");
+    expect(explanation).toContain("Mode:");
+    expect(explanation).not.toContain("Preset:");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// BRDA:137,21,1,0 — ALLOW_PROVIDER: provider already in allowedProviders (false branch)
+// BRDA:149,22,1,0 — BLOCK_PROVIDER: provider already in blockedProviders (false branch)
+// ---------------------------------------------------------------------------
+
+describe("policyReducer — idempotency guards (lines 137, 149)", () => {
+  it("allowing an already-allowed provider does not duplicate (line 137)", () => {
+    const state = makeState({
+      allowedProviders: ["groq", "gemini", "openai", "perplexity", "local"],
+    });
+    const afterFirst = policyReducer(state, {
+      type: "ALLOW_PROVIDER",
+      provider: "groq",
+    });
+    expect(afterFirst.allowedProviders).toContain("groq");
+    const countAfterFirst = afterFirst.allowedProviders.filter(
+      (p) => p === "groq",
+    ).length;
+    expect(countAfterFirst).toBe(1);
+
+    const afterSecond = policyReducer(afterFirst, {
+      type: "ALLOW_PROVIDER",
+      provider: "groq",
+    });
+    const countAfterSecond = afterSecond.allowedProviders.filter(
+      (p) => p === "groq",
+    ).length;
+    expect(countAfterSecond).toBe(1);
+  });
+
+  it("blocking an already-blocked provider does not duplicate (line 149)", () => {
+    const state = makeState({
+      blockedProviders: ["groq"],
+      allowedProviders: ["gemini", "openai", "perplexity", "local"],
+    });
+    const afterFirst = policyReducer(state, {
+      type: "BLOCK_PROVIDER",
+      provider: "groq",
+    });
+    expect(afterFirst.blockedProviders).toContain("groq");
+    const countAfterFirst = afterFirst.blockedProviders.filter(
+      (p) => p === "groq",
+    ).length;
+    expect(countAfterFirst).toBe(1);
+
+    const afterSecond = policyReducer(afterFirst, {
+      type: "BLOCK_PROVIDER",
+      provider: "groq",
+    });
+    const countAfterSecond = afterSecond.blockedProviders.filter(
+      (p) => p === "groq",
+    ).length;
+    expect(countAfterSecond).toBe(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// BRDA:197,32,1,0 — selectCandidates: typeof request === "string" false branch (object request)
+// BRDA:200,34,0,0 — selectCandidates: approvedProvidersOnly true branch
+// BRDA:226,39,1,0 — selectPolicyExplanation: typeof request === "string" false branch (object request)
+// ---------------------------------------------------------------------------
+
+describe("selectCandidates — object request format (line 197)", () => {
+  it("accepts an object request with prompt field instead of string", () => {
+    const state = makeState({
+      routingMode: "hybrid",
+      allowedProviders: [...ALL],
+    });
+    const result = selectCandidates(state, [...ALL], {
+      prompt: "explain sorting",
+    });
+    expect(result.length).toBeGreaterThan(0);
+  });
+});
+
+describe("selectCandidates — approvedProvidersOnly restriction (line 200)", () => {
+  it("filters to approvedProvidersOnly when prompt triggers finance rule", () => {
+    const state = makeState({
+      routingMode: "hybrid",
+      allowedProviders: [...ALL],
+    });
+    // "balance sheet" triggers the finance rule which sets approvedProvidersOnly to ["openai", "gemini", "local"]
+    const result = selectCandidates(
+      state,
+      [...ALL],
+      "Review this balance sheet for discrepancies",
+    );
+    expect(result).not.toContain("groq");
+    expect(result).not.toContain("perplexity");
+    // Should only contain openai, gemini, local (or subset)
+    result.forEach((p) => {
+      expect(["openai", "gemini", "local"]).toContain(p);
+    });
+  });
+
+  it("filters to approvedProvidersOnly for legal/compliance content", () => {
+    const state = makeState({
+      routingMode: "hybrid",
+      allowedProviders: [...ALL],
+    });
+    // "compliance" triggers the legal rule which sets approvedProvidersOnly to ["openai", "local"]
+    const result = selectCandidates(
+      state,
+      [...ALL],
+      "Review this compliance document for regulatory issues",
+    );
+    expect(result).not.toContain("groq");
+    expect(result).not.toContain("perplexity");
+    expect(result).not.toContain("gemini");
+    result.forEach((p) => {
+      expect(["openai", "local"]).toContain(p);
+    });
+  });
+});
+
+describe("selectPolicyExplanation — object request format (line 226)", () => {
+  it("accepts an object request with prompt field instead of string", () => {
+    const state = makeState({
+      routingMode: "hybrid",
+      allowedProviders: [...ALL],
+    });
+    const explanation = selectPolicyExplanation(state, {
+      prompt: "explain sorting",
+    });
+    expect(explanation).toContain("Mode:");
+  });
+
+  it("detects sensitive task from object request format", () => {
+    const state = makeState({
+      routingMode: "cloud",
+      allowedProviders: [...ALL],
+    });
+    const explanation = selectPolicyExplanation(state, {
+      prompt: "My SSN is 000-00-0000",
+    });
+    expect(explanation).toContain("Forced local:");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// BRDA:325,53,0,0 — applyPolicyToCandidates: typeof request === "string" true branch
+// BRDA:380,56,0,0 — applyPolicyToCandidatesWithReasonForWorkspace: typeof request === "string" true branch
+// ---------------------------------------------------------------------------
+
+describe("applyPolicyToCandidates — string request format (line 325)", () => {
+  it("accepts a plain string request instead of object", () => {
+    const result = applyPolicyToCandidates([...ALL], "explain sorting");
+    expect(Array.isArray(result)).toBe(true);
+    expect(result.length).toBeGreaterThan(0);
+    expect(result.candidates).toBeDefined();
+    expect(result.policyReason).toBeDefined();
+  });
+
+  it("detects sensitive task from string request", () => {
+    const result = applyPolicyToCandidates([...ALL], "My SSN is 000-00-0000");
+    expect(result).toEqual(["local"]);
+  });
+});
+
+describe("applyPolicyToCandidatesWithReasonForWorkspace — string request (line 380)", () => {
+  beforeEach(() => {
+    clearWorkspacePolicyOverride("ws-string-req");
+  });
+
+  it("accepts a plain string request instead of object", () => {
+    const result = applyPolicyToCandidatesWithReasonForWorkspace(
+      [...ALL],
+      "explain sorting",
+    );
+    expect(Array.isArray(result.candidates)).toBe(true);
+    expect(result.candidates.length).toBeGreaterThan(0);
+    expect(result.policySource).toBe("global");
+  });
+
+  it("detects sensitive task from string request with workspace", () => {
+    const result = applyPolicyToCandidatesWithReasonForWorkspace(
+      [...ALL],
+      "My SSN is 000-00-0000",
+    );
+    expect(result.candidates).toEqual(["local"]);
   });
 });
