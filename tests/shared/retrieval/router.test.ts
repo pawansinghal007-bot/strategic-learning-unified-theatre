@@ -9,6 +9,8 @@
  *   - retrieve() dispatches to correct underlying method
  *   - retrieve() error propagation: error vs. empty-success are structurally distinguishable
  *   - decision-receipt logging with alternativesConsidered populated correctly
+ *   - Structural query routing to graph tier (Phase 5)
+ *   - Fallback-to-vector-search for unresolved symbols (Phase 5)
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -20,11 +22,15 @@ const {
   mockSearchCode,
   mockFindSymbolDefinition,
   mockRecordDecision,
+  mockLookupSymbol,
+  mockGetGraph,
 } = vi.hoisted(() => ({
   mockVectorSearch: vi.fn(),
   mockSearchCode: vi.fn(),
   mockFindSymbolDefinition: vi.fn(),
   mockRecordDecision: vi.fn(),
+  mockLookupSymbol: vi.fn(),
+  mockGetGraph: vi.fn(),
 }));
 
 vi.mock("../../../src/shared/retrieval/vector-client", () => ({
@@ -48,6 +54,14 @@ vi.mock("../../../src/shared/audit/decision-receipt.js", () => ({
     };
     mockRecordDecision(entry);
   },
+}));
+
+vi.mock("../../../src/shared/retrieval/graph-lookup.js", () => ({
+  lookupSymbol: (...args: unknown[]) => mockLookupSymbol(...args),
+}));
+
+vi.mock("../../../src/shared/retrieval/graph-state.js", () => ({
+  getGraph: (...args: unknown[]) => mockGetGraph(...args),
 }));
 
 // ─── module under test ────────────────────────────────────────────────────────
@@ -324,10 +338,10 @@ describe("retrieve", () => {
           alternativesConsidered: expect.arrayContaining(["code", "file"]),
         }),
       );
-      // Verify alternativesConsidered has exactly 3 items (the other strategies,
-      // now including "symbol" added in the retrieval-first symbol strategy work)
+      // Verify alternativesConsidered has exactly 4 items (the other strategies,
+      // including "symbol" (retrieval-first symbol) and "graph" (structural graph))
       const callArgs = mockRecordDecision.mock.calls.at(-1)?.[0];
-      expect(callArgs.alternativesConsidered).toHaveLength(3);
+      expect(callArgs.alternativesConsidered).toHaveLength(4);
       expect(callArgs.alternativesConsidered).not.toContain("vector");
     });
 
@@ -346,10 +360,10 @@ describe("retrieve", () => {
           alternativesConsidered: expect.arrayContaining(["vector", "file"]),
         }),
       );
-      // Verify alternativesConsidered has exactly 3 items (the other strategies,
-      // now including "symbol" added in the retrieval-first symbol strategy work)
+      // Verify alternativesConsidered has exactly 4 items (the other strategies,
+      // including "symbol" (retrieval-first symbol) and "graph" (structural graph))
       const callArgs = mockRecordDecision.mock.calls.at(-1)?.[0];
-      expect(callArgs.alternativesConsidered).toHaveLength(3);
+      expect(callArgs.alternativesConsidered).toHaveLength(4);
       expect(callArgs.alternativesConsidered).not.toContain("code");
     });
 
@@ -367,10 +381,10 @@ describe("retrieve", () => {
           alternativesConsidered: expect.arrayContaining(["vector", "code"]),
         }),
       );
-      // Verify alternativesConsidered has exactly 3 items (the other strategies,
-      // now including "symbol" added in the retrieval-first symbol strategy work)
+      // Verify alternativesConsidered has exactly 4 items (the other strategies,
+      // including "symbol" (retrieval-first symbol) and "graph" (structural graph))
       const callArgs = mockRecordDecision.mock.calls.at(-1)?.[0];
-      expect(callArgs.alternativesConsidered).toHaveLength(3);
+      expect(callArgs.alternativesConsidered).toHaveLength(4);
       expect(callArgs.alternativesConsidered).not.toContain("file");
     });
 
@@ -393,6 +407,181 @@ describe("retrieve", () => {
       });
       expect(callArgs.timestamp).toBeDefined();
       expect(typeof callArgs.timestamp).toBe("string");
+    });
+  });
+
+  // ── Phase 5: Structural query routing to graph tier ──────────────────────
+
+  describe("Phase 5 — structural query routing", () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it("chooseStrategy routes 'what calls X' to 'graph'", () => {
+      expect(chooseStrategy("what calls formatName")).toBe("graph");
+    });
+
+    it("chooseStrategy routes 'who calls X' to 'graph'", () => {
+      expect(chooseStrategy("who calls processOrder")).toBe("graph");
+    });
+
+    it("chooseStrategy routes 'what does X call' to 'graph'", () => {
+      expect(chooseStrategy("what does formatName call")).toBe("graph");
+    });
+
+    it("chooseStrategy routes 'callers of X' to 'graph'", () => {
+      expect(chooseStrategy("callers of formatName")).toBe("graph");
+    });
+
+    it("chooseStrategy routes 'callees of X' to 'graph'", () => {
+      expect(chooseStrategy("callees of formatName")).toBe("graph");
+    });
+
+    it("chooseStrategy routes 'call graph for X' to 'graph'", () => {
+      expect(chooseStrategy("call graph for formatName")).toBe("graph");
+    });
+
+    it("chooseStrategy does NOT route partial structural pattern to 'graph'", () => {
+      // "what calls" with no symbol → not structural → vector
+      expect(chooseStrategy("what calls")).toBe("vector");
+    });
+
+    it("chooseStrategy does NOT route structural with extra clauses to 'graph'", () => {
+      // End-of-string anchor prevents matching "what calls X and returns Y"
+      expect(
+        chooseStrategy("what calls formatName and returns the result"),
+      ).toBe("vector");
+    });
+
+    it("retrieve with structural query resolves via graph tier", async () => {
+      mockGetGraph.mockReturnValueOnce({
+        nodes: [
+          {
+            id: "buildGraph",
+            kind: "function",
+            file: "graph-builder.ts",
+            lineRange: [1, 10],
+            signature: "function buildGraph()",
+          },
+        ],
+        edges: [],
+      });
+      mockLookupSymbol.mockReturnValueOnce({
+        name: "buildGraph",
+        kind: "function",
+        file: "graph-builder.ts",
+        line: 1,
+        signature: "function buildGraph()",
+        callers: [],
+        callees: [],
+        charCount: 100,
+      });
+
+      const result = await retrieve("what calls buildGraph");
+
+      expect(result.strategy).toBe("graph");
+      expect(mockGetGraph).toHaveBeenCalled();
+      expect(mockLookupSymbol).toHaveBeenCalledWith(
+        "buildGraph",
+        expect.anything(),
+      );
+      expect(result.results).toEqual(
+        expect.objectContaining({ name: "buildGraph" }),
+      );
+      // vectorSearch should NOT have been called
+      expect(mockVectorSearch).not.toHaveBeenCalled();
+    });
+
+    it("retrieve with mode='graph' and structural query resolves via graph tier", async () => {
+      mockGetGraph.mockReturnValueOnce({ nodes: [], edges: [] });
+      mockLookupSymbol.mockReturnValueOnce({
+        name: "formatName",
+        kind: "function",
+        file: "format.ts",
+        line: 5,
+        callers: [],
+        callees: [],
+        charCount: 50,
+      });
+
+      const result = await retrieve("callers of formatName", { mode: "graph" });
+
+      expect(result.strategy).toBe("graph");
+      expect(mockLookupSymbol).toHaveBeenCalled();
+      expect(mockVectorSearch).not.toHaveBeenCalled();
+    });
+  });
+
+  // ── Phase 5: Fallback to vector-search for unresolved symbols ─────────────
+
+  describe("Phase 5 — fallback to vector-search for unresolved symbols", () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it("falls back to vectorSearch when lookupSymbol returns null", async () => {
+      mockGetGraph.mockReturnValueOnce({ nodes: [], edges: [] });
+      mockLookupSymbol.mockReturnValueOnce(null);
+      mockVectorSearch.mockResolvedValueOnce([
+        {
+          score: 0.8,
+          source: "some-file.ts",
+          text: "related content",
+        },
+      ]);
+
+      const result = await retrieve("what calls nonExistentSymbol");
+
+      expect(result.strategy).toBe("graph");
+      expect(mockGetGraph).toHaveBeenCalled();
+      expect(mockLookupSymbol).toHaveBeenCalledWith(
+        "nonExistentSymbol",
+        expect.anything(),
+      );
+      // Should fall through to vectorSearch
+      expect(mockVectorSearch).toHaveBeenCalled();
+      expect(result.results).toEqual([
+        {
+          score: 0.8,
+          source: "some-file.ts",
+          text: "related content",
+        },
+      ]);
+    });
+
+    it("falls back to vectorSearch when getGraph throws", async () => {
+      mockGetGraph.mockImplementationOnce(() => {
+        throw new Error("Graph build failed");
+      });
+      mockVectorSearch.mockResolvedValueOnce([
+        { score: 0.5, source: "fallback.ts", text: "fallback result" },
+      ]);
+
+      const result = await retrieve("what calls buildGraph");
+
+      expect(result.strategy).toBe("graph");
+      expect(mockVectorSearch).toHaveBeenCalled();
+      expect(result.results).toEqual([
+        { score: 0.5, source: "fallback.ts", text: "fallback result" },
+      ]);
+    });
+
+    it("falls back to vectorSearch when lookupSymbol throws", async () => {
+      mockGetGraph.mockReturnValueOnce({ nodes: [], edges: [] });
+      mockLookupSymbol.mockImplementationOnce(() => {
+        throw new Error("Lookup error");
+      });
+      mockVectorSearch.mockResolvedValueOnce([
+        { score: 0.6, source: "fallback.ts", text: "fallback" },
+      ]);
+
+      const result = await retrieve("what calls buildGraph");
+
+      expect(result.strategy).toBe("graph");
+      expect(mockVectorSearch).toHaveBeenCalled();
+      expect(result.results).toEqual([
+        { score: 0.6, source: "fallback.ts", text: "fallback" },
+      ]);
     });
   });
 });

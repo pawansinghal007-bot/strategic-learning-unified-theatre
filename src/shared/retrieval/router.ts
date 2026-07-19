@@ -16,10 +16,12 @@ import { getRepositoryId } from "./repository-id.js";
 import { resolveSafePath } from "../security/safe-path.js";
 import { PROJECT_ROOT } from "../config/paths";
 import { recordDecision } from "../audit/decision-receipt.js";
+import { lookupSymbol } from "./graph-lookup.js";
+import { getGraph } from "./graph-state.js";
 
 // ─── types ────────────────────────────────────────────────────────────────────
 
-export type RetrievalStrategy = "code" | "vector" | "file" | "symbol";
+export type RetrievalStrategy = "code" | "vector" | "file" | "symbol" | "graph";
 
 export interface RetrieveResult {
   strategy: RetrievalStrategy;
@@ -35,8 +37,9 @@ export interface RetrieveResult {
  * If an explicit mode is provided, it always wins (no exceptions).
  * Otherwise, applies this heuristic in order:
  *   1. Path-like: contains '/' AND ends in plausible file extension → "file"
- *   2. Symbol-like: matches identifier patterns or quotes/regex → "code"
- *   3. Default → "vector"
+ *   2. Structural: "what calls X" or "what does X call" phrasing → "graph"
+ *   3. Symbol-like: matches identifier patterns or quotes/regex → "code"
+ *   4. Default → "vector"
  */
 export function chooseStrategy(
   query: string,
@@ -52,12 +55,17 @@ export function chooseStrategy(
     return "file";
   }
 
-  // 2. Symbol-like heuristic
+  // 2. Structural query heuristic: "what calls X", "what does X call", etc.
+  if (isStructuralQuery(query)) {
+    return "graph";
+  }
+
+  // 3. Symbol-like heuristic
   if (isSymbolLike(query)) {
     return "code";
   }
 
-  // 3. Default to vector
+  // 4. Default to vector
   return "vector";
 }
 
@@ -117,6 +125,71 @@ function isSymbolLike(query: string): boolean {
   return false;
 }
 
+/**
+ * Checks if a query is a structural graph query.
+ *
+ * Matches:
+ *   - "what calls X" / "who calls X" / "what invokes X"
+ *   - "what does X call" / "what does X invoke"
+ *   - "callers of X" / "callees of X"
+ *   - "call graph for X"
+ *
+ * Uses end-of-string anchors to avoid matching queries with extra
+ * clauses like "what calls X and returns Y".
+ */
+function isStructuralQuery(query: string): boolean {
+  const q = query.toLowerCase().trim();
+
+  // "what calls X", "who calls X", "what invokes X"
+  if (/^(what|who)\s+(calls|invokes)\s+\w+$/.test(q)) {
+    return true;
+  }
+
+  // "what does X call", "what does X invoke"
+  if (/^what\s+does\s+\w+\s+(call|invoke)$/.test(q)) {
+    return true;
+  }
+
+  // "callers of X", "callees of X"
+  if (/^(callers|callees)\s+of\s+\w+$/.test(q)) {
+    return true;
+  }
+
+  // "call graph for X"
+  if (/^call\s+graph\s+for\s+\w+$/.test(q)) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Extracts the symbol name from a structural query.
+ * e.g. "what calls formatName" → "formatName"
+ *      "callers of UserService" → "UserService"
+ */
+function extractSymbolFromStructuralQuery(query: string): string | null {
+  const q = query.trim();
+
+  // "what calls X" / "who calls X" / "what invokes X"
+  const match = q.match(/^(?:what|who)\s+(?:calls|invokes)\s+(.+)$/i);
+  if (match) return match[1].trim();
+
+  // "what does X call" / "what does X invoke"
+  const match2 = q.match(/^what\s+does\s+(\S+)\s+(?:call|invoke)$/i);
+  if (match2) return match2[1].trim();
+
+  // "callers of X" / "callees of X"
+  const match3 = q.match(/^(?:callers|callees)\s+of\s+(.+)$/i);
+  if (match3) return match3[1].trim();
+
+  // "call graph for X"
+  const match4 = q.match(/call\s+graph\s+for\s+(.+)$/i);
+  if (match4) return match4[1].trim();
+
+  return null;
+}
+
 // ─── dispatch: retrieve ───────────────────────────────────────────────────────
 
 /**
@@ -145,6 +218,7 @@ export async function retrieve(
     "vector",
     "file",
     "symbol",
+    "graph",
   ];
   const alternativesConsidered = allStrategies.filter(
     (s) => s !== strategy,
@@ -181,6 +255,26 @@ export async function retrieve(
       }
       case "symbol": {
         results = await findSymbolDefinition(query, getRepositoryId());
+        break;
+      }
+      case "graph": {
+        // Structural graph lookup: try exact symbol match first,
+        // then fall through to vector search if not found
+        const symbolName = extractSymbolFromStructuralQuery(query);
+        if (symbolName) {
+          try {
+            const graph = getGraph();
+            const card = lookupSymbol(symbolName, graph);
+            if (card) {
+              results = card;
+              break;
+            }
+          } catch {
+            // Graph build failure — fall through to vector
+          }
+        }
+        // Fallback: graph lookup returned null or failed → vector search
+        results = await vectorSearch(query, opts?.topK ?? 5);
         break;
       }
       default: {

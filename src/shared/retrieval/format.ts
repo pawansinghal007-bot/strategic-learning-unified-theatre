@@ -10,6 +10,7 @@
 import type { VectorSearchResult } from "./vector-client.js";
 import type { CodeSearchHit } from "./code-search.js";
 import type { SymbolSearchResult } from "./symbol-search.js";
+import type { ConceptCard } from "./graph-schema.js";
 
 // ─── vector results ───────────────────────────────────────────────────────────
 
@@ -68,4 +69,36 @@ export function formatSymbolResults(results: SymbolSearchResult[]): string {
         `${r.name} (${r.kind}) at ${r.filePath}:${r.startLine}-${r.endLine}`,
     )
     .join("\n");
+}
+
+// ─── concept card (structural graph) ─────────────────────────────────────────
+
+/**
+ * Formats a ConceptCard from the structural symbol graph as a concise
+ * summary: signature, callers, and callees.
+ *
+ * Returns an empty string if the card is null — callers decide their own
+ * empty-message text.
+ */
+export function formatConceptCard(card: ConceptCard | null): string {
+  if (!card) {
+    return "";
+  }
+
+  const lines: string[] = [];
+  lines.push(`${card.name} (${card.kind}) at ${card.file}:${card.line}`);
+
+  if (card.signature) {
+    lines.push(`  ${card.signature}`);
+  }
+
+  if (card.callers.length > 0) {
+    lines.push(`  callers: ${card.callers.join(", ")}`);
+  }
+
+  if (card.callees.length > 0) {
+    lines.push(`  callees: ${card.callees.join(", ")}`);
+  }
+
+  return lines.join("\n");
 }

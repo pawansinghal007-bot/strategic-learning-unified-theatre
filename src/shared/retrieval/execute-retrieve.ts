@@ -3,6 +3,7 @@ import {
   formatVectorResults,
   formatCodeHits,
   formatSymbolResults,
+  formatConceptCard,
 } from "./format.js";
 
 export type ExecuteRetrieveResult = { text: string } | { error: string };
@@ -10,7 +11,7 @@ export type ExecuteRetrieveResult = { text: string } | { error: string };
 export async function executeRetrieve(
   query: string,
   opts?: {
-    mode?: "code" | "vector" | "file" | "symbol";
+    mode?: "code" | "vector" | "file" | "symbol" | "graph";
     topK?: number;
     glob?: string;
     callerIdentity?: string;
@@ -49,6 +50,15 @@ export async function executeRetrieve(
         return {
           text:
             formatted === "" ? `No symbol found for "${query}".` : formatted,
+        };
+      }
+      case "graph": {
+        const formatted = formatConceptCard(result.results as any);
+        return {
+          text:
+            formatted === ""
+              ? `No structural graph result for "${query}".`
+              : formatted,
         };
       }
       case "file": {

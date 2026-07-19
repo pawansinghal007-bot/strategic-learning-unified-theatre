@@ -255,7 +255,9 @@ export async function runSubAgent(task: AgentTask): Promise<AgentResult> {
         // Classify tool call to determine if we should skip the second gateway.ask() call
         const classification = classifyToolCall(toolName, args);
         const skipGatewayAsk =
-          classification === "path-like" || classification === "symbol-like";
+          classification === "path-like" ||
+          classification === "symbol-like" ||
+          classification === "structural";
 
         const toolOutput = await executeToolCall(
           toolName,

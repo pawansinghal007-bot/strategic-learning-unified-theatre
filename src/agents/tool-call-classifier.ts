@@ -7,6 +7,7 @@
  * Classification rules (deterministic, no LLM):
  * - "path-like": read-file with plain relative/absolute path (no wildcards)
  * - "symbol-like": search-code with single identifier or dotted qualified name
+ * - "structural": retrieve with "what calls X" / "what does X call" phrasing
  * - "semantic": vector-search, or search-code with spaces/natural language
  * - "synthesis": fallback (multi-arg tools, other tools)
  */
@@ -16,6 +17,7 @@
 export type ToolCallClass =
   | "path-like"
   | "symbol-like"
+  | "structural"
   | "semantic"
   | "synthesis";
 
@@ -69,16 +71,29 @@ export function classifyToolCall(
 
 /**
  * Classify a `retrieve` tool call by mirroring the same path-like/symbol-like/
- * semantic split used by the other rules above. Explicit mode override takes
- * precedence, mirroring router.ts's own chooseStrategy() precedence rule.
+ * structural/semantic split used by the other rules above. Explicit mode
+ * override takes precedence, mirroring router.ts's own chooseStrategy()
+ * precedence rule.
  */
 function classifyRetrieve(args: Record<string, string>): ToolCallClass {
   const query = args.query ?? "";
   const mode = args.mode ?? "";
 
+  // Explicit mode="graph" → structural (deterministic, skips gateway.ask)
+  if (mode === "graph") {
+    return "structural";
+  }
+
   if (mode === "file" || (mode === "" && isRetrievePathLike(query))) {
     return "path-like";
   }
+
+  // Structural query heuristic: "what calls X", "what does X call", etc.
+  // These route to the graph tier and are deterministic — skip gateway.ask
+  if (mode === "" && isStructuralQuery(query)) {
+    return "structural";
+  }
+
   if (
     mode === "symbol" ||
     mode === "code" ||
@@ -155,4 +170,25 @@ function isSymbolLikeQuery(query: string): boolean {
   const parts = query.split(".");
   if (parts.length === 0) return false;
   return parts.every((p) => segment.test(p));
+}
+
+/**
+ * Detect structural query patterns: "what calls X", "what does X call",
+ * "callers of X", "callees of X", "call graph for X", etc.
+ * Mirrors the same logic in router.ts's isStructuralQuery().
+ * Uses word boundaries and end-of-string anchors to avoid matching
+ * queries with extra clauses like "what calls X and returns Y".
+ */
+function isStructuralQuery(query: string): boolean {
+  if (!query || query.trim() === "") return false;
+  const q = query.toLowerCase().trim();
+  // "what calls X", "who calls X", "what invokes X"
+  if (/^(what|who)\s+(calls|invokes)\s+\w+$/i.test(q)) return true;
+  // "what does X call", "what does X invoke"
+  if (/^what\s+does\s+\w+\s+(call|invoke)$/i.test(q)) return true;
+  // "callers of X", "callees of X"
+  if (/^(callers|callees)\s+of\s+\w+$/i.test(q)) return true;
+  // "call graph for X"
+  if (/^call\s+graph\s+for\s+\w+$/i.test(q)) return true;
+  return false;
 }
