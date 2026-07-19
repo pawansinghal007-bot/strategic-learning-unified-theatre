@@ -1,0 +1,15 @@
+{
+  "repo_name": "Solution",
+  "root": "/home/pawan/vscodeagent/Solution",
+  "total_functions": 1518,
+  "by_language": {
+    "ts": 486,
+    "js": 936,
+    "py": 23,
+    "jsx": 73
+  },
+  "outputs": {
+    "csv": "/home/pawan/vscodeagent/Solution/output/audit-real-v2/function_catalog.csv",
+    "template_markdown": "/home/pawan/vscodeagent/Solution/output/audit-real-v2/function_catalog_template.md"
+  }
+}

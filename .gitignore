@@ -74,6 +74,12 @@ audit-log-ws-*
 audit_chunks/
 project_audit_dump.txt
 
+# ── Repo function audit outputs ───────────────────────────
+output/repo_function_audit.py
+output/function_catalog.csv
+output/function_catalog_template.md
+output/function_catalog_summary.json
+
 # ── Security scan output ─────────────────────────────────
 reports/gitleaks.json
 git-history.txt
