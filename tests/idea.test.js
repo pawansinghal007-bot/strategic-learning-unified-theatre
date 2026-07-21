@@ -23,6 +23,12 @@ vi.mock("../src/idea-store.js", () => ({
   exportIdeas: (...a) => exportIdeas(...a),
 }));
 
+const refineIdea = vi.fn();
+
+vi.mock("../src/idea-refine.js", () => ({
+  refineIdea: (...a) => refineIdea(...a),
+}));
+
 const parsePriority = vi.fn((v) => {
   const n = Number(v);
   if (Number.isInteger(n) && n >= 1 && n <= 5) return n;
@@ -458,6 +464,44 @@ describe("bindIdeaCommands", () => {
 
       expect(errorSpy).toHaveBeenCalled();
       expect(errorSpy.mock.calls[0][0]).toContain("export failed");
+      expect(process.exitCode).toBe(1);
+    });
+  });
+
+  describe("idea refine", () => {
+    it("refines an idea and prints both notes", async () => {
+      refineIdea.mockResolvedValue({
+        researchNotes: "some research",
+        refinementNotes: "some refinement",
+      });
+
+      await makeProgram().parseAsync([
+        "node",
+        "cli",
+        "idea",
+        "refine",
+        "idea-1",
+      ]);
+
+      expect(refineIdea).toHaveBeenCalledWith("idea-1");
+      const output = logSpy.mock.calls.map((c) => c.join(" ")).join("\n");
+      expect(output).toContain("some research");
+      expect(output).toContain("some refinement");
+    });
+
+    it("reports an error when refineIdea() rejects", async () => {
+      refineIdea.mockRejectedValue(new Error("browser down"));
+
+      await makeProgram().parseAsync([
+        "node",
+        "cli",
+        "idea",
+        "refine",
+        "idea-1",
+      ]);
+
+      expect(errorSpy).toHaveBeenCalled();
+      expect(errorSpy.mock.calls[0][0]).toContain("browser down");
       expect(process.exitCode).toBe(1);
     });
   });

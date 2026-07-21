@@ -93,6 +93,17 @@ describe("Idea Store", () => {
 
       expect(idea.tags).toEqual(["tag1", "tag2", "tag3"]);
     });
+
+    it("defaults researchNotes and refinementNotes to null when not provided", async () => {
+      const idea = await createIdea({
+        body: "# Test\nContent",
+        project: "test-project",
+        cwd: baseDir
+      });
+
+      expect(idea.researchNotes).toBeNull();
+      expect(idea.refinementNotes).toBeNull();
+    });
   });
 
   describe("listIdeas", () => {
@@ -248,6 +259,48 @@ describe("Idea Store", () => {
       expect(updated.project).toBe(idea.project);
       expect(updated.tags).toEqual(idea.tags);
       expect(updated.priority).toBe(idea.priority);
+    });
+
+    it("persists researchNotes and refinementNotes and round-trips them", async () => {
+      const updated = await updateIdea(
+        idea.id,
+        {
+          researchNotes: "some research text",
+          refinementNotes: "some refinement text"
+        },
+        { cwd: baseDir }
+      );
+      expect(updated.researchNotes).toBe("some research text");
+      expect(updated.refinementNotes).toBe("some refinement text");
+
+      const reloaded = await findIdeaById(idea.id, { cwd: baseDir });
+      expect(reloaded.researchNotes).toBe("some research text");
+      expect(reloaded.refinementNotes).toBe("some refinement text");
+    });
+
+    it("preserves existing researchNotes/refinementNotes when patching an unrelated field", async () => {
+      await updateIdea(
+        idea.id,
+        {
+          researchNotes: "kept research",
+          refinementNotes: "kept refinement"
+        },
+        { cwd: baseDir }
+      );
+
+      const updated = await updateIdea(
+        idea.id,
+        { status: "active" },
+        { cwd: baseDir }
+      );
+      expect(updated.status).toBe("active");
+      expect(updated.researchNotes).toBe("kept research");
+      expect(updated.refinementNotes).toBe("kept refinement");
+
+      const reloaded = await findIdeaById(idea.id, { cwd: baseDir });
+      expect(reloaded.status).toBe("active");
+      expect(reloaded.researchNotes).toBe("kept research");
+      expect(reloaded.refinementNotes).toBe("kept refinement");
     });
   });
 

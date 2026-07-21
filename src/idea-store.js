@@ -19,6 +19,8 @@ const IdeaSchema = z.object({
   status: IdeaStatusSchema,
   priority: IdeaPrioritySchema,
   linkedSprint: z.uuid().nullable().default(null),
+  researchNotes: z.string().nullable().default(null),
+  refinementNotes: z.string().nullable().default(null),
 });
 
 function formatValidationError(error) {
@@ -299,6 +301,12 @@ export async function updateIdea(id, patch = {}, options = {}) {
     priority: patch.priority ? Number(patch.priority) : idea.priority,
     linkedSprint:
       patch.linkedSprint === undefined ? idea.linkedSprint : patch.linkedSprint,
+    researchNotes:
+      patch.researchNotes === undefined ? idea.researchNotes : patch.researchNotes,
+    refinementNotes:
+      patch.refinementNotes === undefined
+        ? idea.refinementNotes
+        : patch.refinementNotes,
   };
   const parsedData = parseIdeaOrThrowDomainError(data, {
     operation: "updateIdea",

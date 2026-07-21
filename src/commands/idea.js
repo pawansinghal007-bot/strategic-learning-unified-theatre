@@ -15,6 +15,7 @@ import {
   linkIdeaToSprint,
   exportIdeas,
 } from "../idea-store.js";
+import { refineIdea } from "../idea-refine.js";
 import { IdeaPrioritySchema } from "../domain/schemas.js";
 import { DomainError } from "../error.js";
 
@@ -246,6 +247,24 @@ export async function bindIdeaCommands(program) {
         });
         process.stdout.write(output + "\n");
       } catch (err) {
+        console.error(chalk.red(String(err?.message ?? err)));
+        process.exitCode = 1;
+      }
+    });
+
+  idea
+    .command("refine")
+    .description("Research and refine an idea via Perplexity and Claude")
+    .argument("<id>", "Idea id")
+    .action(async (id) => {
+      const spinner = ora("Refining idea...").start();
+      try {
+        const updated = await refineIdea(id);
+        spinner.succeed("Idea refined");
+        console.log(chalk.cyan("Research notes:"), updated.researchNotes);
+        console.log(chalk.cyan("Refinement notes:"), updated.refinementNotes);
+      } catch (err) {
+        spinner.stop();
         console.error(chalk.red(String(err?.message ?? err)));
         process.exitCode = 1;
       }
