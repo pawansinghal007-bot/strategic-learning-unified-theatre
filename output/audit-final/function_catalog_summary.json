@@ -1,0 +1,15 @@
+{
+  "repo_name": "Solution",
+  "root": "/home/pawan/vscodeagent/Solution",
+  "total_functions": 1591,
+  "by_language": {
+    "ts": 558,
+    "js": 936,
+    "py": 24,
+    "jsx": 73
+  },
+  "outputs": {
+    "csv": "/home/pawan/vscodeagent/Solution/output/audit-final/function_catalog.csv",
+    "template_markdown": "/home/pawan/vscodeagent/Solution/output/audit-final/function_catalog_template.md"
+  }
+}

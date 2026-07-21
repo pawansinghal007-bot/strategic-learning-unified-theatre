@@ -157,3 +157,4 @@ These functions require manual review to determine if they are dead code or live
 6. **VS Code command registration**: `registerCommand('...', fnName)` — not counted
 7. **Arrow function closures**: `const fn = () => {}` inside another function
 8. **Dynamic require via readdir**: `require(path.join(dir, file))` — path-invoked, not name-invoked
+> **Superseded.** This report has been replaced by `../audit-final/TRIAGED-REPORT.md` (Prompt 6 — canonical final report).
