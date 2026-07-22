@@ -40,6 +40,7 @@ import {
   getState,
 } from "../policies/provider-policy";
 import { buildRequestContextPrompt } from "../memory/request-context";
+import { ExperienceDb } from "./experience-db.js";
 import { truncateToTokens } from "./agent-loop-guard.js";
 
 /**
@@ -447,22 +448,38 @@ export class Gateway {
       return requestData;
     }
 
+    let prompt = requestData.prompt;
+    const userPrompt = requestData.userPrompt || requestData.prompt;
+    let changed = false;
+
     try {
       const contextPrompt = buildRequestContextPrompt(requestData.workspaceId);
       if (contextPrompt) {
-        // Preserve userPrompt if provided (for explicit boundary in budget enforcement)
-        const userPrompt = requestData.userPrompt || requestData.prompt;
-        return {
-          ...requestData,
-          prompt: `${contextPrompt}\n\nUser request: ${requestData.prompt}`,
-          userPrompt, // Preserve explicit boundary
-        };
+        prompt = `${contextPrompt}\n\nUser request: ${requestData.prompt}`;
+        changed = true;
       }
     } catch (error) {
       logNonFatalError(error, "context-injection");
     }
 
-    return requestData;
+    try {
+      const rules = await getExperienceDb().listRubricRules({ activeOnly: true });
+      if (rules && rules.length > 0) {
+        const ruleText =
+          rules.map((rule: { rule: string }) => `- ${rule.rule}`).join("\n") ||
+          "- None";
+        prompt = `${prompt}\n\nKnown mistakes to avoid:\n${ruleText}`;
+        changed = true;
+      }
+    } catch (error) {
+      logNonFatalError(error, "rubric-injection");
+    }
+
+    if (!changed) {
+      return requestData;
+    }
+
+    return { ...requestData, prompt, userPrompt };
   }
 
   /**
@@ -1001,6 +1018,12 @@ export function enforceWorkspaceQuotaOrThrow(input: {
 // Lazy singleton — instantiated on first access, not at module load time.
 // This prevents adapter constructors from running during test imports,
 // which would crash without API keys / Ollama before any mock can intercept.
+let _experienceDb: ExperienceDb | undefined;
+function getExperienceDb(): ExperienceDb {
+  _experienceDb ??= new ExperienceDb();
+  return _experienceDb;
+}
+
 let _gateway: Gateway | undefined;
 export const gateway = new Proxy({} as Gateway, {
   get(_target, prop) {
