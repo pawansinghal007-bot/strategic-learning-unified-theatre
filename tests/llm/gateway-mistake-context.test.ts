@@ -6,12 +6,8 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import {
-  Gateway,
-} from "../../src/llm/gateway.js";
-import {
-  resetProviderHealth,
-} from "../../src/llm/provider-health.js";
+import { Gateway } from "../../src/llm/gateway.js";
+import { resetProviderHealth } from "../../src/llm/provider-health.js";
 import { resetProviderUsage } from "../../src/llm/provider-usage.js";
 import { resetRoutingHistory } from "../../src/llm/routing-history.js";
 
@@ -75,9 +71,11 @@ vi.mock("../../src/policies/provider-policy.js", () => ({
 vi.mock("../../src/llm/experience-db.js", () => {
   const ExperienceDb = vi.fn(function () {
     return {
-      listRubricRules: vi.fn().mockResolvedValue([
-        { rule: "Avoid repeating X mistake: Y. Apply this fix: Z." },
-      ]),
+      listRubricRules: vi
+        .fn()
+        .mockResolvedValue([
+          { rule: "Avoid repeating X mistake: Y. Apply this fix: Z." },
+        ]),
     };
   });
   return { ExperienceDb };
@@ -151,9 +149,14 @@ describe("Rubric context injection", () => {
     vi.mocked(buildRequestContextPrompt).mockReturnValue(null); // isolate rubric behavior
 
     const localAdapter = makeLocalAdapter();
-    const gw = new Gateway({ providers: { local: localAdapter }, defaultOrder: ["local"] });
+    const gw = new Gateway({
+      providers: { local: localAdapter },
+      defaultOrder: ["local"],
+    });
 
-    await gw.ask(makeRequest({ workspaceId: "ws-rubric", prompt: "Fix the bug" }));
+    await gw.ask(
+      makeRequest({ workspaceId: "ws-rubric", prompt: "Fix the bug" }),
+    );
 
     const sentPrompt = localAdapter.ask.mock.calls[0][0].prompt;
     expect(sentPrompt).toContain(

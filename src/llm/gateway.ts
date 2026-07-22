@@ -463,7 +463,9 @@ export class Gateway {
     }
 
     try {
-      const rules = await getExperienceDb().listRubricRules({ activeOnly: true });
+      const rules = await getExperienceDb().listRubricRules({
+        activeOnly: true,
+      });
       if (rules && rules.length > 0) {
         const ruleText =
           rules.map((rule: { rule: string }) => `- ${rule.rule}`).join("\n") ||
