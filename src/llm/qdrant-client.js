@@ -11,6 +11,14 @@ export const KNOWLEDGE_COLLECTION = "knowledge_chunks";
 const QDRANT_URL = process.env.QDRANT_URL ?? "http://localhost:6333";
 const VECTOR_DIM = 2560; // qwen3-emb-4b
 
+import { embedTextBatch } from "../knowledge/ingest/embedder.js";
+
+export async function queryTopK(text, k = 5) {
+  const [vector] = await embedTextBatch([text]);
+  const hits = await searchChunks(vector, k);
+  return hits.map((hit) => ({ text: hit.content, score: hit.score }));
+}
+
 /** Deterministic UUID from a chunk_id string (SHA-256 → UUID format). */
 function pointId(chunkId) {
   const h = createHash("sha256").update(chunkId).digest("hex");

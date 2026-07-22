@@ -6,6 +6,8 @@ export const KNOWLEDGE_COLLECTION = "knowledge_chunks";
 const QDRANT_URL = process.env.QDRANT_URL ?? "http://localhost:6333";
 const VECTOR_DIM = 2560; // qwen3-emb-4b
 
+import { embedTextBatch } from "../knowledge/ingest/embedder.js";
+
 export async function ensureKnowledgeCollection(): Promise<void> {
   const res = await fetch(`${QDRANT_URL}/collections/${KNOWLEDGE_COLLECTION}`);
   if (res.ok) return;
@@ -22,6 +24,15 @@ export async function ensureKnowledgeCollection(): Promise<void> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ vectors: { size: VECTOR_DIM, distance: "Cosine" } }),
   });
+}
+
+export async function queryTopK(
+  text: string,
+  k = 5,
+): Promise<Array<{ text: string; score: number }>> {
+  const [vector] = await embedTextBatch([text]);
+  const hits = await searchChunks(vector, k);
+  return hits.map((hit) => ({ text: hit.content, score: hit.score }));
 }
 
 export async function upsertChunks(

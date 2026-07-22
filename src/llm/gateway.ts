@@ -28,6 +28,7 @@ import {
   isProviderAvailable,
   markProviderFromError,
 } from "./provider-health";
+import { queryTopK } from "./qdrant-client.js";
 import { recordProviderFailure, recordProviderSuccess } from "./provider-usage";
 import {
   evaluateWorkspaceQuotaStatus,
@@ -475,6 +476,20 @@ export class Gateway {
       }
     } catch (error) {
       logNonFatalError(error, "rubric-injection");
+    }
+
+    // RAG: query vector store and inject relevant chunks if enabled
+    try {
+      if (process.env.GATEWAY_RAG_ENABLED === "true") {
+        const chunks = await queryTopK(requestData.prompt, 5);
+        if (chunks && chunks.length > 0) {
+          const chunkText = chunks.map((c) => c.text).join("\n\n");
+          prompt = `${prompt}\n\nRelevant context:\n${chunkText}`;
+          changed = true;
+        }
+      }
+    } catch (error) {
+      logNonFatalError(error, "rag-injection");
     }
 
     if (!changed) {
