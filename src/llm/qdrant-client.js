@@ -125,7 +125,7 @@ export async function searchChunks(vector, limit = 6, scoreThreshold = 0.4) {
  */
 export async function getExistingFileHashes() {
   const hashes = new Map();
-  let next_page_offset = undefined;
+  let next_page_offset;
 
   do {
     const body = {

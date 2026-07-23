@@ -146,151 +146,179 @@ function resolveCallTargets(
   projectRoot: string,
   checker: ts.TypeChecker,
 ): ResolutionResult[] {
-  const results: ResolutionResult[] = [];
   const expr = callExpr.expression;
   const callLine = lineOf(sourceFile, callExpr.getStart(sourceFile));
 
-  // Check for dynamic dispatch: callee is a plain identifier that refers
-  // to a parameter or local variable (not an imported/declared function)
-  if (ts.isIdentifier(expr)) {
-    const symbol = checker.getSymbolAtLocation(expr);
-    if (symbol) {
-      const decls = symbol.getDeclarations();
-      if (decls && decls.length > 0) {
-        // Check if the symbol is a parameter — dynamic dispatch
-        const isParameter = decls.some(ts.isParameter);
-        if (isParameter) {
-          return [
-            {
-              to: null,
-              line: callLine,
-              resolved: false,
-              unresolvedReason: "dynamic-dispatch",
-            },
-          ];
-        }
-      }
-    }
-  }
+  // Check for dynamic dispatch (parameter calls)
+  const dynamicDispatch = checkDynamicDispatch(expr, checker, callLine);
+  if (dynamicDispatch) return dynamicDispatch;
 
-  // Get the symbol at the call expression location
+  // Resolve symbol at call expression
   const symbol = checker.getSymbolAtLocation(expr);
-  if (!symbol) {
-    // No symbol resolved — check if this is an external library call
-    // (built-ins, etc.) by checking if the expression is a property access
-    // on something that's not a project file.
-    if (ts.isPropertyAccessExpression(expr)) {
-      return []; // built-in method or external — skip
-    }
-    return [
-      {
-        to: null,
-        line: callLine,
-        resolved: false,
-        unresolvedReason: "no-symbol-resolved",
-      },
-    ];
-  }
+  if (!symbol) return handleMissingSymbol(expr, callLine);
 
+  // Get declarations
   const declarations = symbol.getDeclarations();
-  if (!declarations) {
-    return [
-      {
-        to: null,
-        line: callLine,
-        resolved: false,
-        unresolvedReason: "no-declarations",
-      },
-    ];
-  }
+  if (!declarations) return unresolvedResult(callLine, "no-declarations");
 
-  // Early exit: if all declarations are in external libraries (.d.ts or node_modules),
-  // silently drop the edge — it's outside our project graph.
-  const allExternal = declarations.every((decl) => {
+  // Skip if all declarations are external
+  if (allDeclarationsExternal(declarations)) return [];
+
+  // Collect declarations to process (resolve import specifiers)
+  const declsToProcess = collectDeclarationsToProcess(declarations, checker);
+  if (declsToProcess.length === 0)
+    return unresolvedResult(callLine, "no-resolvable-declarations");
+
+  // Filter overload implementations and process
+  const filteredDecls = filterOverloadImplementations(declsToProcess);
+  const resolvedTargets = processDeclarationsToTargets(
+    filteredDecls,
+    projectRoot,
+  );
+
+  // Handle unresolved targets
+  if (resolvedTargets.length === 0)
+    return handleUnresolvedTargets(filteredDecls, callLine);
+
+  // Return deduplicated resolved targets
+  return buildResolvedResults(resolvedTargets, callLine);
+}
+
+/**
+ * Check if a call expression is a dynamic dispatch (parameter call).
+ */
+function checkDynamicDispatch(
+  expr: ts.Expression,
+  checker: ts.TypeChecker,
+  callLine: number,
+): ResolutionResult[] | null {
+  if (!ts.isIdentifier(expr)) return null;
+
+  const symbol = checker.getSymbolAtLocation(expr);
+  if (!symbol) return null;
+
+  const decls = symbol.getDeclarations();
+  if (!decls || decls.length === 0) return null;
+
+  if (decls.some(ts.isParameter)) {
+    return unresolvedResult(callLine, "dynamic-dispatch");
+  }
+  return null;
+}
+
+/**
+ * Handle missing symbol at call expression.
+ */
+function handleMissingSymbol(
+  expr: ts.Expression,
+  callLine: number,
+): ResolutionResult[] {
+  if (ts.isPropertyAccessExpression(expr)) return [];
+  return unresolvedResult(callLine, "no-symbol-resolved");
+}
+
+/**
+ * Check if all declarations are in external libraries.
+ */
+function allDeclarationsExternal(declarations: readonly ts.Node[]): boolean {
+  return declarations.every((decl) => {
     const file = decl.getSourceFile();
     return file?.isDeclarationFile || file?.fileName.includes("node_modules");
   });
-  if (allExternal) {
-    return [];
-  }
+}
 
-  // Collect all declarations to process (resolve import specifiers first)
+/**
+ * Collect declarations to process, resolving import specifiers.
+ */
+function importedDeclarationsToProcess(
+  declaration: ts.ImportSpecifier,
+  checker: ts.TypeChecker,
+): ts.Node[] {
+  const importedSymbol = getImportedSymbol(declaration, checker);
+  const importedDeclarations = importedSymbol?.getDeclarations();
+  return importedDeclarations
+    ? importedDeclarations.filter((decl) => !ts.isImportSpecifier(decl))
+    : [];
+}
+
+function collectDeclarationsToProcess(
+  declarations: readonly ts.Node[],
+  checker: ts.TypeChecker,
+): ts.Node[] {
   const declsToProcess: ts.Node[] = [];
 
   for (const decl of declarations) {
     if (ts.isImportSpecifier(decl)) {
-      // For import specifiers, find the actual exported symbol
-      const importedSymbol = getImportedSymbol(decl, checker);
-      if (importedSymbol) {
-        const importedDecls = importedSymbol.getDeclarations();
-        if (importedDecls) {
-          for (const d of importedDecls) {
-            if (!ts.isImportSpecifier(d)) {
-              declsToProcess.push(d);
-            }
-          }
-        }
-      }
+      declsToProcess.push(...importedDeclarationsToProcess(decl, checker));
     } else {
       declsToProcess.push(decl);
     }
   }
 
-  if (declsToProcess.length === 0) {
-    return [
-      {
-        to: null,
-        line: callLine,
-        resolved: false,
-        unresolvedReason: "no-resolvable-declarations",
-      },
-    ];
-  }
+  return declsToProcess;
+}
 
-  // Handle overloads: if we have multiple function declarations with the
-  // same name, pick the implementation (the one with a body) and skip
-  // overload signatures.
-  const filteredDecls = filterOverloadImplementations(declsToProcess);
-
-  // Process each declaration
-  const resolvedTargets: string[] = [];
-  for (const decl of filteredDecls) {
+/**
+ * Process declarations to target node IDs.
+ */
+function processDeclarationsToTargets(
+  decls: ts.Node[],
+  projectRoot: string,
+): string[] {
+  const targets: string[] = [];
+  for (const decl of decls) {
     const target = processDeclarationToId(decl, projectRoot);
-    if (target) {
-      resolvedTargets.push(target);
-    }
+    if (target) targets.push(target);
   }
+  return targets;
+}
 
-  if (resolvedTargets.length === 0) {
-    // All declarations were in external libraries or otherwise unprocessable.
-    // Silently drop external library calls — they're outside our project graph.
-    // Only emit unresolved edges for project-internal calls that can't be resolved.
-    const firstDecl = filteredDecls[0];
-    const declFile = firstDecl?.getSourceFile();
-    if (
-      declFile?.isDeclarationFile ||
-      declFile?.fileName.includes("node_modules")
-    ) {
-      return []; // external library — skip
-    }
-    // Project-internal call that couldn't be resolved
-    return [
-      {
-        to: null,
-        line: callLine,
-        resolved: false,
-        unresolvedReason: "no-processable-declarations",
-      },
-    ];
-  }
+/**
+ * Handle unresolved targets (external or unprocessable).
+ */
+function handleUnresolvedTargets(
+  filteredDecls: ts.Node[],
+  callLine: number,
+): ResolutionResult[] {
+  const firstDecl = filteredDecls[0];
+  const declFile = firstDecl?.getSourceFile();
 
-  // Return resolved targets (deduplicated)
-  const uniqueTargets = [...new Set(resolvedTargets)];
+  if (
+    declFile?.isDeclarationFile ||
+    declFile?.fileName.includes("node_modules")
+  )
+    return [];
+
+  return unresolvedResult(callLine, "no-processable-declarations");
+}
+
+/**
+ * Build resolved results from unique targets.
+ */
+function buildResolvedResults(
+  targets: string[],
+  callLine: number,
+): ResolutionResult[] {
+  const uniqueTargets = [...new Set(targets)];
   return uniqueTargets.map((to) => ({
     to,
     line: callLine,
     resolved: true,
   }));
+}
+
+/**
+ * Create an unresolved resolution result array.
+ */
+function unresolvedResult(line: number, reason: string): ResolutionResult[] {
+  return [
+    {
+      to: null,
+      line,
+      resolved: false,
+      unresolvedReason: reason,
+    },
+  ];
 }
 
 /**
@@ -379,6 +407,36 @@ function filterOverloadImplementations(decls: ts.Node[]): ts.Node[] {
 /**
  * Processes a single declaration and returns the target node ID, or null.
  */
+function targetNameForDeclaration(decl: ts.Node): string | null {
+  if (ts.isFunctionDeclaration(decl) && decl.name) {
+    return decl.name.text;
+  }
+
+  if (ts.isMethodDeclaration(decl) && decl.name && ts.isIdentifier(decl.name)) {
+    const classDecl = ts.findAncestor(decl, (n) => ts.isClassDeclaration(n));
+    return classDecl?.name
+      ? `${classDecl.name.text}.${decl.name.text}`
+      : decl.name.text;
+  }
+
+  if (ts.isClassDeclaration(decl) && decl.name) {
+    return decl.name.text;
+  }
+
+  if (ts.isVariableDeclaration(decl) && ts.isIdentifier(decl.name)) {
+    const parentScope = ts.findAncestor(
+      decl,
+      (n) =>
+        ts.isFunctionDeclaration(n) ||
+        ts.isFunctionExpression(n) ||
+        ts.isArrowFunction(n),
+    );
+    return parentScope ? null : decl.name.text;
+  }
+
+  return null;
+}
+
 function processDeclarationToId(
   decl: ts.Node,
   projectRoot: string,
@@ -397,43 +455,8 @@ function processDeclarationToId(
     .split(path.sep)
     .join("/");
 
-  // Determine the target symbol name
-  let targetName: string | null = null;
-
-  if (ts.isFunctionDeclaration(decl) && decl.name) {
-    targetName = decl.name.text;
-  } else if (
-    ts.isMethodDeclaration(decl) &&
-    decl.name &&
-    ts.isIdentifier(decl.name)
-  ) {
-    const classDecl = ts.findAncestor(decl, (n) => ts.isClassDeclaration(n));
-    if (classDecl && classDecl.name) {
-      targetName = `${classDecl.name.text}.${decl.name.text}`;
-    } else {
-      targetName = decl.name.text;
-    }
-  } else if (ts.isClassDeclaration(decl) && decl.name) {
-    targetName = decl.name.text;
-  } else if (ts.isVariableDeclaration(decl) && ts.isIdentifier(decl.name)) {
-    // Only include module-scope variables (exported functions/constants).
-    // Skip local variables (inside functions) — they're not graph nodes.
-    const parentScope = ts.findAncestor(
-      decl,
-      (n) =>
-        ts.isFunctionDeclaration(n) ||
-        ts.isFunctionExpression(n) ||
-        ts.isArrowFunction(n),
-    );
-    if (!parentScope) {
-      targetName = decl.name.text;
-    }
-  }
-
-  if (targetName) {
-    return nodeId(declRelativePath, targetName);
-  }
-  return null;
+  const targetName = targetNameForDeclaration(decl);
+  return targetName ? nodeId(declRelativePath, targetName) : null;
 }
 
 /**
@@ -491,139 +514,173 @@ export function buildGraph(
       .join("/");
 
     // ── Extract declaration nodes ──
-
-    function visitDeclarations(node: ts.Node): void {
-      // Function declarations
-      if (ts.isFunctionDeclaration(node) && node.name) {
-        const n = nodeFromDeclaration(
-          node,
-          sourceFile,
-          relativePath,
-          node.name.text,
-        );
-        if (n) nodes.set(n.id, n);
-      }
-
-      // Class declarations + methods
-      if (ts.isClassDeclaration(node) && node.name) {
-        const n = nodeFromDeclaration(
-          node,
-          sourceFile,
-          relativePath,
-          node.name.text,
-        );
-        if (n) nodes.set(n.id, n);
-
-        for (const member of node.members) {
-          if (
-            ts.isMethodDeclaration(member) &&
-            member.name &&
-            ts.isIdentifier(member.name)
-          ) {
-            const methodName = `${node.name.text}.${member.name.text}`;
-            const mn = nodeFromDeclaration(
-              member,
-              sourceFile,
-              relativePath,
-              methodName,
-            );
-            if (mn) nodes.set(mn.id, mn);
-          }
-        }
-      }
-
-      // Interface declarations
-      if (ts.isInterfaceDeclaration(node)) {
-        const n = nodeFromDeclaration(
-          node,
-          sourceFile,
-          relativePath,
-          node.name.text,
-        );
-        if (n) nodes.set(n.id, n);
-      }
-
-      // Type alias declarations
-      if (ts.isTypeAliasDeclaration(node)) {
-        const n = nodeFromDeclaration(
-          node,
-          sourceFile,
-          relativePath,
-          node.name.text,
-        );
-        if (n) nodes.set(n.id, n);
-      }
-
-      // Enum declarations
-      if (ts.isEnumDeclaration(node)) {
-        const n = nodeFromDeclaration(
-          node,
-          sourceFile,
-          relativePath,
-          node.name.text,
-        );
-        if (n) nodes.set(n.id, n);
-      }
-
-      // Exported variable statements
-      if (ts.isVariableStatement(node)) {
-        if (
-          node.modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword)
-        ) {
-          for (const decl of node.declarationList.declarations) {
-            if (ts.isIdentifier(decl.name)) {
-              const n = nodeFromDeclaration(
-                node,
-                sourceFile,
-                relativePath,
-                decl.name.text,
-              );
-              if (n) nodes.set(n.id, n);
-            }
-          }
-        }
-      }
-
-      ts.forEachChild(node, visitDeclarations);
-    }
-
-    visitDeclarations(sourceFile);
+    extractDeclarationNodes(sourceFile, relativePath, nodes);
 
     // ── Extract call edges ──
-
-    const callExpressions = collectCallExpressions(sourceFile);
-    for (const call of callExpressions) {
-      const results = resolveCallTargets(
-        call,
-        sourceFile,
-        projectRoot,
-        checker,
-      );
-      for (const result of results) {
-        // Find the calling context (which function/method contains this call)
-        const callingNode = findEnclosingDeclaration(
-          call,
-          sourceFile,
-          relativePath,
-        );
-        const fromId = callingNode ?? nodeId(relativePath, "<module>");
-
-        edges.push({
-          from: fromId,
-          to: result.to,
-          kind: "calls",
-          line: result.line,
-          resolved: result.resolved,
-          unresolvedReason: result.unresolvedReason,
-        });
-      }
-    }
+    extractCallEdges(sourceFile, relativePath, projectRoot, checker, edges);
   }
 
   return {
     nodes: Array.from(nodes.values()),
     edges,
   };
+}
+
+/**
+ * Walks a source file and extracts all declaration nodes into the nodes map.
+ */
+function extractDeclarationNodes(
+  sourceFile: ts.SourceFile,
+  relativePath: string,
+  nodes: Map<string, GraphNode>,
+): void {
+  function visit(node: ts.Node): void {
+    tryAddNode(extractFunctionNode(node, sourceFile, relativePath), nodes);
+    extractClassNodes(node, sourceFile, relativePath, nodes);
+    tryAddNode(extractInterfaceNode(node, sourceFile, relativePath), nodes);
+    tryAddNode(extractTypeAliasNode(node, sourceFile, relativePath), nodes);
+    tryAddNode(extractEnumNode(node, sourceFile, relativePath), nodes);
+    extractExportedVariableNodes(node, sourceFile, relativePath, nodes);
+
+    ts.forEachChild(node, visit);
+  }
+
+  visit(sourceFile);
+}
+
+/** Try to add a node to the map if not null. */
+function tryAddNode(
+  node: GraphNode | null,
+  nodes: Map<string, GraphNode>,
+): void {
+  if (node) nodes.set(node.id, node);
+}
+
+/** Extract a function declaration node. */
+function extractFunctionNode(
+  node: ts.Node,
+  sourceFile: ts.SourceFile,
+  relativePath: string,
+): GraphNode | null {
+  if (!ts.isFunctionDeclaration(node) || !node.name) return null;
+  return nodeFromDeclaration(node, sourceFile, relativePath, node.name.text);
+}
+
+/** Extract class declaration nodes (class + methods). */
+function extractClassNodes(
+  node: ts.Node,
+  sourceFile: ts.SourceFile,
+  relativePath: string,
+  nodes: Map<string, GraphNode>,
+): void {
+  if (!ts.isClassDeclaration(node) || !node.name) return;
+
+  const n = nodeFromDeclaration(node, sourceFile, relativePath, node.name.text);
+  if (n) nodes.set(n.id, n);
+
+  for (const member of node.members) {
+    if (
+      ts.isMethodDeclaration(member) &&
+      member.name &&
+      ts.isIdentifier(member.name)
+    ) {
+      const methodName = `${node.name.text}.${member.name.text}`;
+      const mn = nodeFromDeclaration(
+        member,
+        sourceFile,
+        relativePath,
+        methodName,
+      );
+      if (mn) nodes.set(mn.id, mn);
+    }
+  }
+}
+
+/** Extract an interface declaration node. */
+function extractInterfaceNode(
+  node: ts.Node,
+  sourceFile: ts.SourceFile,
+  relativePath: string,
+): GraphNode | null {
+  if (!ts.isInterfaceDeclaration(node)) return null;
+  return nodeFromDeclaration(node, sourceFile, relativePath, node.name.text);
+}
+
+/** Extract a type alias declaration node. */
+function extractTypeAliasNode(
+  node: ts.Node,
+  sourceFile: ts.SourceFile,
+  relativePath: string,
+): GraphNode | null {
+  if (!ts.isTypeAliasDeclaration(node)) return null;
+  return nodeFromDeclaration(node, sourceFile, relativePath, node.name.text);
+}
+
+/** Extract an enum declaration node. */
+function extractEnumNode(
+  node: ts.Node,
+  sourceFile: ts.SourceFile,
+  relativePath: string,
+): GraphNode | null {
+  if (!ts.isEnumDeclaration(node)) return null;
+  return nodeFromDeclaration(node, sourceFile, relativePath, node.name.text);
+}
+
+/** Extract exported variable statement nodes. */
+function extractExportedVariableNodes(
+  node: ts.Node,
+  sourceFile: ts.SourceFile,
+  relativePath: string,
+  nodes: Map<string, GraphNode>,
+): void {
+  if (!ts.isVariableStatement(node)) return;
+  if (!node.modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword))
+    return;
+
+  for (const decl of node.declarationList.declarations) {
+    if (ts.isIdentifier(decl.name)) {
+      const n = nodeFromDeclaration(
+        node,
+        sourceFile,
+        relativePath,
+        decl.name.text,
+      );
+      if (n) nodes.set(n.id, n);
+    }
+  }
+}
+
+/**
+ * Extracts call edges from a source file.
+ */
+function extractCallEdges(
+  sourceFile: ts.SourceFile,
+  relativePath: string,
+  projectRoot: string,
+  checker: ts.TypeChecker,
+  edges: GraphEdge[],
+): void {
+  const callExpressions = collectCallExpressions(sourceFile);
+  for (const call of callExpressions) {
+    const results = resolveCallTargets(call, sourceFile, projectRoot, checker);
+    for (const result of results) {
+      const callingNode = findEnclosingDeclaration(
+        call,
+        sourceFile,
+        relativePath,
+      );
+      const fromId = callingNode ?? nodeId(relativePath, "<module>");
+
+      edges.push({
+        from: fromId,
+        to: result.to,
+        kind: "calls",
+        line: result.line,
+        resolved: result.resolved,
+        unresolvedReason: result.unresolvedReason,
+      });
+    }
+  }
 }
 
 /**
@@ -651,7 +708,7 @@ function findEnclosingDeclaration(
       const classDecl = ts.findAncestor(current, (n) =>
         ts.isClassDeclaration(n),
       );
-      if (classDecl && classDecl.name) {
+      if (classDecl?.name) {
         return nodeId(
           relativePath,
           `${classDecl.name.text}.${current.name.text}`,

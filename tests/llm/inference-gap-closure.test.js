@@ -27,6 +27,8 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import os from "node:os";
+import path from "node:path";
 
 // ── Hoisted mocks ──────────────────────────────────────────────────────────
 
@@ -588,16 +590,21 @@ describe("ollamaModelExists — false when model not in list (line 235)", () => 
     setupExecSuccess(
       JSON.stringify([{ name: "phi3:mini" }, { name: "llama3:8b" }]),
     );
+    fsStatMock.mockRejectedValue(new Error("model file not found"));
 
-    const { ollamaModelExists } = await import("../../src/llm/inference.js");
-    // Note: ollamaModelExists is not exported — we test via assertReady
+    const { LocalLlmInference } = await import("../../src/llm/inference.js");
+    await expect(
+      new LocalLlmInference({ modelPath: "mistral:7b" }).assertReady(),
+    ).rejects.toThrow("Local Ollama model not found: mistral:7b");
   });
 
   it("returns false when modelName is null/empty", async () => {
     setupExecSuccess(JSON.stringify([{ name: "phi3:mini" }]));
 
-    const { ollamaModelExists } = await import("../../src/llm/inference.js");
-    // ollamaModelExists is not exported, tested indirectly
+    const { LocalLlmInference } = await import("../../src/llm/inference.js");
+    const result = await new LocalLlmInference({ modelPath: "" }).assertReady();
+
+    expect(result).toBeNull();
   });
 });
 
@@ -1106,8 +1113,14 @@ describe("parseOllamaOutput — edge cases", () => {
 
 describe("defaultModelDir — edge cases", () => {
   it("uses .vscode-rotator/models when baseDir is undefined", async () => {
-    const { defaultModelDir } = await import("../../src/llm/inference.js");
-    // defaultModelDir is not exported — tested indirectly via resolveModelPath
+    fsReaddirMock.mockResolvedValue([]);
+    const { LocalLlmInference } = await import("../../src/llm/inference.js");
+    const result = await new LocalLlmInference({}).resolveModelPath();
+
+    expect(result).toBeNull();
+    expect(fsReaddirMock).toHaveBeenCalledWith(
+      path.join(os.homedir(), ".vscode-rotator", "models"),
+    );
   });
 });
 

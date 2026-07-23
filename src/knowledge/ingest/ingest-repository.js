@@ -282,6 +282,58 @@ function isDirectRun() {
   );
 }
 
+/**
+ * Builds a map of docId -> fileHash for all files currently on disk.
+ */
+async function buildCurrentFileHashes(files, absoluteBaseDir) {
+  const currentFiles = new Map();
+  for (const filePath of files) {
+    try {
+      const text = await fs.readFile(filePath, "utf8");
+      const relativePath = path.relative(absoluteBaseDir, filePath);
+      const docId = `repo:${relativePath.split(path.sep).join("/")}`;
+      const fileHash = computeFileHash(text);
+      currentFiles.set(docId, fileHash);
+    } catch (err) {
+      console.warn(`[knowledge] Skipping ${filePath}: ${err}`);
+    }
+  }
+  return currentFiles;
+}
+
+/**
+ * Processes file chunks: skips unchanged, deletes+re-ingests changed.
+ * Returns { totalChunks, skippedFiles }.
+ */
+async function processFileChunks(fileChunksMap, currentFiles, existingHashes) {
+  let totalChunks = 0;
+  let skippedFiles = 0;
+
+  for (const [docId, chunks] of fileChunksMap) {
+    const currentHash = currentFiles.get(docId);
+    const existingHash = existingHashes.get(docId);
+
+    if (existingHash === currentHash) {
+      skippedFiles++;
+      continue;
+    }
+
+    if (existingHash) {
+      console.log(`[knowledge] Updating changed file: ${docId}`);
+      await deleteChunksByDocId(docId);
+    }
+
+    console.log(`[knowledge] Processing ${docId}: ${chunks.length} chunks`);
+
+    await attachVectors(chunks);
+    const insertedCount = await insertChunkBatch(null, chunks);
+    totalChunks += insertedCount;
+    console.log(`[knowledge] Inserted ${insertedCount} chunk(s) for ${docId}`);
+  }
+
+  return { totalChunks, skippedFiles };
+}
+
 export async function ingestRepository(options) {
   const { baseDir, defaultFeatureArea } = options;
   const absoluteBaseDir = path.resolve(baseDir);
@@ -305,26 +357,14 @@ export async function ingestRepository(options) {
   }
 
   // Build a map of docId -> fileHash for all files currently on disk
-  const currentFiles = new Map();
-  const fileChunksMap = new Map(); // docId -> chunks array
-
-  for (const filePath of files) {
-    try {
-      const text = await fs.readFile(filePath, "utf8");
-      const relativePath = path.relative(absoluteBaseDir, filePath);
-      const docId = `repo:${relativePath.split(path.sep).join("/")}`;
-      const fileHash = computeFileHash(text);
-      currentFiles.set(docId, fileHash);
-    } catch (err) {
-      console.warn(`[knowledge] Skipping ${filePath}: ${err}`);
-    }
-  }
+  const currentFiles = await buildCurrentFileHashes(files, absoluteBaseDir);
 
   const { fileChunksMap: builtFileChunksMap } = await buildChunksForBatch(
     files,
     absoluteBaseDir,
     defaultFeatureArea,
   );
+  const fileChunksMap = new Map();
   for (const [docId, chunks] of builtFileChunksMap) {
     if (chunks.length > 0) {
       fileChunksMap.set(docId, chunks);
@@ -339,32 +379,12 @@ export async function ingestRepository(options) {
     }
   }
 
-  let totalChunks = 0;
-  let skippedFiles = 0;
-
   // Process each file: skip unchanged, delete+re-ingest changed
-  for (const [docId, chunks] of fileChunksMap) {
-    const currentHash = currentFiles.get(docId);
-    const existingHash = existingHashes.get(docId);
-
-    if (existingHash === currentHash) {
-      skippedFiles++;
-      continue;
-    }
-
-    // File is new or changed
-    if (existingHash && existingHash !== currentHash) {
-      console.log(`[knowledge] Updating changed file: ${docId}`);
-      await deleteChunksByDocId(docId);
-    }
-
-    console.log(`[knowledge] Processing ${docId}: ${chunks.length} chunks`);
-
-    await attachVectors(chunks);
-    const insertedCount = await insertChunkBatch(null, chunks);
-    totalChunks += insertedCount;
-    console.log(`[knowledge] Inserted ${insertedCount} chunk(s) for ${docId}`);
-  }
+  const { totalChunks, skippedFiles } = await processFileChunks(
+    fileChunksMap,
+    currentFiles,
+    existingHashes,
+  );
 
   if (skippedFiles > 0) {
     console.log(`[knowledge] Skipped ${skippedFiles} unchanged file(s)`);

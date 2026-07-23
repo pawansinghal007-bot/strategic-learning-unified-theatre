@@ -73,9 +73,10 @@ describe("ExperienceDb - 100% branch coverage", () => {
     // 3. The ?? fallback can only be hit if someone calls appBaseDir(undefined) directly,
     //    but the function is not exported, so this is unreachable from tests.
     // This branch (BRDA:17,0,1,0) cannot be covered by unit tests.
-    it("appBaseDir is a private function - BRDA:17,0,1,0 is dead code", () => {
-      // This test documents why the branch cannot be covered.
-      expect(true).toBe(true);
+    it("constructor derives a rotator base directory when none is supplied", () => {
+      db = new ExperienceDb({ dbPath });
+
+      expect(db.baseDir).toContain(".vscode-rotator");
     });
   });
 
@@ -594,10 +595,9 @@ describe("ExperienceDb - 100% branch coverage", () => {
       db = new ExperienceDb({ dbPath });
       // Make the dbPath point to a directory (will cause EISDIR on readFile)
       fs.mkdirSync(dbPath, { recursive: true });
-      // Remove the file path we just made into a dir — we need dbPath to be a file path
-      // Actually, since dbPath is now a directory, readFile will fail with EISDIR
-      // which is not SQLITE_BUSY or corrupt DB error, so it should be rethrown
-      // But we can't easily trigger this without mocking fs.readFile
+      // readFile on a directory throws EISDIR, which is not SQLITE_BUSY or corrupt DB error,
+      // so open() should rethrow it as-is
+      await expect(db.open()).rejects.toThrow();
       // Clean up the directory
       fs.rmSync(dbPath, { recursive: true });
     });
@@ -724,12 +724,9 @@ describe("ExperienceDb - 100% branch coverage", () => {
       db = new ExperienceDb({ dbPath });
       await db.open();
 
-      try {
-        await db.setRubricActive(99999, 1);
-        expect("should have thrown").toBe("error");
-      } catch (err) {
-        expect(err.message).toContain("Rubric rule not found");
-      }
+      await expect(db.setRubricActive(99999, 1)).rejects.toThrow(
+        "Rubric rule not found",
+      );
     });
   });
 
@@ -1287,12 +1284,9 @@ describe("ExperienceDb - 100% branch coverage", () => {
       db = new ExperienceDb({ dbPath });
       await db.open();
 
-      try {
-        await db.ratePrompt(99999, 5);
-        expect("should have thrown").toBe("error");
-      } catch (err) {
-        expect(err.message).toContain("Prompt history not found");
-      }
+      await expect(db.ratePrompt(99999, 5)).rejects.toThrow(
+        "Prompt history not found",
+      );
     });
   });
 

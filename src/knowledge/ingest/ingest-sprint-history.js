@@ -66,6 +66,68 @@ async function loadSprintReportDocument(filePath, defaultFeatureArea) {
   };
 }
 
+function selectSafeChunks(chunks, docId) {
+  const MAX_CHUNK_CHARS = 6000;
+  const safeChunks = chunks.filter(
+    (chunk) => String(chunk.text ?? "").length <= MAX_CHUNK_CHARS,
+  );
+  const skippedCount = chunks.length - safeChunks.length;
+
+  /* v8 ignore next 4 -- unreachable: chunking.js caps chunks below 6000 chars */
+  if (skippedCount > 0) {
+    console.warn(
+      `[knowledge] Skipping ${skippedCount} oversized chunk(s) over ${MAX_CHUNK_CHARS} chars for ${docId}`,
+    );
+  }
+
+  return safeChunks;
+}
+
+async function ingestSprintReport(doc) {
+  console.log(`[knowledge] Ingesting: ${doc.id}`);
+
+  const chunks = chunkDocument(doc);
+  if (!chunks.length) {
+    console.warn(`[knowledge] Skipping empty report: ${doc.id}`);
+    return;
+  }
+
+  const safeChunks = selectSafeChunks(chunks, doc.id);
+  /* v8 ignore next -- unreachable: safeChunks only empty if all chunks exceeded 6000 chars */
+  if (safeChunks.length === 0) return;
+
+  const vectors = await embedTextBatch(safeChunks.map((chunk) => chunk.text));
+  if (vectors.length !== safeChunks.length) {
+    throw new Error(
+      `[knowledge] embedTextBatch returned ${vectors.length} vectors for ${safeChunks.length} chunks`,
+    );
+  }
+
+  const points = safeChunks.map((chunk, index) => ({
+    chunk_id: chunk.chunkId,
+    doc_id: chunk.docId,
+    source_type: chunk.sourceType,
+    sprint: chunk.sprint ?? -1,
+    module: chunk.module ?? "",
+    feature_area: chunk.featureArea ?? "",
+    version: chunk.version ?? "",
+    /* v8 ignore next -- chunking.js always provides path from doc.path */
+    path: chunk.path ?? "",
+    section: chunk.section ?? "",
+    importance: chunk.importance,
+    hash: chunk.hash,
+    created_at: chunk.createdAt,
+    /* v8 ignore next -- chunking.js always provides text from window slice */
+    text: String(chunk.text ?? "").slice(0, 16_384),
+    dense_vector: vectors[index],
+    /* v8 ignore next -- chunking.js always provides text from window slice */
+    content: String(chunk.text ?? "").slice(0, 16_384),
+  }));
+
+  await upsertChunks(points);
+  console.log(`[knowledge] Inserted ${points.length} chunk(s) for ${doc.id}`);
+}
+
 export async function ingestSprintHistory(options) {
   const { baseDir, defaultFeatureArea } = options;
   await ensureKnowledgeCollection();
@@ -80,72 +142,7 @@ export async function ingestSprintHistory(options) {
 
   for (const filePath of files) {
     const doc = await loadSprintReportDocument(filePath, defaultFeatureArea);
-    console.log(`[knowledge] Ingesting: ${doc.id}`);
-
-    const chunks = chunkDocument(doc);
-    if (!chunks.length) {
-      console.warn(`[knowledge] Skipping empty report: ${doc.id}`);
-      continue;
-    }
-
-    // Safety guard: skip oversized chunks that would exceed embedding context limits
-    // NOTE: chunking.js currently caps at 3000 chars, so these branches are
-    // unreachable with the current chunker. Kept for future-proofing.
-    const MAX_CHUNK_CHARS = 6000;
-    const safeChunks = [];
-    let skippedCount = 0;
-    for (const c of chunks) {
-      /* v8 ignore next -- unreachable: chunking.js caps at 3000 chars, well below 6000 */
-      if (String(c.text ?? "").length > MAX_CHUNK_CHARS) {
-        skippedCount++;
-      } else {
-        safeChunks.push(c);
-      }
-    }
-    /* v8 ignore next 4 -- unreachable: skippedCount only > 0 if branch above is taken */
-    if (skippedCount > 0) {
-      console.warn(
-        `[knowledge] Skipping ${skippedCount} oversized chunk(s) over ${MAX_CHUNK_CHARS} chars for ${doc.id}`,
-      );
-    }
-    /* v8 ignore next -- unreachable: safeChunks only empty if all chunks exceeded 6000 chars */
-    if (safeChunks.length === 0) continue;
-
-    const vectors = await embedTextBatch(safeChunks.map((chunk) => chunk.text));
-    if (vectors.length !== safeChunks.length) {
-      throw new Error(
-        `[knowledge] embedTextBatch returned ${vectors.length} vectors for ${safeChunks.length} chunks`,
-      );
-    }
-
-    for (let i = 0; i < safeChunks.length; i++) {
-      safeChunks[i].denseVector = vectors[i];
-    }
-
-    const points = safeChunks.map((chunk) => ({
-      chunk_id: chunk.chunkId,
-      doc_id: chunk.docId,
-      source_type: chunk.sourceType,
-      sprint: chunk.sprint ?? -1,
-      module: chunk.module ?? "",
-      feature_area: chunk.featureArea ?? "",
-      version: chunk.version ?? "",
-      /* v8 ignore next -- chunking.js always provides path from doc.path */
-      path: chunk.path ?? "",
-      section: chunk.section ?? "",
-      importance: chunk.importance,
-      hash: chunk.hash,
-      created_at: chunk.createdAt,
-      /* v8 ignore next -- chunking.js always provides text from window slice */
-      text: String(chunk.text ?? "").slice(0, 16_384),
-      dense_vector: chunk.denseVector,
-      /* v8 ignore next -- chunking.js always provides text from window slice */
-      content: String(chunk.text ?? "").slice(0, 16_384),
-    }));
-
-    await upsertChunks(points);
-
-    console.log(`[knowledge] Inserted ${points.length} chunk(s) for ${doc.id}`);
+    await ingestSprintReport(doc);
   }
 
   console.log("[knowledge] Sprint history ingestion complete.");

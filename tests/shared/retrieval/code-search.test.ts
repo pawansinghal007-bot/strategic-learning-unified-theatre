@@ -285,4 +285,108 @@ describe("searchCode", () => {
 
     expect(hits[0].text).toBe("padded text");
   });
+
+  it("uses REPO_ROOT directly when glob resolves exactly to REPO_ROOT (sep branch)", () => {
+    // resolveGlob("") returns REPO_ROOT. This exercises the
+    // `resolved !== REPO_ROOT` guard branch where resolved === REPO_ROOT.
+    const result = resolveGlob(".");
+    // path.resolve(MOCK_ROOT, ".") === MOCK_ROOT, so the guard passes
+    expect(result).toBe(MOCK_ROOT);
+  });
+
+  it("throws when rg exits with code 1 but stdout has content (real error, not no-match)", async () => {
+    // rg code 1 with non-empty stdout is treated as a real error
+    // (the guard is: exitCode === "1" && !execErr.stdout?.trim())
+    const err = Object.assign(new Error("Command failed"), {
+      code: "1",
+      stdout: "some unexpected output",
+      stderr: "",
+    });
+
+    const promise = searchCode("pattern");
+    rejectExec(err as ExecError);
+
+    await expect(promise).rejects.toThrow(/rg failed \(code 1\)/);
+  });
+
+  it("uses stderr in error message when available", async () => {
+    const err = Object.assign(new Error("Command failed"), {
+      code: "2",
+      stdout: "",
+      stderr: "rg: regex syntax error",
+    });
+
+    const promise = searchCode("bad[pattern");
+    rejectExec(err as ExecError);
+
+    await expect(promise).rejects.toThrow(/rg: regex syntax error/);
+  });
+
+  it("falls back to String(err) in error message when stderr is empty", async () => {
+    const err = Object.assign(new Error("Command failed with no stderr"), {
+      code: "2",
+      stdout: "",
+      stderr: "",
+    });
+
+    const promise = searchCode("pattern");
+    rejectExec(err as ExecError);
+
+    await expect(promise).rejects.toThrow(/rg failed \(code 2\)/);
+  });
+
+  it("handles rg record with missing path field (defaults to empty string)", async () => {
+    const line = JSON.stringify({
+      type: "match",
+      data: {
+        // path field intentionally absent
+        line_number: 5,
+        lines: { text: "match text" },
+      },
+    });
+
+    const promise = searchCode("pattern");
+    resolveExec(line);
+    const hits = await promise;
+
+    expect(hits).toHaveLength(1);
+    expect(hits[0].line).toBe(5);
+    expect(hits[0].text).toBe("match text");
+  });
+
+  it("handles rg record with missing line_number (defaults to 0)", async () => {
+    const line = JSON.stringify({
+      type: "match",
+      data: {
+        path: { text: `${MOCK_ROOT}/src/foo.ts` },
+        // line_number intentionally absent
+        lines: { text: "some text" },
+      },
+    });
+
+    const promise = searchCode("pattern");
+    resolveExec(line);
+    const hits = await promise;
+
+    expect(hits).toHaveLength(1);
+    expect(hits[0].line).toBe(0);
+  });
+
+  it("handles rg record with missing lines field (defaults to empty string)", async () => {
+    const line = JSON.stringify({
+      type: "match",
+      data: {
+        path: { text: `${MOCK_ROOT}/src/foo.ts` },
+        line_number: 10,
+        // lines field intentionally absent
+      },
+    });
+
+    const promise = searchCode("pattern");
+    resolveExec(line);
+    const hits = await promise;
+
+    expect(hits).toHaveLength(1);
+    expect(hits[0].text).toBe("");
+  });
 });

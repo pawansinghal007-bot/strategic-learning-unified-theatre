@@ -26,7 +26,8 @@ let cachedFileHash: string | null = null;
  */
 function computeFileHash(): string {
   const files = collectSourceFiles(PROJECT_ROOT);
-  return files.sort().join("\n");
+  const sorted = [...files].sort((a, b) => a.localeCompare(b));
+  return sorted.join("\n");
 }
 
 /**
