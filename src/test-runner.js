@@ -291,6 +291,7 @@ function findNextRobotError(xml, lower, searchFrom) {
 
   let i = afterTag;
   while (i < xml.length && isXmlWhitespace(xml[i])) i++;
+  /* v8 ignore next 3 — unreachable: xml[afterTag] is whitespace (checked above), so the while loop always advances i past afterTag */
   if (i === afterTag) {
     return { name: null, nextSearchFrom: tagStart + 1 };
   }

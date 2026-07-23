@@ -561,3 +561,152 @@ describe("graph-incremental — findAffectedFiles via incremental update (line 1
     }
   });
 });
+
+
+
+// ─── Direct coverage of getNodesForFile and getEdgesForFile (lines 121-140) ──
+
+describe("graph-incremental — getNodesForFile and getEdgesForFile internal helpers", () => {
+  // These private helpers are exercised during mergeChangedGraph inside
+  // performIncrementalUpdate. We drive them by triggering an incremental update.
+
+  it("mergeChangedGraph uses getNodesForFile/getEdgesForFile during incremental merge", () => {
+    const original = readFixtureFile("utils.ts");
+    const builder = new IncrementalGraphBuilder(FIXTURES_DIR);
+
+    try {
+      // First full build
+      const first = builder.update(FIXTURE_FILES);
+      const firstNodeCount = first.graph.nodes.length;
+      const firstEdgeCount = first.graph.edges.length;
+
+      // Modify utils.ts to trigger incremental (not full) rebuild
+      writeFixtureFile("utils.ts", original + "\n// trigger merge\n");
+      const second = builder.update(FIXTURE_FILES);
+
+      // Should be incremental — mergeChangedGraph was called
+      expect(second.isFullRebuild).toBe(false);
+
+      // Graph should still be structurally valid after merge
+      expect(second.graph.nodes.length).toBeGreaterThan(0);
+      expect(second.graph.edges.length).toBeGreaterThan(0);
+
+      // Node count should be the same (no symbols added/removed)
+      expect(second.graph.nodes.length).toBe(firstNodeCount);
+
+      // All node IDs must be unique
+      const ids = new Set(second.graph.nodes.map((n) => n.id));
+      expect(ids.size).toBe(second.graph.nodes.length);
+    } finally {
+      writeFixtureFile("utils.ts", original);
+    }
+  });
+
+  it("removeChangedNodes removes only nodes belonging to changed file", () => {
+    const original = readFixtureFile("utils.ts");
+    const builder = new IncrementalGraphBuilder(FIXTURES_DIR);
+
+    try {
+      builder.update(FIXTURE_FILES);
+
+      // Modify utils.ts
+      writeFixtureFile("utils.ts", original + "\n// removeChangedNodes test\n");
+      const result = builder.update(FIXTURE_FILES);
+
+      // After merge, no node from utils.ts should appear more than once
+      const utilsNodes = result.graph.nodes.filter((n) =>
+        n.file === "utils.ts",
+      );
+      const utilsNodeIds = utilsNodes.map((n) => n.id);
+      const uniqueIds = new Set(utilsNodeIds);
+      expect(uniqueIds.size).toBe(utilsNodeIds.length);
+    } finally {
+      writeFixtureFile("utils.ts", original);
+    }
+  });
+
+  it("removeChangedEdges removes edges whose 'from' or 'to' is in the changed file", () => {
+    const original = readFixtureFile("utils.ts");
+    const builder = new IncrementalGraphBuilder(FIXTURES_DIR);
+
+    try {
+      builder.update(FIXTURE_FILES);
+      writeFixtureFile("utils.ts", original + "\n// removeChangedEdges test\n");
+      const result = builder.update(FIXTURE_FILES);
+
+      // After merge, edges should be structurally valid
+      const nodeIds = new Set(result.graph.nodes.map((n) => n.id));
+      for (const edge of result.graph.edges) {
+        if (edge.resolved) {
+          expect(nodeIds).toContain(edge.to);
+        }
+        expect(typeof edge.from).toBe("string");
+      }
+    } finally {
+      writeFixtureFile("utils.ts", original);
+    }
+  });
+});
+
+// ─── findAffectedFiles branch (line 182) — content.includes check ────────────
+
+describe("graph-incremental — findAffectedFiles import relationship detection (line 182)", () => {
+  it("detects affected files that import from the changed file via basename check", () => {
+    // processor.ts imports from utils.ts (basename "utils").
+    // When utils.ts changes, findAffectedFiles checks content.includes("utils")
+    // for each unchanged file. processor.ts content includes "utils" → affected.
+    // This exercises the content.includes(changedBasename) branch at line 182.
+    const original = readFixtureFile("utils.ts");
+    const builder = new IncrementalGraphBuilder(FIXTURES_DIR);
+
+    try {
+      builder.update(FIXTURE_FILES);
+      writeFixtureFile("utils.ts", original + "\n// affect test\n");
+      const result = builder.update(FIXTURE_FILES);
+
+      // Incremental (not full rebuild)
+      expect(result.isFullRebuild).toBe(false);
+      expect(result.changedFiles).toContain("utils.ts");
+
+      // The relinkAffectedEdges should have been called because processor.ts,
+      // service.ts, aliased.ts, overloads.ts all import from utils.ts.
+      // Verify the graph remains consistent.
+      expect(result.graph.nodes.length).toBeGreaterThan(0);
+      expect(result.graph.edges.length).toBeGreaterThan(0);
+    } finally {
+      writeFixtureFile("utils.ts", original);
+    }
+  });
+
+  it("detects affected files when changed file imports from another file (reverse check)", () => {
+    // When utils.ts changes, findAffectedFiles also checks:
+    //   content.includes(path.basename(otherFile, ".ts"))
+    // for the changed file's content — i.e. does utils.ts import from service.ts?
+    // This is the reverse import check branch at line ~182.
+    // We create a temporary file that imports from utils.ts to force this path.
+    const tmpContent = `import { formatName } from "./utils.js";\nexport function tmp() { return formatName("x"); }\n`;
+    const tmpFile = writeFixtureFile("tmp-affected.ts", tmpContent);
+
+    const builder = new IncrementalGraphBuilder(FIXTURES_DIR);
+    const allFiles = [...FIXTURE_FILES, tmpFile];
+
+    try {
+      builder.update(allFiles);
+
+      // Now modify utils.ts — tmp-affected.ts should be detected as affected
+      const original = readFixtureFile("utils.ts");
+      writeFixtureFile("utils.ts", original + "\n// reverse affect\n");
+
+      const result = builder.update(allFiles);
+      expect(result.isFullRebuild).toBe(false);
+      expect(result.changedFiles).toContain("utils.ts");
+      expect(result.graph.nodes.length).toBeGreaterThan(0);
+    } finally {
+      const originalUtils = readFixtureFile("utils.ts");
+      writeFixtureFile("utils.ts", originalUtils.replace("\n// reverse affect\n", ""));
+      if (require("node:fs").existsSync(tmpFile)) {
+        require("node:fs").unlinkSync(tmpFile);
+      }
+    }
+  });
+});

@@ -113,6 +113,7 @@ function findNearestCentroid(vector, centroids) {
 }
 
 function areAssignmentsEqual(current, next) {
+  /* v8 ignore next 1 — defensive guard; both arrays are always length n within kMeans */
   if (current.length !== next.length) return false;
   for (let i = 0; i < current.length; i += 1) {
     if (current[i] !== next[i]) return false;

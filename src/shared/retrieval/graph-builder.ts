@@ -41,13 +41,13 @@ function lineOf(sourceFile: ts.SourceFile, pos: number): number {
   return sourceFile.getLineAndCharacterOfPosition(pos).line + 1; // 1-indexed
 }
 
-function firstLineOfText(text: string): string {
+export function firstLineOfText(text: string): string {
   const firstLine = text.split("\n")[0].trim();
   return firstLine.length > 200 ? firstLine.slice(0, 200) + "..." : firstLine;
 }
 
 /** Extract parameter names from a signature-declaring node. */
-function extractParams(node: ts.Node): string[] | undefined {
+export function extractParams(node: ts.Node): string[] | undefined {
   const params: string[] = [];
   const paramList =
     ts.isFunctionDeclaration(node) ||
@@ -70,7 +70,7 @@ function extractParams(node: ts.Node): string[] | undefined {
 /**
  * Determines the NodeKind for a declaration node.
  */
-function kindForNode(node: ts.Node): NodeKind | null {
+export function kindForNode(node: ts.Node): NodeKind | null {
   if (ts.isFunctionDeclaration(node)) return "function";
   if (ts.isClassDeclaration(node)) return "class";
   if (ts.isMethodDeclaration(node)) return "method";
@@ -187,7 +187,7 @@ function resolveCallTargets(
 /**
  * Check if a call expression is a dynamic dispatch (parameter call).
  */
-function checkDynamicDispatch(
+export function checkDynamicDispatch(
   expr: ts.Expression,
   checker: ts.TypeChecker,
   callLine: number,
@@ -209,7 +209,7 @@ function checkDynamicDispatch(
 /**
  * Handle missing symbol at call expression.
  */
-function handleMissingSymbol(
+export function handleMissingSymbol(
   expr: ts.Expression,
   callLine: number,
 ): ResolutionResult[] {
@@ -276,7 +276,7 @@ function processDeclarationsToTargets(
 /**
  * Handle unresolved targets (external or unprocessable).
  */
-function handleUnresolvedTargets(
+export function handleUnresolvedTargets(
   filteredDecls: ts.Node[],
   callLine: number,
 ): ResolutionResult[] {
@@ -326,7 +326,7 @@ function unresolvedResult(line: number, reason: string): ResolutionResult[] {
  * it references. Uses the TS checker's symbol table to follow the
  * import chain.
  */
-function getImportedSymbol(
+export function getImportedSymbol(
   importSpecifier: ts.ImportSpecifier,
   checker: ts.TypeChecker,
 ): ts.Symbol | undefined {
@@ -364,7 +364,7 @@ function getImportedSymbol(
  * Strategy: if multiple declarations share the same name and file,
  * keep only the one with a body. For non-function nodes, pass through.
  */
-function filterOverloadImplementations(decls: ts.Node[]): ts.Node[] {
+export function filterOverloadImplementations(decls: ts.Node[]): ts.Node[] {
   const result: ts.Node[] = [];
 
   // Group function declarations by (file, name)
@@ -407,7 +407,7 @@ function filterOverloadImplementations(decls: ts.Node[]): ts.Node[] {
 /**
  * Processes a single declaration and returns the target node ID, or null.
  */
-function targetNameForDeclaration(decl: ts.Node): string | null {
+export function targetNameForDeclaration(decl: ts.Node): string | null {
   if (ts.isFunctionDeclaration(decl) && decl.name) {
     return decl.name.text;
   }
@@ -420,6 +420,8 @@ function targetNameForDeclaration(decl: ts.Node): string | null {
   }
 
   if (ts.isClassDeclaration(decl) && decl.name) {
+    /* v8 ignore next 2 — ClassDeclaration declarations only arise from `new X()` (NewExpression),
+       which collectCallExpressions does not collect; unreachable via the public API */
     return decl.name.text;
   }
 
