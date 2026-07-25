@@ -14,16 +14,15 @@ import { runSecurityAutoScan } from "../security/security-overview/auto-scan.js"
 
 const log = createLogger("daemon-runner");
 
-const PROJECT_ROOT = "C:/SW Development/VS Code Agent/Solution";
-
 // --------------------------------------------------
 // Bootstrap
 // --------------------------------------------------
 
-process.chdir(PROJECT_ROOT);
-
 function baseDir() {
-  return path.join(os.homedir(), ".vscode-rotator");
+  // Prefer the HOME environment variable so integration tests can override
+  // the log directory via `env.HOME` without touching the real user home.
+  const home = process.env.HOME ?? os.homedir();
+  return path.join(home, ".vscode-rotator");
 }
 
 async function ensureDir(dirPath) {
@@ -56,6 +55,12 @@ function delay(ms) {
 
     timer.unref?.();
   });
+}
+
+// Like delay() but keeps the event loop alive (used in the watchdog loop so
+// the process does not exit between iterations when all other handles are unref'd).
+function delayRef(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 const dir = baseDir();
@@ -400,7 +405,7 @@ async function main() {
       // instead of blocking forever
 
       while (!shuttingDown && currentWatcher?.running) {
-        await delay(1000);
+        await delayRef(1000);
       }
 
       if (shuttingDown) {

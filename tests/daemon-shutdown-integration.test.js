@@ -4,8 +4,15 @@ import fs from "node:fs/promises";
 import { existsSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { createRequire } from "node:module";
 
-const PROJECT_ROOT = "C:/SW Development/VS Code Agent/Solution";
+// Resolve the `tsx/esm` loader so we can spawn the daemon with TypeScript
+// support via --import. This lets Node own the process lifecycle (keeping
+// signal handlers and ref'd timers intact) while tsx handles the .ts→.js
+// module resolution transparently.
+const _require = createRequire(import.meta.url);
+const TSX_ESM_LOADER = _require.resolve("tsx/esm");
+
 const DAEMON_PATH = path.join(
   process.cwd(),
   "src",
@@ -17,10 +24,7 @@ const LOG_POLL_INTERVAL_MS = 50;
 const LOG_POLL_TIMEOUT_MS = 20000;
 const EXIT_TIMEOUT_MS = 15000;
 
-const shouldRunIntegration =
-  process.platform === "win32" &&
-  existsSync(PROJECT_ROOT) &&
-  path.resolve(PROJECT_ROOT) === path.resolve(process.cwd());
+const shouldRunIntegration = existsSync(DAEMON_PATH);
 
 let childProcess = null;
 let childExitPromise = null;
@@ -102,7 +106,7 @@ async function runDaemonShutdownTest(signal) {
     SECURITY_SCAN_INTERVAL_MS: String(SECURITY_SCAN_INTERVAL_MS),
   };
 
-  childProcess = spawn(process.execPath, [DAEMON_PATH], {
+  childProcess = spawn(process.execPath, ["--import", TSX_ESM_LOADER, DAEMON_PATH], {
     env,
     cwd: process.cwd(),
     stdio: ["ignore", "pipe", "pipe"],
@@ -190,7 +194,7 @@ async function cleanupTempDirs() {
 
 if (!shouldRunIntegration) {
   describe.skip("daemon shutdown integration", () => {
-    it("skips because the hardcoded daemon project root is not available on this host", () => {
+    it("skips because the daemon runner script was not found", () => {
       expect(true).toBe(true);
     });
   });
@@ -201,12 +205,20 @@ if (!shouldRunIntegration) {
       await cleanupTempDirs();
     });
 
-    it("clears the security scan timer and records shutdown for SIGTERM", async () => {
-      await runDaemonShutdownTest("SIGTERM");
-    });
+    it(
+      "clears the security scan timer and records shutdown for SIGTERM",
+      async () => {
+        await runDaemonShutdownTest("SIGTERM");
+      },
+      LOG_POLL_TIMEOUT_MS + EXIT_TIMEOUT_MS + 5000,
+    );
 
-    it("clears the security scan timer and records shutdown for SIGINT", async () => {
-      await runDaemonShutdownTest("SIGINT");
-    });
+    it(
+      "clears the security scan timer and records shutdown for SIGINT",
+      async () => {
+        await runDaemonShutdownTest("SIGINT");
+      },
+      LOG_POLL_TIMEOUT_MS + EXIT_TIMEOUT_MS + 5000,
+    );
   });
 }
