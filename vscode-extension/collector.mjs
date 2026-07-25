@@ -578,8 +578,6 @@ export class VscodeContextCollector {
     const exitCode = event.exitCode;
     if (exitCode === undefined || exitCode === 0) return;
 
-    if (!this.vscodeLearn.enabled) return;
-
     const taskName = event.execution?.task?.name || "unknown task";
     const content = [
       `[source_type: vscode-task-error]`,
@@ -606,19 +604,6 @@ export class VscodeContextCollector {
       this.outputChannel.appendLine(
         `[collector] queued task error: ${taskName}`,
       );
-    }
-
-    // Track recurring task failures through MistakeTracker for later rubric injection
-    try {
-      const tracker = new MistakeTracker({ baseDir: this.baseDir });
-      await tracker.addMistake({
-        category: "vscode-task-failure",
-        description: `Task "${taskName}" failed with exit code ${exitCode}`,
-        fix_applied: `Review task "${taskName}" output and correct the root cause.`,
-        root_cause: `VS Code task exited with non-zero code ${exitCode}`,
-      });
-    } catch {
-      // ignore MistakeTracker failures — they are non-critical
     }
   }
 
