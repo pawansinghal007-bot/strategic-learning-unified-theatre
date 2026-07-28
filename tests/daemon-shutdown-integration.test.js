@@ -193,9 +193,11 @@ async function cleanupTempDirs() {
 }
 
 if (!shouldRunIntegration) {
-  describe.skip("daemon shutdown integration", () => {
-    it("skips because the daemon runner script was not found", () => {
-      expect(true).toBe(true);
+  describe("daemon shutdown integration", () => {
+    // Skipped: daemon-runner script not found in this environment.
+    // Real assertions run only when the daemon binary is present (shouldRunIntegration=true).
+    it.skip("skips because the daemon runner script was not found", () => {
+      // No assertions — this test exists solely to surface the skip reason in CI output.
     });
   });
 } else {
