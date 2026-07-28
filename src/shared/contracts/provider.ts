@@ -4,6 +4,7 @@ export type ProviderName =
   | "anthropic"
   | "gemini"
   | "groq"
+  | "grok"
   | "perplexity"
   | "local"
   | "custom";

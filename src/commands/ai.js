@@ -198,10 +198,13 @@ async function getContext(ctx) {
   return await createDbContext();
 }
 
-/* v8 ignore start */
-async function loadAiMemoryContext() {
-  const context = await createDbContext();
-
+/**
+ * Build the full AI memory snapshot from an open context.
+ * Extracted to eliminate duplication between the snapshot and resume commands.
+ * @param {Awaited<ReturnType<typeof getContext>>} context
+ * @returns {Promise<object>}
+ */
+async function buildAiSnapshot(context) {
   let currentSprint = context.sprintRepo.getLatest();
   let handoff = context.handoffRepo.getLatest();
 
@@ -221,7 +224,7 @@ async function loadAiMemoryContext() {
     }
   }
 
-  const snapshot = {
+  return {
     currentSprint,
     handoff,
     latestBaseline,
@@ -230,6 +233,12 @@ async function loadAiMemoryContext() {
     commands: context.commandsRepo.list(),
     snapshotPointer: await loadSnapshotPointer(),
   };
+}
+
+/* v8 ignore start */
+async function loadAiMemoryContext() {
+  const context = await createDbContext();
+  const snapshot = await buildAiSnapshot(context);
   context.close();
   return snapshot;
 }
@@ -247,35 +256,7 @@ export function bindAiCommands(program, ctx) {
 
       try {
         const context = await getContext(ctx);
-        
-        let currentSprint = context.sprintRepo.getLatest();
-        let handoff = context.handoffRepo.getLatest();
-
-        const latestBaseline = context.baselineRepo.getLatest();
-
-        if (!currentSprint || !handoff) {
-          const manifest = await loadLatestSprintManifest();
-
-          if (manifest) {
-            if (!currentSprint) {
-              currentSprint = mapSprintManifestToSnapshot(manifest);
-            }
-
-            if (!handoff) {
-              handoff = mapSprintManifestToHandoff(manifest);
-            }
-          }
-        }
-
-        const snapshot = {
-          currentSprint,
-          handoff,
-          latestBaseline,
-          decisions: context.decisionsRepo.list(),
-          lessons: context.lessonsRepo.list(),
-          commands: context.commandsRepo.list(),
-          snapshotPointer: await loadSnapshotPointer(),
-        };
+        const snapshot = await buildAiSnapshot(context);
         context.close();
 
         spinner.stop();
@@ -295,35 +276,7 @@ export function bindAiCommands(program, ctx) {
 
       try {
         const context = await getContext(ctx);
-        
-        let currentSprint = context.sprintRepo.getLatest();
-        let handoff = context.handoffRepo.getLatest();
-
-        const latestBaseline = context.baselineRepo.getLatest();
-
-        if (!currentSprint || !handoff) {
-          const manifest = await loadLatestSprintManifest();
-
-          if (manifest) {
-            if (!currentSprint) {
-              currentSprint = mapSprintManifestToSnapshot(manifest);
-            }
-
-            if (!handoff) {
-              handoff = mapSprintManifestToHandoff(manifest);
-            }
-          }
-        }
-
-        const snapshot = {
-          currentSprint,
-          handoff,
-          latestBaseline,
-          decisions: context.decisionsRepo.list(),
-          lessons: context.lessonsRepo.list(),
-          commands: context.commandsRepo.list(),
-          snapshotPointer: await loadSnapshotPointer(),
-        };
+        const snapshot = await buildAiSnapshot(context);
         context.close();
 
         spinner.stop();
