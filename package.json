@@ -64,7 +64,9 @@
     "build:electron-main": "node scripts/build-electron-main.mjs",
     "harness": "tsx src/agents/cli.ts",
     "index:symbols": "tsx src/storage/run-indexer.ts",
-    "mcp:server": "tsx src/mcp/server.ts"
+    "mcp:server": "tsx src/mcp/server.ts",
+    "db:up": "bash scripts/db-up.sh",
+    "db:check": "bash scripts/db-check.sh"
   },
   "engines": {
     "node": ">=22.12.0"

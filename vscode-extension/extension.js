@@ -74,7 +74,7 @@ function activate(context) {
       } else {
         output.appendLine("Collector not initialized; creating new instance...");
         const configModuleUrl = pathToFileURL(path.join(projectRoot, "src", "internal", "config.js")).href;
-        const collectorModuleUrl = pathToFileURL(path.join(context.extensionPath, "collector.js")).href;
+        const collectorModuleUrl = pathToFileURL(path.join(context.extensionPath, "collector.mjs")).href;
         const { loadConfig } = await import(configModuleUrl);
         const { VscodeContextCollector } = await import(collectorModuleUrl);
         const config = await loadConfig();
@@ -148,7 +148,7 @@ function activate(context) {
 async function initializeCollector(context, projectRoot, output) {
   try {
     const configModuleUrl = pathToFileURL(path.join(projectRoot, "src", "internal", "config.js")).href;
-    const collectorModuleUrl = pathToFileURL(path.join(context.extensionPath, "collector.js")).href;
+    const collectorModuleUrl = pathToFileURL(path.join(context.extensionPath, "collector.mjs")).href;
 
     const { loadConfig } = await import(configModuleUrl);
     const { VscodeContextCollector } = await import(collectorModuleUrl);

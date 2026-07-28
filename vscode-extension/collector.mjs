@@ -605,6 +605,26 @@ export class VscodeContextCollector {
         `[collector] queued task error: ${taskName}`,
       );
     }
+
+    if (this.vscodeLearn.enabled) {
+      const debounceKey = `task-failure:${taskName}:${exitCode}`;
+      if (!this._shouldDebounce(debounceKey)) {
+        this._recordStage(debounceKey);
+        try {
+          const tracker = new MistakeTracker({ baseDir: this.baseDir });
+          await tracker.addMistake({
+            category: "vscode-task-failure",
+            description: `Task "${taskName}" failed with exit code ${exitCode}`,
+            fix_applied: `Review task "${taskName}" output and correct the root cause.`,
+            root_cause: `VS Code task exited with non-zero code ${exitCode}`,
+          });
+        } catch (err) {
+          this.outputChannel.appendLine(
+            `[collector] failed to record task failure: ${String(err.message)}`,
+          );
+        }
+      }
+    }
   }
 
   async _onGitStateChange(repo) {

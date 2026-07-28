@@ -3,6 +3,7 @@ import ora from "ora";
 
 import { StorageMonitor } from "../storage/storage-monitor.js";
 import { DocumentIngester } from "../llm/document-ingester.js";
+import { ingestRepository } from "../knowledge/ingest/ingest-repository.js";
 
 export async function bindStorageCommands(program) {
   const storage = program
@@ -15,6 +16,7 @@ export async function bindStorageCommands(program) {
     .action(async () => {
       const spinner = ora("Starting storage monitor...").start();
       const monitor = new StorageMonitor();
+      let qdrantReindexInFlight = false;
       try {
         await monitor.indexAll();
         monitor.onIngestibleChange = async (changes) => {
@@ -22,6 +24,20 @@ export async function bindStorageCommands(program) {
           for (const change of changes) {
             if (change.event === "unlink") continue;
             await ingester.ingestPath(change.path);
+          }
+          if (qdrantReindexInFlight) {
+            console.warn(
+              "[storage] qdrant re-index already in progress, skipping this flush",
+            );
+          } else {
+            qdrantReindexInFlight = true;
+            ingestRepository({ baseDir: process.cwd() })
+              .catch((err) =>
+                console.warn("[storage] qdrant re-index failed:", err),
+              )
+              .finally(() => {
+                qdrantReindexInFlight = false;
+              });
           }
         };
         await monitor.watch();

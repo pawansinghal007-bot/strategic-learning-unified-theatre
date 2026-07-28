@@ -21,11 +21,11 @@ const TOKEN_BUDGET_PER_REQUEST = 6000;
 const MAX_ITEMS_PER_BATCH = 64;
 
 // Extended timeouts to survive qwen3-emb-4b cold start (20 minutes).
-const HEADERS_TIMEOUT = parseInt(
+const HEADERS_TIMEOUT = Number.parseInt(
   process.env.EMBEDDING_HEADERS_TIMEOUT_MS || "1200000",
   10,
 );
-const BODY_TIMEOUT = parseInt(
+const BODY_TIMEOUT = Number.parseInt(
   process.env.EMBEDDING_BODY_TIMEOUT_MS || "1200000",
   10,
 );

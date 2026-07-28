@@ -24,11 +24,13 @@ const {
   mockFormatVectorResults,
   mockFormatCodeHits,
   mockFormatSymbolResults,
+  mockFormatConceptCard,
 } = vi.hoisted(() => ({
   mockRetrieve: vi.fn(),
   mockFormatVectorResults: vi.fn(),
   mockFormatCodeHits: vi.fn(),
   mockFormatSymbolResults: vi.fn(),
+  mockFormatConceptCard: vi.fn(),
 }));
 
 vi.mock("../../../src/shared/retrieval/router.js", () => ({
@@ -39,6 +41,7 @@ vi.mock("../../../src/shared/retrieval/format.js", () => ({
   formatVectorResults: (...args: unknown[]) => mockFormatVectorResults(...args),
   formatCodeHits: (...args: unknown[]) => mockFormatCodeHits(...args),
   formatSymbolResults: (...args: unknown[]) => mockFormatSymbolResults(...args),
+  formatConceptCard: (...args: unknown[]) => mockFormatConceptCard(...args),
 }));
 
 // ─── module under test ────────────────────────────────────────────────────────
@@ -242,3 +245,69 @@ describe("executeRetrieve", () => {
     });
   });
 });
+
+
+  describe("graph strategy", () => {
+    it("formats concept card result when graph strategy returns a card", async () => {
+      const card = {
+        name: "buildGraph",
+        kind: "function",
+        file: "src/shared/retrieval/graph-builder.ts",
+        line: 42,
+        signature: "function buildGraph(rootFiles: string[], projectRoot: string): SymbolGraph",
+        callers: [],
+        callees: [],
+        charCount: 200,
+      };
+      const formatted = "buildGraph (function) at src/shared/retrieval/graph-builder.ts:42\n  function buildGraph(...)";
+
+      mockRetrieve.mockResolvedValueOnce({
+        strategy: "graph",
+        results: card,
+      });
+      mockFormatConceptCard.mockReturnValueOnce(formatted);
+
+      const result = await executeRetrieve("what calls buildGraph", { mode: "graph" });
+
+      expect(mockFormatConceptCard).toHaveBeenCalledWith(card);
+      expect(result).toEqual({ text: formatted });
+    });
+
+    it("returns empty message when graph strategy returns null card (empty formatted string)", async () => {
+      mockRetrieve.mockResolvedValueOnce({
+        strategy: "graph",
+        results: null,
+      });
+      mockFormatConceptCard.mockReturnValueOnce("");
+
+      const query = "what calls nonExistentSymbol";
+      const result = await executeRetrieve(query, { mode: "graph" });
+
+      expect(mockFormatConceptCard).toHaveBeenCalledWith(null);
+      expect(result).toEqual({
+        text: `No structural graph result for "${query}".`,
+      });
+    });
+
+    it("passes all options to retrieve for graph strategy", async () => {
+      mockRetrieve.mockResolvedValueOnce({
+        strategy: "graph",
+        results: null,
+      });
+      mockFormatConceptCard.mockReturnValueOnce("");
+
+      await executeRetrieve("callers of formatName", {
+        mode: "graph",
+        topK: 10,
+        glob: "src/shared",
+        callerIdentity: "test-caller",
+      });
+
+      expect(mockRetrieve).toHaveBeenCalledWith("callers of formatName", {
+        mode: "graph",
+        topK: 10,
+        glob: "src/shared",
+        callerIdentity: "test-caller",
+      });
+    });
+  });

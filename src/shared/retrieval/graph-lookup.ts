@@ -195,7 +195,7 @@ export function lookupAllSymbols(
   name: string,
   graph: SymbolGraph,
 ): ConceptCard[] {
-  if (!name || !name.trim()) {
+  if (!name?.trim()) {
     return [];
   }
 

@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import os from "node:os";
 import path from "node:path";
 import fs from "node:fs/promises";
-import { VscodeSignalCollector } from "../../vscode-extension/collector.js";
+import { VscodeSignalCollector } from "../../vscode-extension/collector.mjs";
 
 describe("VscodeSignalCollector", () => {
   let mockOutput;

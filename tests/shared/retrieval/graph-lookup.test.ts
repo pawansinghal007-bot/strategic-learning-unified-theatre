@@ -358,3 +358,123 @@ describe("card size benchmark", () => {
     expect(cardSize).toBeLessThan(fullFileSize);
   });
 });
+
+
+
+// ─── parseSymbolQuery advanced patterns (lines 31-33, 39) ────────────────────
+
+describe("lookupSymbol with advanced query patterns", () => {
+  beforeEach(() => {
+    graph = buildGraph(REAL_FILES, REPO_ROOT);
+  });
+
+  it("matches symbol by full node ID (file#symbol pattern, lines 31-33)", () => {
+    // Query format: "src/shared/retrieval/graph-builder.ts#buildGraph"
+    // parseSymbolQuery extracts fileId and symbolName
+    // nodeMatches checks exact node.id === `${fileId}#${symbolName}`
+    const buildGraphNodeId = graph.nodes.find((n) =>
+      n.id.endsWith("#buildGraph") && n.file.includes("graph-builder.ts")
+    )?.id;
+    expect(buildGraphNodeId).toBeDefined();
+
+    const card = lookupSymbol(buildGraphNodeId!, graph);
+    expect(card).not.toBeNull();
+    expect(card!.name).toBe("buildGraph");
+  });
+
+  it("matches qualified method name (Class.method pattern, lines 39, 60)", () => {
+    // Query format: "IncrementalGraphBuilder.update"
+    // parseSymbolQuery sees the ".", returns { symbolName: "IncrementalGraphBuilder.update" }
+    // nodeMatches checks node.id.endsWith("#IncrementalGraphBuilder.update")
+    const card = lookupSymbol("IncrementalGraphBuilder.update", graph);
+    expect(card).not.toBeNull();
+    expect(card!.name).toBe("IncrementalGraphBuilder.update");
+    expect(card!.kind).toBe("method");
+  });
+});
+
+// ─── buildCard with budget overflow (lines 122-139) ──────────────────────────
+
+describe("buildCard budget overflow", () => {
+  it("returns null when truncated card still exceeds budget (lines 122-139)", () => {
+    // Construct a synthetic node with a MASSIVE required field that still
+    // exceeds the budget after optional fields are truncated.
+    const hugeSignature = "x".repeat(CONCEPT_CARD_MAX_CHARS + 1000);
+    const syntheticGraph: any = {
+      nodes: [
+        {
+          id: "huge.ts#hugeFunc",
+          kind: "function",
+          file: "x".repeat(CONCEPT_CARD_MAX_CHARS + 1000),
+          lineRange: [1, 10],
+          signature: hugeSignature,
+          params: undefined,
+        },
+      ],
+      edges: [],
+    };
+
+    // lookupSymbol → buildCard → charCount exceeds CONCEPT_CARD_MAX_CHARS →
+    // truncate path: signature=undefined, callers=[], callees=[] →
+    // still exceeds → return null (line 136 path)
+    const card = lookupSymbol("hugeFunc", syntheticGraph);
+    expect(card).toBeNull();
+  });
+
+  it("returns truncated card when card exceeds budget but truncated form fits", () => {
+    // Build a synthetic graph where the card initially exceeds the budget,
+    // but after removing callers/callees and signature, it fits.
+    const bigCallers = Array.from({ length: 100 }, (_, i) => `caller${i}`);
+    const bigCallees = Array.from({ length: 100 }, (_, i) => `callee${i}`);
+
+    const syntheticGraph: any = {
+      nodes: [
+        {
+          id: "big.ts#bigFunc",
+          kind: "function",
+          file: "big.ts",
+          lineRange: [1, 5],
+          signature: "function bigFunc()",
+          params: [],
+        },
+      ],
+      edges: [
+        ...bigCallers.map((c) => ({
+          from: c,
+          to: "big.ts#bigFunc",
+          kind: "calls",
+        })),
+        ...bigCallees.map((c) => ({
+          from: "big.ts#bigFunc",
+          to: c,
+          kind: "calls",
+        })),
+      ],
+    };
+
+    const card = lookupSymbol("bigFunc", syntheticGraph);
+    // The card should be truncated (no callers, no callees, no signature)
+    expect(card).not.toBeNull();
+    expect(card!.charCount).toBeLessThanOrEqual(CONCEPT_CARD_MAX_CHARS);
+    expect(card!.callers).toEqual([]);
+    expect(card!.callees).toEqual([]);
+    expect(card!.signature).toBeUndefined();
+  });
+});
+
+// ─── truncateCard no-op path (line 249) ──────────────────────────────────────
+
+describe("truncateCard when card already fits budget", () => {
+  it("returns a copy of the card without modifying it (line 249)", () => {
+    const card = lookupSymbol("buildGraph", graph);
+    expect(card).not.toBeNull();
+
+    // truncateCard with a budget larger than card.charCount → line 249 path
+    const truncated = truncateCard(card!, CONCEPT_CARD_MAX_CHARS + 1000);
+    expect(truncated).not.toBe(card); // different object reference (copy)
+    expect(truncated.charCount).toBe(card!.charCount);
+    expect(truncated.callers).toEqual(card!.callers);
+    expect(truncated.callees).toEqual(card!.callees);
+    expect(truncated.signature).toBe(card!.signature);
+  });
+});

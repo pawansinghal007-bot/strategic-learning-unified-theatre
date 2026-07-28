@@ -172,19 +172,19 @@ function extractSymbolFromStructuralQuery(query: string): string | null {
   const q = query.trim();
 
   // "what calls X" / "who calls X" / "what invokes X"
-  const match = q.match(/^(?:what|who)\s+(?:calls|invokes)\s+(.+)$/i);
+  const match = /^(?:what|who)\s+(?:calls|invokes)\s+(.+)$/i.exec(q);
   if (match) return match[1].trim();
 
   // "what does X call" / "what does X invoke"
-  const match2 = q.match(/^what\s+does\s+(\S+)\s+(?:call|invoke)$/i);
+  const match2 = /^what\s+does\s+(\S+)\s+(?:call|invoke)$/i.exec(q);
   if (match2) return match2[1].trim();
 
   // "callers of X" / "callees of X"
-  const match3 = q.match(/^(?:callers|callees)\s+of\s+(.+)$/i);
+  const match3 = /^(?:callers|callees)\s+of\s+(.+)$/i.exec(q);
   if (match3) return match3[1].trim();
 
   // "call graph for X"
-  const match4 = q.match(/call\s+graph\s+for\s+(.+)$/i);
+  const match4 = /call\s+graph\s+for\s+(.+)$/i.exec(q);
   if (match4) return match4[1].trim();
 
   return null;

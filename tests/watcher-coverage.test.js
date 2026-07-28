@@ -286,7 +286,9 @@ describe("WatcherDaemon coverage — remaining uncovered branches", () => {
     // We can verify by checking that _tick runs without error with these accounts
     await daemon.start(100000);
     await daemon.stop();
-    // No assertion needed — just verify no crash with falsy lastUsed
+    // Verify the daemon cycled through start→stop cleanly with falsy lastUsed accounts
+    expect(daemon.running).toBe(false);
+    expect(daemon.timer).toBeNull();
   });
 
   // BRDA:56,3,1,0 / BRDA:59,4,1,0 / BRDA:64,5,1,0 / BRDA:66,6,1,0 / BRDA:70,8,1,0
@@ -345,6 +347,7 @@ describe("WatcherDaemon coverage — remaining uncovered branches", () => {
     const tmp = await makeTmp();
     await writeConfig(tmp, {});
     const s = makeStubs();
+    s.store.update = vi.fn(s.store.update);
     s.store.list = async () => [
       { id: "unknown-account", status: "active", lastUsed: "2025-01-01" },
     ];
@@ -357,6 +360,7 @@ describe("WatcherDaemon coverage — remaining uncovered branches", () => {
     daemon.on("account_warn", (e) => events.push(e));
     await daemon.start(100000);
     await daemon.stop();
+    expect(s.store.update).not.toHaveBeenCalled();
   });
 
   // BRDA:242,22,1,0 — currentHealth.error ?? "health probe failed"

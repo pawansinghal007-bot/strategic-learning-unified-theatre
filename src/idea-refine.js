@@ -6,27 +6,23 @@ const REFINEMENT_PROMPT_PREFIX =
   "Refine this idea using the research below.\n\nIdea:\n";
 
 export async function refineIdea(ideaId, options = {}) {
-  try {
-    const idea = await findIdeaById(ideaId, options);
-    const research = await sendPrompt({
-      platform: "perplexity",
-      prompt: buildResearchPrompt(idea),
-    });
-    const refinement = await sendPrompt({
-      platform: "claude",
-      prompt: buildRefinementPrompt(idea, research),
-    });
-    return updateIdea(
-      ideaId,
-      {
-        researchNotes: research.response,
-        refinementNotes: refinement.response,
-      },
-      options,
-    );
-  } catch (err) {
-    throw err;
-  }
+  const idea = await findIdeaById(ideaId, options);
+  const research = await sendPrompt({
+    platform: "perplexity",
+    prompt: buildResearchPrompt(idea),
+  });
+  const refinement = await sendPrompt({
+    platform: "claude",
+    prompt: buildRefinementPrompt(idea, research),
+  });
+  return updateIdea(
+    ideaId,
+    {
+      researchNotes: research.response,
+      refinementNotes: refinement.response,
+    },
+    options,
+  );
 }
 
 function buildResearchPrompt(idea) {

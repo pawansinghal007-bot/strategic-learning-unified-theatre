@@ -10,19 +10,19 @@ import { Journal } from "../internal/journal.js";
 import { releaseLock } from "../lock.js";
 import { createLogger } from "../logger.js";
 import { initializePluginsForStartup } from "../startup-plugins.js";
+import { runSecurityAutoScan } from "../security/security-overview/auto-scan.js";
 
 const log = createLogger("daemon-runner");
-
-const PROJECT_ROOT = "C:/SW Development/VS Code Agent/Solution";
 
 // --------------------------------------------------
 // Bootstrap
 // --------------------------------------------------
 
-process.chdir(PROJECT_ROOT);
-
 function baseDir() {
-  return path.join(os.homedir(), ".vscode-rotator");
+  // Prefer the HOME environment variable so integration tests can override
+  // the log directory via `env.HOME` without touching the real user home.
+  const home = process.env.HOME ?? os.homedir();
+  return path.join(home, ".vscode-rotator");
 }
 
 async function ensureDir(dirPath) {
@@ -55,6 +55,12 @@ function delay(ms) {
 
     timer.unref?.();
   });
+}
+
+// Like delay() but keeps the event loop alive (used in the watchdog loop so
+// the process does not exit between iterations when all other handles are unref'd).
+function delayRef(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 const dir = baseDir();
@@ -99,6 +105,10 @@ let currentWatcher = null;
 let shuttingDown = false;
 
 let reportTimer = null;
+let securityScanTimer = null;
+
+const SECURITY_SCAN_INTERVAL_MS =
+  Number(process.env.SECURITY_SCAN_INTERVAL_MS) || 21_600_000;
 
 // --------------------------------------------------
 // Daily Reporting
@@ -141,6 +151,31 @@ function startReportLoop() {
   }, 60_000);
 
   reportTimer.unref?.();
+}
+
+function startSecurityScanLoop() {
+  securityScanTimer = setInterval(async () => {
+    if (shuttingDown) {
+      return;
+    }
+
+    try {
+      await runSecurityAutoScan({ repoPath: process.cwd() });
+
+      await appendLogLine(logPath, {
+        type: "security_scan",
+        status: "success",
+      });
+    } catch (err) {
+      await appendLogLine(logPath, {
+        type: "security_scan",
+        status: "error",
+        error: String(err?.stack ?? err),
+      });
+    }
+  }, SECURITY_SCAN_INTERVAL_MS);
+
+  securityScanTimer.unref?.();
 }
 
 // --------------------------------------------------
@@ -286,6 +321,12 @@ async function cleanup(code = 0, reason = null) {
       reportTimer = null;
     }
 
+    if (securityScanTimer) {
+      clearInterval(securityScanTimer);
+
+      securityScanTimer = null;
+    }
+
     await stopCurrentWatcher();
 
     await releaseLock("switch");
@@ -344,6 +385,7 @@ process.on("unhandledRejection", async (reason) => {
 
 async function main() {
   startReportLoop();
+  startSecurityScanLoop();
 
   while (!shuttingDown) {
     try {
@@ -363,7 +405,7 @@ async function main() {
       // instead of blocking forever
 
       while (!shuttingDown && currentWatcher?.running) {
-        await delay(1000);
+        await delayRef(1000);
       }
 
       if (shuttingDown) {

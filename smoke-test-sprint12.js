@@ -48,12 +48,12 @@ async function runTests() {
 // === TESTS ===
 
 test("VscodeSignalCollector imports successfully", async () => {
-  const { VscodeSignalCollector } = await import("./vscode-extension/collector.js");
+  const { VscodeSignalCollector } = await import("./vscode-extension/collector.mjs");
   assert(VscodeSignalCollector, "VscodeSignalCollector class should be exported");
 });
 
 test("VscodeSignalCollector can be instantiated", async () => {
-  const { VscodeSignalCollector } = await import("./vscode-extension/collector.js");
+  const { VscodeSignalCollector } = await import("./vscode-extension/collector.mjs");
   const mockOutput = { appendLine: () => {} };
   const collector = new VscodeSignalCollector(mockOutput, { vscodeLearn: { enabled: true } });
   assert(collector, "Collector instance should be created");
@@ -61,7 +61,7 @@ test("VscodeSignalCollector can be instantiated", async () => {
 });
 
 test("stageSignal accepts a vscode-edit signal", async () => {
-  const { VscodeSignalCollector } = await import("./vscode-extension/collector.js");
+  const { VscodeSignalCollector } = await import("./vscode-extension/collector.mjs");
   const mockOutput = { appendLine: () => {} };
   const collector = new VscodeSignalCollector(mockOutput, { vscodeLearn: { enabled: true } });
 
@@ -78,7 +78,7 @@ test("stageSignal accepts a vscode-edit signal", async () => {
 });
 
 test("stageSignal rejects secret paths (.env)", async () => {
-  const { VscodeSignalCollector } = await import("./vscode-extension/collector.js");
+  const { VscodeSignalCollector } = await import("./vscode-extension/collector.mjs");
   const mockOutput = { appendLine: () => {} };
   const collector = new VscodeSignalCollector(mockOutput, { vscodeLearn: { enabled: true } });
 
@@ -95,7 +95,7 @@ test("stageSignal rejects secret paths (.env)", async () => {
 });
 
 test("stageSignal rejects .key files", async () => {
-  const { VscodeSignalCollector } = await import("./vscode-extension/collector.js");
+  const { VscodeSignalCollector } = await import("./vscode-extension/collector.mjs");
   const mockOutput = { appendLine: () => {} };
   const collector = new VscodeSignalCollector(mockOutput, { vscodeLearn: { enabled: true } });
 
@@ -111,7 +111,7 @@ test("stageSignal rejects .key files", async () => {
 });
 
 test("stageSignal rejects node_modules paths", async () => {
-  const { VscodeSignalCollector } = await import("./vscode-extension/collector.js");
+  const { VscodeSignalCollector } = await import("./vscode-extension/collector.mjs");
   const mockOutput = { appendLine: () => {} };
   const collector = new VscodeSignalCollector(mockOutput, { vscodeLearn: { enabled: true } });
 
@@ -127,7 +127,7 @@ test("stageSignal rejects node_modules paths", async () => {
 });
 
 test("stageSignal accepts diagnostic signals with severity 0 (Error)", async () => {
-  const { VscodeSignalCollector } = await import("./vscode-extension/collector.js");
+  const { VscodeSignalCollector } = await import("./vscode-extension/collector.mjs");
   const mockOutput = { appendLine: () => {} };
   const collector = new VscodeSignalCollector(mockOutput, { vscodeLearn: { enabled: true } });
 
@@ -145,7 +145,7 @@ test("stageSignal accepts diagnostic signals with severity 0 (Error)", async () 
 });
 
 test("stageSignal rejects diagnostics with severity > 0 (Warnings)", async () => {
-  const { VscodeSignalCollector } = await import("./vscode-extension/collector.js");
+  const { VscodeSignalCollector } = await import("./vscode-extension/collector.mjs");
   const mockOutput = { appendLine: () => {} };
   const collector = new VscodeSignalCollector(mockOutput, { vscodeLearn: { enabled: true } });
 
@@ -163,7 +163,7 @@ test("stageSignal rejects diagnostics with severity > 0 (Warnings)", async () =>
 });
 
 test("flush creates a staging file and returns results", async () => {
-  const { VscodeSignalCollector } = await import("./vscode-extension/collector.js");
+  const { VscodeSignalCollector } = await import("./vscode-extension/collector.mjs");
 
   const tmpDir = path.join(os.tmpdir(), `strategic-learning-unified-theatre-test-${Date.now()}`);
   const mockOutput = { appendLine: () => {} };
@@ -202,7 +202,7 @@ test("flush creates a staging file and returns results", async () => {
 });
 
 test("Recurring diagnostic signal sets recurring flag", async () => {
-  const { VscodeSignalCollector } = await import("./vscode-extension/collector.js");
+  const { VscodeSignalCollector } = await import("./vscode-extension/collector.mjs");
   const mockOutput = { appendLine: () => {} };
   const collector = new VscodeSignalCollector(mockOutput, { vscodeLearn: { enabled: true } });
 
@@ -238,7 +238,7 @@ test("Recurring diagnostic signal sets recurring flag", async () => {
 });
 
 test("activate() returns a disposable with dispose method", async () => {
-  const { VscodeSignalCollector } = await import("./vscode-extension/collector.js");
+  const { VscodeSignalCollector } = await import("./vscode-extension/collector.mjs");
   const mockOutput = { appendLine: () => {} };
   const collector = new VscodeSignalCollector(mockOutput, { vscodeLearn: { enabled: true } });
 
@@ -262,7 +262,7 @@ test("activate() returns a disposable with dispose method", async () => {
 });
 
 test("Passive learning disabled returns empty disposable", async () => {
-  const { VscodeSignalCollector } = await import("./vscode-extension/collector.js");
+  const { VscodeSignalCollector } = await import("./vscode-extension/collector.mjs");
   const mockOutput = { appendLine: () => {} };
   const collector = new VscodeSignalCollector(mockOutput, { vscodeLearn: { enabled: false } });
 

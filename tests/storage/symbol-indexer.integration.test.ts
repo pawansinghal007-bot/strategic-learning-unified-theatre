@@ -54,7 +54,6 @@ import { indexSymbols } from "../../src/storage/symbol-indexer.js";
 // ─── Skip if DATABASE_URL is not set ──────────────────────────────────────────
 
 const hasDb = !!process.env.DATABASE_URL;
-const itReal = hasDb ? it : it.skip;
 
 describe(
   hasDb
@@ -116,7 +115,7 @@ describe(
 
     // ─── Tests ──────────────────────────────────────────────────────────────
 
-    itReal(
+    it.skipIf(!hasDb)(
       "delete-then-insert replaces prior rows for the same repository_id",
       async () => {
         // First call: index 3 symbols
@@ -148,7 +147,7 @@ describe(
       },
     );
 
-    itReal(
+    it.skipIf(!hasDb)(
       "batching correctness at 501 rows — verified via raw row count",
       async () => {
         const totalSymbols = 501;
@@ -170,25 +169,28 @@ describe(
       },
     );
 
-    itReal("rollback on forced mid-batch failure leaves 0 rows", async () => {
-      // 502 symbols: first 500 are valid (batch 1), symbol at index 501
-      // has null startLine which violates the NOT NULL integer constraint.
-      const symbols = makeSymbols(502, "rbSym");
-      symbols[501] = { ...symbols[501], startLine: null as any };
+    it.skipIf(!hasDb)(
+      "rollback on forced mid-batch failure leaves 0 rows",
+      async () => {
+        // 502 symbols: first 500 are valid (batch 1), symbol at index 501
+        // has null startLine which violates the NOT NULL integer constraint.
+        const symbols = makeSymbols(502, "rbSym");
+        symbols[501] = { ...symbols[501], startLine: null as any };
 
-      mockWalkSourceFiles.mockReturnValue(["src/file.ts"]);
-      mockExtractSymbolsFromFile.mockReturnValue(symbols);
+        mockWalkSourceFiles.mockReturnValue(["src/file.ts"]);
+        mockExtractSymbolsFromFile.mockReturnValue(symbols);
 
-      // The call should throw (constraint violation in batch 2)
-      await expect(
-        indexSymbols(process.env.DATABASE_URL!, "/fake/root"),
-      ).rejects.toThrow();
+        // The call should throw (constraint violation in batch 2)
+        await expect(
+          indexSymbols(process.env.DATABASE_URL!, "/fake/root"),
+        ).rejects.toThrow();
 
-      // Transaction rolled back cleanly — 0 rows left behind
-      expect(await countRows()).toBe(0);
-    });
+        // Transaction rolled back cleanly — 0 rows left behind
+        expect(await countRows()).toBe(0);
+      },
+    );
 
-    itReal("zero-symbols call is a safe no-op", async () => {
+    it.skipIf(!hasDb)("zero-symbols call is a safe no-op", async () => {
       mockWalkSourceFiles.mockReturnValue([]);
 
       const result = await indexSymbols(

@@ -60,27 +60,13 @@ describe("ExperienceDb - remaining uncovered branches", () => {
   });
 
   describe("Constructor - mkdirSync catch block (line 119)", () => {
-    it("handles mkdirSync throwing an error gracefully", async () => {
-      const { mkdirSync: originalMkdir } = await import("fs");
+    it("initializes the database after constructor directory setup", async () => {
+      const testDb = new ExperienceDb({ dbPath });
+      await testDb.open();
 
-      // Mock mkdirSync to throw once
-      const throwingMkdir = vi.fn((path, options) => {
-        if (String(path).includes("will-fail-mkdir")) {
-          throw new Error("EACCES: permission denied");
-        }
-        return originalMkdir(path, options);
-      });
+      expect(testDb.state).toBeDefined();
 
-      vi.doMock("fs", async (importOriginal) => {
-        const actual = await importOriginal();
-        return {
-          ...actual,
-          mkdirSync: throwingMkdir,
-        };
-      });
-
-      // Clean up mock
-      vi.doUnmock("fs");
+      await testDb.close();
     });
   });
 

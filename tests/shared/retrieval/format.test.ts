@@ -7,6 +7,8 @@
  *   - formatVectorResults: empty array, single item, multiple items
  *   - formatCodeHits: empty array, single item, multiple items
  *   - formatSymbolResults: empty array, single item, multiple items (lines 61-68)
+ *   - formatConceptCard: null card, minimal card, card with signature,
+ *       card with callers, card with callees, card with all fields (lines 84-103)
  */
 
 import { describe, it, expect } from "vitest";
@@ -14,6 +16,7 @@ import {
   formatVectorResults,
   formatCodeHits,
   formatSymbolResults,
+  formatConceptCard,
 } from "../../../src/shared/retrieval/format.js";
 
 describe("formatVectorResults", () => {
@@ -124,5 +127,135 @@ describe("formatSymbolResults", () => {
     );
     // signature is not in the formatted output
     expect(output).not.toContain("signature");
+  });
+});
+
+
+// ─── formatConceptCard ────────────────────────────────────────────────────────
+
+describe("formatConceptCard", () => {
+  it("returns empty string for null card", () => {
+    expect(formatConceptCard(null)).toBe("");
+  });
+
+  it("formats a minimal card with no signature, callers, or callees", () => {
+    const card = {
+      name: "formatName",
+      kind: "function" as const,
+      file: "src/shared/retrieval/format.ts",
+      line: 25,
+      signature: undefined,
+      params: undefined,
+      callers: [],
+      callees: [],
+      charCount: 100,
+    };
+    const output = formatConceptCard(card);
+    expect(output).toBe("formatName (function) at src/shared/retrieval/format.ts:25");
+  });
+
+  it("includes signature when present", () => {
+    const card = {
+      name: "buildGraph",
+      kind: "function" as const,
+      file: "src/shared/retrieval/graph-builder.ts",
+      line: 42,
+      signature: "function buildGraph(rootFiles: string[], projectRoot: string): SymbolGraph",
+      params: ["rootFiles", "projectRoot"],
+      callers: [],
+      callees: [],
+      charCount: 200,
+    };
+    const output = formatConceptCard(card);
+    const lines = output.split("\n");
+    expect(lines[0]).toBe("buildGraph (function) at src/shared/retrieval/graph-builder.ts:42");
+    expect(lines[1]).toBe("  function buildGraph(rootFiles: string[], projectRoot: string): SymbolGraph");
+  });
+
+  it("includes callers when present", () => {
+    const card = {
+      name: "formatName",
+      kind: "function" as const,
+      file: "src/utils.ts",
+      line: 10,
+      signature: undefined,
+      params: undefined,
+      callers: ["src/service.ts#greetUser", "src/processor.ts#validateName"],
+      callees: [],
+      charCount: 150,
+    };
+    const output = formatConceptCard(card);
+    expect(output).toContain("callers: src/service.ts#greetUser, src/processor.ts#validateName");
+  });
+
+  it("includes callees when present", () => {
+    const card = {
+      name: "processUsers",
+      kind: "function" as const,
+      file: "src/processor.ts",
+      line: 5,
+      signature: undefined,
+      params: undefined,
+      callers: [],
+      callees: ["src/service.ts#UserService.listUsers", "src/service.ts#greetUser"],
+      charCount: 180,
+    };
+    const output = formatConceptCard(card);
+    expect(output).toContain("callees: src/service.ts#UserService.listUsers, src/service.ts#greetUser");
+  });
+
+  it("formats a card with all fields populated", () => {
+    const card = {
+      name: "lookupSymbol",
+      kind: "function" as const,
+      file: "src/shared/retrieval/graph-lookup.ts",
+      line: 190,
+      signature: "function lookupSymbol(name: string, graph: SymbolGraph): ConceptCard | null",
+      params: ["name", "graph"],
+      callers: ["src/shared/retrieval/router.ts#retrieve"],
+      callees: ["src/shared/retrieval/graph-lookup.ts#parseSymbolQuery", "src/shared/retrieval/graph-lookup.ts#buildCard"],
+      charCount: 350,
+    };
+    const output = formatConceptCard(card);
+    const lines = output.split("\n");
+    expect(lines).toHaveLength(4);
+    expect(lines[0]).toBe("lookupSymbol (function) at src/shared/retrieval/graph-lookup.ts:190");
+    expect(lines[1]).toContain("function lookupSymbol");
+    expect(lines[2]).toContain("callers: src/shared/retrieval/router.ts#retrieve");
+    expect(lines[3]).toContain("callees:");
+  });
+
+  it("does NOT include callers line when callers is empty", () => {
+    const card = {
+      name: "isEmpty",
+      kind: "function" as const,
+      file: "src/utils.ts",
+      line: 15,
+      signature: undefined,
+      params: undefined,
+      callers: [],
+      callees: ["src/utils.ts#capitalize"],
+      charCount: 80,
+    };
+    const output = formatConceptCard(card);
+    expect(output).not.toContain("callers:");
+    expect(output).toContain("callees: src/utils.ts#capitalize");
+  });
+
+  it("does NOT include callees line when callees is empty", () => {
+    const card = {
+      name: "capitalize",
+      kind: "function" as const,
+      file: "src/utils.ts",
+      line: 5,
+      signature: undefined,
+      params: undefined,
+      callers: ["src/utils.ts#formatName"],
+      callees: [],
+      charCount: 70,
+    };
+    const output = formatConceptCard(card);
+    expect(output).toContain("callers: src/utils.ts#formatName");
+    expect(output).not.toContain("callees:");
   });
 });

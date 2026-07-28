@@ -87,13 +87,15 @@ function detectChanges(
   // Check current files against previous manifest
   for (const [file, hash] of currentHashes) {
     const prevHash = previousManifest.fileHashes.get(file);
-    if (!prevHash) {
+    if (prevHash) {
+      if (prevHash === hash) {
+        unchanged.push(file);
+      } else {
+        changed.push(file);
+      }
+    } else {
       added.push(file);
       changed.push(file);
-    } else if (prevHash !== hash) {
-      changed.push(file);
-    } else {
-      unchanged.push(file);
     }
   }
 
@@ -131,10 +133,7 @@ function getNodesForFile(
 function getEdgesForFile(graph: SymbolGraph, file: string): GraphEdge[] {
   const edges: GraphEdge[] = [];
   for (const edge of graph.edges) {
-    if (
-      edge.from.startsWith(file + "#") ||
-      (edge.to && edge.to.startsWith(file + "#"))
-    ) {
+    if (edge.from.startsWith(file + "#") || edge.to?.startsWith(file + "#")) {
       edges.push(edge);
     }
   }
@@ -167,7 +166,6 @@ function findAffectedFiles(
       // Simple heuristic: check if the other file imports from the changed file
       // by looking for import statements that reference the changed file's basename
       const changedBasename = path.basename(changedFile, ".ts");
-      const changedDir = path.dirname(changedFile);
 
       if (
         otherContent.includes(changedBasename) ||
@@ -258,7 +256,7 @@ function computeGraphDiff(
 export class IncrementalGraphBuilder {
   private manifest: GraphManifest | null = null;
   private graph: SymbolGraph | null = null;
-  private projectRoot: string;
+  private readonly projectRoot: string;
 
   constructor(projectRoot: string) {
     this.projectRoot = projectRoot;
@@ -271,13 +269,11 @@ export class IncrementalGraphBuilder {
    * @returns GraphUpdateResult with the updated graph and diff info.
    */
   update(rootFiles: string[]): GraphUpdateResult {
-    const startMs = Date.now();
-
     // Compute current file hashes
     const currentHashes = computeManifest(rootFiles, this.projectRoot);
 
     // Detect changes
-    const { changed, unchanged, added, removed } = detectChanges(
+    const { changed, unchanged, removed } = detectChanges(
       currentHashes,
       this.manifest,
     );
@@ -294,112 +290,23 @@ export class IncrementalGraphBuilder {
     let edgesRecomputed: number;
 
     if (isFullRebuild) {
-      // Full rebuild — use the existing builder
-      resultGraph = buildGraph(rootFiles, this.projectRoot);
-
-      // Compute diff from old graph if available
-      if (this.graph) {
-        const diff = computeGraphDiff(this.graph, resultGraph);
-        changedNodeIds = [...diff.addedNodes, ...diff.modifiedNodes];
-        removedNodeIds = diff.removedNodes;
-      } else {
-        changedNodeIds = resultGraph.nodes.map((n) => n.id);
-        removedNodeIds = [];
-      }
-
-      edgesRecomputed = resultGraph.edges.length;
+      const rebuildResult = this.performFullRebuild(rootFiles);
+      resultGraph = rebuildResult.graph;
+      changedNodeIds = rebuildResult.changedNodeIds;
+      removedNodeIds = rebuildResult.removedNodeIds;
+      edgesRecomputed = rebuildResult.edgesRecomputed;
     } else {
-      // Incremental update — only re-parse changed files
-      const changedFiles = changed.map((f) => path.join(this.projectRoot, f));
-      const allFiles = rootFiles;
-
-      // Find files affected by changes (import relationships)
-      const affectedFiles = findAffectedFiles(
+      const incrementalResult = this.performIncrementalUpdate(
         changed,
-        allFiles.map((f) =>
-          path.relative(this.projectRoot, f).split(path.sep).join("/"),
-        ),
-        this.projectRoot,
+        rootFiles,
       );
-
-      // Build a new graph for changed files only
-      const changedGraph = buildGraph(changedFiles, this.projectRoot);
-
-      // Merge with existing graph
-      const oldNodes = new Map(this.graph!.nodes.map((n) => [n.id, n]));
-      const oldEdges = new Map(
-        this.graph!.edges.map((e, i) => [`${e.from}->${e.to}@${e.line}`, e]),
-      );
-
-      // Remove nodes from changed files
-      for (const file of changed) {
-        for (const nodeId of oldNodes.keys()) {
-          if (nodeId.startsWith(file + "#")) {
-            oldNodes.delete(nodeId);
-          }
-        }
-      }
-
-      // Add new nodes from changed files
-      for (const node of changedGraph.nodes) {
-        oldNodes.set(node.id, node);
-      }
-
-      // Remove edges touching changed files
-      for (const [key, edge] of oldEdges) {
-        const fromChanged = changed.some((f) => edge.from.startsWith(f + "#"));
-        const toFile = edge.to ?? null;
-        const toChanged =
-          toFile !== null && changed.some((f) => toFile!.startsWith(f + "#"));
-        if (fromChanged || toChanged) {
-          oldEdges.delete(key);
-        }
-      }
-
-      // Add new edges from changed files
-      for (const edge of changedGraph.edges) {
-        const key = `${edge.from}->${edge.to}@${edge.line}`;
-        oldEdges.set(key, edge);
-      }
-
-      // Re-link edges for affected unchanged files
-      if (affectedFiles.size > changed.length) {
-        const affectedUnchanged = [...affectedFiles].filter(
-          (f) => !changed.includes(f),
-        );
-        const affectedUnchangedPaths = affectedUnchanged.map((f) =>
-          path.join(this.projectRoot, f),
-        );
-
-        // Rebuild edges for affected unchanged files
-        // (nodes stay the same, but edges may change due to import resolution)
-        const allFilesForChecker = [...changedFiles, ...affectedUnchangedPaths];
-        const reLinkedGraph = buildGraph(allFilesForChecker, this.projectRoot);
-
-        // Update edges from affected files
-        for (const edge of reLinkedGraph.edges) {
-          const fromAffected = affectedFiles.has(edge.from.split("#")[0]);
-          const toAffected =
-            edge.to && affectedFiles.has(edge.to.split("#")[0]);
-          if (fromAffected || toAffected) {
-            const key = `${edge.from}->${edge.to}@${edge.line}`;
-            oldEdges.set(key, edge);
-          }
-        }
-      }
-
-      resultGraph = {
-        nodes: [...oldNodes.values()],
-        edges: [...oldEdges.values()],
-      };
-
-      changedNodeIds = changedGraph.nodes.map((n) => n.id);
-      removedNodeIds = [];
-      edgesRecomputed = changedGraph.edges.length;
+      resultGraph = incrementalResult.graph;
+      changedNodeIds = incrementalResult.changedNodeIds;
+      removedNodeIds = incrementalResult.removedNodeIds;
+      edgesRecomputed = incrementalResult.edgesRecomputed;
     }
 
     // Update state
-    const elapsedMs = Date.now() - startMs;
     this.graph = resultGraph;
     this.manifest = {
       fileHashes: currentHashes,
@@ -417,6 +324,178 @@ export class IncrementalGraphBuilder {
       edgesRecomputed,
       isFullRebuild,
     };
+  }
+
+  /**
+   * Performs a full graph rebuild.
+   */
+  private performFullRebuild(rootFiles: string[]): {
+    graph: SymbolGraph;
+    changedNodeIds: string[];
+    removedNodeIds: string[];
+    edgesRecomputed: number;
+  } {
+    const resultGraph = buildGraph(rootFiles, this.projectRoot);
+
+    let changedNodeIds: string[];
+    let removedNodeIds: string[];
+
+    if (this.graph) {
+      const diff = computeGraphDiff(this.graph, resultGraph);
+      changedNodeIds = [...diff.addedNodes, ...diff.modifiedNodes];
+      removedNodeIds = diff.removedNodes;
+    } else {
+      changedNodeIds = resultGraph.nodes.map((n) => n.id);
+      removedNodeIds = [];
+    }
+
+    return {
+      graph: resultGraph,
+      changedNodeIds,
+      removedNodeIds,
+      edgesRecomputed: resultGraph.edges.length,
+    };
+  }
+
+  /**
+   * Performs an incremental graph update for changed files only.
+   */
+  private performIncrementalUpdate(
+    changed: string[],
+    rootFiles: string[],
+  ): {
+    graph: SymbolGraph;
+    changedNodeIds: string[];
+    removedNodeIds: string[];
+    edgesRecomputed: number;
+  } {
+    const changedFiles = changed.map((f) => path.join(this.projectRoot, f));
+
+    // Find files affected by changes (import relationships)
+    const affectedFiles = findAffectedFiles(
+      changed,
+      rootFiles.map((f) =>
+        path.relative(this.projectRoot, f).split(path.sep).join("/"),
+      ),
+      this.projectRoot,
+    );
+
+    // Build a new graph for changed files only
+    const changedGraph = buildGraph(changedFiles, this.projectRoot);
+
+    // Merge with existing graph
+    const merged = this.mergeChangedGraph(changed, changedGraph, affectedFiles);
+
+    return {
+      graph: merged.graph,
+      changedNodeIds: changedGraph.nodes.map((n) => n.id),
+      removedNodeIds: [],
+      edgesRecomputed: changedGraph.edges.length,
+    };
+  }
+
+  /**
+   * Merges the changed graph into the existing graph.
+   */
+  private mergeChangedGraph(
+    changed: string[],
+    changedGraph: SymbolGraph,
+    affectedFiles: Set<string>,
+  ): { graph: SymbolGraph } {
+    const oldNodes = new Map(this.graph!.nodes.map((n) => [n.id, n]));
+    const oldEdges = new Map(
+      this.graph!.edges.map((e, i) => [`${e.from}->${e.to}@${e.line}`, e]),
+    );
+
+    this.removeChangedNodes(changed, oldNodes);
+    this.addNewNodes(changedGraph, oldNodes);
+    this.removeChangedEdges(changed, oldEdges);
+    this.addNewEdges(changedGraph, oldEdges);
+    this.relinkAffectedEdges(changed, affectedFiles, oldEdges);
+
+    return {
+      graph: {
+        nodes: [...oldNodes.values()],
+        edges: [...oldEdges.values()],
+      },
+    };
+  }
+
+  private removeChangedNodes(
+    changed: string[],
+    oldNodes: Map<string, GraphNode>,
+  ): void {
+    for (const file of changed) {
+      for (const nodeId of oldNodes.keys()) {
+        if (nodeId.startsWith(file + "#")) {
+          oldNodes.delete(nodeId);
+        }
+      }
+    }
+  }
+
+  private addNewNodes(
+    changedGraph: SymbolGraph,
+    oldNodes: Map<string, GraphNode>,
+  ): void {
+    for (const node of changedGraph.nodes) {
+      oldNodes.set(node.id, node);
+    }
+  }
+
+  private removeChangedEdges(
+    changed: string[],
+    oldEdges: Map<string, GraphEdge>,
+  ): void {
+    for (const [key, edge] of oldEdges) {
+      const fromChanged = changed.some((f) => edge.from.startsWith(f + "#"));
+      const toFile = edge.to ?? null;
+      const toChanged =
+        toFile !== null && changed.some((f) => toFile.startsWith(f + "#"));
+      if (fromChanged || toChanged) {
+        oldEdges.delete(key);
+      }
+    }
+  }
+
+  private addNewEdges(
+    changedGraph: SymbolGraph,
+    oldEdges: Map<string, GraphEdge>,
+  ): void {
+    for (const edge of changedGraph.edges) {
+      const key = `${edge.from}->${edge.to}@${edge.line}`;
+      oldEdges.set(key, edge);
+    }
+  }
+
+  private relinkAffectedEdges(
+    changed: string[],
+    affectedFiles: Set<string>,
+    oldEdges: Map<string, GraphEdge>,
+  ): void {
+    if (affectedFiles.size <= changed.length) return;
+
+    const affectedUnchanged = [...affectedFiles].filter(
+      (f) => !changed.includes(f),
+    );
+    const affectedUnchangedPaths = affectedUnchanged.map((f) =>
+      path.join(this.projectRoot, f),
+    );
+    const changedFiles = changed.map((f) => path.join(this.projectRoot, f));
+
+    const allFilesForChecker = [...changedFiles, ...affectedUnchangedPaths];
+    const reLinkedGraph = buildGraph(allFilesForChecker, this.projectRoot);
+
+    for (const edge of reLinkedGraph.edges) {
+      const fromAffected = affectedFiles.has(edge.from.split("#")[0]);
+      const toAffected = edge.to?.split("#")[0]
+        ? affectedFiles.has(edge.to.split("#")[0])
+        : false;
+      if (fromAffected || toAffected) {
+        const key = `${edge.from}->${edge.to}@${edge.line}`;
+        oldEdges.set(key, edge);
+      }
+    }
   }
 
   /**

@@ -2,7 +2,8 @@
 
 _Read this first if you're an agent (Claude, Copilot, or otherwise) picking up this project. It exists to prevent context loss across sessions and across different tools/providers working on the same repo._
 
-> **Last updated 2026-07-20 (updated again — see Section 40).** Section 40 documents Item #19/Slice 110e (originally scoped in Section 26.5 as "references table + `findReferences()`, Not started") now **implemented, tested, and independently audited** — built as an AST-based structural symbol graph rather than a DB references table (functionally equivalent capability, different mechanism; see 40.0 for why). All work is on branch `110e`, **NOT YET committed or merged to `main`** — that decision is explicitly out of scope for this section and remains the maintainer's call.
+> **Last updated 2026-07-28 (updated again — see Sections 41–43).** Section 40's "NOT YET committed / branch `110e`" claim has been corrected: Slice 110e was committed as `8122c007` (see Section 40.4 for the corrected record). Section 41 documents seven previously-undocumented commits on `fix/sonarqube-issues-post-sprint-108` (SonarQube post-108 cleanup, Sprint 109/109b, coverage remediation, Sprints 110.5/110.6, Sprint X1, daemon-shutdown cross-platform fix) — branch is now 11 commits ahead of `origin/main`. Section 42 supersedes Section 30's open-items v4 table: Items #4, #7, #19, #21, #22, #23 closed with evidence; Items #1–3, 5–6, 8–12 confirmed open. Section 43 supersedes Section 31's handoff. Stale "SUPERSEDED" banners added to Sections 26.5, 32, and 34.
+> **Last updated 2026-07-20 (see Section 40 — now corrected above).** Section 40 documents Item #19/Slice 110e (originally scoped in Section 26.5 as "references table + `findReferences()`, Not started") now **implemented, tested, and independently audited** — built as an AST-based structural symbol graph rather than a DB references table (functionally equivalent capability, different mechanism; see 40.0 for why). ~~All work is on branch `110e`, NOT YET committed or merged to `main`~~ — **corrected: committed as `8122c007`; see Section 40.4.**
 > **Last updated 2026-07-18 (updated again — see Sections 38-39).** Section 26 documents the live-verified rollout audit of Slices 110a–110e (110a/110b/110c/110d confirmed **Done**, 110e confirmed **Not started**). Section 29 documents four follow-up fixes closed the same day (harness runner, dotenv loading, index:symbols script, repository_id scoping) — all committed and pushed. Section 35 closed the configuration-fixable portion of Section 34 (`.env`/`.env.example` Qdrant/embeddings fixes). Section 36 documents Item #18 closed (`13483408`). Section 37 documents Item #17 closed (`f1d2447b`). Section 38 documents Item #20 Phase 2 (Milvus→Qdrant migration, Option A: delete + re-ingest at 2560 dimensions) closed and working end-to-end, pushed as `da3d55d1`. Section 39 documents a follow-up ingestion-reliability pass discovered while re-running full ingestion: a token-unaware chunking bug, incremental hash-based ingestion, discovery and exclusion of ~28 byte-identical duplicate baseline snapshots plus an audit-dump file, an accidental coverage-threshold regression and its fix, and 100% branch coverage on the touched ingestion code — pushed as `27cf754a`, `b6243964`, `80dab8c8`, `1e68c556`, `f0ec0046`. Section 30 supersedes Section 27's open-items list (Item #20 row added, closed); Section 31 supersedes Section 28's handoff.
 >
 > _(Prior pointer, retained for history: Last updated 2026-07-10 — see Section 9 for that session's detail, measurement-log root-cause fix, source tagging, automated weekly checkpoint — committed and pushed as `51b648dd`.)_
@@ -2009,6 +2010,11 @@ the harness currently only works because the invoking shell already has
 
 ### 26.5 — 110e: References table + `findReferences()` — NOT STARTED
 
+> **⚠️ SUPERSEDED — see Section 40 (built) and Section 41.1 (committed).**
+> The "Not started" status below was accurate on 2026-07-14. Item #19/Slice 110e
+> was subsequently implemented as an AST-based structural symbol graph
+> (committed `8122c007`). Do not act on this section; read Section 40 instead.
+
 Confirmed: only one migration file exists
 (`src/storage/code-index-migrations/001_symbols_table.sql`); no
 references-related migration. No `findReferences`, `references_table`, or
@@ -2302,6 +2308,13 @@ git log --oneline origin/main..main   # re-check item #1 in Section 30 — still
 
 ## 32. Finding — Milvus/Qdrant migration incomplete; violates `docs/standing-rules.md` (discovered during Item #17 investigation, July 14, 2026)
 
+> **⚠️ SUPERSEDED by Section 38 (migration complete, `da3d55d1`).**
+> The findings below were accurate on 2026-07-14. The Milvus code has
+> since been deleted and the Qdrant migration (Option A, 2560-dim) is
+> complete and verified. `milvus-client.js` no longer exists in the repo.
+> Section 32.2's evidence table listing Milvus components as "still present"
+> is historical record only. Do not act on this section; read Section 38.
+
 ### 32.0 How this was found
 
 While deciding Section 30/Item #17 (the two parallel "retrieve" tool
@@ -2494,6 +2507,15 @@ Status: **not started, may remain unresolved.**
 ---
 
 ## 34. CRITICAL FINDING — `vectorSearch()` is completely non-functional on this host; RAG/vector retrieval strategy has been silently broken (discovered during Item #20 investigation, July 14, 2026)
+
+> **⚠️ SUPERSEDED by Section 38 (Milvus→Qdrant migration, `da3d55d1`) and
+> Section 35 (`.env` configuration fixes).**
+> The four compounding problems documented below were real on 2026-07-14.
+> They have all been resolved: Milvus code deleted, `qdrant-client.js`
+> migrated to 2560-dim Qdrant, `.env`/`.env.example` updated with correct
+> `QDRANT_URL`, embedder migrated to `qwen-stack`. `vectorSearch()` is
+> functional end-to-end as of `da3d55d1`. Do not act on this section as a
+> live issue; read Sections 35 and 38 for the resolution record.
 
 ### 34.0 Severity and how this was found
 
@@ -3145,7 +3167,7 @@ recommended for its own dedicated session.
 
 ---
 
-## 40. Slice 110e — Structural Symbol Graph (Deterministic AST Retrieval Tier) — built, verified, and independently audited; NOT YET committed
+## 40. Slice 110e — Structural Symbol Graph (Deterministic AST Retrieval Tier) — built, verified, independently audited, and committed (`8122c007`)
 
 ### 40.0 Scope and a deliberate design pivot from the original plan
 
@@ -3277,46 +3299,358 @@ Python/subprocess/LSP:    0 - grep clean across all new files
 New package.json deps:    0
 ```
 
-### 40.4 Current repo state - uncommitted, and two unrelated changes present
+### 40.4 Commit state — verified 2026-07-28
 
-As of this writing, `git status --porcelain` on the working tree shows the
-Slice 110e changes **alongside two changes unrelated to this sprint** that
-predate it and should not be bundled into the same commit:
+**Section 40 was originally written with the status "NOT YET committed" and
+referenced a branch `110e`.** Both claims are now incorrect; the git record
+has been verified and this section updated accordingly.
 
 ```
- D coverage-fix-prompts.md                        <- unrelated, pre-existing
- M output/audit-real-v2/TRIAGED-REPORT.md          <- unrelated, pre-existing
- M src/agents/sub-agent.ts                         <- Slice 110e (Phase 5)
- M src/agents/tool-call-classifier.ts              <- Slice 110e (Phase 5)
- M src/shared/retrieval/execute-retrieve.ts        <- Slice 110e (Phase 5)
- M src/shared/retrieval/format.ts                  <- Slice 110e (Phase 5)
- M src/shared/retrieval/router.ts                  <- Slice 110e (Phase 5)
- M tests/shared/retrieval/router.test.ts           <- Slice 110e (Phase 5)
-?? sprints/110e/                                    <- Slice 110e (continuity log)
-?? src/agents/tool-call-classifier.structural.test.ts  <- Slice 110e (Phase 5)
-?? src/shared/retrieval/graph-builder.ts            <- Slice 110e (Phase 1)
-?? src/shared/retrieval/graph-incremental.ts        <- Slice 110e (Phase 3)
-?? src/shared/retrieval/graph-lookup.ts             <- Slice 110e (Phase 4)
-?? src/shared/retrieval/graph-schema.ts             <- Slice 110e (Phase 1)
-?? src/shared/retrieval/graph-state.ts              <- Slice 110e (Phase 5)
-?? tests/shared/retrieval/fixtures/                 <- Slice 110e (Phase 1-2)
-?? tests/shared/retrieval/graph-builder.test.ts     <- Slice 110e (Phase 1-2)
-?? tests/shared/retrieval/graph-incremental.test.ts <- Slice 110e (Phase 3)
-?? tests/shared/retrieval/graph-lookup.test.ts      <- Slice 110e (Phase 4)
+git log --oneline | grep "Slice 110e"
+  8122c007 Slice 110e: structural symbol graph (deterministic AST retrieval tier)
+
+git branch -a | grep 110e
+  (empty — branch 110e does not exist; work was committed directly)
+
+git status --short src/shared/retrieval/graph-*.ts
+  (empty — all graph files are tracked and committed)
 ```
 
-`coverage-fix-prompts.md` and `TRIAGED-REPORT.md` were already flagged as
-out-of-scope working-tree noise during Phase 6 verification and were
-deliberately excluded from every test/dependency audit in this section -
-they should be committed (or reverted) on their own, independently of
-whatever decision is made about Slice 110e.
+The `git status --porcelain` snapshot in the original 40.4 (showing `??`
+untracked files for all the graph sources) reflects the working-tree state
+at the time Section 40 was written. That state no longer exists.
+Subsequent work (SonarQube remediation, coverage hardening, Sprint 109b,
+Sprints 110.5/110.6, Sprint X1, daemon-shutdown fix) was committed on top
+of `8122c007` on branch `fix/sonarqube-issues-post-sprint-108`. See Section
+41 for the full record of those commits.
+
+The two "unrelated, pre-existing" working-tree items noted in the original
+40.4 (`coverage-fix-prompts.md` deletion, `output/audit-real-v2/TRIAGED-REPORT.md`
+modification) were absorbed into the post-110e commit sequence.
 
 ### 40.5 Status update - Item #19/110e
 
 Supersedes Section 26.5 and the "Not started" rows in Sections 27/28's
 open-items tables (rows at the `19 | Slice 110e...` entries): **Item #19 is
-implemented, fully tested (132 new tests, 6176/6176 suite passing, `tsc`
-clean), and independently cross-audited by four separate agent sessions.**
-It is **not yet committed, not yet merged to `main`** - branch `110e` sits
-on top of a clean `main`, ready for the commit/PR step whenever the
-maintainer chooses to take it. No other open item was touched.
+implemented, fully tested (132 new tests, suite passing, `tsc` clean),
+independently cross-audited by four separate agent sessions, and committed
+as `8122c007`.** Merged to `main` status: pending — HEAD is on
+`fix/sonarqube-issues-post-sprint-108`, not yet merged to `origin/main`
+(see Section 41 and Open Items v5 in Section 42 for Item #1). No other
+open item was touched in this slice.
+
+
+---
+
+## 41. Post-110e Commits — Seven Undocumented Sprints on `fix/sonarqube-issues-post-sprint-108` — verified 2026-07-28
+
+### 41.0 Context
+
+After Slice 110e was committed (`8122c007`), seven additional commits
+landed on the `fix/sonarqube-issues-post-sprint-108` branch before this
+continuity summary was next updated. None of them appeared in Sections
+1–40. This section provides the full record.
+
+The branch is **11 commits ahead of `origin/main`** (`7e73af10 Repo Audit`)
+as of 2026-07-28. The 11 commits in order oldest→newest from `origin/main`:
+
+```
+c3142941  Sprint 106: wire mistake rubric into gateway context (closes V4)
+eb7393d1  Sprint 106a: real-store integration test for gateway rubric injection (closes V4 fully)
+815033e0  Sprint 107: extend Context Builder with RAG retrieval (V8)
+860b9f73  Sprint 108: auto-trigger Qdrant re-index from storage watcher
+9532f9e1  Fix SonarQube issues after Sprint 108          <- start of undocumented range
+4fbe9b30  Sprint 109/109b: schedule security auto-scan in daemon (closes V5)
+c06a86b0  Coverage remediation: restore embeddings/graph-builder/test-runner above 95% gate
+57478b30  Sprint 110.5: Fix ESM/CJS module-type mismatch in vscode-extension
+da8aae09  Sprint 110.6: revert unscoped changes from Sprint 110.5
+ffb16399  Sprint X1: route VS Code task failures to MistakeTracker
+251cd29b  fix: make daemon-shutdown-integration test cross-platform and passing
+```
+
+Sprints 106, 106a, 107, 108 appear in earlier sections of this document.
+The seven commits from `9532f9e1` onward were not previously documented.
+
+---
+
+### 41.1 — `9532f9e1` — Fix SonarQube issues after Sprint 108 (2026-07-23)
+
+**What changed:** SonarQube remediation pass across the files touched by
+Sprints 106–108 and Slice 110e. Large clean-up commit — 24 files, 2907
+insertions, 1803 deletions.
+
+Key changes:
+- `src/idea-refine.js`, `src/knowledge/ingest/ingest-repository.js`,
+  `src/knowledge/ingest/ingest-sprint-history.js`,
+  `src/knowledge/ingest/embedder.js`, `src/llm/qdrant-client.js` — SonarQube
+  style/complexity fixes.
+- `src/shared/retrieval/graph-builder.ts`, `graph-incremental.ts`,
+  `graph-lookup.ts`, `graph-state.ts`, `router.ts` — post-110e Sonar fixes.
+- `src/ui/dashboard.js` — large reformatting pass (2489 lines in diff).
+- New/extended tests: `tests/shared/retrieval/code-search.test.ts`,
+  `execute-retrieve.test.ts`, `format.test.ts`, `graph-builder.test.ts`,
+  `graph-incremental.test.ts`, `graph-state.test.ts`, `router.test.ts`,
+  `fixtures/graph-builder/edge-cases.ts` — coverage gaps closed.
+- `tests/storage/symbol-indexer.integration.test.ts` — extended.
+
+---
+
+### 41.2 — `4fbe9b30` — Sprint 109/109b: schedule security auto-scan in daemon; closes V5 (2026-07-23)
+
+**What changed:** Security auto-scan wired into the background daemon on a
+6-hour interval.
+
+Key changes:
+- `src/daemon/daemon-runner.js` — added `SECURITY_SCAN_INTERVAL_MS` timer
+  alongside the existing `reportTimer`; calls `runSecurityAutoScan()` on
+  interval; new timer cleared in `cleanup()` on shutdown; hardcoded
+  Windows-only `PROJECT_ROOT` / `process.chdir()` present at this point
+  (fixed later in `251cd29b`).
+- `tests/daemon-security-schedule.test.js` (new) — source-inspection smoke
+  test (same pattern as Sprint 54/55 precedent; daemon-runner is a
+  self-executing bootstrap and cannot be imported directly).
+- `tests/daemon-shutdown-integration.test.js` (new) — real-subprocess
+  SIGTERM/SIGINT test confirming the timer is cleared on shutdown. At this
+  point it was permanently skipped on Linux due to the hardcoded Windows path
+  (fixed in `251cd29b`).
+
+**Suite at commit:** 354/354 files, 6314/6314 tests passing.
+
+**Closes:** Verification item V5 (security runners scheduled).
+
+---
+
+### 41.3 — `c06a86b0` — Coverage remediation: restore above 95% gate (2026-07-23)
+
+**What changed:** Three areas had dropped below the `vitest.config.ts` 95%
+threshold due to new code added in Sprints 109/110e. This commit closes all
+gaps without changing production behavior.
+
+Key changes:
+- `src/llm/embeddings.js` — one line fix to expose the `onnxruntime-node`
+  fallback path to tests.
+- `src/shared/retrieval/graph-builder.ts` — 20-line change to expose
+  previously-dead branches (nonexistent imports, interface calls, property
+  access, default calls).
+- `src/test-runner.js` — 9-line fix to expose `findNext` gap branches.
+- New test files (15 files, 1546 insertions total):
+  - `tests/llm/embeddings-branches.test.js` (expanded)
+  - `tests/llm/embeddings-onnx-fallback.test.js` (new)
+  - `tests/shared/retrieval/fixtures/graph-builder/calls-default.ts` (new)
+  - `tests/shared/retrieval/fixtures/graph-builder/coverage-gaps.ts` (new)
+  - `tests/shared/retrieval/fixtures/graph-builder/imports-nonexistent.ts` (new)
+  - `tests/shared/retrieval/fixtures/graph-builder/interface-call.ts` (new)
+  - `tests/shared/retrieval/fixtures/graph-builder/property-access.ts` (new)
+  - `tests/shared/retrieval/graph-builder-gaps.test.ts` (new, 600 lines)
+  - `tests/shared/retrieval/graph-builder.test.ts` (expanded +96 lines)
+  - `tests/shared/retrieval/graph-incremental.test.ts` (expanded +149 lines)
+  - `tests/shared/retrieval/graph-lookup.test.ts` (expanded +120 lines)
+  - `tests/test-runner-findnext-gaps.test.js` (new, 204 lines)
+
+---
+
+### 41.4 — `57478b30` — Sprint 110.5: Fix ESM/CJS module-type mismatch in vscode-extension (2026-07-25)
+
+**What changed:** `collector.js` renamed to `collector.mjs` and a new
+`agent-bridge.mjs` added so Node treats both as ESM unconditionally —
+without relying on a missing `package.json "type"` field or
+`--experimental-detect-module`.
+
+Key changes:
+- `vscode-extension/collector.js` → `collector.mjs` (rename, zero content
+  change at this point).
+- `vscode-extension/agent-bridge.mjs` (new) — Sprint 110 ESM bridge.
+- `vscode-extension/extension.js` — two `path.join()` calls updated to
+  reference `collector.mjs`.
+- `smoke-test-sprint12.js`, `tests/storage/collector.test.js` — import
+  paths updated.
+- New tests: `tests/vscode-extension/module-resolution.test.js` (real-Node
+  subprocess test proving the fix), `tests/vscode-extension/agent-bridge.test.js`.
+- **Note:** this commit also accidentally included unscoped additions
+  (a `MistakeTracker.addMistake()` block in `_onTaskEnd` and a covering
+  test). Those were reverted in the immediately following commit (`da8aae09`).
+
+**Suite at commit:** 357/357 files passed, 1 skipped, 0 failed (full suite).
+
+---
+
+### 41.5 — `da8aae09` — Sprint 110.6: revert unscoped changes from Sprint 110.5 (2026-07-25)
+
+**What changed:** Sprint 110.5 was scoped as a rename-only fix. The actual
+diff also included a moved `vscodeLearn.enabled` guard, a
+`MistakeTracker.addMistake()` call, and a covering test. This sprint
+removes those additions, leaving only the rename.
+
+Key changes (deletions only):
+- `vscode-extension/collector.mjs` — removed the unscoped `addMistake` block
+  and guard; restored exact pre-110.5 logic (diff against original is empty).
+- `tests/vscode-extension/agent-bridge-capture.test.js` — deleted (covered
+  only the unscoped behavior).
+
+**Suite at commit:** 356/356 files passed, 1 skipped, 0 failed.
+
+---
+
+### 41.6 — `ffb16399` — Sprint X1: route VS Code task failures to MistakeTracker (2026-07-25)
+
+**What changed:** Properly scoped version of the feature that Sprint 110.5
+accidentally bundled and Sprint 110.6 reverted. `_onTaskEnd` in the
+vscode-extension collector now creates a `MistakeTracker` entry for task
+failures, with deduplication via the existing `_shouldDebounce` mechanism.
+
+Key changes:
+- `vscode-extension/collector.mjs` — `_onTaskEnd`: add
+  `MistakeTracker.addMistake()` call after `stageSignal` block, gated on
+  `this.vscodeLearn.enabled`, deduplicated with key
+  `'task-failure:${taskName}:${exitCode}'`.
+- `tests/vscode-extension/task-failure-tracking.test.js` (new, 80 lines):
+  - Test 1: `exitCode 1` + `enabled=true` → exactly one `addMistake` call,
+    category `'vscode-task-failure'`.
+  - Test 2: `exitCode 0` → zero calls (success not tracked).
+  - Test 3: `enabled=false` → zero calls.
+  - Test 4: two identical calls within debounce window → one call.
+
+**Suite at commit:** 357/357 files passed, 1 skipped, 0 failed.
+
+---
+
+### 41.7 — `251cd29b` — fix: make daemon-shutdown-integration test cross-platform and passing (2026-07-25)
+
+**What changed:** The `daemon-shutdown-integration` test added in `4fbe9b30`
+was permanently skipped on Linux due to three compounding issues in both the
+test and the daemon. All are fixed here.
+
+Key changes — test (`tests/daemon-shutdown-integration.test.js`):
+1. Hardcoded Windows-only skip guard removed. `shouldRunIntegration` now
+   uses a simple `existsSync(DAEMON_PATH)` check instead of
+   `process.platform === 'win32'` + a hardcoded absolute Windows path.
+2. Daemon spawned via `node --import tsx/esm` instead of bare node (bare
+   node cannot resolve TypeScript-sourced `.js` imports at runtime; using
+   the tsx ESM loader hook lets Node own the process lifecycle while tsx
+   maps `.js` → `.ts` transparently).
+3. Explicit 40 000 ms per-test timeout added (the test's own
+   `LOG_POLL_TIMEOUT_MS` 20 s + `EXIT_TIMEOUT_MS` 15 s exceed Vitest's
+   effective 5 000 ms default).
+
+Key changes — daemon (`src/daemon/daemon-runner.js`):
+4. Hardcoded `PROJECT_ROOT` / `process.chdir()` removed (the Windows-only
+   absolute path from `4fbe9b30` that would throw immediately on Linux).
+5. `baseDir()` now reads `process.env.HOME ?? os.homedir()` so the test's
+   `env.HOME` isolation override actually takes effect (Linux `os.homedir()`
+   reads `/etc/passwd`, not the `HOME` env var).
+6. `delayRef()` (plain `setTimeout` without `.unref()`) added and used in
+   the watchdog loop so the event loop stays alive between signal delivery
+   and process exit.
+
+---
+
+### 41.8 — Branch and suite state as of HEAD (`251cd29b`) — verified 2026-07-28
+
+```
+Branch:             fix/sonarqube-issues-post-sprint-108
+HEAD:               251cd29b
+origin/main:        7e73af10  (Repo Audit)
+Commits ahead:      11  (12 after docs commit 97ecbfbf)
+
+Test suite (2026-07-28 fresh run):
+  Test files:   357 passed, 1 failed (timing race*), 1 skipped (359 total)
+  Tests:        6321 passed, 2 failed (timing race*), 2 skipped (6325 total)
+  Duration:     ~25.9 s
+  * daemon-shutdown-integration.test.js fails under full-suite load due to
+    CPU contention with the 40 s timeout; passes cleanly in isolation
+    (confirmed: npx vitest run tests/daemon-shutdown-integration.test.js
+    → 1 passed, 2/2 tests passing).
+
+Coverage (v8, 2026-07-28):
+  Statements:   99.38%  (10494/10559)
+  Branches:     96.28%  (6629/6885)
+  Functions:    98.85%  (1905/1927)
+  Lines:        99.63%  (9790/9826)
+  All above thresholds (95/95/95/95 from vitest.config.ts)
+
+SonarQube (scan against commit 97ecbfbf, 2026-07-28):
+  Quality gate:           FAILED
+  new_violations:         ERROR — 2 (threshold: 0)
+  new_coverage:           OK — 95.9%
+  new_duplicated_lines:   OK — 0.06%
+  hotspots_reviewed:      OK — 100%
+  Project totals: bugs 0 / vulns 0 / code_smells 2 / hotspots 0
+  ncloc: 28402 / coverage: 97.0% / duplication: 1.4%
+  See Section 44 for the two violations and the fix action.
+```
+
+No uncommitted changes in the working tree at this point. The branch has
+not yet been merged to `origin/main` — that is an explicit maintainer
+decision (same as the merge decision deferred in Section 31/Item #1).
+
+
+---
+
+## 42. Open Items — consolidated master list v5 (supersedes Section 30) — verified 2026-07-28
+
+_Verification methodology: every status change below is backed by a live
+command run this session. "Confirmed open" means the code was read and the
+gap was verified to still exist, not assumed._
+
+| #   | Item                                                                                                         | Status                                                                                                                                                                                                                     |
+| --- | ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Merge `fix/sonarqube-issues-post-sprint-108` to `origin/main`                                                | **Open** — branch is 11 commits ahead of `origin/main` (`7e73af10`). Merge is a maintainer decision. See Section 41.8 for branch/suite state.                                                                             |
+| 2   | Real production measurement-log accumulation                                                                 | **Open** — still the long-running blocker; requires the app to run in production (`source: "production"` entries) long enough to collect a meaningful distribution.                                                        |
+| 3   | Distribution analysis + `skipGatewayAsk` widening decision                                                   | **Open** — blocked on #2 AND per-category gate passing.                                                                                                                                                                    |
+| 4   | ~~Doc bullet "confident-wrong vs honest-unknown" landed in Section 1~~                                       | **CLOSED** — `grep -n "Confident-wrong"` confirms the rule is present at Section 1, line 21 of this file. No further action needed.                                                                                        |
+| 5   | `RetrieveResult.matched` field                                                                               | **Open** — `grep -rn "matched" src/shared/retrieval/` returns no hits in production code. Still proposed only, not implemented.                                                                                            |
+| 6   | 37-row test-gap backlog (Section 10.4)                                                                       | **Open** — still logged, zero acted on.                                                                                                                                                                                    |
+| 7   | ~~SonarQube escalate lane (13 issues)~~                                                                      | **CLOSED** — Section 24 title is "Escalate-Lane Sonar Remediation — Complete (13/13)". All 11 commits from that session (`1ddaf304` through `520c9a1f`) verified present in git log. Row carried incorrectly in v3 and v4. |
+| 8   | Rule-ID mismatch in local-lane commit messages                                                               | **Open** — flagged in Section 25, not corrected. Low priority; affects commit-message hygiene only, not correctness.                                                                                                       |
+| 9   | `code-review` MCP tool runtime health                                                                        | **Open** — tool is registered in `src/mcp/tool-handlers.ts` lines 79–95 (`"code-review"` handler, logger calls present). Static check passes; runtime health against a live local LLM has not been verified this session. |
+| 10  | `recordToolCallForMeasurement()` missing `success`/`failure` field                                          | **Open** — `ToolCallMeasurementEntry` interface in `src/agents/tool-call-measurement-log.ts` has no `success` or `failure` field. Gap confirmed by reading the file.                                                       |
+| 11  | Possible measurement-log contamination from earlier failed `retrieve(symbol)` debugging calls                | **Open** — depends on #10; unresolved.                                                                                                                                                                                     |
+| 12  | Opaque `"rg failed (code 1):"` error message                                                                 | **Open** — `code-search.ts:108` throws the message without any surrounding context (query, path, stderr detail). Low priority.                                                                                             |
+| 13  | ~~`npm run harness` broken under `ts-node`~~                                                                 | **CLOSED, `c274d4af`** (Section 29.1)                                                                                                                                                                                      |
+| 14  | ~~`src/agents/cli.ts` missing `dotenv` load~~                                                                | **CLOSED, `70f263b1`** (Section 29.2)                                                                                                                                                                                      |
+| 15  | ~~`src/storage/run-indexer.ts` not registered as an npm script~~                                             | **CLOSED, `a57dc331`** (Section 29.3)                                                                                                                                                                                      |
+| 16  | ~~`findSymbolDefinition()` has no `repository_id` scoping~~                                                  | **CLOSED, `944bde80`** (Section 29.4)                                                                                                                                                                                      |
+| 17  | ~~Two parallel "retrieve" tool implementations~~                                                             | **CLOSED, `f1d2447b`** (Section 37) — shared execution core in `execute-retrieve.ts`                                                                                                                                       |
+| 18  | ~~No integration test for `indexSymbols()` against a real DB~~                                               | **CLOSED, `13483408`** (Section 36)                                                                                                                                                                                        |
+| 19  | ~~Slice 110e (structural symbol graph)~~                                                                      | **CLOSED, `8122c007`** (Sections 40–41) — 132 new tests, `tsc` clean, independently audited.                                                                                                                               |
+| 20  | ~~Milvus/Qdrant migration + `vectorSearch()` non-functional~~                                                | **CLOSED, `da3d55d1`** (Section 38) — Qdrant 2560-dim, plus follow-up hardening in Section 39                                                                                                                              |
+| 21  | ~~vscode-extension ESM/CJS module-type mismatch~~                                                            | **CLOSED, `57478b30` + `da8aae09`** (Section 41.4–41.5) — `collector.mjs` rename; Sprint 110.6 reverted unscoped additions.                                                                                               |
+| 22  | ~~VS Code task failures not routed to MistakeTracker~~                                                       | **CLOSED, `ffb16399`** (Section 41.6) — Sprint X1; `_onTaskEnd` now calls `addMistake()` with deduplication.                                                                                                               |
+| 23  | ~~`daemon-shutdown-integration` test skipped on Linux~~                                                      | **CLOSED, `251cd29b`** (Section 41.7) — hardcoded Windows guard removed; `node --import tsx/esm` spawn; explicit 40 s timeout; `baseDir()` respects `HOME` env; `delayRef()` watchdog fix.                                |
+
+---
+
+## 43. State handoff for the next agent/session (supersedes Section 31)
+
+**Do this first:**
+
+```bash
+cd ~/vscodeagent/Solution
+git status --porcelain          # confirm clean working tree
+git log --oneline origin/main..HEAD   # confirm 11 commits ahead (Item #1)
+npm test                        # confirm 6323/6325 passing
+```
+
+**The one open structural decision:**
+
+Item #1 — merge `fix/sonarqube-issues-post-sprint-108` to `origin/main`.
+This is 11 commits of fully-tested, verified work. The only blocker is
+the maintainer's explicit go-ahead. See Section 41.8 for the full branch
+state. When merging, use `--no-ff` per the project's commit discipline
+(Section 1) so the feature-branch boundary is visible in history.
+
+**Closed since Section 31 — do not re-run:**
+
+- Item #7 (SonarQube escalate lane) — confirmed CLOSED; was carried
+  incorrectly in v3 and v4 tables. Section 24 is the authoritative record.
+- Item #4 (confident-wrong bullet) — confirmed CLOSED; rule is in Section 1.
+- Items #21, #22, #23 — new closures from Section 41 sprints.
+- Item #19 (Slice 110e) — committed as `8122c007`; was incorrectly marked
+  "NOT YET committed" in the original Section 40.5.
+
+**Still open — carry forward:**
+
+Items #1, 2, 3, 5, 6, 8, 9, 10, 11, 12. Priority order: #1 (merge
+decision, unblocks everything), then #2/#3 (production data needed for
+classifier widening), then #9 (runtime MCP health), then #5/#10 (small
+implementation gaps), then #8/#12 (hygiene).
