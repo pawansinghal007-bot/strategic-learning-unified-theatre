@@ -1,48 +1,9 @@
-import {
-  ProviderCapability,
-  ProviderRequest,
-  ProviderResponse,
-} from "../../shared/contracts/provider";
-import { BaseProviderAdapter } from "./base";
+import { createStubProviderClass } from "./stub-provider-factory";
 
-export class OpenAIProviderAdapter extends BaseProviderAdapter {
-  readonly name = "openai" as const;
-
-  capabilities(): ProviderCapability[] {
-    return [
-      "chat",
-      "streaming",
-      "tool_use",
-      "summarization",
-      "code_generation",
-    ];
-  }
-
-  protected async execute(req: ProviderRequest): Promise<ProviderResponse> {
-    if (!process.env.OPENAI_API_KEY) {
-      throw new Error("401 unauthorized: missing API key for openai");
-    }
-
-    return {
-      requestId: req.requestId,
-      provider: this.name,
-      model: "gpt-4o-mini",
-      outputText: `[openai stub] ${req.prompt}`,
-      finishReason: "stop",
-      usage: {
-        inputTokens: req.prompt.length,
-        outputTokens: Math.ceil(req.prompt.length * 0.8),
-        totalTokens: req.prompt.length + Math.ceil(req.prompt.length * 0.8),
-        estimatedCostUsd: 0.0001,
-        latencyMs: 120,
-      },
-      routingReasons: [
-        {
-          code: "default_selection",
-          message: "OpenAI adapter selected from configured provider set.",
-        },
-      ],
-      raw: { stub: true, provider: "openai" },
-    };
-  }
-}
+export const OpenAIProviderAdapter = createStubProviderClass({
+  name: "openai",
+  apiKeyEnv: "OPENAI_API_KEY",
+  model: "gpt-4o-mini",
+  outputPrefix: "[openai stub]",
+  routingMessage: "OpenAI adapter selected from configured provider set.",
+});

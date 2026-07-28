@@ -142,6 +142,12 @@ export const SprintTaskPriority = z.union([
 ]);
 
 /**
+ * IdeaPrioritySchema — priority level (1=high, 3=low).
+ * Shared with SprintTaskPriority — same domain constraint.
+ */
+export const IdeaPrioritySchema = SprintTaskPriority;
+
+/**
  * CompletedTaskSchema — successfully finished task within a sprint.
  */
 export const CompletedTaskSchema = z.object({
@@ -208,15 +214,6 @@ export const HandoffSprintSchema = z.object({
 export const IdeaStatusSchema = z.enum(["inbox", "active", "parked", "done"]);
 
 /**
- * IdeaPrioritySchema — priority level (1=high, 3=low).
- */
-export const IdeaPrioritySchema = z.union([
-  z.literal(1),
-  z.literal(2),
-  z.literal(3),
-]);
-
-/**
  * IdeaSchema — feature request or design idea.
  * Matches IdeaSchema from src/idea-store.js.
  */
@@ -272,13 +269,9 @@ export const RobotRunResultSchema = z.object({
 
 /**
  * HandoffStatusSchema — CLI status display enum.
+ * Identical to SprintStatusSchema — shared domain constraint.
  */
-export const HandoffStatusSchema = z.enum([
-  "active",
-  "paused",
-  "exhausted",
-  "complete",
-]);
+export const HandoffStatusSchema = SprintStatusSchema;
 
 /**
  * PositiveIntSchema — validates a positive integer.

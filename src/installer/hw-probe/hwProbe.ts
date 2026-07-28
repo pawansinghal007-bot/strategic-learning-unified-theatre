@@ -161,35 +161,45 @@ function tryNvidiaSmi(): GpuInfo[] {
     });
 }
 
-// ── Linux GPU detection ───────────────────────────────────────────────────────
-
-function detectGpusLinux(): GpuInfo[] {
-  // 1. Try nvidia-smi
+/**
+ * Try nvidia-smi first; if it fails, call the platform-specific fallback.
+ * This two-stage pattern is shared between Linux and Windows detection.
+ *
+ * @param fallback - Platform-specific fallback that runs when nvidia-smi is unavailable
+ * @returns GPU list from whichever source succeeded, or empty array if both fail
+ */
+function detectGpusWithNvidiaFallback(fallback: () => GpuInfo[]): GpuInfo[] {
   try {
     return tryNvidiaSmi();
   } catch {
-    // fall through to lspci
+    return fallback();
   }
+}
 
-  // 2. Fall back to lspci
-  try {
-    const raw = execFileSync("lspci", [], {
-      encoding: "utf8",
-      env: sanitizeEnvForSpawn(process.env),
-    }) as string;
-    return raw
-      .split("\n")
-      .filter((line) => /vga|3d|display/i.test(line))
-      .map((line) => {
-        // lspci format: "00:02.0 VGA compatible controller: <name>"
-        const colonIdx = line.indexOf(": ");
-        const name =
-          colonIdx >= 0 ? line.slice(colonIdx + 2).trim() : line.trim();
-        return { name, vendor: inferVendor(name), vramMB: 0 };
-      });
-  } catch {
-    return [];
-  }
+// ── Linux GPU detection ───────────────────────────────────────────────────────
+
+function detectGpusLinux(): GpuInfo[] {
+  return detectGpusWithNvidiaFallback(() => {
+    // Fall back to lspci
+    try {
+      const raw = execFileSync("lspci", [], {
+        encoding: "utf8",
+        env: sanitizeEnvForSpawn(process.env),
+      }) as string;
+      return raw
+        .split("\n")
+        .filter((line) => /vga|3d|display/i.test(line))
+        .map((line) => {
+          // lspci format: "00:02.0 VGA compatible controller: <name>"
+          const colonIdx = line.indexOf(": ");
+          const name =
+            colonIdx >= 0 ? line.slice(colonIdx + 2).trim() : line.trim();
+          return { name, vendor: inferVendor(name), vramMB: 0 };
+        });
+    } catch {
+      return [];
+    }
+  });
 }
 
 // ── macOS Apple Silicon fallback ──────────────────────────────────────────────
@@ -251,38 +261,33 @@ function detectGpusMacos(): GpuInfo[] {
 // ── Windows GPU detection ─────────────────────────────────────────────────────
 
 function detectGpusWindows(): GpuInfo[] {
-  // 1. Try nvidia-smi first (works on Windows too)
-  try {
-    return tryNvidiaSmi();
-  } catch {
-    // fall through to PowerShell
-  }
+  return detectGpusWithNvidiaFallback(() => {
+    // Fall back to Get-CimInstance Win32_VideoController via PowerShell
+    try {
+      const psScript =
+        "Get-CimInstance -ClassName Win32_VideoController | " +
+        "Select-Object Name,AdapterRAM | ConvertTo-Json -Compress";
+      const raw = execFileSync(
+        "powershell",
+        ["-NoProfile", "-NonInteractive", "-Command", psScript],
+        { encoding: "utf8", env: sanitizeEnvForSpawn(process.env) },
+      ) as string;
 
-  // 2. Get-CimInstance Win32_VideoController via PowerShell
-  try {
-    const psScript =
-      "Get-CimInstance -ClassName Win32_VideoController | " +
-      "Select-Object Name,AdapterRAM | ConvertTo-Json -Compress";
-    const raw = execFileSync(
-      "powershell",
-      ["-NoProfile", "-NonInteractive", "-Command", psScript],
-      { encoding: "utf8", env: sanitizeEnvForSpawn(process.env) },
-    ) as string;
+      const parsed = JSON.parse(raw.trim());
+      const entries: { Name: string | null; AdapterRAM: number }[] =
+        Array.isArray(parsed) ? parsed : [parsed];
 
-    const parsed = JSON.parse(raw.trim());
-    const entries: { Name: string | null; AdapterRAM: number }[] =
-      Array.isArray(parsed) ? parsed : [parsed];
-
-    return entries
-      .filter((e) => e.Name && e.AdapterRAM > 0)
-      .map((e) => {
-        const name = e.Name as string;
-        const vramMB = Math.round(e.AdapterRAM / (1024 * 1024));
-        return { name, vendor: inferVendor(name), vramMB };
-      });
-  } catch {
-    return [];
-  }
+      return entries
+        .filter((e) => e.Name && e.AdapterRAM > 0)
+        .map((e) => {
+          const name = e.Name as string;
+          const vramMB = Math.round(e.AdapterRAM / (1024 * 1024));
+          return { name, vendor: inferVendor(name), vramMB };
+        });
+    } catch {
+      return [];
+    }
+  });
 }
 
 // ── Platform dispatch ─────────────────────────────────────────────────────────
