@@ -3544,25 +3544,39 @@ Key changes — daemon (`src/daemon/daemon-runner.js`):
 
 ---
 
-### 41.8 — Branch and suite state as of HEAD (`251cd29b`)
+### 41.8 — Branch and suite state as of HEAD (`251cd29b`) — verified 2026-07-28
 
 ```
 Branch:             fix/sonarqube-issues-post-sprint-108
 HEAD:               251cd29b
 origin/main:        7e73af10  (Repo Audit)
-Commits ahead:      11
+Commits ahead:      11  (12 after docs commit 97ecbfbf)
 
-Test suite (2026-07-27 run):
-  Test files:   358 passed, 1 skipped (359 total)
-  Tests:        6323 passed, 2 skipped (6325 total)
-  Duration:     ~27.5 s
+Test suite (2026-07-28 fresh run):
+  Test files:   357 passed, 1 failed (timing race*), 1 skipped (359 total)
+  Tests:        6321 passed, 2 failed (timing race*), 2 skipped (6325 total)
+  Duration:     ~25.9 s
+  * daemon-shutdown-integration.test.js fails under full-suite load due to
+    CPU contention with the 40 s timeout; passes cleanly in isolation
+    (confirmed: npx vitest run tests/daemon-shutdown-integration.test.js
+    → 1 passed, 2/2 tests passing).
 
-Coverage (v8, 2026-07-27):
-  Statements:   99.38%
-  Branches:     96.32%
-  Functions:    98.85%
-  Lines:        99.63%
+Coverage (v8, 2026-07-28):
+  Statements:   99.38%  (10494/10559)
+  Branches:     96.28%  (6629/6885)
+  Functions:    98.85%  (1905/1927)
+  Lines:        99.63%  (9790/9826)
   All above thresholds (95/95/95/95 from vitest.config.ts)
+
+SonarQube (scan against commit 97ecbfbf, 2026-07-28):
+  Quality gate:           FAILED
+  new_violations:         ERROR — 2 (threshold: 0)
+  new_coverage:           OK — 95.9%
+  new_duplicated_lines:   OK — 0.06%
+  hotspots_reviewed:      OK — 100%
+  Project totals: bugs 0 / vulns 0 / code_smells 2 / hotspots 0
+  ncloc: 28402 / coverage: 97.0% / duplication: 1.4%
+  See Section 44 for the two violations and the fix action.
 ```
 
 No uncommitted changes in the working tree at this point. The branch has

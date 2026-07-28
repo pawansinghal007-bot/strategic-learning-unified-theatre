@@ -8,14 +8,15 @@
 > 102–105. Always include "Last verified: Sprint N" so drift is immediately
 > visible to the next agent session.
 
-**Last verified: Sprint X1 / daemon-shutdown fix (`251cd29b`) — 2026-07-28**
-**Active branch:** `fix/sonarqube-issues-post-sprint-108` — 11 commits ahead of `origin/main` (`7e73af10`)
+**Last verified: 2026-07-28 (fresh coverage + SonarQube scan — commit `97ecbfbf`)**
+**Active branch:** `fix/sonarqube-issues-post-sprint-108` — 12 commits ahead of `origin/main` (`7e73af10`)
 **Last committed sprint:** Sprint X1 (`ffb16399`) + daemon-shutdown cross-platform fix (`251cd29b`)
-**Last updated:** 2026-07-28 — continuity-summary gap analysis pass (Sections 41–43 added); no code changes this session
-**Test suite:** 6323 passed, 2 skipped (6325 total) — 358 test files — fresh run 2026-07-27
-**Coverage (v8):** 99.38% stmts / 96.32% branch / 98.85% funcs / 99.63% lines — all above thresholds (95/95/95/95)
+**Last updated:** 2026-07-28 — fresh coverage run + SonarQube scan; numbers updated below
+**Test suite:** 6321 passed, 2 failed (timing race — `daemon-shutdown-integration` passes in isolation), 2 skipped (6325 total) — 359 test files — fresh run 2026-07-28
+**Coverage (v8, fresh 2026-07-28):** 99.38% stmts (10494/10559) / 96.28% branch (6629/6885) / 98.85% funcs (1905/1927) / 99.63% lines (9790/9826) — all above thresholds (95/95/95/95)
 **TypeCheck:** `npx tsc --noEmit` — 0 errors (verified at Slice 110e, `8122c007`)
 **MCP smoke:** `scripts/verify-mcp-stdio.mjs` — 6 tools returned (including retrieve), exit code 0 [CONFIRMED at Sprint 107]
+**SonarQube quality gate:** FAILED — 2 new violations in `tests/daemon-shutdown-integration.test.js` (S1607 line 196: skipped test needs explanation; S5914 line 198: `expect(true).toBe(true)` tautology). Project totals: bugs 0 / vulnerabilities 0 / code smells 2 / hotspots 0 / coverage 97.0% / duplication 1.4% / ncloc 28402. All other gate conditions OK (new_coverage 95.9%, new_dup 0.06%, hotspots_reviewed 100%). **Action required:** fix the `describe.skip` placeholder block in `251cd29b` to resolve both violations.
 **GPU default:** -ngl 99 (RTX 5090 Laptop 24GB — prior -ngl 0 constraints obsolete)
 
 ## Recent Resolutions (last 3 sprints — older entries in master_timeline_sprints_101_plus.md)
