@@ -8,9 +8,9 @@
 > 102–105. Always include "Last verified: Sprint N" so drift is immediately
 > visible to the next agent session.
 
-**Last verified: 2026-07-28 (fresh coverage + SonarQube scan — commit `4a864bf2`)**
-**Active branch:** `fix/sonarqube-issues-post-sprint-108` — 15 commits ahead of `origin/main` (`7e73af10`)
-**Last committed sprint:** Sprint X1 (`ffb16399`) + daemon-shutdown cross-platform fix (`251cd29b`) + Sonar remediation (`4a864bf2`)
+**Last verified: 2026-07-28 (deduplication sprint merged — commit `7f87da10`)**
+**Active branch:** `main` — fully merged, 0 commits ahead of `origin/main`. HEAD: `7f87da10`
+**Last committed sprint:** Sonar remediation (`4a864bf2`) + merge to main (`3403fd52`) + deduplication sprint merged (`7f87da10`)
 **Last updated:** 2026-07-28 — fresh coverage run + SonarQube quality gate now PASSING; all violations resolved
 **Test suite:** 6323 passed, 2 skipped (6325 total) — 359 test files — fresh run 2026-07-28 (daemon-shutdown timing race resolved; 0 failures)
 **Coverage (v8, fresh 2026-07-28):** 99.38% stmts (10494/10559) / 96.28% branch (6629/6885) / 98.85% funcs (1905/1927) / 99.63% lines (9790/9826) — all above thresholds (95/95/95/95)
@@ -20,6 +20,10 @@
 **GPU default:** -ngl 99 (RTX 5090 Laptop 24GB — prior -ngl 0 constraints obsolete)
 
 ## Recent Resolutions (last 3 sprints — older entries in master_timeline_sprints_101_plus.md)
+
+- Deduplication sprint 2026-07-28 (`0ee919a8`, merged `7f87da10`, CLOSED): Remove 26 SonarQube duplicate blocks across 6 file clusters. New `stub-provider-factory.ts` collapses grok/groq/openai adapters (~53% dup removed). New `base-repo.js` (`BaseRepo`) shared by `handoff-repo.js` + `sprint-state-repo.js` (~41% dup removed). `buildAiSnapshot()` helper deduplicates snapshot/resume in `ai.js` (~19% dup removed). `detectGpusWithNvidiaFallback()` deduplicates hwProbe.ts Linux/Windows paths. Schema aliases collapse identical `z.union`/`z.enum` definitions in `schemas.js`. `grok` added to `ProviderName` union. All 6323 tests pass. Merged to `main` as `7f87da10`.
+
+- Merge to main 2026-07-28 (`3403fd52`, CLOSED): `fix/sonarqube-issues-post-sprint-108` (16 commits, Sprints 106–X1 + Sonar remediation) merged to `main` with `--no-ff`. Final state: coverage 99.38%/96.28%/98.85%/99.63%, SonarQube PASSED, 6323/6325 tests passing.
 
 - Sonar remediation 2026-07-28 (`02d966de` + `4a864bf2`, CLOSED): Fix 3 SonarQube violations in `tests/daemon-shutdown-integration.test.js` blocking the quality gate. S1607 (describe.skip without explanation) + S5914 (tautological `expect(true).toBe(true)`) → replaced `describe.skip` with a normal `describe` containing `it.skip`. S2699 (no assertions in it.skip body) → replaced `it.skip` with `it.todo` (no callback). Quality gate now PASSED: bugs 0 / vulnerabilities 0 / code smells 0 / hotspots 0 / new_violations 0 / coverage 97.0% / duplication 1.4% / ncloc 28402.
 

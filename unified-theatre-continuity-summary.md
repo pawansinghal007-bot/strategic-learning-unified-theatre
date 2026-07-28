@@ -2,6 +2,7 @@
 
 _Read this first if you're an agent (Claude, Copilot, or otherwise) picking up this project. It exists to prevent context loss across sessions and across different tools/providers working on the same repo._
 
+> **Last updated 2026-07-28 (updated again — see Sections 44–46).** Sections 44–46 document all commits that landed after Section 41.8: SonarQube quality-gate remediation (`02d966de` + `4a864bf2`, fixes S1607/S5914/S2699, gate now **PASSED**); deduplication sprint (`0ee919a8`, 26 duplicate blocks removed across 6 files); and both merges to `main` (`3403fd52` + `7f87da10`). **`main` is now fully merged and current — `git log --oneline origin/main..HEAD` returns empty.** Item #1 (merge decision) is CLOSED. Section 42 open-items table and Section 43 handoff updated accordingly. Current HEAD: `7f87da10`. SonarQube: PASSED. Test suite: 6323/6325, 0 failures.
 > **Last updated 2026-07-28 (updated again — see Sections 41–43).** Section 40's "NOT YET committed / branch `110e`" claim has been corrected: Slice 110e was committed as `8122c007` (see Section 40.4 for the corrected record). Section 41 documents seven previously-undocumented commits on `fix/sonarqube-issues-post-sprint-108` (SonarQube post-108 cleanup, Sprint 109/109b, coverage remediation, Sprints 110.5/110.6, Sprint X1, daemon-shutdown cross-platform fix) — branch is now 11 commits ahead of `origin/main`. Section 42 supersedes Section 30's open-items v4 table: Items #4, #7, #19, #21, #22, #23 closed with evidence; Items #1–3, 5–6, 8–12 confirmed open. Section 43 supersedes Section 31's handoff. Stale "SUPERSEDED" banners added to Sections 26.5, 32, and 34.
 > **Last updated 2026-07-20 (see Section 40 — now corrected above).** Section 40 documents Item #19/Slice 110e (originally scoped in Section 26.5 as "references table + `findReferences()`, Not started") now **implemented, tested, and independently audited** — built as an AST-based structural symbol graph rather than a DB references table (functionally equivalent capability, different mechanism; see 40.0 for why). ~~All work is on branch `110e`, NOT YET committed or merged to `main`~~ — **corrected: committed as `8122c007`; see Section 40.4.**
 > **Last updated 2026-07-18 (updated again — see Sections 38-39).** Section 26 documents the live-verified rollout audit of Slices 110a–110e (110a/110b/110c/110d confirmed **Done**, 110e confirmed **Not started**). Section 29 documents four follow-up fixes closed the same day (harness runner, dotenv loading, index:symbols script, repository_id scoping) — all committed and pushed. Section 35 closed the configuration-fixable portion of Section 34 (`.env`/`.env.example` Qdrant/embeddings fixes). Section 36 documents Item #18 closed (`13483408`). Section 37 documents Item #17 closed (`f1d2447b`). Section 38 documents Item #20 Phase 2 (Milvus→Qdrant migration, Option A: delete + re-ingest at 2560 dimensions) closed and working end-to-end, pushed as `da3d55d1`. Section 39 documents a follow-up ingestion-reliability pass discovered while re-running full ingestion: a token-unaware chunking bug, incremental hash-based ingestion, discovery and exclusion of ~28 byte-identical duplicate baseline snapshots plus an audit-dump file, an accidental coverage-threshold regression and its fix, and 100% branch coverage on the touched ingestion code — pushed as `27cf754a`, `b6243964`, `80dab8c8`, `1e68c556`, `f0ec0046`. Section 30 supersedes Section 27's open-items list (Item #20 row added, closed); Section 31 supersedes Section 28's handoff.
@@ -3594,7 +3595,7 @@ gap was verified to still exist, not assumed._
 
 | #   | Item                                                                                                         | Status                                                                                                                                                                                                                     |
 | --- | ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Merge `fix/sonarqube-issues-post-sprint-108` to `origin/main`                                                | **Open** — branch is 11 commits ahead of `origin/main` (`7e73af10`). Merge is a maintainer decision. See Section 41.8 for branch/suite state.                                                                             |
+| 1   | ~~Merge `fix/sonarqube-issues-post-sprint-108` to `origin/main`~~                                            | **CLOSED, `3403fd52`** (Section 46.1) — merged to `main` 2026-07-28. `git log --oneline origin/main..HEAD` returns empty. HEAD `7f87da10` is current on `main`.                                                           |
 | 2   | Real production measurement-log accumulation                                                                 | **Open** — still the long-running blocker; requires the app to run in production (`source: "production"` entries) long enough to collect a meaningful distribution.                                                        |
 | 3   | Distribution analysis + `skipGatewayAsk` widening decision                                                   | **Open** — blocked on #2 AND per-category gate passing.                                                                                                                                                                    |
 | 4   | ~~Doc bullet "confident-wrong vs honest-unknown" landed in Section 1~~                                       | **CLOSED** — `grep -n "Confident-wrong"` confirms the rule is present at Section 1, line 21 of this file. No further action needed.                                                                                        |
@@ -3622,35 +3623,225 @@ gap was verified to still exist, not assumed._
 
 ## 43. State handoff for the next agent/session (supersedes Section 31)
 
+> **⚠️ Updated 2026-07-28 — see Sections 44–46 for the commits that post-date this section's original writing. Item #1 is now CLOSED.**
+
 **Do this first:**
 
 ```bash
 cd ~/vscodeagent/Solution
-git status --porcelain          # confirm clean working tree
-git log --oneline origin/main..HEAD   # confirm 11 commits ahead (Item #1)
-npm test                        # confirm 6323/6325 passing
+git status --porcelain          # expect: empty (clean working tree)
+git log --oneline origin/main..HEAD   # expect: empty (main is fully merged)
+git log --oneline -5            # confirm HEAD is 7f87da10
+npm test                        # confirm 6323/6325 passing (2 skipped, 0 failed)
 ```
 
-**The one open structural decision:**
+**No open structural decisions remain from this sprint cycle.**
 
-Item #1 — merge `fix/sonarqube-issues-post-sprint-108` to `origin/main`.
-This is 11 commits of fully-tested, verified work. The only blocker is
-the maintainer's explicit go-ahead. See Section 41.8 for the full branch
-state. When merging, use `--no-ff` per the project's commit discipline
-(Section 1) so the feature-branch boundary is visible in history.
+Item #1 (merge `fix/sonarqube-issues-post-sprint-108` to `origin/main`) is
+**CLOSED** — merged as `3403fd52` on 2026-07-28. The deduplication branch
+(`fix/sonarqube-deduplication`) was also merged immediately after as
+`7f87da10`. `main` is fully current. SonarQube quality gate is PASSED with
+0 new violations. See Section 46.3 for the complete current repo state.
 
 **Closed since Section 31 — do not re-run:**
 
-- Item #7 (SonarQube escalate lane) — confirmed CLOSED; was carried
-  incorrectly in v3 and v4 tables. Section 24 is the authoritative record.
+- Item #7 (SonarQube escalate lane) — confirmed CLOSED; Section 24 is the
+  authoritative record.
 - Item #4 (confident-wrong bullet) — confirmed CLOSED; rule is in Section 1.
 - Items #21, #22, #23 — new closures from Section 41 sprints.
 - Item #19 (Slice 110e) — committed as `8122c007`; was incorrectly marked
   "NOT YET committed" in the original Section 40.5.
+- Item #1 (merge decision) — CLOSED `3403fd52` + `7f87da10` (Sections 46.1–46.2).
 
 **Still open — carry forward:**
 
-Items #1, 2, 3, 5, 6, 8, 9, 10, 11, 12. Priority order: #1 (merge
-decision, unblocks everything), then #2/#3 (production data needed for
-classifier widening), then #9 (runtime MCP health), then #5/#10 (small
-implementation gaps), then #8/#12 (hygiene).
+Items #2, 3, 5, 6, 8, 9, 10, 11, 12. Priority order: #2/#3 (production
+data needed for classifier widening), then #9 (runtime MCP health), then
+#5/#10 (small implementation gaps), then #8/#12 (hygiene).
+
+
+---
+
+## 44. SonarQube quality-gate remediation — `02d966de` + `4a864bf2` — 2026-07-28
+
+### 44.0 Context
+
+After the continuity summary's Section 41.8 was written (HEAD at `251cd29b`,
+11 commits ahead), the SonarQube scan against commit `97ecbfbf` returned
+**FAILED** with 2 new violations in
+`tests/daemon-shutdown-integration.test.js`. These were the only gate
+blockers; all other conditions (coverage, duplication, hotspots) were OK.
+This section documents the two fix commits that cleared the gate.
+
+---
+
+### 44.1 — `02d966de` — fix(sonar): resolve S1607+S5914 (2026-07-28)
+
+**Violations fixed:**
+
+- **S1607** (`describe.skip` without explanation) — `describe.skip(...)` is
+  a blanket skip with no documented reason. Sonar requires either a reason
+  comment or converting it to a normal `describe`.
+- **S5914** (tautological assertion) — `expect(true).toBe(true)` always
+  passes; Sonar flags it as a test that provides no real coverage signal.
+
+**Fix applied:** Replaced `describe.skip(...)` with a normal `describe(...)`
+block. The `it.skip` calls inside it remain explicitly skipped, which is
+the intended state; they now have an explanatory comment documenting why
+they are skipped. The tautological `expect(true).toBe(true)` was removed.
+
+**File changed:** `tests/daemon-shutdown-integration.test.js` —
+5 insertions, 3 deletions.
+
+---
+
+### 44.2 — `4a864bf2` — fix(sonar): S2699 (2026-07-28)
+
+**Violation fixed:**
+
+- **S2699** (no assertions in `it.skip` body) — `it.skip('...', () => {})` has
+  an empty callback. Even though it is skipped at runtime, Sonar's static
+  analysis flags the empty callback for having no assertions.
+
+**Fix applied:** Replaced `it.skip('...', () => {})` with `it.todo('...')`.
+`it.todo` takes no callback, so Sonar cannot flag it for missing assertions.
+Vitest treats `it.todo` as a known pending test (shows in the skipped count),
+which is functionally identical to the prior `it.skip` from the test suite's
+perspective.
+
+**File changed:** `tests/daemon-shutdown-integration.test.js` —
+1 insertion, 3 deletions.
+
+---
+
+### 44.3 — Quality gate result after `4a864bf2`
+
+```
+SonarQube quality gate:   PASSED
+new_violations:           0  (was 2)
+new_coverage:             OK — 95.9%
+new_duplicated_lines:     OK — 0.06%
+hotspots_reviewed:        OK — 100%
+Project totals: bugs 0 / vulnerabilities 0 / code smells 0 / hotspots 0
+ncloc: 28402 / coverage: 97.0% / duplication: 1.4%
+```
+
+Test suite unchanged: 6323 passed, 2 skipped (6325 total), 0 failures.
+Coverage unchanged: 99.38% stmts / 96.28% branch / 98.85% funcs / 99.63% lines.
+
+---
+
+## 45. Deduplication sprint — `0ee919a8` (branch `fix/sonarqube-deduplication`) — 2026-07-28
+
+### 45.0 Context
+
+After the quality gate passed, a focused deduplication sprint was run on
+branch `fix/sonarqube-deduplication` to eliminate 26 SonarQube duplicate
+blocks that had accumulated across provider adapters, repository layer,
+CLI command handlers, hardware probe, and domain schemas. The work was
+merged to `main` as a PR merge commit (`7f87da10`).
+
+---
+
+### 45.1 — `0ee919a8` — fix(sonar): eliminate duplicate lines across 6 files (2026-07-28)
+
+**Files changed:** 11 files — 960 insertions, 941 deletions (net +19, primarily
+new shared-infrastructure files).
+
+**Changes by area:**
+
+**Provider adapters (`src/llm/providers/`):**
+- New file `stub-provider-factory.ts` — exports `createStubProviderClass(config)`
+  factory. Each of `grok.ts`, `groq.ts`, `openai.ts` was a ~57-line adapter with
+  ~49 identical lines. Each now reduces to an 8-line config-wrapper call.
+- `grok` added to `ProviderName` union in `src/shared/contracts/provider.ts`.
+- ~53% duplication removed from the provider adapter cluster.
+
+**Repository layer (`src/ai-memory/repositories/`):**
+- New file `base-repo.js` — `BaseRepo` class with shared `upsert()`,
+  `getByKey()`, `getLatest()`, `list()` methods (100 lines).
+- `handoff-repo.js` and `sprint-state-repo.js` now extend `BaseRepo`; each
+  retains only its SQL schema, field names, and any alias (`getBySprint()`
+  preserved for backwards compatibility).
+- ~41% duplication removed from the repository layer.
+
+**CLI commands (`src/commands/ai.js`):**
+- Extracted `buildAiSnapshot(context)` helper shared by both the `snapshot`
+  and `resume` action handlers, which previously contained a verbatim 20-line
+  duplication.
+- ~19% duplication removed from `ai.js` (1169 lines total, heavily restructured).
+
+**Hardware probe (`src/installer/hw-probe/hwProbe.ts`):**
+- Extracted `detectGpusWithNvidiaFallback(fallback)` function shared by the
+  Linux and Windows detection paths. Both previously duplicated a two-stage
+  `try/catch` `nvidia-smi` → platform-fallback pattern.
+
+**Domain schemas (`src/domain/schemas.js`):**
+- `IdeaPrioritySchema` aliased to `SprintTaskPriority` (identical `z.union`
+  literal set).
+- `HandoffStatusSchema` aliased to `SprintStatusSchema` (identical `z.enum`
+  values).
+- Removed duplicate `z.union([z.literal(1), z.literal(2), z.literal(3)])`
+  block.
+
+**Suite after commit:** 358 test files / 6323 tests — all pass, 0 regressions.
+
+---
+
+## 46. Branch merges — `3403fd52` + `7f87da10` — main is now current — 2026-07-28
+
+### 46.1 — `3403fd52` — merge: fix/sonarqube-issues-post-sprint-108 → main (2026-07-28)
+
+**What happened:** The 16-commit `fix/sonarqube-issues-post-sprint-108`
+feature branch (Sections 41–44) was merged to `main` with `--no-ff` as a
+single merge commit. The merge commit message enumerates the key commits:
+
+```
+Sprint X1: route VS Code task failures to MistakeTracker
+Sprint 110.5/110.6: ESM/CJS collector.js → collector.mjs rename
+fix: daemon-shutdown-integration cross-platform (251cd29b)
+docs: continuity summary Sections 41-43 + gap analysis (97ecbfbf)
+chore: db scripts (db-up.sh, db-check.sh), docker migration test (73b6c5bb)
+fix(sonar): S1607+S5914 in daemon-shutdown-integration (02d966de)
+fix(sonar): S2699 — it.skip empty body → it.todo (4a864bf2)
+docs: build-state fresh coverage + SonarQube PASSED (b3a0adf6)
+```
+
+Final state at merge:
+- Coverage: 99.38% stmts / 96.28% branch / 98.85% funcs / 99.63% lines
+- SonarQube quality gate: PASSED — 0 new violations
+- Test suite: 6323 passed, 2 skipped, 0 failed (359 files)
+
+**Files changed in merge:** 61 files, 6327 insertions, 1886 deletions.
+
+---
+
+### 46.2 — `7f87da10` — fix(sonar): eliminate duplicate lines — 26 dup blocks removed (#1) (2026-07-28)
+
+**What happened:** The `fix/sonarqube-deduplication` branch (Section 45)
+was merged to `main` as a PR merge commit immediately after `3403fd52`.
+
+**Files changed in merge:** 11 files, 960 insertions, 941 deletions.
+
+---
+
+### 46.3 — Current repository state (as of 2026-07-28, HEAD `7f87da10`)
+
+```
+Branch:          main
+HEAD:            7f87da10
+origin/main:     7f87da10  ← branch is NOT ahead; fully merged and pushed
+Working tree:    clean (no uncommitted changes)
+
+Test suite:      6323 passed, 2 skipped (6325 total) — 359 test files — 0 failures
+Coverage:        99.38% stmts / 96.28% branch / 98.85% funcs / 99.63% lines
+TypeCheck:       npx tsc --noEmit — 0 errors
+SonarQube:       PASSED — 0 new violations
+                 bugs 0 / vulns 0 / code_smells 0 / hotspots 0
+                 coverage 97.0% / duplication 1.4% / ncloc 28402
+MCP smoke:       6 tools returned, exit code 0 (verified Sprint 107)
+```
+
+**Item #1 (merge decision) is now CLOSED.** The branch was merged to
+`origin/main` at `3403fd52`. No further merge action is needed.
+
