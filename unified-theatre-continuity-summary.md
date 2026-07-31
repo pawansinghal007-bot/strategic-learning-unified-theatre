@@ -2,6 +2,7 @@
 
 _Read this first if you're an agent (Claude, Copilot, or otherwise) picking up this project. It exists to prevent context loss across sessions and across different tools/providers working on the same repo._
 
+> **Last updated 2026-07-31 (Sprint 112.5 + Sprint 113).** Section 47 documents Sprint 112.5 (hw-probe runtime-consumable — created `hwProbe.js` plain-ESM twin, resolved production import gap). Section 48 documents Sprint 113 (GPU-tier-aware embeddings backend — `probeHardware()` tier gate in `initialize()`, closes V10). Test suite: 6326/6328, 0 failures. Coverage: 99.33% stmts / 96.19% branch / 98.67% funcs / 99.58% lines.
 > **Last updated 2026-07-28 (updated again — see Sections 44–46).** Sections 44–46 document all commits that landed after Section 41.8: SonarQube quality-gate remediation (`02d966de` + `4a864bf2`, fixes S1607/S5914/S2699, gate now **PASSED**); deduplication sprint (`0ee919a8`, 26 duplicate blocks removed across 6 files); and both merges to `main` (`3403fd52` + `7f87da10`). **`main` is now fully merged and current — `git log --oneline origin/main..HEAD` returns empty.** Item #1 (merge decision) is CLOSED. Section 42 open-items table and Section 43 handoff updated accordingly. Current HEAD: `7f87da10`. SonarQube: PASSED. Test suite: 6323/6325, 0 failures.
 > **Last updated 2026-07-28 (updated again — see Sections 41–43).** Section 40's "NOT YET committed / branch `110e`" claim has been corrected: Slice 110e was committed as `8122c007` (see Section 40.4 for the corrected record). Section 41 documents seven previously-undocumented commits on `fix/sonarqube-issues-post-sprint-108` (SonarQube post-108 cleanup, Sprint 109/109b, coverage remediation, Sprints 110.5/110.6, Sprint X1, daemon-shutdown cross-platform fix) — branch is now 11 commits ahead of `origin/main`. Section 42 supersedes Section 30's open-items v4 table: Items #4, #7, #19, #21, #22, #23 closed with evidence; Items #1–3, 5–6, 8–12 confirmed open. Section 43 supersedes Section 31's handoff. Stale "SUPERSEDED" banners added to Sections 26.5, 32, and 34.
 > **Last updated 2026-07-20 (see Section 40 — now corrected above).** Section 40 documents Item #19/Slice 110e (originally scoped in Section 26.5 as "references table + `findReferences()`, Not started") now **implemented, tested, and independently audited** — built as an AST-based structural symbol graph rather than a DB references table (functionally equivalent capability, different mechanism; see 40.0 for why). ~~All work is on branch `110e`, NOT YET committed or merged to `main`~~ — **corrected: committed as `8122c007`; see Section 40.4.**
@@ -3845,3 +3846,195 @@ MCP smoke:       6 tools returned, exit code 0 (verified Sprint 107)
 **Item #1 (merge decision) is now CLOSED.** The branch was merged to
 `origin/main` at `3403fd52`. No further merge action is needed.
 
+
+
+## 47. Sprint 112.5 — hw-probe runtime-consumable from plain JS — 2026-07-31
+
+### 47.1 — What was built
+
+**Problem:** `src/installer/hw-probe/hwProbe.ts` was the sole implementation
+of hardware-tier detection, but had no production-consumable runtime form.
+`package.json`'s `"main"` is `./src/cli.js`, executed by plain `node` with
+no TypeScript loader. Vitest's esbuild pipeline transforms `.ts` files
+transparently, so all 57 existing tests passed — but any `import` of
+`hwProbe.ts` from a production `.js` file would throw
+`ERR_UNKNOWN_FILE_EXTENSION` at runtime. This was the prerequisite blocker
+for Sprint 113 (V10).
+
+**Pre-flight findings (confirmed by reading actual files, not guessing):**
+
+1. `package.json` `"type": "module"`, `"main": "./src/cli.js"`, `start`
+   script: `node ./src/cli.js` — no `tsx`/`ts-node/register`/loader flag.
+2. `src/installer/hw-probe/` sub-package has its own `"build": "tsc"` script
+   and `tsconfig.json` (`outDir: "dist"`), but `dist/` had never been
+   generated — `tsc` had never been run.
+3. The tsc-based approach was attempted: `tsc` exited 0, but compiled output
+   at `dist/hwProbe.js` contained the same `../../internal/paths.js` relative
+   import — correct relative to the source file, wrong from inside `dist/`.
+   `node -e "import('./dist/hwProbe.js')"` threw `MODULE_NOT_FOUND`. Approach
+   abandoned.
+4. `src/internal/paths.js` is plain JS (no `.d.ts`, no `.ts` twin). The `.js`
+   extension on the import in `hwProbe.ts` is correct for NodeNext resolution.
+
+**Resolution:** Created `src/installer/hw-probe/hwProbe.js` — a plain-ESM
+file implementing the same logic as `hwProbe.ts` (same tier thresholds, same
+platform dispatch, same `probeHardware()` / `classifyTier()` / `inferVendor()`
+/ `parseVramString()` exports). The `.ts` file is the type-checked source of
+truth; the `.js` file is what production consumers import.
+
+**Files created/modified:**
+
+| File | Change |
+|------|--------|
+| `src/installer/hw-probe/hwProbe.js` | New — plain-ESM runtime twin of `hwProbe.ts` |
+| `src/installer/hw-probe/package.json` | Added `"type": "module"` |
+| `src/internal/paths.d.ts` | New — type declarations for `paths.js` |
+| `package.json` | Added `build:hw-probe` verification script |
+
+### 47.2 — Verification commands and output
+
+```bash
+# Runtime import check (from repo root)
+$ node -e "import('./src/installer/hw-probe/hwProbe.js').then(m => console.log(Object.keys(m)))"
+[ 'classifyTier', 'inferVendor', 'parseVramString', 'probeHardware' ]
+
+# build:hw-probe script
+$ npm run build:hw-probe
+hw-probe: OK [ 'classifyTier', 'inferVendor', 'parseVramString', 'probeHardware' ]
+
+# Full test suite (including hw-probe's 57 tests)
+$ npm test
+Test Files  358 passed (359)
+     Tests  6323 passed | 2 skipped (6325)
+  Duration  26.16s
+```
+
+### 47.3 — Current state after Sprint 112.5
+
+- `hwProbe.js` importable from any plain-JS file in `src/` at real runtime
+- No dist artifact, no build step required — `hwProbe.js` is a source file
+- `hwProbe.ts` continues to own the type-checked + SonarQube-reviewed logic
+- Any logic change to `hwProbe.ts` must be mirrored in `hwProbe.js`
+- 6323 tests passing, 0 failures — Sprint 113 prerequisite satisfied
+
+### 47.4 — Open item: hwProbe.js sync discipline
+
+The JS/TS parallel-file pattern is established elsewhere in this project
+(e.g. `src/llm/*.ts` alongside `src/llm/*.js`). The risk is drift between
+`hwProbe.ts` and `hwProbe.js` if one is updated without the other. The
+existing `hwProbe.spec.ts` tests cover the TS file; the new
+`embeddings-gpu-tier.test.js` tests mock `hwProbe.js` and thereby confirm
+its public surface matches what callers expect. No additional guard is added
+in this sprint — if `hwProbe.ts` logic changes in a future sprint, the
+sprint prompt must explicitly name both files.
+
+
+## 48. Sprint 113 — GPU-Tier-Aware Embeddings Backend — 2026-07-31
+
+### 48.1 — What was built
+
+**Prerequisite:** Sprint 112.5 landed first (Section 47) — `hwProbe.js`
+exists and is importable from any plain-JS file in `src/`.
+
+**Goal (closes V10):** `EmbeddingProvider.initialize()` in
+`src/llm/embeddings.js` previously used a pure try/catch to decide the
+backend: attempt `import("onnxruntime-node")` and fall back to
+`deterministic-hash` if it threw. This was correct as a module-availability
+check but ignored hardware reality — on a tier-X machine (no discrete GPU,
+< 8 GB VRAM) even a successful ONNX import would be useless. Sprint 113
+adds a hardware-tier gate before the import attempt so that tier-X machines
+skip the onnx path entirely and take `deterministic-hash` immediately.
+
+**Implementation (minimum code):**
+
+`src/llm/embeddings.js` — two changes:
+
+1. Top-level static import added:
+   ```js
+   import { probeHardware } from "../installer/hw-probe/hwProbe.js";
+   ```
+
+2. Inside `initialize()`, after the existing `MOCK_LLM` guard and before
+   the `onnxruntime-node` try/catch:
+   ```js
+   const profile = await probeHardware();
+   if (profile.tier === "X") {
+     this.backend = "deterministic-hash";
+     return this;
+   }
+   ```
+   No try/catch around `probeHardware()` — its docstring guarantees it never
+   throws (every internal platform detector is independently caught), and
+   this was re-verified against the current source before relying on it.
+
+### 48.2 — Test changes
+
+**New file:** `tests/llm/embeddings-gpu-tier.test.js` (3 tests)
+- Test 1: tier X → `deterministic-hash`, onnxruntime-node import never
+  attempted (mock call count 0)
+- Test 2: tier Z → `onnxruntime-node` (mock succeeds, falls through)
+- Test 3: tier Y → `onnxruntime-node` (same as Z, confirms both tiers fall
+  through identically)
+
+RED phase confirmed: all 3 failed before the implementation (probeHardware
+called 0 times, tier X returned wrong backend).
+GREEN phase: all 3 pass after the 2-line change.
+
+**Preserved existing intent:**
+
+`tests/llm/embeddings-onnx-fallback.test.js` and the "falls back to
+deterministic-hash when onnxruntime-node is unavailable" test in
+`tests/llm/embeddings-coverage.test.js` both delete `VSCODE_ROTATOR_MOCK_LLM`
+to force `initialize()` into the onnx try/catch. With the tier gate in place,
+on any tier-X machine (most dev boxes, all CI without a GPU) this deletion
+alone no longer reaches the catch — `initialize()` returns early. Both tests'
+assertions were loose enough to still pass for the wrong reason.
+
+Fix: added file-scope `vi.mock("../../src/installer/hw-probe/hwProbe.js", ...)`
+in both files forcing tier Z, so they genuinely exercise the onnx-catch
+branch regardless of hardware.
+
+Catch-branch probe verified (temporary `console.log` in catch, removed before
+final run): probe fired 3× in `embeddings-onnx-fallback.test.js` (all 3
+tests) and 1× in `embeddings-coverage.test.js` (the targeted test). Both
+files green before and after.
+
+### 48.3 — Verification commands and output
+
+```bash
+# New test file (3 tests)
+$ npx vitest run tests/llm/embeddings-gpu-tier.test.js
+Test Files  1 passed (1)
+     Tests  3 passed (3)
+
+# Two edited existing test files
+$ npx vitest run tests/llm/embeddings-onnx-fallback.test.js tests/llm/embeddings-coverage.test.js
+Test Files  2 passed (2)
+     Tests  22 passed (22)
+
+# Full suite
+$ npm test
+Test Files  359 passed | 1 skipped (360)
+     Tests  6326 passed | 2 skipped (6328)
+  Duration  26.78s
+
+# Coverage
+$ npm run coverage
+All files: 99.33% stmts / 96.19% branch / 98.67% funcs / 99.58% lines
+(all above 95% thresholds)
+```
+
+### 48.4 — Notes
+
+- The 1 skipped test file is `tests/storage/run-migrations-docker.test.js`
+  (requires Docker) — pre-existing, unrelated to this sprint.
+- `daemon-shutdown-integration.test.js` flaked once during a full parallel
+  run (1ms timestamp race). Passes immediately in isolation. Pre-existing
+  timing flake documented since Sprint 109; not introduced by this sprint.
+- CLI boot (`node ./src/cli.js --help`) fails with a pre-existing
+  `ERR_MODULE_NOT_FOUND` for `src/cli/llm-health.js` — unrelated to this
+  sprint. `hwProbe.js` itself imports cleanly: `node -e
+  "import('./src/installer/hw-probe/hwProbe.js').then(...)"` exits 0.
+- V10 is now closed. The tier-X early return is the first production consumer
+  of `hwProbe.js`; future sprints adding further tier-aware behaviour should
+  follow the same import pattern.

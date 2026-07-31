@@ -61,6 +61,7 @@
     "sonar:qualitygate": "node scripts/check-sonar-quality-gate.mjs",
     "sonar:issues": "node scripts/export-sonar-issues.mjs",
     "test:sonar": "npm run sonar:preflight && npm run sonar:scan && npm run sonar:qualitygate && npm run sonar:issues",
+    "build:hw-probe": "node -e \"import('./src/installer/hw-probe/hwProbe.js').then(m => { if (typeof m.probeHardware !== 'function') throw new Error('probeHardware not exported'); console.log('hw-probe: OK', Object.keys(m)); })\"",
     "build:electron-main": "node scripts/build-electron-main.mjs",
     "harness": "tsx src/agents/cli.ts",
     "index:symbols": "tsx src/storage/run-indexer.ts",

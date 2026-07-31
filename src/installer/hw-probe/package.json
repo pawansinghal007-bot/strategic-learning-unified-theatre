@@ -1,6 +1,7 @@
 {
   "name": "hw-probe",
   "version": "0.1.0",
+  "type": "module",
   "scripts": {
     "probe": "tsx src/test-probe.ts",
     "test": "vitest run --config vitest.config.ts",

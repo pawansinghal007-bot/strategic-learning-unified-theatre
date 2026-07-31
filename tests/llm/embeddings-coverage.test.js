@@ -15,6 +15,26 @@ import {
   EMBEDDING_DIMENSIONS,
 } from "../../src/llm/embeddings.js";
 
+// Force probeHardware to report tier Z so the Sprint 113 tier-X early return
+// does NOT fire on hardware without a discrete GPU. The "falls back to
+// deterministic-hash when onnxruntime-node is unavailable" test below deletes
+// VSCODE_ROTATOR_MOCK_LLM specifically to exercise the onnx-catch branch —
+// that branch is only reached if the tier gate passes (tier Y or Z). Without
+// this mock the test would silently pass via the tier-X return-early path
+// on most dev/CI boxes, never actually exercising the catch it was written for.
+vi.mock("../../src/installer/hw-probe/hwProbe.js", () => ({
+  probeHardware: vi.fn().mockResolvedValue({
+    tier: "Z",
+    tierReason: "24000 MB VRAM — 70B+ models viable",
+    platform: "linux",
+    cpuModel: "",
+    cpuCores: 1,
+    ramMB: 0,
+    gpus: [],
+    primaryGpuVramMB: 24000,
+  }),
+}));
+
 // ---------------------------------------------------------------------------
 // kMeans edge cases — lines 43, 48, 54
 // ---------------------------------------------------------------------------

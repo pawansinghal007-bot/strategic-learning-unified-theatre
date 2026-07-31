@@ -8,16 +8,82 @@
 > 102–105. Always include "Last verified: Sprint N" so drift is immediately
 > visible to the next agent session.
 
-**Last verified: 2026-07-28 (deduplication sprint merged — commit `7f87da10`)**
-**Active branch:** `main` — fully merged, 0 commits ahead of `origin/main`. HEAD: `7f87da10`
-**Last committed sprint:** Sonar remediation (`4a864bf2`) + merge to main (`3403fd52`) + deduplication sprint merged (`7f87da10`)
-**Last updated:** 2026-07-28 — fresh coverage run + SonarQube quality gate now PASSING; all violations resolved
-**Test suite:** 6323 passed, 2 skipped (6325 total) — 359 test files — fresh run 2026-07-28 (daemon-shutdown timing race resolved; 0 failures)
-**Coverage (v8, fresh 2026-07-28):** 99.38% stmts (10494/10559) / 96.28% branch (6629/6885) / 98.85% funcs (1905/1927) / 99.63% lines (9790/9826) — all above thresholds (95/95/95/95)
+**Last verified: Sprint 113 — 2026-07-31**
+**Active branch:** `main` — working tree has uncommitted Sprint 112.5 + Sprint 113 changes
+**Last committed sprint:** Deduplication sprint (`7f87da10`) — Sprints 112.5 and 113 not yet committed
+**Last updated:** 2026-07-31 — Sprint 112.5 (hw-probe runtime-consumable) + Sprint 113 (GPU-tier-aware embeddings) complete
+**Test suite:** 6326 passed, 2 skipped (6328 total) — 359 test files — fresh run 2026-07-31 (0 failures; +3 tests from Sprint 113; 2 pre-existing skips)
+**Coverage (v8, fresh 2026-07-31):** 99.33% stmts / 96.19% branch / 98.67% funcs / 99.58% lines — all above thresholds (95/95/95/95)
 **TypeCheck:** `npx tsc --noEmit` — 0 errors (verified at Slice 110e, `8122c007`)
 **MCP smoke:** `scripts/verify-mcp-stdio.mjs` — 6 tools returned (including retrieve), exit code 0 [CONFIRMED at Sprint 107]
 **SonarQube quality gate:** PASSED — 0 new violations. Project totals: bugs 0 / vulnerabilities 0 / code smells 0 / hotspots 0 / coverage 97.0% / duplication 1.4% / ncloc 28402. All gate conditions OK (new_coverage 95.9%, new_dup 0.06%, hotspots_reviewed 100%, new_violations 0). Fixed: S1607 + S5914 + S2699 in `tests/daemon-shutdown-integration.test.js` (`02d966de` + `4a864bf2`).
 **GPU default:** -ngl 99 (RTX 5090 Laptop 24GB — prior -ngl 0 constraints obsolete)
+
+## Sprint 112.5 — hw-probe runtime-consumable from plain JS — 2026-07-31
+
+**Goal:** Make `src/installer/hw-probe/hwProbe.ts` importable from
+`src/llm/embeddings.js` (and any other plain-JS production consumer) at
+actual Node.js runtime — prerequisite for Sprint 113.
+
+**Problem found:** `hwProbe.ts` had no compiled `.js` counterpart and no
+runtime loader on the production path (`node ./src/cli.js`). Vitest's
+esbuild pipeline transforms `.ts` transparently so all tests passed, but
+a real `node` invocation would have thrown `ERR_UNKNOWN_FILE_EXTENSION`.
+The sub-package's `"build": "tsc"` script had never been run; `dist/` did
+not exist. The tsc-based approach was attempted but abandoned because
+`outDir: dist` inside the source tree produced compiled output with the
+same `../../internal/paths.js` relative import that resolved correctly
+from the source location but not from inside `dist/`.
+
+**Resolution chosen:** Created `src/installer/hw-probe/hwProbe.js` — a
+plain-ESM parallel implementation of `hwProbe.ts`, identical logic, JSDoc
+types. The `.ts` file remains the source of truth for TypeScript consumers,
+type-checking, and the existing 57-test spec suite. The `.js` file is what
+production plain-JS entry points import.
+
+**Files changed:**
+- `src/installer/hw-probe/hwProbe.js` — new plain-ESM runtime twin
+- `src/installer/hw-probe/package.json` — added `"type": "module"`
+- `src/internal/paths.d.ts` — new type declaration file for `paths.js`
+  (allows future TS consumers to import `paths.js` without `allowJs`)
+- `package.json` — added `build:hw-probe` verification script
+
+**Runtime import verification (from repo root):**
+```
+node -e "import('./src/installer/hw-probe/hwProbe.js').then(m => console.log(Object.keys(m)))"
+[ 'classifyTier', 'inferVendor', 'parseVramString', 'probeHardware' ]
+```
+
+**Test suite:** 358 files, 6323 passed, 0 failed, 2 skipped — 2026-07-31
+(hw-probe 57 tests all passed; 2 pre-existing skips unchanged)
+
+**Note:** `dist/` is not used; no build artifact needs to exist or be
+committed. `hwProbe.js` is a first-class source file, not generated output.
+Any logic change to `hwProbe.ts` must be mirrored in `hwProbe.js`.
+
+## Sprint 113 — GPU-Tier-Aware Embeddings Backend — 2026-07-31
+
+**Goal:** Make `EmbeddingProvider.initialize()` consult the hardware tier
+(from `probeHardware()`) and return early with `deterministic-hash` on
+tier-X machines instead of attempting the `onnxruntime-node` import.
+Closes V10.
+
+**Files changed:**
+- `src/llm/embeddings.js` — added `probeHardware` import and tier-X gate
+  before the existing `onnxruntime-node` try/catch
+- `tests/llm/embeddings-gpu-tier.test.js` — new test file (3 tests: tier X
+  early return without onnx import, tier Z fallthrough, tier Y fallthrough)
+- `tests/llm/embeddings-onnx-fallback.test.js` — added `probeHardware` mock
+  forcing tier Z so the onnx-catch branch stays genuinely exercised
+- `tests/llm/embeddings-coverage.test.js` — same probeHardware mock added
+  at file scope to preserve the "onnxruntime-node unavailable" test's intent
+
+**Test suite (fresh run 2026-07-31):** 359 files, 6326 passed (+3), 0 failed,
+2 pre-existing skips. daemon-shutdown-integration timing flake appeared once
+under parallel load; passes in isolation immediately — pre-existing.
+
+**Coverage (v8, fresh 2026-07-31):** 99.33% stmts / 96.19% branch /
+98.67% funcs / 99.58% lines — all above 95% thresholds.
 
 ## Recent Resolutions (last 3 sprints — older entries in master_timeline_sprints_101_plus.md)
 

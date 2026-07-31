@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import { probeHardware } from "../installer/hw-probe/hwProbe.js";
 
 export const EMBEDDING_DIMENSIONS = 768;
 
@@ -235,6 +236,17 @@ export class EmbeddingProvider {
     // In tests we set VSCODE_ROTATOR_MOCK_LLM to avoid loading heavy native
     // modules like ONNX runtime. Respect that guard to prevent worker OOMs.
     if (process.env.VSCODE_ROTATOR_MOCK_LLM) {
+      this.backend = "deterministic-hash";
+      return this;
+    }
+
+    // Consult hardware tier before attempting the onnxruntime-node import.
+    // Tier X (no discrete GPU / < 8 GB VRAM) cannot make use of ONNX-backed
+    // inference — skip the expensive import and return early.
+    // probeHardware() never throws (every internal detector is independently
+    // try/caught), so no wrapping try/catch is needed here.
+    const profile = await probeHardware();
+    if (profile.tier === "X") {
       this.backend = "deterministic-hash";
       return this;
     }

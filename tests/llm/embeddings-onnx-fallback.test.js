@@ -18,6 +18,25 @@ vi.mock("onnxruntime-node", () => {
   throw new Error("onnxruntime-node is not available");
 });
 
+// Force probeHardware to report tier Z so the tier-X early return does NOT
+// fire and initialize() falls through to the onnxruntime-node try/catch.
+// Without this mock, on any machine probing as tier X (no discrete GPU —
+// true for most dev boxes and CI), the tier gate introduced in Sprint 113
+// would return early and the onnx-catch branch tested here would silently
+// stop being exercised while assertions remained loose enough to still pass.
+vi.mock("../../src/installer/hw-probe/hwProbe.js", () => ({
+  probeHardware: vi.fn().mockResolvedValue({
+    tier: "Z",
+    tierReason: "24000 MB VRAM — 70B+ models viable",
+    platform: "linux",
+    cpuModel: "",
+    cpuCores: 1,
+    ramMB: 0,
+    gpus: [],
+    primaryGpuVramMB: 24000,
+  }),
+}));
+
 // Import AFTER the mock is registered so the module under test picks it up
 // when it calls `await import("onnxruntime-node")`.
 import { EmbeddingProvider } from "../../src/llm/embeddings.js";
