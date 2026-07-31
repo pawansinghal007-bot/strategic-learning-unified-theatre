@@ -19,6 +19,7 @@ export default defineConfig({
     environmentMatchPatterns: [
       ["tests/llm/local-llm.coverage-additions.test.js", "node"],
       ["tests/llm/local-llm-branches.test.js", "node"],
+      ["tests/llm/local-llm-switch.test.js", "node"],
       ["tests/llm/inference-branches.test.js", "node"],
       ["tests/llm/inference-coverage.test.js", "node"],
       ["tests/llm/inference-windows.test.js", "node"],

@@ -42,6 +42,17 @@ export const OLLAMA_MODEL_REGISTRY = {
   tinyllama: "tinyllama",
 };
 
+// ── Active model state ────────────────────────────────────────────────────────
+let _activeModel = "phi3";
+
+export function getActiveModel() {
+  return _activeModel;
+}
+
+export function setActiveModel(model) {
+  _activeModel = model;
+}
+
 export function llmBaseDir(baseDir) {
   return baseDir ?? path.join(os.homedir(), ".vscode-rotator");
 }
@@ -210,7 +221,20 @@ export async function askLocalLlm({
 } = {}) {
   const cfg = await loadConfig();
   assertFeatureEnabled(cfg, "llmCommandsEnabled", "llm.askLocalLlm");
-  const inference = new LocalLlmInference({ baseDir, modelPath });
+
+  let resolvedModelPath = modelPath;
+  if (!resolvedModelPath) {
+    const provider = await resolvePreferredLlmProvider();
+    if (provider === "ollama") {
+      resolvedModelPath =
+        OLLAMA_MODEL_REGISTRY[_activeModel] ?? OLLAMA_MODEL_REGISTRY.phi3;
+    } else {
+      const registry = MODEL_REGISTRY[_activeModel] ?? MODEL_REGISTRY.phi3;
+      resolvedModelPath = path.join(modelDir(baseDir), registry.name);
+    }
+  }
+
+  const inference = new LocalLlmInference({ baseDir, modelPath: resolvedModelPath });
   return inference.generate({ prompt: question, system });
 }
 
