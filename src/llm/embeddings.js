@@ -230,13 +230,21 @@ export class EmbeddingProvider {
     this.dimensions = dimensions;
     this.backend = "deterministic-hash";
     this.session = null;
+    this._initialized = false;
   }
 
   async initialize() {
+    // Idempotency guard — probeHardware() shells out to nvidia-smi/lspci/etc.,
+    // so running it on every operation call (addMistake, buildContext, ingestFile)
+    // would spawn a subprocess per call. Backend selection is stable for the
+    // lifetime of a process; run it once and cache the result.
+    if (this._initialized) return this;
+
     // In tests we set VSCODE_ROTATOR_MOCK_LLM to avoid loading heavy native
     // modules like ONNX runtime. Respect that guard to prevent worker OOMs.
     if (process.env.VSCODE_ROTATOR_MOCK_LLM) {
       this.backend = "deterministic-hash";
+      this._initialized = true;
       return this;
     }
 
@@ -248,6 +256,7 @@ export class EmbeddingProvider {
     const profile = await probeHardware();
     if (profile.tier === "X") {
       this.backend = "deterministic-hash";
+      this._initialized = true;
       return this;
     }
 
@@ -257,6 +266,7 @@ export class EmbeddingProvider {
     } catch {
       this.backend = "deterministic-hash";
     }
+    this._initialized = true;
     return this;
   }
 

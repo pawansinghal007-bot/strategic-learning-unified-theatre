@@ -47,7 +47,7 @@ const mockedTotalmem = vi.mocked(os.totalmem);
 /** Re-import the module fresh for each test to reset module state */
 async function importProbe() {
   vi.resetModules();
-  return await import("./hwProbe");
+  return await import("./hwProbe.js");
 }
 
 /** Build a macOS system_profiler response for a given VRAM string and probe hardware */
@@ -247,7 +247,7 @@ describe("detectGpus — Linux", () => {
     const { probeHardware } = await importProbe();
     const p = await probeHardware();
     expect(p.gpus.length).toBeGreaterThan(0);
-    expect(p.gpus.some((g) => g.name.includes("Intel Corporation UHD"))).toBe(true);
+    expect(p.gpus.some((g: { name: string }) => g.name.includes("Intel Corporation UHD"))).toBe(true);
   });
 
   it("returns empty array when both nvidia-smi and lspci throw", async () => {

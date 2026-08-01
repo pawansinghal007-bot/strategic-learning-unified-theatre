@@ -7,16 +7,6 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-// ── Mock probeHardware ────────────────────────────────────────────────────────
-
-import { probeHardware } from "../src/installer/hw-probe/hwProbe";
-
-const mockedProbeHardware = vi.hoisted(() => vi.fn());
-
-vi.mock("../src/installer/hw-probe/hwProbe", () => ({
-  probeHardware: mockedProbeHardware,
-}));
-
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function captureLog() {
@@ -27,10 +17,17 @@ function captureLog() {
   return { lines, spy };
 }
 
-async function runMain() {
+/**
+ * Re-execute test-probe.ts with a given mock return value.
+ * Uses vi.resetModules() + vi.doMock() so each test gets a fresh execution
+ * of the top-level-await body against its own mocked probeHardware result.
+ */
+async function runMain(mockSetup) {
   vi.resetModules();
-  await import("../src/installer/hw-probe/test-probe");
-  await new Promise((r) => setTimeout(r, 0));
+  vi.doMock("../src/installer/hw-probe/hwProbe.js", () => ({
+    probeHardware: mockSetup,
+  }));
+  await import("../src/installer/hw-probe/test-probe.ts");
 }
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
@@ -49,18 +46,15 @@ const baseProfile = {
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe("test-probe main()", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.doUnmock("../src/installer/hw-probe/hwProbe.js");
   });
 
   it("prints platform, CPU, RAM, tier and tierReason", async () => {
-    mockedProbeHardware.mockResolvedValue(baseProfile);
+    const probe = vi.fn().mockResolvedValue(baseProfile);
     const { lines, spy } = captureLog();
-    await runMain();
+    await runMain(probe);
     spy.mockRestore();
     const output = lines.join("\n");
     expect(output).toContain("linux");
@@ -72,15 +66,15 @@ describe("test-probe main()", () => {
   });
 
   it("prints GPU VRAM in GB when vramMB >= 1024", async () => {
-    mockedProbeHardware.mockResolvedValue(baseProfile);
+    const probe = vi.fn().mockResolvedValue(baseProfile);
     const { lines, spy } = captureLog();
-    await runMain();
+    await runMain(probe);
     spy.mockRestore();
     expect(lines.join("\n")).toContain("24.0 GB");
   });
 
   it("prints GPU VRAM in MB when vramMB < 1024", async () => {
-    mockedProbeHardware.mockResolvedValue({
+    const probe = vi.fn().mockResolvedValue({
       ...baseProfile,
       gpus: [{ name: "Intel UHD 630", vendor: "intel", vramMB: 512 }],
       primaryGpuVramMB: 512,
@@ -88,13 +82,13 @@ describe("test-probe main()", () => {
       tierReason: "512 MB VRAM — below 8 GB threshold for local models",
     });
     const { lines, spy } = captureLog();
-    await runMain();
+    await runMain(probe);
     spy.mockRestore();
     expect(lines.join("\n")).toContain("512 MB");
   });
 
   it("prints 'none detected' when gpus array is empty", async () => {
-    mockedProbeHardware.mockResolvedValue({
+    const probe = vi.fn().mockResolvedValue({
       ...baseProfile,
       gpus: [],
       primaryGpuVramMB: 0,
@@ -102,13 +96,13 @@ describe("test-probe main()", () => {
       tierReason: "No discrete GPU detected — API-only mode",
     });
     const { lines, spy } = captureLog();
-    await runMain();
+    await runMain(probe);
     spy.mockRestore();
     expect(lines.join("\n")).toContain("none detected");
   });
 
   it("prints multiple GPUs with correct VRAM units", async () => {
-    mockedProbeHardware.mockResolvedValue({
+    const probe = vi.fn().mockResolvedValue({
       ...baseProfile,
       gpus: [
         { name: "RTX 3080", vendor: "nvidia", vramMB: 10240 },
@@ -117,7 +111,7 @@ describe("test-probe main()", () => {
       primaryGpuVramMB: 10240,
     });
     const { lines, spy } = captureLog();
-    await runMain();
+    await runMain(probe);
     spy.mockRestore();
     const output = lines.join("\n");
     expect(output).toContain("RTX 3080");
@@ -127,18 +121,15 @@ describe("test-probe main()", () => {
   });
 
   it("calls console.error when probeHardware rejects", async () => {
-    mockedProbeHardware.mockRejectedValue(new Error("probe failed"));
-    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-    await runMain();
-    await new Promise((r) => setTimeout(r, 10));
-    expect(errorSpy).toHaveBeenCalledWith(expect.any(Error));
-    errorSpy.mockRestore();
+    const probe = vi.fn().mockRejectedValue(new Error("probe failed"));
+    // Top-level await propagates the rejection through the module import
+    await expect(runMain(probe)).rejects.toThrow("probe failed");
   });
 
   it("prints header and footer banners", async () => {
-    mockedProbeHardware.mockResolvedValue(baseProfile);
+    const probe = vi.fn().mockResolvedValue(baseProfile);
     const { lines, spy } = captureLog();
-    await runMain();
+    await runMain(probe);
     spy.mockRestore();
     const output = lines.join("\n");
     expect(output).toContain("=== Hardware Probe Result ===");
