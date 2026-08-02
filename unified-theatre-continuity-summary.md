@@ -4179,3 +4179,146 @@ logic divergence before it reaches production regardless of what Sonar reports.
   top-level await over promise chain") — `test-probe.ts` was not modified in
   this sprint; this is a pre-existing issue that became visible as a new-code
   finding due to SCM blame date, not a regression.
+
+
+
+---
+
+## 49. Sprint 115 — Session Isolation on Explicit Logout — 2026-08-02
+
+> **Last updated 2026-08-02 (Sprint 115 close-out).** Section 49 documents
+> Sprint 115: `clearSession(platform)` added to `browser-bridge.js`,
+> `browser logout <platform>` CLI command added, 8-test suite passing.
+> Closes V16. Test suite: 6411/6413 passing (364 files), 0 sprint-introduced
+> failures, 1 pre-existing flaky timing race (unrelated).
+
+### 49.0 Goal
+
+Add an explicit, opt-in `clearSession(platform)` so sensitive browser
+sessions can be wiped on request, without touching the default
+persist-on-close behavior that every other code path relies on.
+
+Design decision recorded in `docs/build-state.md` Section "Sprint 115":
+`clearSession` must never route through `closeBrowser` and must never call
+`context.storageState()` — `closeBrowser` unconditionally re-persists state
+on close, which would silently recreate the file just deleted. The test suite
+enforces this with a hard `storageState NEVER called` regression guard.
+
+### 49.1 Implementation
+
+**`src/browser-bridge.js`:**
+
+- Added `function storageStatePathFor(platform)` — pure, no I/O, returns
+  `path.join(browserProfilesDir(), platform, "storage-state.json")`.
+  Used in both `launchBrowser` (replaces the inline `path.join(...)` that
+  was there before) and `clearSession`. Eliminates path duplication between
+  the two call sites — a future sprint changing the storage layout only needs
+  to touch this one function.
+
+- Added `export async function clearSession(platform)`:
+  1. Guard: `if (!platform) throw new Error("platform is required")`
+  2. `storageStatePathFor(platform)` — resolve path
+  3. `_self.launchBrowser({ platform })` — reuse shared helper (consistent
+     with `sendPrompt`; spy-interceptable via the ESM `_self` pattern)
+  4. `context.clearCookies()` — wipe in-memory cookie jar
+  5. `context.close()` + `context.browserHandle.close()` — **direct close,
+     not via `closeBrowser`**, and **no call to `context.storageState()`**
+  6. `fs.unlink(statePath)` wrapped in try/catch — ENOENT swallowed, any
+     other error rethrown
+  7. Return `{ platform, message: "Session cleared for ${platform}" }`
+
+**`src/commands/browser.js`:**
+
+- Added `clearSession` to the named import list from `browser-bridge.js`.
+- Added `browser logout <platform>` command:
+  - Validates platform via existing `parseServicePlatform` helper
+  - ora spinner + chalk green on success
+  - try/catch → `console.error(chalk.red(...))` + `process.exitCode = 1`
+    on failure — matches the pattern used by all sibling commands.
+
+**Known pre-existing defect (not fixed, out of scope, logged for future sprint):**
+`BROWSER_RESPONSES_DIR` is still listed as a named import from
+`browser-bridge.js` at the top of `src/commands/browser.js`. This constant
+was removed from `browser-bridge.js` in an earlier sprint and replaced by
+`getBrowserResponsesDir()`. The import is stale — it silently evaluates to
+`undefined` and the `responses dir` subcommand uses it. Not fixing it in
+this sprint per the sprint specification; the defect pre-dated Sprint 115 and
+is out of scope. Logged for a future cleanup sprint.
+
+### 49.2 Test suite — `tests/browser-clear-session.test.js`
+
+Mirrors `browser-bridge.coverage-additions.test.js`'s established patterns:
+- Top-level `vi.mock("playwright", ...)` with deterministic fake chromium
+- `beforeEach` mkdtemp sets `process.env.HOME`, `afterEach` restores and rm
+- Real fs against tempDir (not mocked) — real file creation, real `fs.stat`
+  to confirm presence/absence
+- `vi.spyOn(browserBridge, "launchBrowser")` for unit control
+
+| # | Test | What it proves |
+|---|------|---------------|
+| 1 | Unit: clearCookies called, storageState never called, file gone | Core regression guard — if impl routes through closeBrowser this fails |
+| 2 | Multi-platform isolation | Only target platform's file removed, sibling intact and content unchanged |
+| 3 | Missing file (ENOENT swallowed) | Resolves without throwing, clearCookies still called |
+| 4 | Integration seam | After clearSession, next real launchBrowser receives NO storageState option — proves fresh session, not just deleted file |
+| 5 | Guard: undefined → rejects | "platform is required" |
+| 6 | Guard: "" → rejects | "platform is required" |
+| 7 | Return value | `{ platform, message }` containing platform name |
+| 8 | Direct close | context.close() and browserHandle.close() each called exactly once |
+
+**Test 4 is the sprint's key acceptance criterion** — it exercises the actual
+seam: deletes the file, then calls the real (not spied) `launchBrowser` using
+the top-level playwright mock, and asserts `capturedCtxOpts` has no
+`storageState` property. "The file is deleted" alone is not sufficient
+acceptance — this test proves the subsequent session is actually clean.
+
+### 49.3 Verification
+
+```bash
+# Sprint-specific suite
+VSCODE_ROTATOR_MOCK_LLM=1 npx vitest run tests/browser-clear-session.test.js
+# → 8/8 passed
+
+# Full suite
+VSCODE_ROTATOR_MOCK_LLM=1 npx vitest run
+# → 363 files passed, 6411 tests passed, 2 skipped, 1 pre-existing flaky failure
+#   (daemon-shutdown-integration timestamp race, off by 1ms under load, unrelated)
+
+# Implementation safety grep
+awk '/^export async function clearSession/,/^export async function sendPrompt/' \
+    src/browser-bridge.js | grep -E "closeBrowser|storageState"
+# → only the comment line — zero live call-sites inside clearSession
+```
+
+### 49.4 RED phase confirmation
+
+Before implementation, `clearSession` did not exist. All 8 tests failed with
+`TypeError: clearSession is not a function`. RED confirmed before GREEN.
+
+### 49.5 Manual verification instructions (for sprint notes)
+
+```bash
+# Before logout — confirm file exists
+ls -la ~/.vscode-rotator/browser-profiles/claude/storage-state.json
+
+# Run logout
+npx strategic-learning-unified-theatre browser logout claude
+
+# After logout — confirm file is gone
+ls -la ~/.vscode-rotator/browser-profiles/claude/storage-state.json
+# → should show: No such file or directory
+```
+
+### 49.6 Open items from this sprint
+
+None introduced. The pre-existing `BROWSER_RESPONSES_DIR` stale import in
+`src/commands/browser.js` is explicitly logged as a known defect — see 49.1.
+
+### 49.7 Files changed
+
+| File | Change |
+|------|--------|
+| `src/browser-bridge.js` | +`storageStatePathFor` helper, +`clearSession` export, refactored `launchBrowser` to use helper |
+| `src/commands/browser.js` | +`clearSession` import, +`browser logout <platform>` command |
+| `tests/browser-clear-session.test.js` | New — 8 tests |
+| `docs/build-state.md` | Sprint 115 entry added |
+| `unified-theatre-continuity-summary.md` | This section |

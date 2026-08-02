@@ -72,6 +72,13 @@ function browserProfilesDir() {
   return rotatorPath("browser-profiles");
 }
 
+// Pure helper — no I/O. Returns the expected storage-state path for a platform.
+// Used by both launchBrowser (to read existing state) and clearSession (to delete it),
+// eliminating path duplication between the two call sites.
+function storageStatePathFor(platform) {
+  return path.join(browserProfilesDir(), platform, "storage-state.json");
+}
+
 function browserResponsesDir() {
   return rotatorPath("browser-responses");
 }
@@ -356,9 +363,7 @@ export async function launchBrowser(options = {}) {
     launchOptions.executablePath = resolvedPath;
   }
 
-  const storageStatePath = platform
-    ? path.join(browserProfilesDir(), platform, "storage-state.json")
-    : null;
+  const storageStatePath = platform ? storageStatePathFor(platform) : null;
 
   const browser = await launcher.launch(launchOptions);
 
@@ -403,6 +408,40 @@ export async function closeBrowser(context) {
   if (context.browserHandle) {
     await context.browserHandle.close();
   }
+}
+
+// Sprint 115 — Session Isolation on Explicit Logout
+//
+// clearSession wipes the in-browser cookie jar and deletes the saved
+// storage-state file for a platform.  It intentionally does NOT route through
+// closeBrowser, because closeBrowser unconditionally calls context.storageState()
+// and writes the result back to disk — which would immediately recreate the file
+// we just deleted.  Instead we close context and browser directly.
+export async function clearSession(platform) {
+  if (!platform) throw new Error("platform is required");
+
+  const statePath = storageStatePathFor(platform);
+
+  // Open a context via the shared launchBrowser helper (consistent with sendPrompt)
+  const context = await _self.launchBrowser({ platform });
+
+  // Wipe the in-memory cookie jar
+  await context.clearCookies();
+
+  // Close directly — do NOT call closeBrowser(), do NOT call context.storageState()
+  await context.close();
+  if (context.browserHandle) {
+    await context.browserHandle.close();
+  }
+
+  // Delete the persisted storage-state file; ENOENT is fine (nothing was saved)
+  try {
+    await fs.unlink(statePath);
+  } catch (err) {
+    if (err?.code !== "ENOENT") throw err;
+  }
+
+  return { platform, message: `Session cleared for ${platform}` };
 }
 
 export async function sendPrompt(options) {

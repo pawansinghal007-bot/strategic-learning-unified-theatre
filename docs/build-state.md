@@ -8,16 +8,74 @@
 > 102–105. Always include "Last verified: Sprint N" so drift is immediately
 > visible to the next agent session.
 
-**Last verified: Sprint 113 — 2026-07-31**
-**Active branch:** `main` — working tree has uncommitted Sprint 112.5 + Sprint 113 changes
-**Last committed sprint:** Deduplication sprint (`7f87da10`) — Sprints 112.5 and 113 not yet committed
-**Last updated:** 2026-07-31 — Sprint 112.5 (hw-probe runtime-consumable) + Sprint 113 (GPU-tier-aware embeddings) complete
-**Test suite:** 6326 passed, 2 skipped (6328 total) — 359 test files — fresh run 2026-07-31 (0 failures; +3 tests from Sprint 113; 2 pre-existing skips)
-**Coverage (v8, fresh 2026-07-31):** 99.33% stmts / 96.19% branch / 98.67% funcs / 99.58% lines — all above thresholds (95/95/95/95)
-**TypeCheck:** `npx tsc --noEmit` — 0 errors (verified at Slice 110e, `8122c007`)
+**Last verified: Sprint 115 — 2026-08-02**
+**Active branch:** `main` — working tree clean after Sprint 115 commit
+**Last committed sprint:** Sprint 115 — Session Isolation on Explicit Logout (this update)
+**Last updated:** 2026-08-02 — Sprint 115 complete (clearSession, storageStatePathFor, browser logout CLI command, 8-test suite)
+**Test suite:** 6411 passed, 2 skipped (6413 total) — 364 test files — fresh run 2026-08-02 (0 failures from sprint work; 1 pre-existing flaky timing race in daemon-shutdown-integration.test.js, passes in isolation)
+**Coverage (v8, last measured 2026-07-31):** 99.33% stmts / 96.19% branch / 98.67% funcs / 99.58% lines — all above thresholds (95/95/95/95)
+**TypeCheck:** `npx tsc --noEmit` — 0 errors (last verified at Slice 110e, `8122c007`)
 **MCP smoke:** `scripts/verify-mcp-stdio.mjs` — 6 tools returned (including retrieve), exit code 0 [CONFIRMED at Sprint 107]
-**SonarQube quality gate:** PASSED — 0 new violations. Project totals: bugs 0 / vulnerabilities 0 / code smells 0 / hotspots 0 / coverage 97.0% / duplication 1.4% / ncloc 28402. All gate conditions OK (new_coverage 95.9%, new_dup 0.06%, hotspots_reviewed 100%, new_violations 0). Fixed: S1607 + S5914 + S2699 in `tests/daemon-shutdown-integration.test.js` (`02d966de` + `4a864bf2`).
+**SonarQube quality gate:** PASSED — 0 new violations (last scan 2026-08-01, Sprint 113 close-out). Project totals: bugs 0 / vulnerabilities 0 / code smells 0 / hotspots 0 / coverage 97.0% / duplication 1.4% / ncloc 28402.
 **GPU default:** -ngl 99 (RTX 5090 Laptop 24GB — prior -ngl 0 constraints obsolete)
+
+## Sprint 115 — Session Isolation on Explicit Logout — 2026-08-02
+
+**Goal:** Add an explicit, opt-in `clearSession(platform)` function that wipes
+the in-browser cookie jar and deletes the saved `storage-state.json` for a
+platform, without changing the default (convenience) persistence behavior for
+every other code path. Closes V16.
+
+**Design decision (critical context for future sprints):**
+`clearSession` does NOT route through `closeBrowser()` because `closeBrowser`
+unconditionally calls `context.storageState()` and writes it back to disk —
+which would immediately recreate the file just deleted. Instead, `clearSession`
+closes the context directly (`context.close()` + `context.browserHandle.close()`)
+without touching `storageState`. The test suite includes a regression guard
+(`fakeContext.storageState` must never be called) to enforce this invariant.
+
+**Known pre-existing defect noted (not fixed, out of scope):**
+`src/commands/browser.js` imports `BROWSER_RESPONSES_DIR` from `browser-bridge.js`
+as a named export. This constant was removed from `browser-bridge.js` in an
+earlier sprint and replaced by `getBrowserResponsesDir()`. The import is stale
+and the `browser responses dir` CLI command silently uses it. Logged for a
+future cleanup sprint — do not touch in browser-bridge sprints without explicitly
+accounting for this.
+
+**Files changed:**
+- `src/browser-bridge.js` — added `storageStatePathFor(platform)` pure helper
+  (replaces inline `path.join(browserProfilesDir(), platform, "storage-state.json")`
+  in `launchBrowser`); added `export async function clearSession(platform)`:
+  guard clause → `_self.launchBrowser` → `context.clearCookies()` → direct
+  `context.close()` + `context.browserHandle.close()` → `fs.unlink` (ENOENT
+  swallowed) → return `{ platform, message }`. Zero calls to `closeBrowser` or
+  `context.storageState` inside `clearSession`.
+- `src/commands/browser.js` — added `clearSession` to import list; added
+  `browser logout <platform>` command using `parseServicePlatform` validation,
+  ora spinner, chalk, try/catch → `process.exitCode = 1` on failure.
+- `tests/browser-clear-session.test.js` — new, 8 tests (see below)
+
+**Test suite (tests/browser-clear-session.test.js — 8 tests, all GREEN):**
+1. Unit: `clearCookies` called once, `storageState` NEVER called, file deleted from real disk
+2. Multi-platform isolation: only the target platform's file is removed, sibling files unchanged
+3. Missing file (ENOENT): resolves without throwing, `clearCookies` still called
+4. Integration seam: after `clearSession`, next `launchBrowser` receives NO `storageState`
+   option (proves a fresh session — not just "file deleted" — this is the sprint's core assertion)
+5. Guard clause: `clearSession(undefined)` rejects with "platform is required"
+6. Guard clause: `clearSession("")` rejects with "platform is required"
+7. Return value shape: `{ platform, message }` containing platform name
+8. Direct close: `context.close()` and `browserHandle.close()` each called once
+
+**Test suite (full run 2026-08-02):** 364 files, 6411 tests passed, 0 failed, 2 skipped
+Pre-existing flaky failure confirmed unrelated: `daemon-shutdown-integration.test.js`
+timestamp race (off by 1ms under parallel load, passes in isolation immediately).
+
+**Grep confirmation (implementation safety check):**
+```bash
+awk '/^export async function clearSession/,/^export async function sendPrompt/' \
+    src/browser-bridge.js | grep -E "closeBrowser|storageState"
+# → returns only the comment line mentioning them, zero live call-sites
+```
 
 ## Sprint 112.5 — hw-probe runtime-consumable from plain JS — 2026-07-31
 

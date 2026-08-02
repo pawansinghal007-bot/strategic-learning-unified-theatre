@@ -18,6 +18,7 @@ import {
   clearResponses,
   tagResponse,
   captureThread,
+  clearSession,
   BROWSER_RESPONSES_DIR,
 } from "../browser-bridge.js";
 import {
@@ -498,6 +499,28 @@ export function bindBrowserCommands(program, { log = null } = {}) {
         );
         console.log(chalk.green(`Response saved to ${filename}`));
         console.log(chalk.green(`Ingested ${chunksIngested} chunks.`));
+      } catch (err) {
+        spinner.stop();
+        console.error(chalk.red(String(err?.message ?? err)));
+        process.exitCode = 1;
+      }
+    });
+
+  // Logout command — Sprint 115: explicit opt-in session isolation
+  // NOTE: BROWSER_RESPONSES_DIR import above is a known pre-existing stale import
+  // (the constant was removed from browser-bridge.js and replaced by getBrowserResponsesDir()).
+  // It is out of scope for this sprint — tracked as a known defect for a future sprint.
+  browser
+    .command("logout <platform>")
+    .description(
+      "Clear the saved browser session for a platform (wipes cookies and storage state)",
+    )
+    .action(async (platform) => {
+      const spinner = ora(`Clearing session for ${platform}...`).start();
+      try {
+        const parsedPlatform = parseServicePlatform(platform, "<platform>");
+        const result = await clearSession(parsedPlatform);
+        spinner.succeed(chalk.green(result.message));
       } catch (err) {
         spinner.stop();
         console.error(chalk.red(String(err?.message ?? err)));
