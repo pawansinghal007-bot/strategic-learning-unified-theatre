@@ -19,7 +19,7 @@ import {
   tagResponse,
   captureThread,
   clearSession,
-  BROWSER_RESPONSES_DIR,
+  getBrowserResponsesDir,
 } from "../browser-bridge.js";
 import {
   BrowserPlatformSchema,
@@ -507,9 +507,6 @@ export function bindBrowserCommands(program, { log = null } = {}) {
     });
 
   // Logout command — Sprint 115: explicit opt-in session isolation
-  // NOTE: BROWSER_RESPONSES_DIR import above is a known pre-existing stale import
-  // (the constant was removed from browser-bridge.js and replaced by getBrowserResponsesDir()).
-  // It is out of scope for this sprint — tracked as a known defect for a future sprint.
   browser
     .command("logout <platform>")
     .description(
@@ -713,6 +710,6 @@ export function bindBrowserCommands(program, { log = null } = {}) {
     .command("dir")
     .description("Show responses directory")
     .action(() => {
-      console.log(chalk.cyan(BROWSER_RESPONSES_DIR));
+      console.log(chalk.cyan(getBrowserResponsesDir()));
     });
 }

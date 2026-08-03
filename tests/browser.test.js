@@ -29,6 +29,7 @@ vi.mock("../src/browser-bridge.js", () => ({
   clearResponses: vi.fn(),
   tagResponse: vi.fn(),
   captureThread: vi.fn(),
+  getBrowserResponsesDir: vi.fn(() => "/fake/responses"),
   BROWSER_RESPONSES_DIR: "/fake/responses",
 }));
 
@@ -89,7 +90,7 @@ import {
   clearResponses,
   tagResponse,
   captureThread,
-  BROWSER_RESPONSES_DIR,
+  getBrowserResponsesDir,
 } from "../src/browser-bridge.js";
 import { loadConfig, assertFeatureEnabled } from "../src/internal/config.js";
 
@@ -1144,9 +1145,10 @@ describe("browser responses dir action", () => {
   it("prints the BROWSER_RESPONSES_DIR", async () => {
     const actions = buildAndExtractActions();
     const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    const responsesDir = getBrowserResponsesDir();
     await actions["responses:dir"]?.();
     expect(consoleSpy).toHaveBeenCalledWith(
-      expect.stringContaining("/fake/responses"),
+      expect.stringContaining(responsesDir),
     );
     consoleSpy.mockRestore();
   });
@@ -1213,9 +1215,8 @@ describe("accumulate helper (line 57)", () => {
     // bindBrowserCommands is wired to a real Commander in browser.test.js we
     // can verify the side-effect: addPrompt receives merged arrays.
     const { Command } = await import("commander");
-    const { bindBrowserCommands: bind } = await import(
-      "../src/commands/browser.js"
-    );
+    const { bindBrowserCommands: bind } =
+      await import("../src/commands/browser.js");
     addPrompt.mockResolvedValue({ id: "newid12345" });
     const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 

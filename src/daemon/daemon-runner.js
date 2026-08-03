@@ -162,11 +162,19 @@ function startSecurityScanLoop() {
     try {
       await runSecurityAutoScan({ repoPath: process.cwd() });
 
+      if (shuttingDown) {
+        return;
+      }
+
       await appendLogLine(logPath, {
         type: "security_scan",
         status: "success",
       });
     } catch (err) {
+      if (shuttingDown) {
+        return;
+      }
+
       await appendLogLine(logPath, {
         type: "security_scan",
         status: "error",
