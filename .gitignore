@@ -58,6 +58,9 @@ logs/agent-session.ndjson
 diagnose*.cjs
 diagnose*.js
 fix-dashboard*.cjs
+
+# ── Unsloth compiled cache (generated at import time) ─────
+unsloth_compiled_cache/
 fix-dashboard*.js
 fix-ipc.cjs
 debug-plugin-run.mjs
