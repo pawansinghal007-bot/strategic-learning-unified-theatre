@@ -8,17 +8,116 @@
 > 102–105. Always include "Last verified: Sprint N" so drift is immediately
 > visible to the next agent session.
 
-**Last verified: Sprint 117 — 2026-08-04**
-**Active branch:** `main` — history rewritten post-commit-split; force-pushed
-**Last committed sprint:** Sprint 117 — Agatsya Phase 1 + V14 training-trigger scaffold (see V14 entry below)
-**Last updated:** 2026-08-04 — Sprint 117 commits split: Agatsya scaffold and V14 training-trigger are now separate clean commits
-**Test suite:** 367 files / 6424 tests / 0 failures / 2 skipped — full baseline confirmed post-rewrite (2026-08-04)
+**Last verified: Sprint 118 — 2026-08-04**
+**Active branch:** `main`
+**Last committed sprint:** Sprint 118 — repo-driven training corpus generator (see Sprint 118 section below)
+**Last updated:** 2026-08-04 — Sprint 118 complete; export-repo-corpus CLI command wired and verified end-to-end
+**Test suite:** 369 files / 6435 tests / 0 failures / 2 skipped — full baseline confirmed post-merge (2026-08-04)
 **V14 training-trigger status: SCAFFOLDED, NOT CLOSED.** `src/llm/training-trigger.js` and `llm train-local` CLI command exist and are tested (7 tests pass). The manual end-to-end acceptance step has never happened. The dataset gate from `sprints/SPRINT-13-ANALYSIS.md` has not been cleared: current paired examples = 1, required minimum = 50. Do not treat the presence of code as gate clearance.
 **Coverage (v8, last measured 2026-07-31):** 99.33% stmts / 96.19% branch / 98.67% funcs / 99.58% lines — all above thresholds (95/95/95/95)
 **TypeCheck:** `npx tsc --noEmit` — 0 errors (last verified at Slice 110e, `8122c007`)
 **MCP smoke:** `scripts/verify-mcp-stdio.mjs` — 6 tools returned (including retrieve), exit code 0 [CONFIRMED at Sprint 107]
 **SonarQube quality gate:** PASSED — 0 new violations (last scan 2026-08-01, Sprint 113 close-out). Project totals: bugs 0 / vulnerabilities 0 / code smells 0 / hotspots 0 / coverage 97.0% / duplication 1.4% / ncloc 28402.
 **GPU default:** -ngl 99 (RTX 5090 Laptop 24GB — prior -ngl 0 constraints obsolete)
+
+## Sprint 118 — Repo-Driven Training Corpus Generator — 2026-08-04
+
+**Goal:** Add a second, growing source of paired training examples derived
+from git commit history (JSDoc-commented function diffs), completely separate
+from the existing BC2-message export. Does not touch V14, does not train
+anything, does not trigger or satisfy the 50-pair gate.
+
+**Design decisions (explicit, not inherited from any prior convention):**
+
+- Incremental state tracked via a new standalone JSON file
+  (`~/.vscode-rotator/repo-corpus-state.json`) — not mixed into any existing
+  state file. Stores `{ lastProcessedRef }` only; re-run from any SHA via
+  `--since <ref>`.
+- Output written to a separate `~/.vscode-rotator/repo-corpus.jsonl`, never
+  mixed into `exportTrainingData()`'s own output. Callers that want to merge
+  the two sources do so explicitly.
+- Extraction scope: JS/TS/JSX/TSX only. No new language parser — simple
+  `git show --unified=0` diff parsing, regex on the added lines for
+  `function name(...) {` signatures and immediately-preceding `/** ... */`
+  JSDoc blocks. No AST, no tree-sitter dependency.
+- `maxBuffer` fix for large `git show` output (ERR_CHILD_PROCESS_STDIO_MAXBUFFER):
+  kept **local** to `repo-corpus-exporter.js`'s own `gitExec()` helper
+  (`{ maxBuffer: 128 * 1024 * 1024 }`). The shared `src/llm/_child-process.js`
+  passthrough is **untouched on this branch** — a mid-sprint attempt to widen
+  `maxBuffer` there caused a 10-test regression (3 failed test files, 10
+  `spawn ollama ENOENT` / unhandled-rejection failures) and was immediately
+  reverted. See regression note below.
+
+**Schema used:**
+
+```json
+{
+  "type": "repo-corpus",
+  "platform": "git",
+  "commit_sha": "<sha>",
+  "user": "<JSDoc text — the prompt>",
+  "assistant": "<function source — the completion>",
+  "metadata": {
+    "file": "<path>",
+    "function_name": "<name>",
+    "signature": "<name(params)>",
+    "source": "git-diff"
+  }
+}
+```
+
+Matches `training-exporter.js`'s pair shape convention
+(`user`/`assistant`/`metadata` top-level keys).
+
+**Files changed:**
+
+- `src/llm/repo-corpus-exporter.js` — new; `generateRepoCorpusPairs()` and
+  `appendRepoCorpusPairs()` exports; local `gitExec()` callback-wrapping
+  helper with `maxBuffer: 128 MB`.
+- `tests/llm/repo-corpus-exporter.test.js` — new; 4 tests (pair extraction,
+  JSDoc-less skip, stored-ref idempotency, JSONL append). Mock uses
+  callback-style `execFile(cmd, args, options, callback)` matching the real
+  `node:child_process.execFile` signature.
+- `src/commands/llm.js` — added `export-repo-corpus` subcommand only (new
+  Commander binding + import of `generateRepoCorpusPairs`/`appendRepoCorpusPairs`).
+  No other changes to this file.
+
+**Mid-sprint regression and fix (documented, not hidden):**
+
+An early version of this sprint rewrote `src/llm/_child-process.js` from a
+plain `export { execFile, spawn } from "node:child_process"` passthrough into
+a promise-wrapped version with `maxBuffer: 128 MB`. This was done to fix the
+buffer error in `repo-corpus-exporter.js` but had blast-radius: `_child-process.js`
+is imported by ~12 files, and changing its calling convention broke callers
+that were written against the old callback-style signature. Full `npm test`
+showed 3 failed test files / 10 failed tests (`coverage-branch-gap.test.js`,
+`sprint69-coverage-expansion.test.js`, `tests/llm/llm.test.js`) — all
+`spawn ollama ENOENT` + 5000ms timeouts surfacing as unhandled rejections.
+**Fix:** reverted `_child-process.js` to the plain passthrough (verified
+against `origin/main` — zero diff) and moved the `maxBuffer` fix into
+`repo-corpus-exporter.js`'s own local `gitExec()` helper. `_child-process.js`
+is identical to `origin/main` on this branch.
+
+**Manual run result (real repo, not mocked):**
+
+```
+npx tsx ./src/cli.js llm export-repo-corpus
+→ ✔ 91 pair(s) appended → /home/pawan/.vscode-rotator/repo-corpus.jsonl
+
+# Immediate re-run (no new commits):
+→ ✔ 0 pair(s) appended — nothing new since last run
+```
+
+**Test suite (full run 2026-08-04):** 369 files, 6435 tests passed, 0 failed,
+2 skipped.
+
+**TypeCheck:** `npx tsc --noEmit` — 0 errors.
+
+**Pre-existing out-of-scope bug (not fixed here, logged for a future sprint):**
+`node ./src/cli.js` is broken for every command with
+`ERR_MODULE_NOT_FOUND: src/cli/llm-health.js`. This is a pre-existing defect
+unrelated to this sprint. `npx tsx ./src/cli.js` was used as the workaround
+throughout this sprint's verification. Needs its own sprint entry to fix.
 
 ## Sprint 115 — Session Isolation on Explicit Logout — 2026-08-02
 

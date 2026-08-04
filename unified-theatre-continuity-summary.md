@@ -2,6 +2,7 @@
 
 _Read this first if you're an agent (Claude, Copilot, or otherwise) picking up this project. It exists to prevent context loss across sessions and across different tools/providers working on the same repo._
 
+> **Last updated 2026-08-04 (Sprint 118 close-out).** Section 50 documents Sprint 118 (repo-driven training corpus generator — `src/llm/repo-corpus-exporter.js`, `tests/llm/repo-corpus-exporter.test.js`, `export-repo-corpus` CLI subcommand in `src/commands/llm.js`). Second git-history-derived source of paired training examples, separate from BC2-message export. Does not touch V14. Full suite: 369/370 files, 6435/6437 tests, 0 failures, tsc clean. Verified end-to-end against real repo history: 91 pairs first run, 0 on idempotent second run. Mid-sprint regression (shared `_child-process.js` change causing 10-test blast-radius failure) caught, reverted, and fixed locally — documented in full.
 > **Last updated 2026-08-01 (Sprint 113 close-out).** Section 47 documents Sprint 112.5 (hw-probe runtime-consumable — created `hwProbe.js` plain-ESM twin, resolved production import gap). Section 48 documents Sprint 113 (GPU-tier-aware embeddings backend — `probeHardware()` tier gate in `initialize()`, closes V10). Section 48.5 documents the Sprint 113 post-merge close-out: idempotency fix for `EmbeddingProvider.initialize()` (5 new tests, `tests/llm/embeddings-idempotency.test.js`), hwProbe parity test (34 tests, `src/installer/hw-probe/hwProbe-parity.spec.ts`), and Sonar CPD exclusion decision (Option A — exclusion removed after real scan confirmed 0 duplication blocks on both files). Test suite: 6326/6328 + 39 new tests = 6365 passing. Coverage unchanged: 99.33% stmts / 96.19% branch / 98.67% funcs / 99.58% lines.
 > **Last updated 2026-07-28 (updated again — see Sections 44–46).** Sections 44–46 document all commits that landed after Section 41.8: SonarQube quality-gate remediation (`02d966de` + `4a864bf2`, fixes S1607/S5914/S2699, gate now **PASSED**); deduplication sprint (`0ee919a8`, 26 duplicate blocks removed across 6 files); and both merges to `main` (`3403fd52` + `7f87da10`). **`main` is now fully merged and current — `git log --oneline origin/main..HEAD` returns empty.** Item #1 (merge decision) is CLOSED. Section 42 open-items table and Section 43 handoff updated accordingly. Current HEAD: `7f87da10`. SonarQube: PASSED. Test suite: 6323/6325, 0 failures.
 > **Last updated 2026-07-28 (updated again — see Sections 41–43).** Section 40's "NOT YET committed / branch `110e`" claim has been corrected: Slice 110e was committed as `8122c007` (see Section 40.4 for the corrected record). Section 41 documents seven previously-undocumented commits on `fix/sonarqube-issues-post-sprint-108` (SonarQube post-108 cleanup, Sprint 109/109b, coverage remediation, Sprints 110.5/110.6, Sprint X1, daemon-shutdown cross-platform fix) — branch is now 11 commits ahead of `origin/main`. Section 42 supersedes Section 30's open-items v4 table: Items #4, #7, #19, #21, #22, #23 closed with evidence; Items #1–3, 5–6, 8–12 confirmed open. Section 43 supersedes Section 31's handoff. Stale "SUPERSEDED" banners added to Sections 26.5, 32, and 34.
@@ -4322,3 +4323,173 @@ None introduced. The pre-existing `BROWSER_RESPONSES_DIR` stale import in
 | `tests/browser-clear-session.test.js` | New — 8 tests |
 | `docs/build-state.md` | Sprint 115 entry added |
 | `unified-theatre-continuity-summary.md` | This section |
+
+
+---
+
+## 50. Sprint 118 — Repo-Driven Training Corpus Generator — 2026-08-04
+
+### 50.0 Goal and scope
+
+Add a second, growing source of paired training examples derived from git
+commit history. Every commit is scanned for JS/TS function additions whose
+immediately-preceding line is a JSDoc `/** ... */` block; the JSDoc text
+becomes the `user` (prompt) field and the function source becomes the
+`assistant` (completion) field. Separate from the BC2-message export —
+different output file, different state file, different schema `type` field.
+Does not train anything, does not interact with V14, and does not satisfy or
+modify the 50-pair gate.
+
+**Why a second source at all:** the BC2-message export (existing) is bounded
+by how many browser-LLM interactions have been logged. Repo history is an
+unbounded, already-present signal source that grows automatically with every
+commit — a complementary channel that costs nothing extra once wired.
+
+### 50.1 Design decisions (all explicit — none inherited from another module)
+
+**State file:** `~/.vscode-rotator/repo-corpus-state.json` — standalone,
+never mixed into any other state file. Schema: `{ lastProcessedRef: string |
+null }`. On each run the effective since-ref is resolved by comparing the
+stored ref against any explicit `--since <ref>` flag (newer of the two wins,
+using `git merge-base --is-ancestor` to determine ancestry, falling back to
+commit timestamp if non-linear).
+
+**Output file:** `~/.vscode-rotator/repo-corpus.jsonl`. Appended to, never
+overwritten. Caller decides whether to merge with `export-training` output —
+the module never merges them automatically.
+
+**Extraction:** `git log --format=%H --reverse [since..HEAD | HEAD]` to get
+commit SHAs in order, then `git show --unified=0 --no-color <sha>` per
+commit. Added lines (starting with `+`) are collected per file, then scanned
+with a single regex for `function name(...) {` signatures. If the line
+immediately above is the closing `*/` of a `/**` block, the full comment is
+extracted and paired with the function source (collected by brace-depth
+counting). Non-JS/TS file extensions are skipped.
+
+**maxBuffer:** 128 MB, applied via a local `gitExec(args, cwd)` helper that
+wraps `execFileRaw` in a `new Promise` callback — callback-style, not
+promise-style. The shared `src/llm/_child-process.js` passthrough is
+**untouched**. See 50.3 for the regression that enforced this decision.
+
+**CLI options:** `--since <ref>`, `--out <path>`, `--base-dir <dir>` — all
+optional, consistent with `export-training`'s option naming.
+
+### 50.2 Files changed
+
+| File | Change |
+|------|--------|
+| `src/llm/repo-corpus-exporter.js` | New — `generateRepoCorpusPairs(sinceRef, opts)` and `appendRepoCorpusPairs(pairs, opts)` exports; local `gitExec()` helper |
+| `tests/llm/repo-corpus-exporter.test.js` | New — 4 tests (see 50.4) |
+| `src/commands/llm.js` | New `export-repo-corpus` subcommand only; import of the two new functions |
+
+`src/llm/_child-process.js` — **zero diff vs `origin/main`** (see 50.3).
+`src/commands/llm.js` — only the new subcommand block and its import added;
+no other changes to the file.
+
+### 50.3 Mid-sprint regression — shared file revert (documented, not hidden)
+
+An early version of this sprint rewrote `src/llm/_child-process.js` from:
+
+```js
+export { execFile, spawn } from "node:child_process";
+```
+
+into an internally-promisified version with `maxBuffer: 128 MB`, in order to
+fix `ERR_CHILD_PROCESS_STDIO_MAXBUFFER` in `generateRepoCorpusPairs`. This
+was a blast-radius mistake: `_child-process.js` is imported by approximately
+12 files, and the change in calling convention (callback → promise) broke
+callers that were written against the original callback-style signature.
+
+**Observed regression (real `npm test` output):**
+
+- 3 failed test files: `coverage-branch-gap.test.js`,
+  `sprint69-coverage-expansion.test.js`, `tests/llm/llm.test.js`
+- 10 failed tests: all `spawn ollama ENOENT` + 5000ms timeout surfaces as
+  unhandled rejections — none of which touch git or the repo-corpus feature
+
+**Resolution:**
+
+1. `git checkout origin/main -- src/llm/_child-process.js` — restored to
+   plain passthrough. Diff confirmed zero.
+2. Moved the `maxBuffer` fix into `repo-corpus-exporter.js`'s own
+   `gitExec()` helper, which wraps `execFileRaw` via a manual
+   `new Promise((resolve, reject) => execFileRaw("git", args,
+   { cwd, maxBuffer: MAX_BUFFER }, callback))`. This is the same
+   pattern `code-search.ts` uses for its own local `maxBuffer` override —
+   neither module changes the shared passthrough.
+3. Updated the test mock from async promise-style to callback-style
+   `(cmd, args, options, callback)` to match the real signature.
+
+**After fix:** full `npm test` — 369 passed / 1 skipped (370 files),
+6435 passed / 2 skipped (6437 tests), 0 failures. `npx tsc --noEmit` clean.
+
+### 50.4 Test suite — `tests/llm/repo-corpus-exporter.test.js` (4 tests, all GREEN)
+
+Mock pattern: `vi.mock("../../src/llm/_child-process.js", () => ({ execFile: vi.fn() }))`.
+`setupExecFile(responses)` wires callback-style `(cmd, args, options, callback)`
+— matching the real `node:child_process.execFile` signature, not promise-style.
+All git I/O is mocked via a `"git <subcommand> <args>"` key lookup.
+
+| # | Test | What it proves |
+|---|------|---------------|
+| 1 | Extracts one pair from a JSDoc-commented function addition | Full happy-path: git log + git show mocked, pair shape verified field-by-field, state file written with correct `lastProcessedRef` |
+| 2 | Skips functions without JSDoc | A function with no preceding comment produces zero pairs; state file still updated |
+| 3 | Zero pairs when stored ref covers the range | `git log` returns empty; `git show` never called; state not re-written; `toHaveBeenCalledWith` asserts full 4-arg signature including `{ maxBuffer: 128 * 1024 * 1024 }` and callback `Function` |
+| 4 | `appendRepoCorpusPairs` writes JSONL | Real temp-dir fs; JSONL line parseable; correct shape |
+
+Test 3's `toHaveBeenCalledWith` assertion was updated during the regression
+fix — it now explicitly asserts 4 args (the full callback-style signature)
+including the `maxBuffer` options object, which is itself a regression guard
+proving the fix is in effect.
+
+**Full suite after the fix (pasted terminal output, not narrated):**
+
+```
+ Test Files  369 passed | 1 skipped (370)
+       Tests  6435 passed | 2 skipped (6437)
+    Duration  26.77s
+```
+
+```
+$ npx tsc --noEmit
+(no output, exit 0)
+```
+
+### 50.5 Manual end-to-end verification against real repo
+
+**CLI now reachable** via `npx tsx ./src/cli.js llm export-repo-corpus`.
+The subcommand was not registered until the `src/commands/llm.js` change in
+this sprint — confirming the command is wired, not just the module.
+
+```
+$ rm -f ~/.vscode-rotator/repo-corpus-state.json ~/.vscode-rotator/repo-corpus.jsonl
+$ npx tsx ./src/cli.js llm export-repo-corpus
+✔ 91 pair(s) appended → /home/pawan/.vscode-rotator/repo-corpus.jsonl
+
+$ npx tsx ./src/cli.js llm export-repo-corpus
+✔ 0 pair(s) appended — nothing new since last run
+```
+
+91 pairs on first run against the full real commit history. 0 on re-run with
+no new commits — state file correctly prevents duplicate work.
+
+### 50.6 Pre-existing out-of-scope bug noted (not fixed)
+
+`node ./src/cli.js` is currently broken for all commands with
+`ERR_MODULE_NOT_FOUND: src/cli/llm-health.js`. This predates Sprint 118 and
+is unrelated to it. `npx tsx ./src/cli.js` was used as the workaround
+throughout this sprint's verification. Logged here and in `docs/build-state.md`
+as an untriaged item requiring its own future sprint entry — not fixed in this
+sprint per scope discipline.
+
+### 50.7 Commit and PR
+
+```
+feat(sprint-118): repo-driven training corpus generator
+```
+
+Files committed: `src/llm/repo-corpus-exporter.js`,
+`tests/llm/repo-corpus-exporter.test.js`, `src/commands/llm.js`,
+`docs/build-state.md`, `unified-theatre-continuity-summary.md`.
+
+Branch: `sprint-118-repo-corpus-exporter` → PR → merged to `main`.
