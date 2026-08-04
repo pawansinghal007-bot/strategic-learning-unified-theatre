@@ -194,6 +194,10 @@ import {
 } from "../llm/local-llm.js";
 import { exportTrainingData } from "../llm/training-exporter.js";
 import { triggerLoraTraining } from "../llm/training-trigger.js";
+import {
+  generateRepoCorpusPairs,
+  appendRepoCorpusPairs,
+} from "../llm/repo-corpus-exporter.js";
 
 import { verifyLocalLlmRuntime } from "../llm/inference.js";
 
@@ -857,6 +861,39 @@ export async function bindLlmCommands(program, { log: cliLog = null } = {}) {
           modelPath: options.modelPath,
         });
         spinner.succeed("Unsloth training launched successfully");
+      } catch (err) {
+        spinner.stop();
+        console.error(chalk.red(String(err?.message ?? err)));
+        process.exitCode = 1;
+      }
+    });
+
+  llm
+    .command("export-repo-corpus")
+    .description(
+      "Extract JSDoc-annotated function pairs from git history and append to a JSONL training file",
+    )
+    .option("--since <ref>", "Only include commits after this git ref or SHA")
+    .option("--out <path>", "Output JSONL file path")
+    .option("--base-dir <dir>", "Local storage base directory")
+    .action(async (options) => {
+      const spinner = ora("Scanning git history for repo-corpus pairs...").start();
+      try {
+        const pairs = await generateRepoCorpusPairs(options.since ?? null, {
+          baseDir: options.baseDir,
+          cwd: process.cwd(),
+        });
+        if (pairs.length === 0) {
+          spinner.succeed("0 pair(s) appended — nothing new since last run");
+        } else {
+          const outputPath = await appendRepoCorpusPairs(pairs, {
+            outputPath: options.out,
+            baseDir: options.baseDir,
+          });
+          spinner.succeed(
+            `${pairs.length} pair(s) appended → ${outputPath}`,
+          );
+        }
       } catch (err) {
         spinner.stop();
         console.error(chalk.red(String(err?.message ?? err)));
