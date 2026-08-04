@@ -11,12 +11,11 @@
  */
 
 import { logger } from "../logging/logger.js";
+import { searchChunks } from "../../llm/qdrant-client.js";
 
 // ─── configuration (from environment) ────────────────────────────────────────
 
-const EMBEDDINGS_URL = process.env.EMBEDDINGS_URL ?? "http://embeddings:8080";
-const QDRANT_URL = process.env.QDRANT_URL ?? "http://qdrant:6333";
-const QDRANT_COLLECTION = process.env.QDRANT_COLLECTION ?? "unified_theatre";
+const EMBEDDINGS_URL = process.env.EMBEDDINGS_URL ?? "http://localhost:8081";
 
 // ─── timeout configuration ────────────────────────────────────────────────────
 
@@ -96,57 +95,25 @@ export async function vectorSearch(
   query: string,
   topK = 5,
 ): Promise<VectorSearchResult[]> {
-  const controller = new AbortController();
+  const vector = await embed(query);
+  const hits = await searchChunks(vector, topK);
 
-  const timer = setTimeout(() => controller.abort(), RETRIEVAL_TIMEOUT_MS);
+  const results: VectorSearchResult[] = hits.map((hit) => ({
+    score: hit.score,
+    source:
+      hit.path?.trim() || hit.source?.trim()
+        ? hit.path?.trim() || hit.source?.trim() || ""
+        : hit.id !== undefined
+        ? String(hit.id)
+        : "",
+    text: hit.content,
+  }));
 
-  try {
-    const vector = await embed(query);
+  logger.info("retrieval.vector-search", {
+    query,
+    topK,
+    hits: results.length,
+  });
 
-    const url = `${QDRANT_URL}/collections/${QDRANT_COLLECTION}/points/search`;
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ vector, limit: topK, with_payload: true }),
-      signal: controller.signal,
-    });
-
-    if (!response.ok) {
-      const body = await response.text();
-      throw new Error(
-        `vectorSearch: Qdrant returned ${response.status}: ${body}`,
-      );
-    }
-
-    const json = (await response.json()) as {
-      result?: Array<{
-        id: string | number;
-        score: number;
-        payload?: { source?: string; text?: string };
-      }>;
-    };
-
-    const results: VectorSearchResult[] = (json.result ?? []).map((hit) => ({
-      score: hit.score,
-      source: hit.payload?.source ?? String(hit.id),
-      text: hit.payload?.text ?? "",
-    }));
-
-    logger.info("retrieval.vector-search", {
-      query,
-      topK,
-      hits: results.length,
-    });
-
-    return results;
-  } catch (err) {
-    if (err instanceof Error && err.name === "AbortError") {
-      throw new Error(
-        `vectorSearch: timed out after ${RETRIEVAL_TIMEOUT_MS}ms`,
-      );
-    }
-    throw err;
-  } finally {
-    clearTimeout(timer);
-  }
+  return results;
 }

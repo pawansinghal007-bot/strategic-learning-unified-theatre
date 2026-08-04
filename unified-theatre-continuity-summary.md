@@ -3,6 +3,7 @@
 _Read this first if you're an agent (Claude, Copilot, or otherwise) picking up this project. It exists to prevent context loss across sessions and across different tools/providers working on the same repo._
 
 > **Last updated 2026-08-04 (Sprint 118 close-out).** Section 50 documents Sprint 118 (repo-driven training corpus generator — `src/llm/repo-corpus-exporter.js`, `tests/llm/repo-corpus-exporter.test.js`, `export-repo-corpus` CLI subcommand in `src/commands/llm.js`). Second git-history-derived source of paired training examples, separate from BC2-message export. Does not touch V14. Full suite: 369/370 files, 6435/6437 tests, 0 failures, tsc clean. Verified end-to-end against real repo history: 91 pairs first run, 0 on idempotent second run. Mid-sprint regression (shared `_child-process.js` change causing 10-test blast-radius failure) caught, reverted, and fixed locally — documented in full.
+> **Last updated 2026-08-04 (Qdrant retrieval consolidation).** Consolidated Qdrant retrieval onto `src/llm/qdrant-client.js`/`searchChunks()` as the single authoritative implementation, deleted legacy `qdrant-client.ts` (zero runtime imports), and made `vectorSearch()` delegate instead of duplicating embed+HTTP+parse logic. Corrected `QDRANT_URL`, `EMBEDDINGS_URL`, and `QDRANT_COLLECTION` defaults to match real runtime values. `searchChunks()` now throws on non-ok Qdrant responses instead of swallowing to `[]`; `queryTopK` soft-fails via its own try/catch, both Electron IPC handlers already soft-fail unchanged, and `vectorSearch()` hard-fails and propagates directly to agent/MCP callers by design.
 > **Last updated 2026-08-01 (Sprint 113 close-out).** Section 47 documents Sprint 112.5 (hw-probe runtime-consumable — created `hwProbe.js` plain-ESM twin, resolved production import gap). Section 48 documents Sprint 113 (GPU-tier-aware embeddings backend — `probeHardware()` tier gate in `initialize()`, closes V10). Section 48.5 documents the Sprint 113 post-merge close-out: idempotency fix for `EmbeddingProvider.initialize()` (5 new tests, `tests/llm/embeddings-idempotency.test.js`), hwProbe parity test (34 tests, `src/installer/hw-probe/hwProbe-parity.spec.ts`), and Sonar CPD exclusion decision (Option A — exclusion removed after real scan confirmed 0 duplication blocks on both files). Test suite: 6326/6328 + 39 new tests = 6365 passing. Coverage unchanged: 99.33% stmts / 96.19% branch / 98.67% funcs / 99.58% lines.
 > **Last updated 2026-07-28 (updated again — see Sections 44–46).** Sections 44–46 document all commits that landed after Section 41.8: SonarQube quality-gate remediation (`02d966de` + `4a864bf2`, fixes S1607/S5914/S2699, gate now **PASSED**); deduplication sprint (`0ee919a8`, 26 duplicate blocks removed across 6 files); and both merges to `main` (`3403fd52` + `7f87da10`). **`main` is now fully merged and current — `git log --oneline origin/main..HEAD` returns empty.** Item #1 (merge decision) is CLOSED. Section 42 open-items table and Section 43 handoff updated accordingly. Current HEAD: `7f87da10`. SonarQube: PASSED. Test suite: 6323/6325, 0 failures.
 > **Last updated 2026-07-28 (updated again — see Sections 41–43).** Section 40's "NOT YET committed / branch `110e`" claim has been corrected: Slice 110e was committed as `8122c007` (see Section 40.4 for the corrected record). Section 41 documents seven previously-undocumented commits on `fix/sonarqube-issues-post-sprint-108` (SonarQube post-108 cleanup, Sprint 109/109b, coverage remediation, Sprints 110.5/110.6, Sprint X1, daemon-shutdown cross-platform fix) — branch is now 11 commits ahead of `origin/main`. Section 42 supersedes Section 30's open-items v4 table: Items #4, #7, #19, #21, #22, #23 closed with evidence; Items #1–3, 5–6, 8–12 confirmed open. Section 43 supersedes Section 31's handoff. Stale "SUPERSEDED" banners added to Sections 26.5, 32, and 34.
@@ -3342,7 +3343,6 @@ as `8122c007`.** Merged to `main` status: pending — HEAD is on
 (see Section 41 and Open Items v5 in Section 42 for Item #1). No other
 open item was touched in this slice.
 
-
 ---
 
 ## 41. Post-110e Commits — Seven Undocumented Sprints on `fix/sonarqube-issues-post-sprint-108` — verified 2026-07-28
@@ -3383,6 +3383,7 @@ Sprints 106–108 and Slice 110e. Large clean-up commit — 24 files, 2907
 insertions, 1803 deletions.
 
 Key changes:
+
 - `src/idea-refine.js`, `src/knowledge/ingest/ingest-repository.js`,
   `src/knowledge/ingest/ingest-sprint-history.js`,
   `src/knowledge/ingest/embedder.js`, `src/llm/qdrant-client.js` — SonarQube
@@ -3404,6 +3405,7 @@ Key changes:
 6-hour interval.
 
 Key changes:
+
 - `src/daemon/daemon-runner.js` — added `SECURITY_SCAN_INTERVAL_MS` timer
   alongside the existing `reportTimer`; calls `runSecurityAutoScan()` on
   interval; new timer cleared in `cleanup()` on shutdown; hardcoded
@@ -3430,6 +3432,7 @@ threshold due to new code added in Sprints 109/110e. This commit closes all
 gaps without changing production behavior.
 
 Key changes:
+
 - `src/llm/embeddings.js` — one line fix to expose the `onnxruntime-node`
   fallback path to tests.
 - `src/shared/retrieval/graph-builder.ts` — 20-line change to expose
@@ -3460,6 +3463,7 @@ without relying on a missing `package.json "type"` field or
 `--experimental-detect-module`.
 
 Key changes:
+
 - `vscode-extension/collector.js` → `collector.mjs` (rename, zero content
   change at this point).
 - `vscode-extension/agent-bridge.mjs` (new) — Sprint 110 ESM bridge.
@@ -3485,6 +3489,7 @@ diff also included a moved `vscodeLearn.enabled` guard, a
 removes those additions, leaving only the rename.
 
 Key changes (deletions only):
+
 - `vscode-extension/collector.mjs` — removed the unscoped `addMistake` block
   and guard; restored exact pre-110.5 logic (diff against original is empty).
 - `tests/vscode-extension/agent-bridge-capture.test.js` — deleted (covered
@@ -3502,6 +3507,7 @@ vscode-extension collector now creates a `MistakeTracker` entry for task
 failures, with deduplication via the existing `_shouldDebounce` mechanism.
 
 Key changes:
+
 - `vscode-extension/collector.mjs` — `_onTaskEnd`: add
   `MistakeTracker.addMistake()` call after `stageSignal` block, gated on
   `this.vscodeLearn.enabled`, deduplicated with key
@@ -3524,6 +3530,7 @@ was permanently skipped on Linux due to three compounding issues in both the
 test and the daemon. All are fixed here.
 
 Key changes — test (`tests/daemon-shutdown-integration.test.js`):
+
 1. Hardcoded Windows-only skip guard removed. `shouldRunIntegration` now
    uses a simple `existsSync(DAEMON_PATH)` check instead of
    `process.platform === 'win32'` + a hardcoded absolute Windows path.
@@ -3535,15 +3542,12 @@ Key changes — test (`tests/daemon-shutdown-integration.test.js`):
    `LOG_POLL_TIMEOUT_MS` 20 s + `EXIT_TIMEOUT_MS` 15 s exceed Vitest's
    effective 5 000 ms default).
 
-Key changes — daemon (`src/daemon/daemon-runner.js`):
-4. Hardcoded `PROJECT_ROOT` / `process.chdir()` removed (the Windows-only
-   absolute path from `4fbe9b30` that would throw immediately on Linux).
-5. `baseDir()` now reads `process.env.HOME ?? os.homedir()` so the test's
-   `env.HOME` isolation override actually takes effect (Linux `os.homedir()`
-   reads `/etc/passwd`, not the `HOME` env var).
-6. `delayRef()` (plain `setTimeout` without `.unref()`) added and used in
-   the watchdog loop so the event loop stays alive between signal delivery
-   and process exit.
+Key changes — daemon (`src/daemon/daemon-runner.js`): 4. Hardcoded `PROJECT_ROOT` / `process.chdir()` removed (the Windows-only
+absolute path from `4fbe9b30` that would throw immediately on Linux). 5. `baseDir()` now reads `process.env.HOME ?? os.homedir()` so the test's
+`env.HOME` isolation override actually takes effect (Linux `os.homedir()`
+reads `/etc/passwd`, not the `HOME` env var). 6. `delayRef()` (plain `setTimeout` without `.unref()`) added and used in
+the watchdog loop so the event loop stays alive between signal delivery
+and process exit.
 
 ---
 
@@ -3586,7 +3590,6 @@ No uncommitted changes in the working tree at this point. The branch has
 not yet been merged to `origin/main` — that is an explicit maintainer
 decision (same as the merge decision deferred in Section 31/Item #1).
 
-
 ---
 
 ## 42. Open Items — consolidated master list v5 (supersedes Section 30) — verified 2026-07-28
@@ -3595,31 +3598,31 @@ _Verification methodology: every status change below is backed by a live
 command run this session. "Confirmed open" means the code was read and the
 gap was verified to still exist, not assumed._
 
-| #   | Item                                                                                                         | Status                                                                                                                                                                                                                     |
-| --- | ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | ~~Merge `fix/sonarqube-issues-post-sprint-108` to `origin/main`~~                                            | **CLOSED, `3403fd52`** (Section 46.1) — merged to `main` 2026-07-28. `git log --oneline origin/main..HEAD` returns empty. HEAD `7f87da10` is current on `main`.                                                           |
-| 2   | Real production measurement-log accumulation                                                                 | **Open** — still the long-running blocker; requires the app to run in production (`source: "production"` entries) long enough to collect a meaningful distribution.                                                        |
-| 3   | Distribution analysis + `skipGatewayAsk` widening decision                                                   | **Open** — blocked on #2 AND per-category gate passing.                                                                                                                                                                    |
-| 4   | ~~Doc bullet "confident-wrong vs honest-unknown" landed in Section 1~~                                       | **CLOSED** — `grep -n "Confident-wrong"` confirms the rule is present at Section 1, line 21 of this file. No further action needed.                                                                                        |
-| 5   | `RetrieveResult.matched` field                                                                               | **Open** — `grep -rn "matched" src/shared/retrieval/` returns no hits in production code. Still proposed only, not implemented.                                                                                            |
-| 6   | 37-row test-gap backlog (Section 10.4)                                                                       | **Open** — still logged, zero acted on.                                                                                                                                                                                    |
-| 7   | ~~SonarQube escalate lane (13 issues)~~                                                                      | **CLOSED** — Section 24 title is "Escalate-Lane Sonar Remediation — Complete (13/13)". All 11 commits from that session (`1ddaf304` through `520c9a1f`) verified present in git log. Row carried incorrectly in v3 and v4. |
-| 8   | Rule-ID mismatch in local-lane commit messages                                                               | **Open** — flagged in Section 25, not corrected. Low priority; affects commit-message hygiene only, not correctness.                                                                                                       |
-| 9   | `code-review` MCP tool runtime health                                                                        | **Open** — tool is registered in `src/mcp/tool-handlers.ts` lines 79–95 (`"code-review"` handler, logger calls present). Static check passes; runtime health against a live local LLM has not been verified this session. |
-| 10  | `recordToolCallForMeasurement()` missing `success`/`failure` field                                          | **Open** — `ToolCallMeasurementEntry` interface in `src/agents/tool-call-measurement-log.ts` has no `success` or `failure` field. Gap confirmed by reading the file.                                                       |
-| 11  | Possible measurement-log contamination from earlier failed `retrieve(symbol)` debugging calls                | **Open** — depends on #10; unresolved.                                                                                                                                                                                     |
-| 12  | Opaque `"rg failed (code 1):"` error message                                                                 | **Open** — `code-search.ts:108` throws the message without any surrounding context (query, path, stderr detail). Low priority.                                                                                             |
-| 13  | ~~`npm run harness` broken under `ts-node`~~                                                                 | **CLOSED, `c274d4af`** (Section 29.1)                                                                                                                                                                                      |
-| 14  | ~~`src/agents/cli.ts` missing `dotenv` load~~                                                                | **CLOSED, `70f263b1`** (Section 29.2)                                                                                                                                                                                      |
-| 15  | ~~`src/storage/run-indexer.ts` not registered as an npm script~~                                             | **CLOSED, `a57dc331`** (Section 29.3)                                                                                                                                                                                      |
-| 16  | ~~`findSymbolDefinition()` has no `repository_id` scoping~~                                                  | **CLOSED, `944bde80`** (Section 29.4)                                                                                                                                                                                      |
-| 17  | ~~Two parallel "retrieve" tool implementations~~                                                             | **CLOSED, `f1d2447b`** (Section 37) — shared execution core in `execute-retrieve.ts`                                                                                                                                       |
-| 18  | ~~No integration test for `indexSymbols()` against a real DB~~                                               | **CLOSED, `13483408`** (Section 36)                                                                                                                                                                                        |
-| 19  | ~~Slice 110e (structural symbol graph)~~                                                                      | **CLOSED, `8122c007`** (Sections 40–41) — 132 new tests, `tsc` clean, independently audited.                                                                                                                               |
-| 20  | ~~Milvus/Qdrant migration + `vectorSearch()` non-functional~~                                                | **CLOSED, `da3d55d1`** (Section 38) — Qdrant 2560-dim, plus follow-up hardening in Section 39                                                                                                                              |
-| 21  | ~~vscode-extension ESM/CJS module-type mismatch~~                                                            | **CLOSED, `57478b30` + `da8aae09`** (Section 41.4–41.5) — `collector.mjs` rename; Sprint 110.6 reverted unscoped additions.                                                                                               |
-| 22  | ~~VS Code task failures not routed to MistakeTracker~~                                                       | **CLOSED, `ffb16399`** (Section 41.6) — Sprint X1; `_onTaskEnd` now calls `addMistake()` with deduplication.                                                                                                               |
-| 23  | ~~`daemon-shutdown-integration` test skipped on Linux~~                                                      | **CLOSED, `251cd29b`** (Section 41.7) — hardcoded Windows guard removed; `node --import tsx/esm` spawn; explicit 40 s timeout; `baseDir()` respects `HOME` env; `delayRef()` watchdog fix.                                |
+| #   | Item                                                                                          | Status                                                                                                                                                                                                                     |
+| --- | --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | ~~Merge `fix/sonarqube-issues-post-sprint-108` to `origin/main`~~                             | **CLOSED, `3403fd52`** (Section 46.1) — merged to `main` 2026-07-28. `git log --oneline origin/main..HEAD` returns empty. HEAD `7f87da10` is current on `main`.                                                            |
+| 2   | Real production measurement-log accumulation                                                  | **Open** — still the long-running blocker; requires the app to run in production (`source: "production"` entries) long enough to collect a meaningful distribution.                                                        |
+| 3   | Distribution analysis + `skipGatewayAsk` widening decision                                    | **Open** — blocked on #2 AND per-category gate passing.                                                                                                                                                                    |
+| 4   | ~~Doc bullet "confident-wrong vs honest-unknown" landed in Section 1~~                        | **CLOSED** — `grep -n "Confident-wrong"` confirms the rule is present at Section 1, line 21 of this file. No further action needed.                                                                                        |
+| 5   | `RetrieveResult.matched` field                                                                | **Open** — `grep -rn "matched" src/shared/retrieval/` returns no hits in production code. Still proposed only, not implemented.                                                                                            |
+| 6   | 37-row test-gap backlog (Section 10.4)                                                        | **Open** — still logged, zero acted on.                                                                                                                                                                                    |
+| 7   | ~~SonarQube escalate lane (13 issues)~~                                                       | **CLOSED** — Section 24 title is "Escalate-Lane Sonar Remediation — Complete (13/13)". All 11 commits from that session (`1ddaf304` through `520c9a1f`) verified present in git log. Row carried incorrectly in v3 and v4. |
+| 8   | Rule-ID mismatch in local-lane commit messages                                                | **Open** — flagged in Section 25, not corrected. Low priority; affects commit-message hygiene only, not correctness.                                                                                                       |
+| 9   | `code-review` MCP tool runtime health                                                         | **Open** — tool is registered in `src/mcp/tool-handlers.ts` lines 79–95 (`"code-review"` handler, logger calls present). Static check passes; runtime health against a live local LLM has not been verified this session.  |
+| 10  | `recordToolCallForMeasurement()` missing `success`/`failure` field                            | **Open** — `ToolCallMeasurementEntry` interface in `src/agents/tool-call-measurement-log.ts` has no `success` or `failure` field. Gap confirmed by reading the file.                                                       |
+| 11  | Possible measurement-log contamination from earlier failed `retrieve(symbol)` debugging calls | **Open** — depends on #10; unresolved.                                                                                                                                                                                     |
+| 12  | Opaque `"rg failed (code 1):"` error message                                                  | **Open** — `code-search.ts:108` throws the message without any surrounding context (query, path, stderr detail). Low priority.                                                                                             |
+| 13  | ~~`npm run harness` broken under `ts-node`~~                                                  | **CLOSED, `c274d4af`** (Section 29.1)                                                                                                                                                                                      |
+| 14  | ~~`src/agents/cli.ts` missing `dotenv` load~~                                                 | **CLOSED, `70f263b1`** (Section 29.2)                                                                                                                                                                                      |
+| 15  | ~~`src/storage/run-indexer.ts` not registered as an npm script~~                              | **CLOSED, `a57dc331`** (Section 29.3)                                                                                                                                                                                      |
+| 16  | ~~`findSymbolDefinition()` has no `repository_id` scoping~~                                   | **CLOSED, `944bde80`** (Section 29.4)                                                                                                                                                                                      |
+| 17  | ~~Two parallel "retrieve" tool implementations~~                                              | **CLOSED, `f1d2447b`** (Section 37) — shared execution core in `execute-retrieve.ts`                                                                                                                                       |
+| 18  | ~~No integration test for `indexSymbols()` against a real DB~~                                | **CLOSED, `13483408`** (Section 36)                                                                                                                                                                                        |
+| 19  | ~~Slice 110e (structural symbol graph)~~                                                      | **CLOSED, `8122c007`** (Sections 40–41) — 132 new tests, `tsc` clean, independently audited.                                                                                                                               |
+| 20  | ~~Milvus/Qdrant migration + `vectorSearch()` non-functional~~                                 | **CLOSED, `da3d55d1`** (Section 38) — Qdrant 2560-dim, plus follow-up hardening in Section 39                                                                                                                              |
+| 21  | ~~vscode-extension ESM/CJS module-type mismatch~~                                             | **CLOSED, `57478b30` + `da8aae09`** (Section 41.4–41.5) — `collector.mjs` rename; Sprint 110.6 reverted unscoped additions.                                                                                                |
+| 22  | ~~VS Code task failures not routed to MistakeTracker~~                                        | **CLOSED, `ffb16399`** (Section 41.6) — Sprint X1; `_onTaskEnd` now calls `addMistake()` with deduplication.                                                                                                               |
+| 23  | ~~`daemon-shutdown-integration` test skipped on Linux~~                                       | **CLOSED, `251cd29b`** (Section 41.7) — hardcoded Windows guard removed; `node --import tsx/esm` spawn; explicit 40 s timeout; `baseDir()` respects `HOME` env; `delayRef()` watchdog fix.                                 |
 
 ---
 
@@ -3660,7 +3663,6 @@ Item #1 (merge `fix/sonarqube-issues-post-sprint-108` to `origin/main`) is
 Items #2, 3, 5, 6, 8, 9, 10, 11, 12. Priority order: #2/#3 (production
 data needed for classifier widening), then #9 (runtime MCP health), then
 #5/#10 (small implementation gaps), then #8/#12 (hygiene).
-
 
 ---
 
@@ -3753,6 +3755,7 @@ new shared-infrastructure files).
 **Changes by area:**
 
 **Provider adapters (`src/llm/providers/`):**
+
 - New file `stub-provider-factory.ts` — exports `createStubProviderClass(config)`
   factory. Each of `grok.ts`, `groq.ts`, `openai.ts` was a ~57-line adapter with
   ~49 identical lines. Each now reduces to an 8-line config-wrapper call.
@@ -3760,6 +3763,7 @@ new shared-infrastructure files).
 - ~53% duplication removed from the provider adapter cluster.
 
 **Repository layer (`src/ai-memory/repositories/`):**
+
 - New file `base-repo.js` — `BaseRepo` class with shared `upsert()`,
   `getByKey()`, `getLatest()`, `list()` methods (100 lines).
 - `handoff-repo.js` and `sprint-state-repo.js` now extend `BaseRepo`; each
@@ -3768,17 +3772,20 @@ new shared-infrastructure files).
 - ~41% duplication removed from the repository layer.
 
 **CLI commands (`src/commands/ai.js`):**
+
 - Extracted `buildAiSnapshot(context)` helper shared by both the `snapshot`
   and `resume` action handlers, which previously contained a verbatim 20-line
   duplication.
 - ~19% duplication removed from `ai.js` (1169 lines total, heavily restructured).
 
 **Hardware probe (`src/installer/hw-probe/hwProbe.ts`):**
+
 - Extracted `detectGpusWithNvidiaFallback(fallback)` function shared by the
   Linux and Windows detection paths. Both previously duplicated a two-stage
   `try/catch` `nvidia-smi` → platform-fallback pattern.
 
 **Domain schemas (`src/domain/schemas.js`):**
+
 - `IdeaPrioritySchema` aliased to `SprintTaskPriority` (identical `z.union`
   literal set).
 - `HandoffStatusSchema` aliased to `SprintStatusSchema` (identical `z.enum`
@@ -3810,6 +3817,7 @@ docs: build-state fresh coverage + SonarQube PASSED (b3a0adf6)
 ```
 
 Final state at merge:
+
 - Coverage: 99.38% stmts / 96.28% branch / 98.85% funcs / 99.63% lines
 - SonarQube quality gate: PASSED — 0 new violations
 - Test suite: 6323 passed, 2 skipped, 0 failed (359 files)
@@ -3847,8 +3855,6 @@ MCP smoke:       6 tools returned, exit code 0 (verified Sprint 107)
 **Item #1 (merge decision) is now CLOSED.** The branch was merged to
 `origin/main` at `3403fd52`. No further merge action is needed.
 
-
-
 ## 47. Sprint 112.5 — hw-probe runtime-consumable from plain JS — 2026-07-31
 
 ### 47.1 — What was built
@@ -3885,12 +3891,12 @@ truth; the `.js` file is what production consumers import.
 
 **Files created/modified:**
 
-| File | Change |
-|------|--------|
-| `src/installer/hw-probe/hwProbe.js` | New — plain-ESM runtime twin of `hwProbe.ts` |
-| `src/installer/hw-probe/package.json` | Added `"type": "module"` |
-| `src/internal/paths.d.ts` | New — type declarations for `paths.js` |
-| `package.json` | Added `build:hw-probe` verification script |
+| File                                  | Change                                       |
+| ------------------------------------- | -------------------------------------------- |
+| `src/installer/hw-probe/hwProbe.js`   | New — plain-ESM runtime twin of `hwProbe.ts` |
+| `src/installer/hw-probe/package.json` | Added `"type": "module"`                     |
+| `src/internal/paths.d.ts`             | New — type declarations for `paths.js`       |
+| `package.json`                        | Added `build:hw-probe` verification script   |
 
 ### 47.2 — Verification commands and output
 
@@ -3929,7 +3935,6 @@ its public surface matches what callers expect. No additional guard is added
 in this sprint — if `hwProbe.ts` logic changes in a future sprint, the
 sprint prompt must explicitly name both files.
 
-
 ## 48. Sprint 113 — GPU-Tier-Aware Embeddings Backend — 2026-07-31
 
 ### 48.1 — What was built
@@ -3951,6 +3956,7 @@ skip the onnx path entirely and take `deterministic-hash` immediately.
 `src/llm/embeddings.js` — two changes:
 
 1. Top-level static import added:
+
    ```js
    import { probeHardware } from "../installer/hw-probe/hwProbe.js";
    ```
@@ -3971,6 +3977,7 @@ skip the onnx path entirely and take `deterministic-hash` immediately.
 ### 48.2 — Test changes
 
 **New file:** `tests/llm/embeddings-gpu-tier.test.js` (3 tests)
+
 - Test 1: tier X → `deterministic-hash`, onnxruntime-node import never
   attempted (mock call count 0)
 - Test 2: tier Z → `onnxruntime-node` (mock succeeds, falls through)
@@ -4035,11 +4042,10 @@ All files: 99.33% stmts / 96.19% branch / 98.67% funcs / 99.58% lines
 - CLI boot (`node ./src/cli.js --help`) fails with a pre-existing
   `ERR_MODULE_NOT_FOUND` for `src/cli/llm-health.js` — unrelated to this
   sprint. `hwProbe.js` itself imports cleanly: `node -e
-  "import('./src/installer/hw-probe/hwProbe.js').then(...)"` exits 0.
+"import('./src/installer/hw-probe/hwProbe.js').then(...)"` exits 0.
 - V10 is now closed. The tier-X early return is the first production consumer
   of `hwProbe.js`; future sprints adding further tier-aware behaviour should
   follow the same import pattern.
-
 
 ## 48.5 — Sprint 113 close-out (post-merge) — 2026-08-01
 
@@ -4066,9 +4072,11 @@ one being fixed. All four return paths (`MOCK_LLM`, tier-X, onnxruntime catch,
 onnxruntime success) set `this._initialized = true` before returning.
 
 **Files changed:**
+
 - `src/llm/embeddings.js` — constructor + all four `initialize()` return paths
 
 **Regression test added:** `tests/llm/embeddings-idempotency.test.js` (5 tests)
+
 - `probeHardware` called exactly once across 3 `initialize()` calls (tier X)
 - Same for tier Z (onnxruntime path)
 - Backend value set by first call is preserved even if mock changes between calls
@@ -4076,6 +4084,7 @@ onnxruntime success) set `this._initialized = true` before returning.
 - MOCK_LLM fast-path: `probeHardware` never called, even across multiple calls
 
 **Verification:**
+
 ```
 $ npx vitest run tests/llm/embeddings-idempotency.test.js \
     tests/llm/embeddings-gpu-tier.test.js \
@@ -4122,6 +4131,7 @@ are explicitly out of scope** — those require process mocking and are covered
 by `hwProbe.spec.ts`.
 
 **Verification:**
+
 ```
 # From sub-project (vitest v1):
 $ cd src/installer/hw-probe && npx vitest run --config vitest.config.ts hwProbe-parity.spec.ts
@@ -4175,13 +4185,12 @@ comment left in its place documents the decision and references this section.
 logic divergence before it reaches production regardless of what Sonar reports.
 
 **Other gate findings from the Aug 1 scan (not introduced by Sprint 113):**
+
 - `new_security_hotspots_reviewed`: 70% vs 100% threshold — pre-existing
 - `new_violations`: 1 — `typescript:S7785` in `test-probe.ts:23` ("prefer
   top-level await over promise chain") — `test-probe.ts` was not modified in
   this sprint; this is a pre-existing issue that became visible as a new-code
   finding due to SCM blame date, not a regression.
-
-
 
 ---
 
@@ -4249,22 +4258,23 @@ is out of scope. Logged for a future cleanup sprint.
 ### 49.2 Test suite — `tests/browser-clear-session.test.js`
 
 Mirrors `browser-bridge.coverage-additions.test.js`'s established patterns:
+
 - Top-level `vi.mock("playwright", ...)` with deterministic fake chromium
 - `beforeEach` mkdtemp sets `process.env.HOME`, `afterEach` restores and rm
 - Real fs against tempDir (not mocked) — real file creation, real `fs.stat`
   to confirm presence/absence
 - `vi.spyOn(browserBridge, "launchBrowser")` for unit control
 
-| # | Test | What it proves |
-|---|------|---------------|
-| 1 | Unit: clearCookies called, storageState never called, file gone | Core regression guard — if impl routes through closeBrowser this fails |
-| 2 | Multi-platform isolation | Only target platform's file removed, sibling intact and content unchanged |
-| 3 | Missing file (ENOENT swallowed) | Resolves without throwing, clearCookies still called |
-| 4 | Integration seam | After clearSession, next real launchBrowser receives NO storageState option — proves fresh session, not just deleted file |
-| 5 | Guard: undefined → rejects | "platform is required" |
-| 6 | Guard: "" → rejects | "platform is required" |
-| 7 | Return value | `{ platform, message }` containing platform name |
-| 8 | Direct close | context.close() and browserHandle.close() each called exactly once |
+| #   | Test                                                            | What it proves                                                                                                            |
+| --- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Unit: clearCookies called, storageState never called, file gone | Core regression guard — if impl routes through closeBrowser this fails                                                    |
+| 2   | Multi-platform isolation                                        | Only target platform's file removed, sibling intact and content unchanged                                                 |
+| 3   | Missing file (ENOENT swallowed)                                 | Resolves without throwing, clearCookies still called                                                                      |
+| 4   | Integration seam                                                | After clearSession, next real launchBrowser receives NO storageState option — proves fresh session, not just deleted file |
+| 5   | Guard: undefined → rejects                                      | "platform is required"                                                                                                    |
+| 6   | Guard: "" → rejects                                             | "platform is required"                                                                                                    |
+| 7   | Return value                                                    | `{ platform, message }` containing platform name                                                                          |
+| 8   | Direct close                                                    | context.close() and browserHandle.close() each called exactly once                                                        |
 
 **Test 4 is the sprint's key acceptance criterion** — it exercises the actual
 seam: deletes the file, then calls the real (not spied) `launchBrowser` using
@@ -4316,14 +4326,13 @@ None introduced. The pre-existing `BROWSER_RESPONSES_DIR` stale import in
 
 ### 49.7 Files changed
 
-| File | Change |
-|------|--------|
-| `src/browser-bridge.js` | +`storageStatePathFor` helper, +`clearSession` export, refactored `launchBrowser` to use helper |
-| `src/commands/browser.js` | +`clearSession` import, +`browser logout <platform>` command |
-| `tests/browser-clear-session.test.js` | New — 8 tests |
-| `docs/build-state.md` | Sprint 115 entry added |
-| `unified-theatre-continuity-summary.md` | This section |
-
+| File                                    | Change                                                                                          |
+| --------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `src/browser-bridge.js`                 | +`storageStatePathFor` helper, +`clearSession` export, refactored `launchBrowser` to use helper |
+| `src/commands/browser.js`               | +`clearSession` import, +`browser logout <platform>` command                                    |
+| `tests/browser-clear-session.test.js`   | New — 8 tests                                                                                   |
+| `docs/build-state.md`                   | Sprint 115 entry added                                                                          |
+| `unified-theatre-continuity-summary.md` | This section                                                                                    |
 
 ---
 
@@ -4376,11 +4385,11 @@ optional, consistent with `export-training`'s option naming.
 
 ### 50.2 Files changed
 
-| File | Change |
-|------|--------|
-| `src/llm/repo-corpus-exporter.js` | New — `generateRepoCorpusPairs(sinceRef, opts)` and `appendRepoCorpusPairs(pairs, opts)` exports; local `gitExec()` helper |
-| `tests/llm/repo-corpus-exporter.test.js` | New — 4 tests (see 50.4) |
-| `src/commands/llm.js` | New `export-repo-corpus` subcommand only; import of the two new functions |
+| File                                     | Change                                                                                                                     |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `src/llm/repo-corpus-exporter.js`        | New — `generateRepoCorpusPairs(sinceRef, opts)` and `appendRepoCorpusPairs(pairs, opts)` exports; local `gitExec()` helper |
+| `tests/llm/repo-corpus-exporter.test.js` | New — 4 tests (see 50.4)                                                                                                   |
+| `src/commands/llm.js`                    | New `export-repo-corpus` subcommand only; import of the two new functions                                                  |
 
 `src/llm/_child-process.js` — **zero diff vs `origin/main`** (see 50.3).
 `src/commands/llm.js` — only the new subcommand block and its import added;
@@ -4414,7 +4423,7 @@ callers that were written against the original callback-style signature.
 2. Moved the `maxBuffer` fix into `repo-corpus-exporter.js`'s own
    `gitExec()` helper, which wraps `execFileRaw` via a manual
    `new Promise((resolve, reject) => execFileRaw("git", args,
-   { cwd, maxBuffer: MAX_BUFFER }, callback))`. This is the same
+{ cwd, maxBuffer: MAX_BUFFER }, callback))`. This is the same
    pattern `code-search.ts` uses for its own local `maxBuffer` override —
    neither module changes the shared passthrough.
 3. Updated the test mock from async promise-style to callback-style
@@ -4430,12 +4439,12 @@ Mock pattern: `vi.mock("../../src/llm/_child-process.js", () => ({ execFile: vi.
 — matching the real `node:child_process.execFile` signature, not promise-style.
 All git I/O is mocked via a `"git <subcommand> <args>"` key lookup.
 
-| # | Test | What it proves |
-|---|------|---------------|
-| 1 | Extracts one pair from a JSDoc-commented function addition | Full happy-path: git log + git show mocked, pair shape verified field-by-field, state file written with correct `lastProcessedRef` |
-| 2 | Skips functions without JSDoc | A function with no preceding comment produces zero pairs; state file still updated |
-| 3 | Zero pairs when stored ref covers the range | `git log` returns empty; `git show` never called; state not re-written; `toHaveBeenCalledWith` asserts full 4-arg signature including `{ maxBuffer: 128 * 1024 * 1024 }` and callback `Function` |
-| 4 | `appendRepoCorpusPairs` writes JSONL | Real temp-dir fs; JSONL line parseable; correct shape |
+| #   | Test                                                       | What it proves                                                                                                                                                                                   |
+| --- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | Extracts one pair from a JSDoc-commented function addition | Full happy-path: git log + git show mocked, pair shape verified field-by-field, state file written with correct `lastProcessedRef`                                                               |
+| 2   | Skips functions without JSDoc                              | A function with no preceding comment produces zero pairs; state file still updated                                                                                                               |
+| 3   | Zero pairs when stored ref covers the range                | `git log` returns empty; `git show` never called; state not re-written; `toHaveBeenCalledWith` asserts full 4-arg signature including `{ maxBuffer: 128 * 1024 * 1024 }` and callback `Function` |
+| 4   | `appendRepoCorpusPairs` writes JSONL                       | Real temp-dir fs; JSONL line parseable; correct shape                                                                                                                                            |
 
 Test 3's `toHaveBeenCalledWith` assertion was updated during the regression
 fix — it now explicitly asserts 4 args (the full callback-style signature)

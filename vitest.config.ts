@@ -79,7 +79,6 @@ export default defineConfig({
         // Shadowed by .js runtime counterparts — TS files are never executed at runtime
         "src/knowledge/ingest/chunking.ts",
         "src/knowledge/ingest/embedder.ts",
-        "src/llm/qdrant-client.ts",
         // Pure type definitions — no runtime code
         "src/shared/contracts/provider.ts",
         // Barrel re-export only — no executable statements

@@ -1,6 +1,6 @@
 /**
  * qdrant-client-coverage.test.ts
- * Covers src/llm/qdrant-client.ts (lines 5-49) — currently 0% coverage.
+ * Covers src/llm/qdrant-client.js — currently 0% coverage for the runtime implementation.
  * All functions use fetch; we stub global.fetch for each test.
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
@@ -288,10 +288,11 @@ describe("searchChunks", () => {
     expect(results[1].content).toBe("Fallback text field");
   });
 
-  it("returns empty array when response is not ok", async () => {
-    mockFetch(async () => ({ ok: false, status: 503 }) as unknown as Response);
-    const results = await searchChunks(new Array(1024).fill(0));
-    expect(results).toEqual([]);
+  it("throws when response is not ok", async () => {
+    mockFetch(async () => ({ ok: false, status: 503, text: async () => "Service Unavailable" }) as unknown as Response);
+    await expect(searchChunks(new Array(1024).fill(0))).rejects.toThrow(
+      /searchChunks: Qdrant returned 503: Service Unavailable/,
+    );
   });
 
   it("uses default limit=6 and scoreThreshold=0.4 when not specified", async () => {
