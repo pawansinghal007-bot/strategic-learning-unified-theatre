@@ -193,6 +193,7 @@ import {
   setupModel,
 } from "../llm/local-llm.js";
 import { exportTrainingData } from "../llm/training-exporter.js";
+import { triggerLoraTraining } from "../llm/training-trigger.js";
 
 import { verifyLocalLlmRuntime } from "../llm/inference.js";
 
@@ -827,6 +828,42 @@ export async function bindLlmCommands(program, { log: cliLog = null } = {}) {
         process.exitCode = 1;
       }
     });
+  llm
+    .command("train-local")
+    .description(
+      "Export training data (min 50 pairs) then trigger Unsloth LoRA fine-tuning",
+    )
+    .option("--out <path>", "Output JSONL file path")
+    .option("--base-dir <dir>", "Local storage base directory")
+    .option("--model <name>", "Unsloth model name", "phi3")
+    .option(
+      "--model-path <path>",
+      "Local path to a model file for Unsloth training",
+    )
+    .action(async (options) => {
+      const spinner = ora("Exporting training data (min 50 pairs)...").start();
+      try {
+        const result = await exportTrainingData({
+          baseDir: options.baseDir,
+          outputPath: options.out,
+          minPairs: 50,
+        });
+        spinner.succeed(
+          `Training data exported: ${result.recordsCount} record(s) → ${result.outputPath}`,
+        );
+        spinner.start("Launching Unsloth LoRA training...");
+        await triggerLoraTraining(result.outputPath, {
+          model: options.model,
+          modelPath: options.modelPath,
+        });
+        spinner.succeed("Unsloth training launched successfully");
+      } catch (err) {
+        spinner.stop();
+        console.error(chalk.red(String(err?.message ?? err)));
+        process.exitCode = 1;
+      }
+    });
+
   registerStatus(llm);
 }
 

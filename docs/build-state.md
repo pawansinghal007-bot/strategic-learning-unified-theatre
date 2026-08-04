@@ -8,11 +8,12 @@
 > 102–105. Always include "Last verified: Sprint N" so drift is immediately
 > visible to the next agent session.
 
-**Last verified: Sprint 115 — 2026-08-02**
-**Active branch:** `main` — working tree clean after Sprint 115 commit
-**Last committed sprint:** Sprint 115 — Session Isolation on Explicit Logout (this update)
-**Last updated:** 2026-08-02 — Sprint 115 complete (clearSession, storageStatePathFor, browser logout CLI command, 8-test suite)
-**Test suite:** 6411 passed, 2 skipped (6413 total) — 364 test files — fresh run 2026-08-02 (0 failures from sprint work; 1 pre-existing flaky timing race in daemon-shutdown-integration.test.js, passes in isolation)
+**Last verified: Sprint 117 — 2026-08-04**
+**Active branch:** `main` — history rewritten post-commit-split; force-pushed
+**Last committed sprint:** Sprint 117 — Agatsya Phase 1 + V14 training-trigger scaffold (see V14 entry below)
+**Last updated:** 2026-08-04 — Sprint 117 commits split: Agatsya scaffold and V14 training-trigger are now separate clean commits
+**Test suite:** 367 files / 6424 tests / 0 failures / 2 skipped — full baseline confirmed post-rewrite (2026-08-04)
+**V14 training-trigger status: SCAFFOLDED, NOT CLOSED.** `src/llm/training-trigger.js` and `llm train-local` CLI command exist and are tested (7 tests pass). The manual end-to-end acceptance step has never happened. The dataset gate from `sprints/SPRINT-13-ANALYSIS.md` has not been cleared: current paired examples = 1, required minimum = 50. Do not treat the presence of code as gate clearance.
 **Coverage (v8, last measured 2026-07-31):** 99.33% stmts / 96.19% branch / 98.67% funcs / 99.58% lines — all above thresholds (95/95/95/95)
 **TypeCheck:** `npx tsc --noEmit` — 0 errors (last verified at Slice 110e, `8122c007`)
 **MCP smoke:** `scripts/verify-mcp-stdio.mjs` — 6 tools returned (including retrieve), exit code 0 [CONFIRMED at Sprint 107]
@@ -43,6 +44,7 @@ future cleanup sprint — do not touch in browser-bridge sprints without explici
 accounting for this.
 
 **Files changed:**
+
 - `src/browser-bridge.js` — added `storageStatePathFor(platform)` pure helper
   (replaces inline `path.join(browserProfilesDir(), platform, "storage-state.json")`
   in `launchBrowser`); added `export async function clearSession(platform)`:
@@ -56,6 +58,7 @@ accounting for this.
 - `tests/browser-clear-session.test.js` — new, 8 tests (see below)
 
 **Test suite (tests/browser-clear-session.test.js — 8 tests, all GREEN):**
+
 1. Unit: `clearCookies` called once, `storageState` NEVER called, file deleted from real disk
 2. Multi-platform isolation: only the target platform's file is removed, sibling files unchanged
 3. Missing file (ENOENT): resolves without throwing, `clearCookies` still called
@@ -71,6 +74,7 @@ Pre-existing flaky failure confirmed unrelated: `daemon-shutdown-integration.tes
 timestamp race (off by 1ms under parallel load, passes in isolation immediately).
 
 **Grep confirmation (implementation safety check):**
+
 ```bash
 awk '/^export async function clearSession/,/^export async function sendPrompt/' \
     src/browser-bridge.js | grep -E "closeBrowser|storageState"
@@ -100,6 +104,7 @@ type-checking, and the existing 57-test spec suite. The `.js` file is what
 production plain-JS entry points import.
 
 **Files changed:**
+
 - `src/installer/hw-probe/hwProbe.js` — new plain-ESM runtime twin
 - `src/installer/hw-probe/package.json` — added `"type": "module"`
 - `src/internal/paths.d.ts` — new type declaration file for `paths.js`
@@ -107,6 +112,7 @@ production plain-JS entry points import.
 - `package.json` — added `build:hw-probe` verification script
 
 **Runtime import verification (from repo root):**
+
 ```
 node -e "import('./src/installer/hw-probe/hwProbe.js').then(m => console.log(Object.keys(m)))"
 [ 'classifyTier', 'inferVendor', 'parseVramString', 'probeHardware' ]
@@ -127,6 +133,7 @@ tier-X machines instead of attempting the `onnxruntime-node` import.
 Closes V10.
 
 **Files changed:**
+
 - `src/llm/embeddings.js` — added `probeHardware` import and tier-X gate
   before the existing `onnxruntime-node` try/catch
 - `tests/llm/embeddings-gpu-tier.test.js` — new test file (3 tests: tier X
@@ -190,6 +197,57 @@ under parallel load; passes in isolation immediately — pre-existing.
 - Sprint 101–103: MCP stdio live verification (`scripts/verify-mcp-stdio.mjs`),
   Linux packaging fix (PNG icon set in `resources/icons/`), Windows/Mac host
   limitation documented.
+
+## V14 — LoRA Training Trigger (resumed) — 2026-08-04
+
+**Status: SCAFFOLDED — gate not cleared — manual end-to-end has never happened.**
+
+### What exists
+
+- `src/llm/training-trigger.js` — `triggerLoraTraining(datasetPath, { model, modelPath })`:
+  spawns Unsloth CLI via `wt.exe → wsl.exe → bash -l -c`. Model auto-discovery
+  order: explicit `--model-path` → HuggingFace hub `.safetensors` → mounted
+  `.gguf` paths → env-var/default name. All args shell-quoted via `shellQuote()`.
+- `src/llm/_child-process.js` — `spawn` added alongside `execFile` so the shim
+  remains fully mockable in Vitest.
+- `src/commands/llm.js` — `llm train-local` sub-command: calls
+  `exportTrainingData({ minPairs: 50 })` then `triggerLoraTraining(...)`, both
+  with ora spinners and standard chalk error handling.
+- `tests/llm/training-trigger.test.js` — 7 tests covering arg shape, shell-quoting,
+  model discovery, exit-0 resolve, exit-1 reject.
+
+### Why V14 is not closed
+
+The dataset gate from `sprints/SPRINT-13-ANALYSIS.md` has not been cleared:
+
+> Minimum threshold to reopen: **50 paired examples**
+> Current export: **1 paired example**
+
+Running `llm train-local` with the current dataset would violate the gate, not
+satisfy it. The code exists for when the gate is cleared; it must not be invoked
+before then.
+
+**Note from SPRINT-13-ANALYSIS.md:** Unsloth is flagged as non-viable for the
+original hardware env (Windows + Python 3.14.5 + CPU-only). Before invoking
+`train-local`, verify toolchain compatibility or switch to `llama.cpp finetune`
+as the analysis recommends.
+
+### Acceptance criteria to close V14
+
+1. `llm export-training --min-pairs 50` exits 0 with ≥ 50 pairs
+2. Manual `llm train-local` run completes without error on the target machine
+3. Output model artifact verified loadable
+4. This entry updated to `CLOSED` with the run date and pair count
+
+### What must NOT happen
+
+- Do not run `llm train-local` as a CI step or automated gate check
+- Do not mark V14 closed because tests pass — tests only verify the subprocess
+  wiring, not an actual training run
+- Do not reopen `sprints/SPRINT-13-ANALYSIS.md`; its decision stands until the
+  pair count and toolchain criteria are met
+
+---
 
 ## Open Items Carried Forward
 

@@ -6,4 +6,4 @@
  * them directly; a local wrapper is processed through Vite's transform
  * pipeline and is therefore fully mockable).
  */
-export { execFile } from "node:child_process";
+export { execFile, spawn } from "node:child_process";
