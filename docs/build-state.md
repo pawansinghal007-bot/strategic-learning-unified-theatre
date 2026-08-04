@@ -8,11 +8,11 @@
 > 102–105. Always include "Last verified: Sprint N" so drift is immediately
 > visible to the next agent session.
 
-**Last verified: Sprint 118 — 2026-08-04**
+**Last verified: Sprint 118.5 — Qdrant Retrieval Consolidation — 2026-08-04**
 **Active branch:** `main`
-**Last committed sprint:** Sprint 118 — repo-driven training corpus generator (see Sprint 118 section below)
-**Last updated:** 2026-08-04 — Sprint 118 complete; export-repo-corpus CLI command wired and verified end-to-end
-**Test suite:** 369 files / 6435 tests / 0 failures / 2 skipped — full baseline confirmed post-merge (2026-08-04)
+**Last committed sprint:** Sprint 118.5 — Qdrant retrieval consolidation (see Sprint 118.5 section below)
+**Last updated:** 2026-08-04 — Sprint 118.5 complete; searchChunks() consolidation, src/llm/qdrant-client.ts deleted, config defaults corrected
+**Test suite:** 369 passed | 1 skipped (370) files, 6431 passed | 2 skipped (6433) tests, 0 failures (one flaky storage-monitor temp-dir race independently confirmed pre-existing via baseline comparison, not caused by this fix).
 **V14 training-trigger status: SCAFFOLDED, NOT CLOSED.** `src/llm/training-trigger.js` and `llm train-local` CLI command exist and are tested (7 tests pass). The manual end-to-end acceptance step has never happened. The dataset gate from `sprints/SPRINT-13-ANALYSIS.md` has not been cleared: current paired examples = 1, required minimum = 50. Do not treat the presence of code as gate clearance.
 **Coverage (v8, last measured 2026-07-31):** 99.33% stmts / 96.19% branch / 98.67% funcs / 99.58% lines — all above thresholds (95/95/95/95)
 **TypeCheck:** `npx tsc --noEmit` — 0 errors (last verified at Slice 110e, `8122c007`)
@@ -118,6 +118,45 @@ npx tsx ./src/cli.js llm export-repo-corpus
 `ERR_MODULE_NOT_FOUND: src/cli/llm-health.js`. This is a pre-existing defect
 unrelated to this sprint. `npx tsx ./src/cli.js` was used as the workaround
 throughout this sprint's verification. Needs its own sprint entry to fix.
+
+## Sprint 118.5 — Qdrant Retrieval Consolidation — 2026-08-04
+
+**Goal:** Consolidate Qdrant retrieval onto `src/llm/qdrant-client.js`'s
+`searchChunks()` as the single authoritative implementation; `vectorSearch()`
+now delegates instead of duplicating embed+HTTP+parse logic.
+
+**Design decisions (explicit, not inherited from any prior convention):**
+
+- `searchChunks()` is the single Qdrant retrieval path. `vectorSearch()` now
+  delegates to it instead of reimplementing embeddings, request construction,
+  response parsing, or source resolution.
+- `vectorSearch()`'s `source` field now resolves from the ingestion payload's
+  `path` field instead of falling back to the raw Qdrant point ID.
+- Config defaults were corrected so `QDRANT_URL`, `EMBEDDINGS_URL`, and
+  `QDRANT_COLLECTION` match `qdrant-client.js`'s real runtime values instead of
+  stale Docker-oriented defaults.
+- `searchChunks()` now throws on a non-ok Qdrant response rather than
+  silently swallowing the error to `[]`.
+- Caller behavior is intentionally asymmetric:
+  - `queryTopK` soft-fails via its own `try/catch`.
+  - both Electron IPC handlers already soft-fail unchanged.
+  - `vectorSearch()` hard-fails and propagates to agent/MCP callers by design.
+    The asymmetry preserves higher-level fallback behavior while ensuring direct
+    retrieval failures are visible to callers that need them.
+- Audit findings uncovered and fixed a genuine test gap: a `logger.info()` call
+  is now executed on successful `vectorSearch()` responses. The removed
+  `AbortError`/timeout tests in `tests/shared/retrieval/vector-client.test.ts`
+  were not gaps — that code path no longer exists after delegation.
+
+**Files changed:**
+
+- `src/llm/qdrant-client.js`
+- `src/llm/qdrant-client.d.ts` (new)
+- `src/shared/retrieval/vector-client.ts`
+- `src/llm/qdrant-client.ts` (deleted, confirmed zero runtime imports)
+- `tests/agents/tools/vector-client.test.ts`
+- `tests/llm/qdrant-client-coverage.test.ts`
+- `tests/shared/retrieval/vector-client.test.ts`
 
 ## Sprint 115 — Session Isolation on Explicit Logout — 2026-08-02
 

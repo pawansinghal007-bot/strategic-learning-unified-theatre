@@ -15,8 +15,12 @@ import { embedTextBatch } from "../knowledge/ingest/embedder.js";
 
 export async function queryTopK(text, k = 5) {
   const [vector] = await embedTextBatch([text]);
-  const hits = await searchChunks(vector, k);
-  return hits.map((hit) => ({ text: hit.content, score: hit.score }));
+  try {
+    const hits = await searchChunks(vector, k);
+    return hits.map((hit) => ({ text: hit.content, score: hit.score }));
+  } catch {
+    return [];
+  }
 }
 
 /** Deterministic UUID from a chunk_id string (SHA-256 → UUID format). */
@@ -105,9 +109,19 @@ export async function searchChunks(vector, limit = 6, scoreThreshold = 0.4) {
       }),
     },
   );
-  if (!res.ok) return [];
+  if (!res.ok) {
+    const body =
+      typeof res.text === "function"
+        ? await res.text().catch(() => "")
+        : "";
+    const status = typeof res.status === "number" ? res.status : "unknown";
+    throw new Error(`searchChunks: Qdrant returned ${status}: ${body}`);
+  }
   const data = await res.json();
   return (data.result ?? []).map((hit) => ({
+    id: hit.id,
+    path: hit.payload?.path ?? "",
+    source: hit.payload?.source ?? "",
     content: hit.payload?.content ?? hit.payload?.text ?? "",
     section: hit.payload?.section ?? "",
     feature_area: hit.payload?.feature_area ?? "",

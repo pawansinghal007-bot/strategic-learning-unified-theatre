@@ -14,13 +14,18 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // ─── hoisted mocks ────────────────────────────────────────────────────────────
 
-const { mockFetch, mockLogger } = vi.hoisted(() => ({
+const { mockFetch, mockLogger, mockSearchChunks } = vi.hoisted(() => ({
   mockFetch: vi.fn(),
   mockLogger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
+  mockSearchChunks: vi.fn(),
 }));
 
 vi.mock("../../../src/shared/logging/logger.js", () => ({
   logger: mockLogger,
+}));
+
+vi.mock("../../../src/llm/qdrant-client.js", () => ({
+  searchChunks: (...args: unknown[]) => mockSearchChunks(...args),
 }));
 
 // ─── module under test ────────────────────────────────────────────────────────
@@ -68,9 +73,7 @@ function makeErrorResponse(status: number, body: string) {
 describe("embed", () => {
   it("returns embedding array on success", async () => {
     const embedding = [0.1, 0.2, 0.3];
-    mockFetch.mockResolvedValueOnce(
-      makeOkResponse({ data: [{ embedding }] }),
-    );
+    mockFetch.mockResolvedValueOnce(makeOkResponse({ data: [{ embedding }] }));
 
     const result = await embed("hello world");
 
@@ -82,7 +85,9 @@ describe("embed", () => {
   });
 
   it("throws with status code when response is not ok", async () => {
-    mockFetch.mockResolvedValueOnce(makeErrorResponse(503, "Service Unavailable"));
+    mockFetch.mockResolvedValueOnce(
+      makeErrorResponse(503, "Service Unavailable"),
+    );
 
     await expect(embed("test")).rejects.toThrow(
       /embeddings service returned 503/,
@@ -92,9 +97,7 @@ describe("embed", () => {
   it("throws when response shape is missing data[0].embedding", async () => {
     mockFetch.mockResolvedValueOnce(makeOkResponse({ data: [{}] }));
 
-    await expect(embed("test")).rejects.toThrow(
-      /unexpected response shape/,
-    );
+    await expect(embed("test")).rejects.toThrow(/unexpected response shape/);
   });
 
   it("throws when data array is empty", async () => {
@@ -122,57 +125,57 @@ describe("embed", () => {
 // ─── vectorSearch ─────────────────────────────────────────────────────────────
 
 describe("vectorSearch", () => {
-  it("embeds query then queries Qdrant, returns mapped results", async () => {
-    // First fetch: embeddings service
+  it("embeds query then delegates search to searchChunks", async () => {
     mockFetch.mockResolvedValueOnce(
       makeOkResponse({ data: [{ embedding: [0.1, 0.2, 0.3] }] }),
     );
-    // Second fetch: Qdrant search
-    mockFetch.mockResolvedValueOnce(
-      makeOkResponse({
-        result: [
-          {
-            id: "abc",
-            score: 0.92,
-            payload: { source: "src/agents/runner.ts", text: "agent loop" },
-          },
-        ],
-      }),
-    );
+    mockSearchChunks.mockResolvedValueOnce([
+      {
+        id: "abc",
+        path: "src/agents/runner.ts",
+        content: "agent loop",
+        score: 0.92,
+      },
+    ]);
 
     const results = await vectorSearch("agent loop", 1);
 
-    expect(results).toHaveLength(1);
+    expect(mockSearchChunks).toHaveBeenCalledWith([0.1, 0.2, 0.3], 1);
+    expect(results).toEqual([
+      { score: 0.92, source: "src/agents/runner.ts", text: "agent loop" },
+    ]);
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("uses path as source when searchChunks returns path", async () => {
+    mockFetch.mockResolvedValueOnce(
+      makeOkResponse({ data: [{ embedding: [0.1, 0.2, 0.3] }] }),
+    );
+    mockSearchChunks.mockResolvedValueOnce([
+      {
+        id: "abc",
+        path: "src/foo.ts",
+        content: "some code",
+        score: 0.8,
+      },
+    ]);
+
+    const results = await vectorSearch("query");
+
     expect(results[0]).toEqual({
-      score: 0.92,
-      source: "src/agents/runner.ts",
-      text: "agent loop",
+      score: 0.8,
+      source: "src/foo.ts",
+      text: "some code",
     });
-    expect(mockFetch).toHaveBeenCalledTimes(2);
   });
 
-  it("returns empty array when Qdrant result is empty", async () => {
+  it("falls back to hit.id when searchChunks path is empty", async () => {
     mockFetch.mockResolvedValueOnce(
-      makeOkResponse({ data: [{ embedding: [0.5] }] }),
+      makeOkResponse({ data: [{ embedding: [0.1, 0.2, 0.3] }] }),
     );
-    mockFetch.mockResolvedValueOnce(makeOkResponse({ result: [] }));
-
-    const results = await vectorSearch("no matches");
-
-    expect(results).toEqual([]);
-  });
-
-  it("uses hit.id as source fallback when payload.source is missing", async () => {
-    mockFetch.mockResolvedValueOnce(
-      makeOkResponse({ data: [{ embedding: [0.1] }] }),
-    );
-    mockFetch.mockResolvedValueOnce(
-      makeOkResponse({
-        result: [
-          { id: 42, score: 0.8, payload: { text: "some text" } },
-        ],
-      }),
-    );
+    mockSearchChunks.mockResolvedValueOnce([
+      { id: 42, path: "", content: "some text", score: 0.8 },
+    ]);
 
     const results = await vectorSearch("query");
 
@@ -180,91 +183,42 @@ describe("vectorSearch", () => {
     expect(results[0].text).toBe("some text");
   });
 
-  it("uses empty string for text when payload.text is missing", async () => {
+  it("returns empty array when searchChunks returns no hits", async () => {
     mockFetch.mockResolvedValueOnce(
-      makeOkResponse({ data: [{ embedding: [0.1] }] }),
+      makeOkResponse({ data: [{ embedding: [0.5] }] }),
     );
-    mockFetch.mockResolvedValueOnce(
-      makeOkResponse({
-        result: [{ id: "x", score: 0.5, payload: { source: "f.ts" } }],
-      }),
-    );
+    mockSearchChunks.mockResolvedValueOnce([]);
 
-    const results = await vectorSearch("query");
-
-    expect(results[0].text).toBe("");
-  });
-
-  it("handles missing result key in Qdrant response (returns empty array)", async () => {
-    mockFetch.mockResolvedValueOnce(
-      makeOkResponse({ data: [{ embedding: [0.1] }] }),
-    );
-    mockFetch.mockResolvedValueOnce(makeOkResponse({}));
-
-    const results = await vectorSearch("query");
+    const results = await vectorSearch("no matches");
 
     expect(results).toEqual([]);
   });
 
-  it("throws when Qdrant returns non-ok response", async () => {
-    mockFetch.mockResolvedValueOnce(
-      makeOkResponse({ data: [{ embedding: [0.1] }] }),
-    );
-    mockFetch.mockResolvedValueOnce(makeErrorResponse(500, "Internal Server Error"));
+  it("propagates embed errors from the embedding service", async () => {
+    mockFetch.mockRejectedValueOnce(new TypeError("fetch failed"));
 
-    await expect(vectorSearch("query")).rejects.toThrow(
-      /Qdrant returned 500/,
-    );
+    await expect(vectorSearch("query")).rejects.toThrow("fetch failed");
   });
 
-  it("throws embed timeout message when embed's fetch aborts", async () => {
-    // AbortError from the embed fetch is caught inside embed() and re-thrown
-    // as "embed: timed out after Nms". vectorSearch propagates this as-is
-    // because the re-thrown error is no longer an AbortError.
-    const abortErr = new Error("The operation was aborted");
-    abortErr.name = "AbortError";
-    mockFetch.mockRejectedValueOnce(abortErr);
-
-    await expect(vectorSearch("slow query")).rejects.toThrow(
-      /embed: timed out after/,
-    );
-  });
-
-  it("throws timeout on AbortError from Qdrant fetch", async () => {
-    // embed succeeds
+  it("passes topK to searchChunks", async () => {
+    const vector = [0.1, 0.2, 0.3];
     mockFetch.mockResolvedValueOnce(
-      makeOkResponse({ data: [{ embedding: [0.1] }] }),
+      makeOkResponse({ data: [{ embedding: vector }] }),
     );
-    // Qdrant fetch aborts
-    const abortErr = new Error("aborted");
-    abortErr.name = "AbortError";
-    mockFetch.mockRejectedValueOnce(abortErr);
+    mockSearchChunks.mockResolvedValueOnce([]);
 
-    await expect(vectorSearch("query")).rejects.toThrow(
-      /vectorSearch: timed out after/,
-    );
-  });
+    await vectorSearch("query", 10);
 
-  it("rethrows non-abort errors from Qdrant fetch", async () => {
-    mockFetch.mockResolvedValueOnce(
-      makeOkResponse({ data: [{ embedding: [0.1] }] }),
-    );
-    mockFetch.mockRejectedValueOnce(new Error("ECONNREFUSED"));
-
-    await expect(vectorSearch("query")).rejects.toThrow("ECONNREFUSED");
+    expect(mockSearchChunks).toHaveBeenCalledWith(vector, 10);
   });
 
   it("logs result count via logger.info on success", async () => {
     mockFetch.mockResolvedValueOnce(
       makeOkResponse({ data: [{ embedding: [0.1] }] }),
     );
-    mockFetch.mockResolvedValueOnce(
-      makeOkResponse({
-        result: [
-          { id: "a", score: 0.9, payload: { source: "x.ts", text: "y" } },
-        ],
-      }),
-    );
+    mockSearchChunks.mockResolvedValueOnce([
+      { id: "a", path: "x.ts", content: "y", score: 0.9 },
+    ]);
 
     await vectorSearch("test query", 3);
 
@@ -272,19 +226,5 @@ describe("vectorSearch", () => {
       "retrieval.vector-search",
       expect.objectContaining({ query: "test query", topK: 3, hits: 1 }),
     );
-  });
-
-  it("uses default topK of 5 when not specified", async () => {
-    mockFetch.mockResolvedValueOnce(
-      makeOkResponse({ data: [{ embedding: [0.1] }] }),
-    );
-    mockFetch.mockResolvedValueOnce(makeOkResponse({ result: [] }));
-
-    await vectorSearch("query");
-
-    // The body sent to Qdrant should have limit: 5
-    const qdrantCall = mockFetch.mock.calls[1];
-    const body = JSON.parse(qdrantCall[1].body);
-    expect(body.limit).toBe(5);
   });
 });

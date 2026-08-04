@@ -18,14 +18,19 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // ─── hoisted mocks ────────────────────────────────────────────────────────────
 
-const { mockFetch } = vi.hoisted(() => ({
+const { mockFetch, mockSearchChunks } = vi.hoisted(() => ({
   mockFetch: vi.fn(),
+  mockSearchChunks: vi.fn(),
 }));
 
 vi.stubGlobal("fetch", mockFetch);
 
 vi.mock("../../../src/shared/logging/logger", () => ({
   logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() },
+}));
+
+vi.mock("../../../src/llm/qdrant-client.js", () => ({
+  searchChunks: (...args: unknown[]) => mockSearchChunks(...args),
 }));
 
 // ─── module under test ────────────────────────────────────────────────────────
@@ -66,14 +71,11 @@ describe("vectorSearch", () => {
 
   it("returns mapped results on successful embed + Qdrant search", async () => {
     const vector = [0.1, 0.2, 0.3];
-    mockFetch
-      .mockResolvedValueOnce(embedResponse(vector))
-      .mockResolvedValueOnce(
-        qdrantResponse([
-          { id: "doc-1", score: 0.95, payload: { source: "src/foo.ts", text: "function foo()" } },
-          { id: "doc-2", score: 0.82, payload: { source: "src/bar.ts", text: "const bar = 1" } },
-        ]),
-      );
+    mockFetch.mockResolvedValueOnce(embedResponse(vector));
+    mockSearchChunks.mockResolvedValueOnce([
+      { id: "doc-1", score: 0.95, source: "src/foo.ts", content: "function foo()" },
+      { id: "doc-2", score: 0.82, source: "src/bar.ts", content: "const bar = 1" },
+    ]);
 
     const results = await vectorSearch("how does foo work", 5);
 
@@ -83,11 +85,8 @@ describe("vectorSearch", () => {
   });
 
   it("uses numeric id as source when payload.source is absent", async () => {
-    mockFetch
-      .mockResolvedValueOnce(embedResponse())
-      .mockResolvedValueOnce(
-        qdrantResponse([{ id: 42, score: 0.75 }]),
-      );
+    mockFetch.mockResolvedValueOnce(embedResponse());
+    mockSearchChunks.mockResolvedValueOnce([{ id: 42, score: 0.75, content: "" }]);
 
     const results = await vectorSearch("query");
 
@@ -96,9 +95,8 @@ describe("vectorSearch", () => {
   });
 
   it("returns empty array when Qdrant result is []", async () => {
-    mockFetch
-      .mockResolvedValueOnce(embedResponse())
-      .mockResolvedValueOnce(qdrantResponse([]));
+    mockFetch.mockResolvedValueOnce(embedResponse());
+    mockSearchChunks.mockResolvedValueOnce([]);
 
     const results = await vectorSearch("empty query");
 
@@ -106,9 +104,8 @@ describe("vectorSearch", () => {
   });
 
   it("returns empty array when Qdrant result is missing (undefined)", async () => {
-    mockFetch
-      .mockResolvedValueOnce(embedResponse())
-      .mockResolvedValueOnce(mockResponse(200, {}));
+    mockFetch.mockResolvedValueOnce(embedResponse());
+    mockSearchChunks.mockResolvedValueOnce([]);
 
     const results = await vectorSearch("missing result key");
 
@@ -126,12 +123,13 @@ describe("vectorSearch", () => {
   });
 
   it("propagates Qdrant non-ok response as an error", async () => {
-    mockFetch
-      .mockResolvedValueOnce(embedResponse())
-      .mockResolvedValueOnce(mockResponse(500, "Internal Server Error"));
+    mockFetch.mockResolvedValueOnce(embedResponse());
+    mockSearchChunks.mockRejectedValueOnce(
+      new Error("searchChunks: Qdrant returned 500: Internal Server Error"),
+    );
 
     await expect(vectorSearch("query")).rejects.toThrow(
-      /vectorSearch: Qdrant returned 500/,
+      /searchChunks: Qdrant returned 500:/,
     );
   });
 
@@ -142,33 +140,28 @@ describe("vectorSearch", () => {
   });
 
   it("propagates a network-level fetch failure from the Qdrant call", async () => {
-    mockFetch
-      .mockResolvedValueOnce(embedResponse())
-      .mockRejectedValueOnce(new TypeError("connection refused"));
+    mockFetch.mockResolvedValueOnce(embedResponse());
+    mockSearchChunks.mockRejectedValueOnce(new TypeError("connection refused"));
 
     await expect(vectorSearch("query")).rejects.toThrow("connection refused");
   });
 
   it("passes topK to the Qdrant request body", async () => {
-    mockFetch
-      .mockResolvedValueOnce(embedResponse([0.5]))
-      .mockResolvedValueOnce(qdrantResponse([]));
+    mockFetch.mockResolvedValueOnce(embedResponse([0.5]));
+    mockSearchChunks.mockResolvedValueOnce([]);
 
     await vectorSearch("query", 10);
 
-    const qdrantCallBody = JSON.parse(mockFetch.mock.calls[1][1].body as string);
-    expect(qdrantCallBody.limit).toBe(10);
+    expect(mockSearchChunks).toHaveBeenCalledWith([0.5], 10);
   });
 
   it("uses default topK of 5 when not specified", async () => {
-    mockFetch
-      .mockResolvedValueOnce(embedResponse([0.5]))
-      .mockResolvedValueOnce(qdrantResponse([]));
+    mockFetch.mockResolvedValueOnce(embedResponse([0.5]));
+    mockSearchChunks.mockResolvedValueOnce([]);
 
     await vectorSearch("query");
 
-    const qdrantCallBody = JSON.parse(mockFetch.mock.calls[1][1].body as string);
-    expect(qdrantCallBody.limit).toBe(5);
+    expect(mockSearchChunks).toHaveBeenCalledWith([0.5], 5);
   });
 });
 
