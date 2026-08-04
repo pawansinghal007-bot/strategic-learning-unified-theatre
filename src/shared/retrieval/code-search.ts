@@ -13,10 +13,72 @@
 
 import * as path from "node:path";
 import * as childProcess from "node:child_process";
-import { promisify } from "node:util";
 import { logger } from "../logging/logger.js";
 
-const execFile = promisify(childProcess.execFile);
+function execFile(
+  file: string,
+  args: string[],
+  options: childProcess.ExecFileOptions,
+) {
+  return new Promise<{ stdout: string; stderr: string }>((resolve, reject) => {
+    childProcess.execFile(
+      file,
+      args,
+      options,
+      (error, stdoutOrResult, stderr) => {
+        if (error) {
+          const err = error as NodeJS.ErrnoException & {
+            stdout?: string;
+            stderr?: string;
+          };
+          const callbackStdout =
+            typeof stdoutOrResult === "string"
+              ? stdoutOrResult
+              : ((
+                  stdoutOrResult as
+                    | { stdout?: string; stderr?: string }
+                    | undefined
+                )?.stdout ?? "");
+          const callbackStderr =
+            typeof stdoutOrResult === "string"
+              ? (stderr ?? "")
+              : ((
+                  stdoutOrResult as
+                    | { stdout?: string; stderr?: string }
+                    | undefined
+                )?.stderr ??
+                stderr ??
+                "");
+
+          err.stdout = err.stdout ?? String(callbackStdout);
+          err.stderr = err.stderr ?? String(callbackStderr);
+          reject(err);
+          return;
+        }
+
+        const stdoutValue =
+          typeof stdoutOrResult === "string"
+            ? stdoutOrResult
+            : ((
+                stdoutOrResult as
+                  | { stdout?: string; stderr?: string }
+                  | undefined
+              )?.stdout ?? "");
+        const stderrValue =
+          typeof stdoutOrResult === "string"
+            ? (stderr ?? "")
+            : ((
+                stdoutOrResult as
+                  | { stdout?: string; stderr?: string }
+                  | undefined
+              )?.stderr ??
+              stderr ??
+              "");
+        resolve({ stdout: String(stdoutValue), stderr: String(stderrValue) });
+      },
+    );
+  });
+}
 
 // ─── timeout configuration ────────────────────────────────────────────────────
 
