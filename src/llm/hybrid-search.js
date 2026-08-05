@@ -60,22 +60,47 @@ export async function hybridSearchChunks(
   filters = {},
   options = {},
 ) {
+  const startMs = performance.now();
+  const embedStart = performance.now();
   const [vector] = await embedTextBatch([query]);
+  const embedDurationMs = Number((performance.now() - embedStart).toFixed(3));
+
   const scoreThreshold =
     typeof options.scoreThreshold === "number" ? options.scoreThreshold : 0.4;
-  // Pass filters to both arms so metadata constraints are applied consistently.
+
+  const vectorSearchStart = performance.now();
   const vectorHits = await vectorSearchChunks(
     vector,
     limit,
     scoreThreshold,
     filters,
   );
-  const lexicalHits = await searchLexicalChunks(query, limit, filters);
+  const vectorSearchDurationMs = Number(
+    (performance.now() - vectorSearchStart).toFixed(3),
+  );
 
+  const lexicalSearchStart = performance.now();
+  const lexicalHits = await searchLexicalChunks(query, limit, filters);
+  const lexicalSearchDurationMs = Number(
+    (performance.now() - lexicalSearchStart).toFixed(3),
+  );
+
+  const fusionStart = performance.now();
   const fused = fuseHybridResults(vectorHits, lexicalHits, options);
+  const fusionDurationMs = Number((performance.now() - fusionStart).toFixed(3));
+
+  const totalDurationMs = Number((performance.now() - startMs).toFixed(3));
 
   logger.info("retrieval.hybrid-search", {
     query,
+    limit,
+    scoreThreshold,
+    filterCount: Object.keys(filters ?? {}).length,
+    embeddingDurationMs: embedDurationMs,
+    vectorSearchDurationMs,
+    lexicalSearchDurationMs,
+    fusionDurationMs,
+    totalDurationMs,
     vectorHits: vectorHits.length,
     lexicalHits: lexicalHits.length,
     fused: fused.length,

@@ -8,8 +8,10 @@
 
 import { Agent } from "undici";
 import { createHash } from "node:crypto";
+import { performance } from "node:perf_hooks";
 import { estimateTokenCount } from "../../llm/document-ingester.js";
 import { embeddingCache } from "./embedding-cache.js";
+import { logger } from "../../shared/logging/logger.js";
 
 const EMBEDDINGS_BASE_URL =
   // v8 ignore next: env variable fallback (EMBEDDINGS_URL) is set at runtime; default is always used in tests
@@ -103,6 +105,10 @@ async function embedWithCache(items, keyFn, textFn) {
     missingGroups.get(key).push(i);
   }
 
+  const beforeStats = embeddingCache.getStats();
+  const beforeStatsStart = performance.now();
+  let serviceCallCount = 0;
+
   if (missingGroups.size > 0) {
     const missingKeys = [...missingGroups.keys()];
     const missingTexts = missingKeys.map((key) => {
@@ -110,7 +116,9 @@ async function embedWithCache(items, keyFn, textFn) {
       return textFn(items[index]);
     });
 
-    const missingVectors = await embedTextBatchFromService(missingTexts);
+    const missingResult = await embedTextBatchFromService(missingTexts);
+    const missingVectors = missingResult.vectors;
+    serviceCallCount = missingResult.serviceCallCount;
     for (let i = 0; i < missingKeys.length; i += 1) {
       const key = missingKeys[i];
       const vector = missingVectors[i];
@@ -120,6 +128,16 @@ async function embedWithCache(items, keyFn, textFn) {
       embeddingCache.setVector(key, vector);
     }
   }
+
+  const afterStats = embeddingCache.getStats();
+  logger.info("retrieval.embedding", {
+    inputCount: items.length,
+    cacheHits: afterStats.hits - beforeStats.hits,
+    cacheMisses: afterStats.misses - beforeStats.misses,
+    cacheSize: afterStats.size,
+    serviceCallCount,
+    durationMs: Number((performance.now() - beforeStatsStart).toFixed(3)),
+  });
 
   return vectors;
 }
@@ -143,6 +161,7 @@ export function getEmbeddingCacheStats() {
 async function embedTextBatchFromService(texts) {
   const vectors = [];
   let i = 0;
+  let serviceCallCount = 0;
 
   while (i < texts.length) {
     const batch = [texts[i]];
@@ -159,10 +178,11 @@ async function embedTextBatchFromService(texts) {
       j += 1;
     }
 
+    serviceCallCount += 1;
     const batchVectors = await fetchEmbeddings(batch);
     vectors.push(...batchVectors);
     i = j;
   }
 
-  return vectors;
+  return { vectors, serviceCallCount };
 }

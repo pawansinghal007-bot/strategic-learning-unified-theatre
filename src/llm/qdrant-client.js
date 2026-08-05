@@ -4,6 +4,8 @@
  */
 
 import { createHash } from "node:crypto";
+import { performance } from "node:perf_hooks";
+import { logger } from "../shared/logging/logger.js";
 
 export const KNOWLEDGE_COLLECTION = "knowledge_chunks";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -12,14 +14,14 @@ const QDRANT_URL = process.env.QDRANT_URL ?? "http://localhost:6333";
 const VECTOR_DIM = 2560; // qwen3-emb-4b
 
 export async function queryTopK(text, k = 5) {
+  const startMs = performance.now();
+  const rerankEnabled = process.env.RERANK_ENABLED === "true";
+  const poolSize = Number(process.env.RERANK_CANDIDATE_POOL ?? 30);
+  const fetchLimit = rerankEnabled ? poolSize : k;
+
   try {
     const { hybridSearchChunks } = await import("./hybrid-search.js");
     const { rerankCandidates } = await import("./reranker.js");
-
-    const rerankEnabled = process.env.RERANK_ENABLED === "true";
-    // If reranking is enabled, request a larger candidate pool (N)
-    const poolSize = Number(process.env.RERANK_CANDIDATE_POOL ?? 30);
-    const fetchLimit = rerankEnabled ? poolSize : k;
 
     const fused = await hybridSearchChunks(
       text,
@@ -30,21 +32,53 @@ export async function queryTopK(text, k = 5) {
       },
     );
 
-    if (!rerankEnabled) return fused.slice(0, k);
-
-    try {
-      const reranked = await rerankCandidates(text, fused, { topK: k, poolSize });
-      return reranked;
-    } catch (err) {
-      // Graceful fallback: return original fused ordering
-      // Do not fail the whole request for reranker problems
-      // Log and return the initial fused results truncated to k
-      // Dynamic import of logger to avoid cycles
-      const { logger } = await import("../shared/logging/logger.js");
-      logger.warn("retrieval.rerank_error", { error: String(err) });
+    if (!rerankEnabled) {
+      logger.info("retrieval.query", {
+        query: text,
+        topK: k,
+        rerankEnabled: false,
+        fusedCount: fused.length,
+        durationMs: Number((performance.now() - startMs).toFixed(3)),
+      });
       return fused.slice(0, k);
     }
-  } catch {
+
+    try {
+      const reranked = await rerankCandidates(text, fused, {
+        topK: k,
+        poolSize,
+      });
+      logger.info("retrieval.query", {
+        query: text,
+        topK: k,
+        rerankEnabled: true,
+        poolSize,
+        fusedCount: fused.length,
+        returnedCount: reranked.length,
+        durationMs: Number((performance.now() - startMs).toFixed(3)),
+      });
+      return reranked;
+    } catch (err) {
+      logger.warn("retrieval.rerank_error", { error: String(err) });
+      logger.info("retrieval.query", {
+        query: text,
+        topK: k,
+        rerankEnabled: true,
+        poolSize,
+        fusedCount: fused.length,
+        returnedCount: Math.min(k, fused.length),
+        durationMs: Number((performance.now() - startMs).toFixed(3)),
+      });
+      return fused.slice(0, k);
+    }
+  } catch (err) {
+    logger.error("retrieval.query_failed", {
+      query: text,
+      topK: k,
+      rerankEnabled,
+      error: String(err),
+      durationMs: Number((performance.now() - startMs).toFixed(3)),
+    });
     return [];
   }
 }
@@ -178,6 +212,7 @@ export async function searchChunks(
     requestBody.filter = qdrantFilter;
   }
 
+  const startMs = performance.now();
   const res = await fetch(
     `${QDRANT_URL}/collections/${KNOWLEDGE_COLLECTION}/points/search`,
     {
@@ -186,14 +221,21 @@ export async function searchChunks(
       body: JSON.stringify(requestBody),
     },
   );
+  const durationMs = Number((performance.now() - startMs).toFixed(3));
   if (!res.ok) {
     const body =
       typeof res.text === "function" ? await res.text().catch(() => "") : "";
     const status = typeof res.status === "number" ? res.status : "unknown";
+    logger.warn("retrieval.qdrant_error", {
+      status,
+      scoreThreshold,
+      filters: Object.keys(filters ?? {}).length,
+      durationMs,
+    });
     throw new Error(`searchChunks: Qdrant returned ${status}: ${body}`);
   }
   const data = await res.json();
-  return (data.result ?? []).map((hit) => ({
+  const results = (data.result ?? []).map((hit) => ({
     // Return the semantic chunk_id from the payload so it matches the id
     // used by lexical-index.js — both arms must share the same ID space
     // for fuseHybridResults() to correctly merge overlapping results.
@@ -207,6 +249,17 @@ export async function searchChunks(
     source_type: hit.payload?.source_type ?? "",
     score: hit.score ?? 0,
   }));
+
+  logger.info("retrieval.qdrant", {
+    vectorLength: Array.isArray(vector) ? vector.length : null,
+    limit,
+    scoreThreshold,
+    filterCount: Object.keys(filters ?? {}).length,
+    resultCount: results.length,
+    durationMs,
+  });
+
+  return results;
 }
 
 /**
@@ -233,7 +286,7 @@ export async function getExistingFileHashes() {
       `${QDRANT_URL}/collections/${KNOWLEDGE_COLLECTION}/points/scroll`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json"},
         body: JSON.stringify(body),
       },
     );

@@ -74,6 +74,8 @@ export async function assembleContextFromChunks(chunks, options = {}) {
       budget,
       maxContextTokens,
       headroomTokens,
+      candidateChunks: chunks.length,
+      selectedChunks: selected.length,
     });
 
     return {
@@ -104,6 +106,15 @@ export async function assembleContextFromChunks(chunks, options = {}) {
       }\n${chunk.text}`;
     })
     .join("\n\n");
+
+  logger.info("retrieval.context-budget", {
+    candidateChunks: chunks.length,
+    selectedChunks: selected.length,
+    tokenCount: accumulatedTokens,
+    budget,
+    maxContextTokens,
+    headroomTokens,
+  });
 
   return {
     content,

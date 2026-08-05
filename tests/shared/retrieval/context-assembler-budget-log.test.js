@@ -33,8 +33,8 @@ vi.mock("../../../src/shared/retrieval/tokenizer.js", async () => {
   );
   return {
     ...actual,
-    countTokens: vi.fn(async (text) =>
-      String(text).split(/\s+/).filter(Boolean).length,
+    countTokens: vi.fn(
+      async (text) => String(text).split(/\s+/).filter(Boolean).length,
     ),
   };
 });
@@ -84,7 +84,12 @@ describe("assembleContextFromChunks — budget-warning logging regression", () =
     // "one two three four five six seven eight nine ten" = 10 tokens
     // Budget will be 1 token, so the chunk cannot fit
     const result = await assembleContextFromChunks(
-      [{ text: "one two three four five six seven eight nine ten", score: 0.9 }],
+      [
+        {
+          text: "one two three four five six seven eight nine ten",
+          score: 0.9,
+        },
+      ],
       {
         maxContextTokens: 8,
         headroomTokens: 1,
@@ -147,6 +152,28 @@ describe("assembleContextFromChunks — budget-warning logging regression", () =
     expect(result.content).not.toBe("");
     expect(result.selected.length).toBeGreaterThan(0);
     expect(vi.mocked(logger.warn)).not.toHaveBeenCalled();
+  });
+
+  it("logs info when chunks are selected and includes budget metrics", async () => {
+    await assembleContextFromChunks([{ text: "one two three", score: 0.9 }], {
+      maxContextTokens: 20,
+      headroomTokens: 1,
+      systemTokens: 0,
+      userQueryTokens: 0,
+      responseTokens: 4,
+    });
+
+    expect(vi.mocked(logger.info)).toHaveBeenCalledWith(
+      "retrieval.context-budget",
+      expect.objectContaining({
+        candidateChunks: 1,
+        selectedChunks: 1,
+        tokenCount: expect.any(Number),
+        budget: expect.any(Number),
+        maxContextTokens: 20,
+        headroomTokens: 1,
+      }),
+    );
   });
 
   // ── Case 5: return shape is unchanged after the fix ──────────────────────

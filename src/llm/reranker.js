@@ -23,19 +23,21 @@ function cosine(a, b) {
  *  - alpha: weight for original score vs embedding similarity (0..1)
  */
 export async function rerankCandidates(query, candidates, options = {}) {
+  const startMs = performance.now();
   const enabled = process.env.RERANK_ENABLED === "true";
   if (!enabled) return candidates.slice(0, options.topK ?? candidates.length);
 
-  const poolSize = Number(process.env.RERANK_CANDIDATE_POOL ?? options.poolSize ?? 30);
+  const poolSize = Number(
+    process.env.RERANK_CANDIDATE_POOL ?? options.poolSize ?? 30,
+  );
   const topK = Number(process.env.RERANK_TOP_K ?? options.topK ?? 5);
   const alpha = Number(process.env.RERANK_ALPHA ?? options.alpha ?? 0.5);
   const timeoutMs = Number(process.env.RERANK_TIMEOUT_MS ?? 5000);
 
   const pool = candidates.slice(0, poolSize);
-
   const texts = pool.map((c) => String(c.content ?? c.text ?? ""));
 
-  // embed query + candidates (query first)
+  const embedStart = performance.now();
   const embedPromise = embedTextBatch([query, ...texts]);
 
   let vectors;
@@ -47,11 +49,19 @@ export async function rerankCandidates(query, candidates, options = {}) {
       ),
     ]);
   } catch (err) {
-    logger.warn("retrieval.rerank_failed", { reason: String(err) });
-    // fallback: return original order truncated to topK
+    const durationMs = Number((performance.now() - startMs).toFixed(3));
+    logger.warn("retrieval.rerank_failed", {
+      query,
+      poolSize: pool.length,
+      topK,
+      timeoutMs,
+      reason: String(err),
+      durationMs,
+    });
     return candidates.slice(0, topK);
   }
 
+  const embedDurationMs = Number((performance.now() - embedStart).toFixed(3));
   const queryVec = vectors[0];
   const candidateVecs = vectors.slice(1);
 
@@ -64,10 +74,15 @@ export async function rerankCandidates(query, candidates, options = {}) {
 
   scored.sort((a, b) => b.combined - a.combined);
 
+  const durationMs = Number((performance.now() - startMs).toFixed(3));
   logger.info("retrieval.rerank", {
     query,
     poolSize: pool.length,
+    topK,
+    alpha,
+    embedDurationMs,
     returned: Math.min(topK, scored.length),
+    durationMs,
   });
 
   return scored.slice(0, topK).map((s) => ({ ...s.item, score: s.combined }));
