@@ -24,6 +24,15 @@ vi.mock("../../../src/llm/document-ingester.js", () => ({
   estimateTokenCount: mockEstimateTokenCount,
 }));
 
+vi.mock("../../../src/knowledge/ingest/embedding-cache.js", () => ({
+  embeddingCache: {
+    init: vi.fn().mockResolvedValue(undefined),
+    getVector: vi.fn().mockReturnValue(null),
+    setVector: vi.fn(),
+    getStats: vi.fn().mockReturnValue({ hits: 0, misses: 0, size: 0 }),
+  },
+}));
+
 import { embedTextBatch } from "../../../src/knowledge/ingest/embedder.js";
 
 // ─── setup ────────────────────────────────────────────────────────────────────

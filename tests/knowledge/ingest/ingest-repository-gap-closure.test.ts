@@ -25,6 +25,7 @@ import os from "node:os";
 // Mock dependencies
 const mocks = {
   embedTextBatch: vi.fn(),
+  embedChunksWithCache: vi.fn(),
   upsertChunks: vi.fn(),
   ensureKnowledgeCollection: vi.fn(),
   getExistingFileHashes: vi.fn(),
@@ -33,6 +34,7 @@ const mocks = {
 
 vi.mock("../../../src/knowledge/ingest/embedder.js", () => ({
   embedTextBatch: mocks.embedTextBatch,
+  embedChunksWithCache: mocks.embedChunksWithCache,
 }));
 
 vi.mock("../../../src/llm/qdrant-client.js", () => ({
@@ -48,6 +50,9 @@ describe("ingest-repository.js — gap closure", () => {
   beforeEach(async () => {
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "ingest-gap-"));
     mocks.embedTextBatch.mockReset();
+    mocks.embedChunksWithCache.mockImplementation((chunks) =>
+      Promise.resolve(chunks.map(() => [0.1, 0.2, 0.3])),
+    );
     mocks.upsertChunks.mockReset();
     mocks.ensureKnowledgeCollection.mockReset();
     mocks.getExistingFileHashes.mockReset();
@@ -205,10 +210,10 @@ describe("ingest-repository.js — gap closure", () => {
       );
 
       // Return 0 vectors for 1+ chunks → mismatch
-      mocks.embedTextBatch.mockResolvedValue([]);
+      mocks.embedChunksWithCache.mockResolvedValue([]);
 
       await expect(ingestRepository({ baseDir: tempDir })).rejects.toThrow(
-        "embedTextBatch returned",
+        "embedChunksWithCache returned",
       );
     });
   });

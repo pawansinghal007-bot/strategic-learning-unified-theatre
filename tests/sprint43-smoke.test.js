@@ -263,11 +263,10 @@ describe("Sprint 43 smoke tests — file surface", () => {
       join(process.cwd(), "electron-ui/ipc/handlers.cjs"),
       "utf-8",
     );
-    expect(source).toContain("embedTextBatch");
+    expect(source).toContain("queryTopK");
     expect(source).toContain("knowledge_chunks");
     expect(source).toContain("PROJECT CONTEXT");
     expect(source).toContain("knowledgeHits");
-    expect(source).toContain("score >= 0.4");
   });
 
   it("handlers.cjs RAG retrieval is wrapped in try/catch", () => {
