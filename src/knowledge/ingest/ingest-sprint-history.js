@@ -4,8 +4,12 @@ import {
   ensureKnowledgeCollection,
   upsertChunks,
 } from "../../llm/qdrant-client.js";
+import {
+  upsertLexicalChunks,
+  deleteLexicalChunksByDocId,
+} from "../../llm/lexical-index.js";
 import { chunkDocument } from "./chunking.js";
-import { embedTextBatch } from "./embedder.js";
+import { embedChunksWithCache } from "./embedder.js";
 
 const SPRINT_REPORT_EXTENSIONS = new Set([".md", ".markdown", ".txt"]);
 
@@ -96,10 +100,10 @@ async function ingestSprintReport(doc) {
   /* v8 ignore next -- unreachable: safeChunks only empty if all chunks exceeded 6000 chars */
   if (safeChunks.length === 0) return;
 
-  const vectors = await embedTextBatch(safeChunks.map((chunk) => chunk.text));
+  const vectors = await embedChunksWithCache(safeChunks);
   if (vectors.length !== safeChunks.length) {
     throw new Error(
-      `[knowledge] embedTextBatch returned ${vectors.length} vectors for ${safeChunks.length} chunks`,
+      `[knowledge] embedChunksWithCache returned ${vectors.length} vectors for ${safeChunks.length} chunks`,
     );
   }
 
@@ -124,7 +128,30 @@ async function ingestSprintReport(doc) {
     content: String(chunk.text ?? "").slice(0, 16_384),
   }));
 
+  // Remove any existing lexical-index entries for this doc before re-inserting,
+  // mirroring the deleteLexicalChunksByDocId call in ingest-repository.js so
+  // both indexes stay in lockstep on re-ingestion.
+  deleteLexicalChunksByDocId(doc.id);
+
   await upsertChunks(points);
+
+  // Mirror ingest-repository.js's insertChunkBatch: write to the lexical
+  // (BM25/FTS5) index in addition to Qdrant so sprint-report content is
+  // visible to both arms of hybrid search.
+  upsertLexicalChunks(
+    points.map((p) => ({
+      chunk_id: p.chunk_id,
+      doc_id: p.doc_id,
+      path: p.path ?? "",
+      section: p.section ?? "",
+      feature_area: p.feature_area ?? "",
+      source_type: p.source_type ?? "",
+      sprint: p.sprint ?? -1,
+      module: p.module ?? "",
+      content: String(p.content ?? "").slice(0, 16_384),
+    })),
+  );
+
   console.log(`[knowledge] Inserted ${points.length} chunk(s) for ${doc.id}`);
 }
 

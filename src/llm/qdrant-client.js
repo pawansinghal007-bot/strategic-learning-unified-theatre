@@ -11,13 +11,17 @@ export const KNOWLEDGE_COLLECTION = "knowledge_chunks";
 const QDRANT_URL = process.env.QDRANT_URL ?? "http://localhost:6333";
 const VECTOR_DIM = 2560; // qwen3-emb-4b
 
-import { embedTextBatch } from "../knowledge/ingest/embedder.js";
-
 export async function queryTopK(text, k = 5) {
-  const [vector] = await embedTextBatch([text]);
   try {
-    const hits = await searchChunks(vector, k);
-    return hits.map((hit) => ({ text: hit.content, score: hit.score }));
+    const { hybridSearchChunks } = await import("./hybrid-search.js");
+    return await hybridSearchChunks(
+      text,
+      k,
+      {},
+      {
+        scoreThreshold: Number(process.env.VECTOR_SCORE_THRESHOLD ?? 0.4),
+      },
+    );
   } catch {
     return [];
   }
@@ -95,31 +99,83 @@ export async function upsertChunks(chunks) {
   }
 }
 
-export async function searchChunks(vector, limit = 6, scoreThreshold = 0.4) {
+const SUPPORTED_VECTOR_FILTER_COLUMNS = new Set([
+  "chunk_id",
+  "doc_id",
+  "path",
+  "section",
+  "feature_area",
+  "source_type",
+  "sprint",
+  "module",
+]);
+
+/**
+ * Build a Qdrant `filter` object from a plain key/value filters map.
+ * Only columns in SUPPORTED_VECTOR_FILTER_COLUMNS are forwarded.
+ *
+ * @param {Record<string, string|number|string[]>} filters
+ * @returns {{ must: object[] } | undefined}
+ */
+function buildQdrantFilter(filters) {
+  if (!filters || typeof filters !== "object") return undefined;
+
+  const must = [];
+  for (const [key, value] of Object.entries(filters)) {
+    if (!SUPPORTED_VECTOR_FILTER_COLUMNS.has(key)) continue;
+
+    if (Array.isArray(value)) {
+      // Skip empty arrays — no filter condition
+      if (value.length > 0) {
+        must.push({ key, match: { any: value } });
+      }
+      continue;
+    }
+    if (value === null || value === undefined) continue;
+    must.push({ key, match: { value } });
+  }
+
+  if (must.length === 0) return undefined;
+  return { must };
+}
+
+export async function searchChunks(
+  vector,
+  limit = 6,
+  scoreThreshold = 0.4,
+  filters = {},
+) {
+  const qdrantFilter = buildQdrantFilter(filters);
+  const requestBody = {
+    vector,
+    limit,
+    with_payload: true,
+    score_threshold: scoreThreshold,
+  };
+  if (qdrantFilter) {
+    requestBody.filter = qdrantFilter;
+  }
+
   const res = await fetch(
     `${QDRANT_URL}/collections/${KNOWLEDGE_COLLECTION}/points/search`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        vector,
-        limit,
-        with_payload: true,
-        score_threshold: scoreThreshold,
-      }),
+      body: JSON.stringify(requestBody),
     },
   );
   if (!res.ok) {
     const body =
-      typeof res.text === "function"
-        ? await res.text().catch(() => "")
-        : "";
+      typeof res.text === "function" ? await res.text().catch(() => "") : "";
     const status = typeof res.status === "number" ? res.status : "unknown";
     throw new Error(`searchChunks: Qdrant returned ${status}: ${body}`);
   }
   const data = await res.json();
   return (data.result ?? []).map((hit) => ({
-    id: hit.id,
+    // Return the semantic chunk_id from the payload so it matches the id
+    // used by lexical-index.js — both arms must share the same ID space
+    // for fuseHybridResults() to correctly merge overlapping results.
+    id: hit.payload?.chunk_id ?? hit.id,
     path: hit.payload?.path ?? "",
     source: hit.payload?.source ?? "",
     content: hit.payload?.content ?? hit.payload?.text ?? "",
