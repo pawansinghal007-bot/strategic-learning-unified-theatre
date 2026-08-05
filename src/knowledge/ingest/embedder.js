@@ -7,7 +7,9 @@
  */
 
 import { Agent } from "undici";
+import { createHash } from "node:crypto";
 import { estimateTokenCount } from "../../llm/document-ingester.js";
+import { embeddingCache } from "./embedding-cache.js";
 
 const EMBEDDINGS_BASE_URL =
   // v8 ignore next: env variable fallback (EMBEDDINGS_URL) is set at runtime; default is always used in tests
@@ -36,21 +38,113 @@ const embeddingsAgent = new Agent({
   bodyTimeout: BODY_TIMEOUT,
 });
 
-/**
- * Converts an array of text strings into embedding vectors by calling the
- * qwen-stack embeddings service in token-budget-aware batched requests.
- *
- * @param {string[]} texts - Text strings to embed.
- * @returns {Promise<number[][]>} Array of embedding vectors, one per input text, each 2560 dimensions.
- * @throws if the HTTP response is not ok — error message includes status code
- *         and the response body.
- */
-export async function embedTextBatch(texts) {
-  const vectors = [];
+function normalizeText(text) {
+  return String(text || "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
+function textToCacheKey(text) {
+  return createHash("sha256").update(normalizeText(text), "utf8").digest("hex");
+}
+
+async function fetchEmbeddings(batch) {
+  const response = await fetch(EMBEDDINGS_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ input: batch, model: EMBEDDINGS_MODEL }),
+    dispatcher: embeddingsAgent,
+  });
+
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(
+      `embedTextBatch: embeddings service returned ${response.status}: ${body}`,
+    );
+  }
+
+  const json = await response.json();
+  const batchData = json.data ?? [];
+  if (batchData.length !== batch.length) {
+    throw new TypeError(
+      `embedTextBatch: expected ${batch.length} embeddings but got ${batchData.length}`,
+    );
+  }
+
+  return batchData.map((item) => {
+    const embedding = item.embedding;
+    if (!Array.isArray(embedding)) {
+      throw new TypeError(
+        "embedTextBatch: unexpected response shape — missing data[].embedding",
+      );
+    }
+    return embedding;
+  });
+}
+
+async function embedWithCache(items, keyFn, textFn) {
+  await embeddingCache.init();
+
+  const vectors = new Array(items.length);
+  const missingGroups = new Map();
+  const keys = items.map(keyFn);
+
+  for (let i = 0; i < keys.length; i += 1) {
+    const cached = embeddingCache.getVector(keys[i]);
+    if (cached) {
+      vectors[i] = cached;
+      continue;
+    }
+
+    const key = keys[i];
+    if (!missingGroups.has(key)) {
+      missingGroups.set(key, []);
+    }
+    missingGroups.get(key).push(i);
+  }
+
+  if (missingGroups.size > 0) {
+    const missingKeys = [...missingGroups.keys()];
+    const missingTexts = missingKeys.map((key) => {
+      const index = missingGroups.get(key)[0];
+      return textFn(items[index]);
+    });
+
+    const missingVectors = await embedTextBatchFromService(missingTexts);
+    for (let i = 0; i < missingKeys.length; i += 1) {
+      const key = missingKeys[i];
+      const vector = missingVectors[i];
+      for (const index of missingGroups.get(key)) {
+        vectors[index] = vector;
+      }
+      embeddingCache.setVector(key, vector);
+    }
+  }
+
+  return vectors;
+}
+
+export async function embedTextBatch(texts) {
+  return embedWithCache(texts, textToCacheKey, (text) => text);
+}
+
+export async function embedChunksWithCache(chunks) {
+  return embedWithCache(
+    chunks,
+    (chunk) => chunk.hash || textToCacheKey(chunk.text),
+    (chunk) => chunk.text,
+  );
+}
+
+export function getEmbeddingCacheStats() {
+  return embeddingCache.getStats();
+}
+
+async function embedTextBatchFromService(texts) {
+  const vectors = [];
   let i = 0;
+
   while (i < texts.length) {
-    // Build a batch: add items while we're under the token budget and item cap
     const batch = [texts[i]];
     let batchTokens = estimateTokenCount(texts[i]);
     let j = i + 1;
@@ -62,43 +156,11 @@ export async function embedTextBatch(texts) {
     ) {
       batchTokens += estimateTokenCount(texts[j]);
       batch.push(texts[j]);
-      j++;
+      j += 1;
     }
 
-    const response = await fetch(EMBEDDINGS_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ input: batch, model: EMBEDDINGS_MODEL }),
-      dispatcher: embeddingsAgent,
-    });
-
-    if (!response.ok) {
-      const body = await response.text();
-      throw new Error(
-        `embedTextBatch: embeddings service returned ${response.status}: ${body}`,
-      );
-    }
-
-    const json = await response.json();
-
-    const batchData = json.data ?? [];
-    if (batchData.length !== batch.length) {
-      throw new TypeError(
-        `embedTextBatch: expected ${batch.length} embeddings but got ${batchData.length}`,
-      );
-    }
-
-    for (const item of batchData) {
-      const embedding = item.embedding;
-      if (!Array.isArray(embedding)) {
-        throw new TypeError(
-          "embedTextBatch: unexpected response shape — missing data[].embedding",
-        );
-      }
-      vectors.push(embedding);
-    }
-
-    // Advance past the batch we just sent
+    const batchVectors = await fetchEmbeddings(batch);
+    vectors.push(...batchVectors);
     i = j;
   }
 

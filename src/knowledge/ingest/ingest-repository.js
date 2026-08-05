@@ -8,8 +8,12 @@ import {
   getExistingFileHashes,
   deleteChunksByDocId,
 } from "../../llm/qdrant-client.js";
+import {
+  deleteLexicalChunksByDocId,
+  upsertLexicalChunks,
+} from "../../llm/lexical-index.js";
 import { chunkText } from "../../llm/document-ingester.js";
-import { embedTextBatch } from "./embedder.js";
+import { embedChunksWithCache } from "./embedder.js";
 
 const SUPPORTED_EXTENSIONS = new Set([
   ".md",
@@ -224,10 +228,10 @@ async function attachVectors(chunks) {
   }
   if (safeChunks.length === 0) return;
   // v8 ignore end
-  const vectors = await embedTextBatch(safeChunks.map((chunk) => chunk.text));
+  const vectors = await embedChunksWithCache(safeChunks);
   if (vectors.length !== safeChunks.length) {
     throw new Error(
-      `[knowledge] embedTextBatch returned ${vectors.length} vectors for ${safeChunks.length} chunks`,
+      `[knowledge] embedChunksWithCache returned ${vectors.length} vectors for ${safeChunks.length} chunks`,
     );
   }
   for (let i = 0; i < safeChunks.length; i++) {
@@ -266,6 +270,19 @@ async function insertChunkBatch(_client, chunks) {
     const points = batch.map((chunk) => chunkToQdrantPoint(chunk));
 
     await upsertChunks(points);
+    upsertLexicalChunks(
+      batch.map((chunk) => ({
+        chunk_id: chunk.chunkId,
+        doc_id: chunk.docId,
+        path: chunk.path ?? "",
+        section: chunk.section ?? "",
+        feature_area: chunk.featureArea ?? "",
+        source_type: chunk.sourceType ?? "",
+        sprint: chunk.sprint ?? -1,
+        module: chunk.module ?? "",
+        content: String(chunk.text ?? "").slice(0, 16_384),
+      })),
+    );
 
     inserted += points.length;
 
@@ -321,6 +338,7 @@ async function processFileChunks(fileChunksMap, currentFiles, existingHashes) {
     if (existingHash) {
       console.log(`[knowledge] Updating changed file: ${docId}`);
       await deleteChunksByDocId(docId);
+      deleteLexicalChunksByDocId(docId);
     }
 
     console.log(`[knowledge] Processing ${docId}: ${chunks.length} chunks`);
