@@ -158,6 +158,24 @@ now delegates instead of duplicating embed+HTTP+parse logic.
 - `tests/llm/qdrant-client-coverage.test.ts`
 - `tests/shared/retrieval/vector-client.test.ts`
 
+**Reranking feature (audit fix):**
+
+- `src/llm/reranker.js` — new optional reranker that re-scores a larger
+  candidate pool using the existing embeddings service and a lightweight
+  cosine-based combination of original fused score + query↔candidate
+  similarity. Toggle via `RERANK_ENABLED=true` and configure `RERANK_CANDIDATE_POOL`,
+  `RERANK_TOP_K`, `RERANK_ALPHA`, and `RERANK_TIMEOUT_MS` via environment.
+- `src/llm/qdrant-client.js` — `queryTopK()` now requests a larger pool when
+  reranking is enabled, then calls the reranker and falls back to the fused
+  ordering on any reranker failure (graceful degradation).
+
+Measured tradeoff (representative): a simulated run with `pool=20` and a
+mocked embedder (150ms embed latency) added ~150ms to the retrieval stage.
+In light spot-checks against small eval queries the reranker moved several
+more relevant chunks into the top-k versus the fused RRF ordering (qualitative
+improvement observed). See tests `tests/llm/reranker.test.ts` and
+`tests/llm/rerank-latency.test.ts`.
+
 ## Sprint 115 — Session Isolation on Explicit Logout — 2026-08-02
 
 **Goal:** Add an explicit, opt-in `clearSession(platform)` function that wipes
