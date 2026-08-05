@@ -14,14 +14,36 @@ const VECTOR_DIM = 2560; // qwen3-emb-4b
 export async function queryTopK(text, k = 5) {
   try {
     const { hybridSearchChunks } = await import("./hybrid-search.js");
-    return await hybridSearchChunks(
+    const { rerankCandidates } = await import("./reranker.js");
+
+    const rerankEnabled = process.env.RERANK_ENABLED === "true";
+    // If reranking is enabled, request a larger candidate pool (N)
+    const poolSize = Number(process.env.RERANK_CANDIDATE_POOL ?? 30);
+    const fetchLimit = rerankEnabled ? poolSize : k;
+
+    const fused = await hybridSearchChunks(
       text,
-      k,
+      fetchLimit,
       {},
       {
         scoreThreshold: Number(process.env.VECTOR_SCORE_THRESHOLD ?? 0.4),
       },
     );
+
+    if (!rerankEnabled) return fused.slice(0, k);
+
+    try {
+      const reranked = await rerankCandidates(text, fused, { topK: k, poolSize });
+      return reranked;
+    } catch (err) {
+      // Graceful fallback: return original fused ordering
+      // Do not fail the whole request for reranker problems
+      // Log and return the initial fused results truncated to k
+      // Dynamic import of logger to avoid cycles
+      const { logger } = await import("../shared/logging/logger.js");
+      logger.warn("retrieval.rerank_error", { error: String(err) });
+      return fused.slice(0, k);
+    }
   } catch {
     return [];
   }
