@@ -277,30 +277,44 @@ module.exports = async function register({ ipcMain, dialog, watcher, app }) {
 
     // ── RAG: embed query and search Qdrant ───────────────────────────────────
     let knowledgeHits = [];
+    let contextBlock = "";
     try {
-      const { embedTextBatch } = await import(
-        resolveModule("../../src/knowledge/ingest/embedder.js")
-      );
-      const { searchChunks } = await import(
+      const { queryTopK } = await import(
         resolveModule("../../src/llm/qdrant-client.js")
       );
-      const vectors = await embedTextBatch([userQuery]);
-      knowledgeHits = await searchChunks(vectors[0], 6, 0.4); // score >= 0.4
+      const { assembleContextFromChunks } = await import(
+        resolveModule("../../src/shared/retrieval/context-assembler.js")
+      );
+      const { countTokens } = await import(
+        resolveModule("../../src/shared/retrieval/tokenizer.js")
+      );
+
+      knowledgeHits = await queryTopK(userQuery, 6);
+
+      if (knowledgeHits.length) {
+        const userPromptTokens = await countTokens(userQuery);
+        const systemPromptTokens = await countTokens(
+          payload?.systemPrompt ?? "",
+        );
+        const assembled = await assembleContextFromChunks(knowledgeHits, {
+          maxContextTokens: Number(
+            payload?.constraints?.maxTokens ??
+              process.env.MAX_CONTEXT_TOKENS ??
+              1600,
+          ),
+          headroomTokens: Number(process.env.CONTEXT_HEADROOM_TOKENS ?? 400),
+          systemTokens: systemPromptTokens,
+          userQueryTokens: userPromptTokens,
+          responseTokens: Number(process.env.EXPECTED_RESPONSE_TOKENS ?? 512),
+        });
+
+        contextBlock = assembled.content || "";
+      }
     } catch (_err) {
       knowledgeHits = [];
     }
 
     const knowledge_chunks = knowledgeHits; // alias for downstream consumers
-
-    const contextBlock = knowledgeHits.length
-      ? knowledgeHits
-          .map(
-            (hit, idx) =>
-              `[${idx + 1}] sprint=${hit.sprint} area=${hit.feature_area} ` +
-              `source=${hit.source_type} score=${hit.score.toFixed(3)}\n${hit.content}`,
-          )
-          .join("\n\n---\n\n")
-      : "";
 
     const fullPrompt = [
       "You are answering using project knowledge.",
