@@ -10,11 +10,37 @@ const DEFAULT_CONTEXT_HEADROOM_TOKENS = Number(
 );
 
 function normalizeChunk(chunk) {
+  const rawText = String(chunk.text ?? chunk.content ?? "").trim();
+  const parentText = String(chunk.parentText ?? "").trim();
+  const parentExpansionEnabled =
+    process.env.PARENT_EXPANSION_ENABLED === "true";
+  const parentTextCap = Number(process.env.PARENT_EXPANSION_MAX_CHARS ?? 8192);
+
+  const parentExpansionApplied =
+    parentExpansionEnabled && parentText && parentText.length <= parentTextCap;
+
+  const text = parentExpansionApplied ? parentText : rawText;
+
+  // When parent expansion is active, the chunk's text has been replaced with
+  // parentText.  Multiple child chunks sharing the same parentId now contain
+  // identical text.  dedupeRagChunks() computes its hash from chunk_id + text,
+  // so we must key both chunk_hash and chunk_id off the parentId — otherwise
+  // every child gets a distinct identity despite identical content, and dedup
+  // never merges them, causing the same parent to appear multiple times in the
+  // assembled context under separate "### Result" headers.
+  const dedupId =
+    parentExpansionApplied && chunk.parentId
+      ? `parent:${chunk.parentId}`
+      : undefined;
+
   return {
     ...chunk,
-    text: String(chunk.text ?? chunk.content ?? "").trim(),
+    text,
     score: typeof chunk.score === "number" ? chunk.score : 0,
-    chunk_hash: safeChunkHash(chunk),
+    chunk_hash: dedupId ?? safeChunkHash(chunk),
+    // Override chunk_id so hashRagChunk() (which keys on chunk_id + text)
+    // produces the same rag_hash for all children of the same parent.
+    ...(dedupId ? { chunk_id: dedupId } : {}),
   };
 }
 

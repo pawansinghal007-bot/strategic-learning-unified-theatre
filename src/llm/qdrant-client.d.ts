@@ -10,6 +10,8 @@ export interface SearchChunkResult {
   source?: string;
   content: string;
   section: string;
+  parentId?: string;
+  parentText?: string;
   feature_area: string;
   sprint: number;
   source_type: string;

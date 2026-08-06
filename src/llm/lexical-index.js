@@ -24,6 +24,7 @@ const SUPPORTED_FILTER_COLUMNS = new Set([
   "source_type",
   "sprint",
   "module",
+  "parent_id",
 ]);
 
 let db = null;
@@ -38,6 +39,8 @@ function getLexicalDb() {
       doc_id TEXT,
       path TEXT,
       section TEXT,
+      parent_id TEXT,
+      parent_text TEXT,
       feature_area TEXT,
       source_type TEXT,
       sprint INTEGER,
@@ -51,6 +54,8 @@ function getLexicalDb() {
       doc_id UNINDEXED,
       path UNINDEXED,
       section UNINDEXED,
+      parent_id UNINDEXED,
+      parent_text UNINDEXED,
       feature_area UNINDEXED,
       source_type UNINDEXED,
       sprint UNINDEXED,
@@ -59,8 +64,8 @@ function getLexicalDb() {
     );
 
     CREATE TRIGGER IF NOT EXISTS lexical_chunks_ai AFTER INSERT ON lexical_chunks BEGIN
-      INSERT INTO lexical_chunks_fts(rowid, content, chunk_id, doc_id, path, section, feature_area, source_type, sprint, module)
-      VALUES (new.rowid, new.content, new.chunk_id, new.doc_id, new.path, new.section, new.feature_area, new.source_type, new.sprint, new.module);
+      INSERT INTO lexical_chunks_fts(rowid, content, chunk_id, doc_id, path, section, parent_id, parent_text, feature_area, source_type, sprint, module)
+      VALUES (new.rowid, new.content, new.chunk_id, new.doc_id, new.path, new.section, new.parent_id, new.parent_text, new.feature_area, new.source_type, new.sprint, new.module);
     END;
 
     CREATE TRIGGER IF NOT EXISTS lexical_chunks_ad AFTER DELETE ON lexical_chunks BEGIN
@@ -74,6 +79,8 @@ function getLexicalDb() {
           doc_id = new.doc_id,
           path = new.path,
           section = new.section,
+          parent_id = new.parent_id,
+          parent_text = new.parent_text,
           feature_area = new.feature_area,
           source_type = new.source_type,
           sprint = new.sprint,
@@ -141,12 +148,14 @@ export function upsertLexicalChunks(chunks) {
       doc_id,
       path,
       section,
+      parent_id,
+      parent_text,
       feature_area,
       source_type,
       sprint,
       module,
       content
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   );
 
   const transaction = database.transaction((rows) => {
@@ -156,6 +165,8 @@ export function upsertLexicalChunks(chunks) {
         row.doc_id,
         row.path,
         row.section,
+        row.parent_id,
+        row.parent_text,
         row.feature_area,
         row.source_type,
         row.sprint,
@@ -180,14 +191,16 @@ export function searchLexicalChunks(query, limit = 6, filters = {}) {
       c.chunk_id AS id,
       c.path,
       c.section,
+      c.parent_id,
+      c.parent_text,
       c.feature_area,
       c.source_type,
       c.sprint,
       c.module,
       c.content,
-      bm25(f) AS bm25
-    FROM lexical_chunks_fts f
-    JOIN lexical_chunks c ON f.rowid = c.rowid
+      bm25(lexical_chunks_fts) AS bm25
+    FROM lexical_chunks_fts
+    JOIN lexical_chunks c ON lexical_chunks_fts.rowid = c.rowid
     WHERE lexical_chunks_fts MATCH ?${filterClause}
     ORDER BY bm25 ASC
     LIMIT ?
@@ -200,6 +213,8 @@ export function searchLexicalChunks(query, limit = 6, filters = {}) {
     source: row.path ?? row.source_type ?? "",
     content: row.content ?? "",
     section: row.section ?? "",
+    parentId: row.parent_id ?? "",
+    parentText: row.parent_text ?? "",
     feature_area: row.feature_area ?? "",
     sprint: Number(row.sprint ?? 0),
     source_type: row.source_type ?? "",

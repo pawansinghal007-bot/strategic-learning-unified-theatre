@@ -160,6 +160,7 @@ const SUPPORTED_VECTOR_FILTER_COLUMNS = new Set([
   "doc_id",
   "path",
   "section",
+  "parent_id",
   "feature_area",
   "source_type",
   "sprint",
@@ -244,6 +245,8 @@ export async function searchChunks(
     source: hit.payload?.source ?? "",
     content: hit.payload?.content ?? hit.payload?.text ?? "",
     section: hit.payload?.section ?? "",
+    parentId: hit.payload?.parent_id ?? "",
+    parentText: hit.payload?.parent_text ?? "",
     feature_area: hit.payload?.feature_area ?? "",
     sprint: Number(hit.payload?.sprint ?? 0),
     source_type: hit.payload?.source_type ?? "",
@@ -286,7 +289,7 @@ export async function getExistingFileHashes() {
       `${QDRANT_URL}/collections/${KNOWLEDGE_COLLECTION}/points/scroll`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json"},
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       },
     );

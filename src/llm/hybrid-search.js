@@ -37,6 +37,8 @@ export function fuseHybridResults(vectorHits, lexicalHits, options = {}) {
       source: sourceValue,
       content: vectorResult?.content ?? lexicalResult?.content ?? "",
       section: vectorResult?.section ?? lexicalResult?.section ?? "",
+      parentId: vectorResult?.parentId ?? lexicalResult?.parentId ?? "",
+      parentText: vectorResult?.parentText ?? lexicalResult?.parentText ?? "",
       feature_area:
         vectorResult?.feature_area ?? lexicalResult?.feature_area ?? "",
       sprint: vectorResult?.sprint ?? lexicalResult?.sprint ?? 0,

@@ -118,6 +118,8 @@ async function ingestSprintReport(doc) {
     /* v8 ignore next -- chunking.js always provides path from doc.path */
     path: chunk.path ?? "",
     section: chunk.section ?? "",
+    parent_id: chunk.parentId ?? "",
+    parent_text: String(chunk.parentText ?? "").slice(0, 16_384),
     importance: chunk.importance,
     hash: chunk.hash,
     created_at: chunk.createdAt,
