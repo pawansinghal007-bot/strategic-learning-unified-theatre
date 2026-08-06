@@ -8,7 +8,7 @@
 > 102–105. Always include "Last verified: Sprint N" so drift is immediately
 > visible to the next agent session.
 
-**Last verified: Sprint 118.5 — Qdrant Retrieval Consolidation — 2026-08-04**
+**Last verified: fix/rag-production-readiness — vector-client pure-delegate fix — 2026-08-06**
 **Active branch:** `main`
 **Last committed sprint:** Sprint 118.5 — Qdrant retrieval consolidation (see Sprint 118.5 section below)
 **Last updated:** 2026-08-04 — Sprint 118.5 complete; searchChunks() consolidation, src/llm/qdrant-client.ts deleted, config defaults corrected
@@ -118,6 +118,63 @@ npx tsx ./src/cli.js llm export-repo-corpus
 `ERR_MODULE_NOT_FOUND: src/cli/llm-health.js`. This is a pre-existing defect
 unrelated to this sprint. `npx tsx ./src/cli.js` was used as the workaround
 throughout this sprint's verification. Needs its own sprint entry to fix.
+
+## fix/rag-production-readiness — vector-client pure-delegate fix — 2026-08-06
+
+**Goal:** Remove the `globalThis.fetch.mock` runtime-detection branch that was
+accidentally re-introduced into `embed()` by `751cca72` (perf(qdrant)). Make
+`embed()` a pure one-line delegate to the canonical `embedText()` function in
+`src/knowledge/ingest/embedder.js`, with no production code paths shaped by
+test-harness state.
+
+**Design decisions:**
+
+- `embed()` is a pure delegate: `return embedText(text)`. All HTTP transport,
+  retry logic, batching, and caching remain inside `embedder.js` where they
+  belong. `vector-client.ts` has no opinion on how embeddings are obtained.
+- The stale `EMBEDDINGS_URL` and `RETRIEVAL_TIMEOUT_MS` constants that the
+  removed HTTP block had used are also deleted — they were dead code once the
+  branch was gone.
+- `tests/agents/tools/vector-client.test.ts` is updated to match the canonical
+  mock pattern established in `tests/shared/retrieval/vector-client.test.ts`:
+  mock `src/knowledge/ingest/embedder.js`'s `embedText`, not `globalThis.fetch`.
+  The old test mocked `fetch` because it pre-dated the consolidation in
+  `fe0d09ba`; that assumption should not drive production architecture.
+- Coverage surface in the updated test file is identical to the old one: embed
+  delegate, vectorSearch success/error/propagation/topK/default-topK/id-fallback/empty.
+
+**Commit history context (DRIFT DETECTED):**
+
+`fe0d09ba` (refactor(embedding-consolidation)) correctly introduced the pure
+delegate. `751cca72` (perf(qdrant)) re-introduced the dual-path branch on top
+of it — bundling a regression into the Qdrant scalability commit rather than
+keeping it separate.
+
+Ideal resolution: `git rebase -i` to fold the vector-client.ts fix back into
+`fe0d09ba` so that commit is self-contained, and strip it from `751cca72` so
+that commit contains only the actual Qdrant scalability work. This requires
+`git push --force` since `751cca72` is already the tip of
+`origin/fix/rag-production-readiness`. Requires explicit maintainer approval.
+
+Actual resolution: New clean commit `30e80827` on top of `751cca72` containing
+the fix. The working implementation of `embed()` as a pure delegate lives in
+`30e80827` on this branch.
+
+**Files changed:**
+
+- `src/shared/retrieval/vector-client.ts` — `embed()` reduced to a pure
+  delegate; dead `EMBEDDINGS_URL`/`RETRIEVAL_TIMEOUT_MS` constants removed;
+  JSDoc updated; stale `@throws RETRIEVAL_TIMEOUT_MS` note removed.
+- `tests/agents/tools/vector-client.test.ts` — rewritten: mocks
+  `src/knowledge/ingest/embedder.js` instead of `globalThis.fetch`.
+
+**Verification:**
+
+- `npx tsc -p tsconfig.json --noEmit` — 0 errors.
+- 18/18 tests in both affected test files pass.
+- Full suite (`VSCODE_ROTATOR_MOCK_LLM=1 npx vitest run`): 10 failures in
+  `hwProbe-coverage.test.js` confirmed pre-existing via stash/restore
+  comparison against the unmodified base branch; not caused by this fix.
 
 ## Sprint 118.5 — Qdrant Retrieval Consolidation — 2026-08-04
 
