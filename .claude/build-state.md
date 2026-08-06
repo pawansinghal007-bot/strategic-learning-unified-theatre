@@ -110,3 +110,44 @@ node v22.22.3
 ### VS Code reload result
 
 Server now starts correctly in WSL environment and responds to stdio requests
+
+
+---
+
+## Commit History Note (fix/rag-production-readiness) — 2026-08-06
+
+### DRIFT DETECTED — vector-client.ts regression in 751cca72
+
+`fe0d09ba` (refactor(embedding-consolidation)) correctly made `embed()` a
+pure one-line delegate to `embedText`:
+
+```ts
+export async function embed(text: string): Promise<number[]> {
+  return embedText(text);
+}
+```
+
+`751cca72` (perf(qdrant)) accidentally re-introduced a dual-path branch into
+`vector-client.ts` that sniffs `globalThis.fetch.mock` at runtime to decide
+whether to call `embedText` or make a raw HTTP request. This was done to
+accommodate `tests/agents/tools/vector-client.test.ts`, which predated the
+consolidation and still mocked `globalThis.fetch` directly.
+
+**The regression is fixed in the commit immediately following `751cca72`**
+(the next commit on this branch after the one that introduced it).
+
+**Ideal resolution**: `git rebase -i` to fold the vector-client.ts fix back
+into `fe0d09ba`, and strip it from `751cca72`, so each commit is
+self-contained and correct. This requires a `git push --force` since
+`751cca72` is already the tip of `origin/fix/rag-production-readiness`.
+Requires explicit maintainer approval before executing.
+
+**Actual resolution applied**: New clean commit on top of `751cca72`:
+- `src/shared/retrieval/vector-client.ts` — dual-path branch removed,
+  `embed()` is a pure delegate, stale constants removed, JSDoc updated.
+- `tests/agents/tools/vector-client.test.ts` — rewritten to mock
+  `src/knowledge/ingest/embedder.js` instead of `globalThis.fetch`,
+  matching the canonical pattern in `tests/shared/retrieval/vector-client.test.ts`.
+- `tsc --noEmit` clean, full test suite passes (10 pre-existing failures in
+  `hwProbe-coverage.test.js` exist on both the base branch and this fix —
+  confirmed by stash/restore comparison).
