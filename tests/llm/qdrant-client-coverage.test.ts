@@ -45,12 +45,43 @@ function notFoundResponse(
 describe("ensureKnowledgeCollection", () => {
   afterEach(() => vi.restoreAllMocks());
 
-  it("does nothing when the collection already exists (ok=true)", async () => {
-    const spy = mockFetch(async () => okResponse());
+  it("does nothing when the collection already exists with the desired config", async () => {
+    const spy = mockFetch(async () =>
+      okResponse({
+        result: {
+          config: {
+            hnsw_config: { m: 32, ef_construct: 200 },
+            payload_schema: {
+              path: { data_type: "keyword" },
+              section: { data_type: "keyword" },
+              sprint: { data_type: "integer" },
+              feature_area: { data_type: "keyword" },
+              source_type: { data_type: "keyword" },
+              module: { data_type: "keyword" },
+            },
+          },
+        },
+      }),
+    );
     await ensureKnowledgeCollection();
     // Only one GET request; no PUT
     expect(spy).toHaveBeenCalledTimes(1);
     expect(spy.mock.calls[0][1]).toBeUndefined(); // GET has no body/method override
+  });
+
+  it("updates an existing collection when the tuning config is missing", async () => {
+    const spy = mockFetch(async (url, init) => {
+      if (!init || !init.method || init.method === "GET") {
+        return okResponse({ result: { config: { hnsw_config: {}, payload_schema: {} } } });
+      }
+      return okResponse({ result: true });
+    });
+
+    await ensureKnowledgeCollection();
+
+    expect(spy).toHaveBeenCalledTimes(2);
+    const putCall = spy.mock.calls.find(([, init]) => init?.method === "PUT");
+    expect(putCall).toBeDefined();
   });
 
   it("creates collection via PUT when GET returns 404", async () => {
@@ -71,6 +102,18 @@ describe("ensureKnowledgeCollection", () => {
 
     const putBody = JSON.parse(putCall![1]!.body as string);
     expect(putBody.vectors).toMatchObject({ size: 2560, distance: "Cosine" });
+    expect(putBody.hnsw_config).toMatchObject({
+      m: expect.any(Number),
+      ef_construct: expect.any(Number),
+    });
+    expect(putBody.payload_schema).toMatchObject({
+      path: { data_type: "keyword" },
+      section: { data_type: "keyword" },
+      sprint: { data_type: "integer" },
+      feature_area: { data_type: "keyword" },
+      source_type: { data_type: "keyword" },
+      module: { data_type: "keyword" },
+    });
   });
 
   it("does NOT create collection when GET fails with non-404 and no 'doesn't exist' error", async () => {

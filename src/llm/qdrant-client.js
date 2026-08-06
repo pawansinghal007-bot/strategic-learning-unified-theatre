@@ -95,18 +95,57 @@ function pointId(chunkId) {
   ].join("-");
 }
 
+const COLLECTION_TUNING = {
+  hnsw_config: {
+    m: 32,
+    ef_construct: 200,
+    full_scan_threshold: 10000,
+    max_indexing_threads: 0,
+  },
+  payload_schema: {
+    path: { data_type: "keyword" },
+    section: { data_type: "keyword" },
+    sprint: { data_type: "integer" },
+    feature_area: { data_type: "keyword" },
+    source_type: { data_type: "keyword" },
+    module: { data_type: "keyword" },
+  },
+};
+
+function hasDesiredCollectionConfig(config) {
+  if (!config) return false;
+
+  const hnsw = config.hnsw_config ?? {};
+  const payloadSchema = config.payload_schema ?? {};
+
+  return (
+    hnsw.m === COLLECTION_TUNING.hnsw_config.m &&
+    hnsw.ef_construct === COLLECTION_TUNING.hnsw_config.ef_construct &&
+    payloadSchema.path?.data_type === COLLECTION_TUNING.payload_schema.path.data_type &&
+    payloadSchema.section?.data_type === COLLECTION_TUNING.payload_schema.section.data_type &&
+    payloadSchema.sprint?.data_type === COLLECTION_TUNING.payload_schema.sprint.data_type &&
+    payloadSchema.feature_area?.data_type === COLLECTION_TUNING.payload_schema.feature_area.data_type &&
+    payloadSchema.source_type?.data_type === COLLECTION_TUNING.payload_schema.source_type.data_type &&
+    payloadSchema.module?.data_type === COLLECTION_TUNING.payload_schema.module.data_type
+  );
+}
+
 export async function ensureKnowledgeCollection() {
   const res = await fetch(`${QDRANT_URL}/collections/${KNOWLEDGE_COLLECTION}`);
 
-  if (res.ok) return;
-
-  const body = await res.json().catch(() => ({}));
-
-  if (
-    body?.status?.error?.includes("doesn't exist") === false &&
-    res.status !== 404
-  ) {
-    return;
+  if (res.ok) {
+    const body = await res.json().catch(() => ({}));
+    if (hasDesiredCollectionConfig(body?.result?.config)) {
+      return;
+    }
+  } else {
+    const body = await res.json().catch(() => ({}));
+    if (
+      body?.status?.error?.includes("doesn't exist") === false &&
+      res.status !== 404
+    ) {
+      return;
+    }
   }
 
   const create = await fetch(
@@ -119,6 +158,7 @@ export async function ensureKnowledgeCollection() {
           size: VECTOR_DIM,
           distance: "Cosine",
         },
+        ...COLLECTION_TUNING,
       }),
     },
   );
@@ -203,11 +243,15 @@ export async function searchChunks(
   filters = {},
 ) {
   const qdrantFilter = buildQdrantFilter(filters);
+  const searchParams = {
+    hnsw_ef: Math.max(32, Math.min(256, limit * 16)),
+  };
   const requestBody = {
     vector,
     limit,
     with_payload: true,
     score_threshold: scoreThreshold,
+    params: searchParams,
   };
   if (qdrantFilter) {
     requestBody.filter = qdrantFilter;
