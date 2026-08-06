@@ -29,6 +29,8 @@ import {
   markProviderFromError,
 } from "./provider-health";
 import { queryTopK } from "./qdrant-client.js";
+import { assembleContextFromChunks } from "../shared/retrieval/context-assembler.js";
+import { countTokens } from "../shared/retrieval/tokenizer.js";
 import { recordProviderFailure, recordProviderSuccess } from "./provider-usage";
 import {
   evaluateWorkspaceQuotaStatus,
@@ -483,9 +485,20 @@ export class Gateway {
       if (process.env.GATEWAY_RAG_ENABLED === "true") {
         const chunks = await queryTopK(requestData.prompt, 5);
         if (chunks && chunks.length > 0) {
-          const chunkText = chunks.map((c) => c.text).join("\n\n");
-          prompt = `${prompt}\n\nRelevant context:\n${chunkText}`;
-          changed = true;
+          const userPromptTokens = await countTokens(requestData.prompt);
+          const systemPromptTokens = await countTokens(
+            requestData.systemPrompt ?? "",
+          );
+          const assembled = await assembleContextFromChunks(chunks, {
+            headroomTokens: Number(process.env.CONTEXT_HEADROOM_TOKENS ?? 400),
+            systemTokens: systemPromptTokens,
+            userQueryTokens: userPromptTokens,
+            responseTokens: Number(process.env.EXPECTED_RESPONSE_TOKENS ?? 512),
+          });
+          if (assembled.content) {
+            prompt = `${prompt}\n\nRelevant context:\n${assembled.content}`;
+            changed = true;
+          }
         }
       }
     } catch (error) {

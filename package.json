@@ -65,6 +65,7 @@
     "build:electron-main": "node scripts/build-electron-main.mjs",
     "harness": "tsx src/agents/cli.ts",
     "index:symbols": "tsx src/storage/run-indexer.ts",
+    "benchmark:qdrant": "node ./scripts/qdrant-benchmark.mjs",
     "mcp:server": "tsx src/mcp/server.ts",
     "db:up": "bash scripts/db-up.sh",
     "db:check": "bash scripts/db-check.sh"

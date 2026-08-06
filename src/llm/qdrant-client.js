@@ -4,6 +4,8 @@
  */
 
 import { createHash } from "node:crypto";
+import { performance } from "node:perf_hooks";
+import { logger } from "../shared/logging/logger.js";
 
 export const KNOWLEDGE_COLLECTION = "knowledge_chunks";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -11,14 +13,72 @@ export const KNOWLEDGE_COLLECTION = "knowledge_chunks";
 const QDRANT_URL = process.env.QDRANT_URL ?? "http://localhost:6333";
 const VECTOR_DIM = 2560; // qwen3-emb-4b
 
-import { embedTextBatch } from "../knowledge/ingest/embedder.js";
-
 export async function queryTopK(text, k = 5) {
-  const [vector] = await embedTextBatch([text]);
+  const startMs = performance.now();
+  const rerankEnabled = process.env.RERANK_ENABLED === "true";
+  const poolSize = Number(process.env.RERANK_CANDIDATE_POOL ?? 30);
+  const fetchLimit = rerankEnabled ? poolSize : k;
+
   try {
-    const hits = await searchChunks(vector, k);
-    return hits.map((hit) => ({ text: hit.content, score: hit.score }));
-  } catch {
+    const { hybridSearchChunks } = await import("./hybrid-search.js");
+    const { rerankCandidates } = await import("./reranker.js");
+
+    const fused = await hybridSearchChunks(
+      text,
+      fetchLimit,
+      {},
+      {
+        scoreThreshold: Number(process.env.VECTOR_SCORE_THRESHOLD ?? 0.4),
+      },
+    );
+
+    if (!rerankEnabled) {
+      logger.info("retrieval.query", {
+        query: text,
+        topK: k,
+        rerankEnabled: false,
+        fusedCount: fused.length,
+        durationMs: Number((performance.now() - startMs).toFixed(3)),
+      });
+      return fused.slice(0, k);
+    }
+
+    try {
+      const reranked = await rerankCandidates(text, fused, {
+        topK: k,
+        poolSize,
+      });
+      logger.info("retrieval.query", {
+        query: text,
+        topK: k,
+        rerankEnabled: true,
+        poolSize,
+        fusedCount: fused.length,
+        returnedCount: reranked.length,
+        durationMs: Number((performance.now() - startMs).toFixed(3)),
+      });
+      return reranked;
+    } catch (err) {
+      logger.warn("retrieval.rerank_error", { error: String(err) });
+      logger.info("retrieval.query", {
+        query: text,
+        topK: k,
+        rerankEnabled: true,
+        poolSize,
+        fusedCount: fused.length,
+        returnedCount: Math.min(k, fused.length),
+        durationMs: Number((performance.now() - startMs).toFixed(3)),
+      });
+      return fused.slice(0, k);
+    }
+  } catch (err) {
+    logger.error("retrieval.query_failed", {
+      query: text,
+      topK: k,
+      rerankEnabled,
+      error: String(err),
+      durationMs: Number((performance.now() - startMs).toFixed(3)),
+    });
     return [];
   }
 }
@@ -35,18 +95,57 @@ function pointId(chunkId) {
   ].join("-");
 }
 
+const COLLECTION_TUNING = {
+  hnsw_config: {
+    m: 32,
+    ef_construct: 200,
+    full_scan_threshold: 10000,
+    max_indexing_threads: 0,
+  },
+  payload_schema: {
+    path: { data_type: "keyword" },
+    section: { data_type: "keyword" },
+    sprint: { data_type: "integer" },
+    feature_area: { data_type: "keyword" },
+    source_type: { data_type: "keyword" },
+    module: { data_type: "keyword" },
+  },
+};
+
+function hasDesiredCollectionConfig(config) {
+  if (!config) return false;
+
+  const hnsw = config.hnsw_config ?? {};
+  const payloadSchema = config.payload_schema ?? {};
+
+  return (
+    hnsw.m === COLLECTION_TUNING.hnsw_config.m &&
+    hnsw.ef_construct === COLLECTION_TUNING.hnsw_config.ef_construct &&
+    payloadSchema.path?.data_type === COLLECTION_TUNING.payload_schema.path.data_type &&
+    payloadSchema.section?.data_type === COLLECTION_TUNING.payload_schema.section.data_type &&
+    payloadSchema.sprint?.data_type === COLLECTION_TUNING.payload_schema.sprint.data_type &&
+    payloadSchema.feature_area?.data_type === COLLECTION_TUNING.payload_schema.feature_area.data_type &&
+    payloadSchema.source_type?.data_type === COLLECTION_TUNING.payload_schema.source_type.data_type &&
+    payloadSchema.module?.data_type === COLLECTION_TUNING.payload_schema.module.data_type
+  );
+}
+
 export async function ensureKnowledgeCollection() {
   const res = await fetch(`${QDRANT_URL}/collections/${KNOWLEDGE_COLLECTION}`);
 
-  if (res.ok) return;
-
-  const body = await res.json().catch(() => ({}));
-
-  if (
-    body?.status?.error?.includes("doesn't exist") === false &&
-    res.status !== 404
-  ) {
-    return;
+  if (res.ok) {
+    const body = await res.json().catch(() => ({}));
+    if (hasDesiredCollectionConfig(body?.result?.config)) {
+      return;
+    }
+  } else {
+    const body = await res.json().catch(() => ({}));
+    if (
+      body?.status?.error?.includes("doesn't exist") === false &&
+      res.status !== 404
+    ) {
+      return;
+    }
   }
 
   const create = await fetch(
@@ -59,6 +158,7 @@ export async function ensureKnowledgeCollection() {
           size: VECTOR_DIM,
           distance: "Cosine",
         },
+        ...COLLECTION_TUNING,
       }),
     },
   );
@@ -95,40 +195,118 @@ export async function upsertChunks(chunks) {
   }
 }
 
-export async function searchChunks(vector, limit = 6, scoreThreshold = 0.4) {
+const SUPPORTED_VECTOR_FILTER_COLUMNS = new Set([
+  "chunk_id",
+  "doc_id",
+  "path",
+  "section",
+  "parent_id",
+  "feature_area",
+  "source_type",
+  "sprint",
+  "module",
+]);
+
+/**
+ * Build a Qdrant `filter` object from a plain key/value filters map.
+ * Only columns in SUPPORTED_VECTOR_FILTER_COLUMNS are forwarded.
+ *
+ * @param {Record<string, string|number|string[]>} filters
+ * @returns {{ must: object[] } | undefined}
+ */
+function buildQdrantFilter(filters) {
+  if (!filters || typeof filters !== "object") return undefined;
+
+  const must = [];
+  for (const [key, value] of Object.entries(filters)) {
+    if (!SUPPORTED_VECTOR_FILTER_COLUMNS.has(key)) continue;
+
+    if (Array.isArray(value)) {
+      // Skip empty arrays — no filter condition
+      if (value.length > 0) {
+        must.push({ key, match: { any: value } });
+      }
+      continue;
+    }
+    if (value === null || value === undefined) continue;
+    must.push({ key, match: { value } });
+  }
+
+  if (must.length === 0) return undefined;
+  return { must };
+}
+
+export async function searchChunks(
+  vector,
+  limit = 6,
+  scoreThreshold = 0.4,
+  filters = {},
+) {
+  const qdrantFilter = buildQdrantFilter(filters);
+  const searchParams = {
+    hnsw_ef: Math.max(32, Math.min(256, limit * 16)),
+  };
+  const requestBody = {
+    vector,
+    limit,
+    with_payload: true,
+    score_threshold: scoreThreshold,
+    params: searchParams,
+  };
+  if (qdrantFilter) {
+    requestBody.filter = qdrantFilter;
+  }
+
+  const startMs = performance.now();
   const res = await fetch(
     `${QDRANT_URL}/collections/${KNOWLEDGE_COLLECTION}/points/search`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        vector,
-        limit,
-        with_payload: true,
-        score_threshold: scoreThreshold,
-      }),
+      body: JSON.stringify(requestBody),
     },
   );
+  const durationMs = Number((performance.now() - startMs).toFixed(3));
   if (!res.ok) {
     const body =
-      typeof res.text === "function"
-        ? await res.text().catch(() => "")
-        : "";
+      typeof res.text === "function" ? await res.text().catch(() => "") : "";
     const status = typeof res.status === "number" ? res.status : "unknown";
+    logger.warn("retrieval.qdrant_error", {
+      status,
+      scoreThreshold,
+      filters: Object.keys(filters ?? {}).length,
+      durationMs,
+    });
     throw new Error(`searchChunks: Qdrant returned ${status}: ${body}`);
   }
   const data = await res.json();
-  return (data.result ?? []).map((hit) => ({
-    id: hit.id,
+  const results = (data.result ?? []).map((hit) => ({
+    // Return the semantic chunk_id from the payload so it matches the id
+    // used by lexical-index.js — both arms must share the same ID space
+    // for fuseHybridResults() to correctly merge overlapping results.
+    id: hit.payload?.chunk_id ?? hit.id,
     path: hit.payload?.path ?? "",
     source: hit.payload?.source ?? "",
     content: hit.payload?.content ?? hit.payload?.text ?? "",
     section: hit.payload?.section ?? "",
+    parentId: hit.payload?.parent_id ?? "",
+    parentText: hit.payload?.parent_text ?? "",
     feature_area: hit.payload?.feature_area ?? "",
     sprint: Number(hit.payload?.sprint ?? 0),
     source_type: hit.payload?.source_type ?? "",
     score: hit.score ?? 0,
   }));
+
+  logger.info("retrieval.qdrant", {
+    vectorLength: Array.isArray(vector) ? vector.length : null,
+    limit,
+    scoreThreshold,
+    filterCount: Object.keys(filters ?? {}).length,
+    resultCount: results.length,
+    durationMs,
+  });
+
+  return results;
 }
 
 /**

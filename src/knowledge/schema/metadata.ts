@@ -12,6 +12,9 @@ export interface KnowledgeChunk {
   version?: string;
   path?: string;
   section?: string;
+  parentId?: string;
+  parentText?: string;
+  parentLabel?: string;
   importance: number;
   hash: string;
   createdAt: number;

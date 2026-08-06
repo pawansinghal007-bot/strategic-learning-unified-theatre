@@ -24,6 +24,15 @@ vi.mock("../../../src/llm/document-ingester.js", () => ({
   estimateTokenCount: mockEstimateTokenCount,
 }));
 
+vi.mock("../../../src/knowledge/ingest/embedding-cache.js", () => ({
+  embeddingCache: {
+    init: vi.fn().mockResolvedValue(undefined),
+    getVector: vi.fn().mockReturnValue(null),
+    setVector: vi.fn(),
+    getStats: vi.fn().mockReturnValue({ hits: 0, misses: 0, size: 0 }),
+  },
+}));
+
 import { embedTextBatch } from "../../../src/knowledge/ingest/embedder.js";
 
 // ─── setup ────────────────────────────────────────────────────────────────────
@@ -114,9 +123,10 @@ describe("embedTextBatch", () => {
   });
 
   it("throws with status code when response is not ok", async () => {
-    mockFetch.mockResolvedValueOnce(
-      makeErrorResponse(503, "Service Unavailable"),
-    );
+    mockFetch
+      .mockResolvedValueOnce(makeErrorResponse(503, "Service Unavailable"))
+      .mockResolvedValueOnce(makeErrorResponse(503, "Service Unavailable"))
+      .mockResolvedValueOnce(makeErrorResponse(503, "Service Unavailable"));
 
     await expect(embedTextBatch(["test"])).rejects.toThrow(
       /embeddings service returned 503/,
@@ -153,9 +163,25 @@ describe("embedTextBatch", () => {
     );
   });
 
+  it("retries transient failures before succeeding", async () => {
+    const transientErr = new Error("socket hang up");
+    transientErr.name = "TypeError";
+    mockFetch
+      .mockRejectedValueOnce(transientErr)
+      .mockResolvedValueOnce(makeOkResponse(makeBatchResponse(["test"])));
+
+    const result = await embedTextBatch(["test"]);
+
+    expect(result).toHaveLength(1);
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+  });
+
   it("rethrows network errors from fetch", async () => {
     const networkErr = new Error("ECONNREFUSED");
-    mockFetch.mockRejectedValueOnce(networkErr);
+    mockFetch
+      .mockRejectedValueOnce(networkErr)
+      .mockRejectedValueOnce(networkErr)
+      .mockRejectedValueOnce(networkErr);
 
     await expect(embedTextBatch(["test"])).rejects.toThrow("ECONNREFUSED");
   });

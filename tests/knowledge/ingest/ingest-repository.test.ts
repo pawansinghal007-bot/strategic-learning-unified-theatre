@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   upsertChunks: vi.fn(),
   ensureKnowledgeCollection: vi.fn(),
   embedTextBatch: vi.fn(),
+  embedChunksWithCache: vi.fn(),
   getExistingFileHashes: vi.fn(),
   deleteChunksByDocId: vi.fn(),
 }));
@@ -24,6 +25,7 @@ vi.mock("../../../src/llm/qdrant-client.js", async (importOriginal) => {
 
 vi.mock("../../../src/knowledge/ingest/embedder.js", () => ({
   embedTextBatch: mocks.embedTextBatch,
+  embedChunksWithCache: mocks.embedChunksWithCache,
 }));
 
 vi.mock("../../src/llm/document-ingester.js", () => ({
@@ -43,6 +45,9 @@ describe("ingestRepository", () => {
     mocks.upsertChunks.mockClear();
     mocks.ensureKnowledgeCollection.mockClear();
     mocks.embedTextBatch.mockClear();
+    mocks.embedChunksWithCache.mockImplementation((chunks) =>
+      Promise.resolve(chunks.map(() => [0.1, 0.2, 0.3])),
+    );
     mocks.getExistingFileHashes.mockResolvedValue(new Map());
     mocks.deleteChunksByDocId.mockClear();
   });
@@ -526,8 +531,8 @@ describe("ingestRepository", () => {
     logSpy.mockRestore();
   });
 
-  // L190: attachVectors throws when embedTextBatch returns wrong vector count
-  it("throws when embedTextBatch returns fewer vectors than chunks", async () => {
+  // attachVectors throws when embedChunksWithCache returns wrong vector count
+  it("throws when embedChunksWithCache returns fewer vectors than chunks", async () => {
     const { ingestRepository } =
       await import("../../../src/knowledge/ingest/ingest-repository.js");
 
@@ -536,10 +541,10 @@ describe("ingestRepository", () => {
     await fs.writeFile(testFile, "word ".repeat(100));
 
     // Return empty array regardless of how many chunks are produced
-    mocks.embedTextBatch.mockResolvedValue([]);
+    mocks.embedChunksWithCache.mockResolvedValue([]);
 
     await expect(ingestRepository({ baseDir: testFile })).rejects.toThrow(
-      "embedTextBatch returned",
+      "embedChunksWithCache returned",
     );
   });
 

@@ -2,14 +2,18 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { createHash } from "node:crypto";
 import { pathToFileURL } from "node:url";
+import * as ts from "typescript";
 import {
   ensureKnowledgeCollection,
   upsertChunks,
   getExistingFileHashes,
   deleteChunksByDocId,
 } from "../../llm/qdrant-client.js";
-import { chunkText } from "../../llm/document-ingester.js";
-import { embedTextBatch } from "./embedder.js";
+import {
+  deleteLexicalChunksByDocId,
+  upsertLexicalChunks,
+} from "../../llm/lexical-index.js";
+import { embedChunksWithCache } from "./embedder.js";
 
 const SUPPORTED_EXTENSIONS = new Set([
   ".md",
@@ -145,6 +149,145 @@ function computeFileHash(text) {
   return createHash("sha256").update(text, "utf8").digest("hex");
 }
 
+const MAX_PARENT_TEXT_CHARS = Number(
+  process.env.PARENT_EXPANSION_MAX_CHARS ?? 8192,
+);
+
+function chunkTextWithOffsets(text, { maxChars = 3000, overlap = 300 } = {}) {
+  const str = String(text || "").trim();
+  if (str.length === 0) return [];
+
+  const chunks = [];
+  const step = Math.max(1, maxChars - overlap);
+  for (let start = 0; start < str.length; start += step) {
+    const slice = str.slice(start, start + maxChars);
+    if (slice.length === 0) break;
+    chunks.push({ text: slice, start });
+    if (start + maxChars >= str.length) break;
+  }
+  return chunks;
+}
+
+function slugify(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 64)
+    .replace(/^-+|-+$/g, "");
+}
+
+function truncateParentText(text) {
+  const normalized = String(text ?? "").trim();
+  if (normalized.length <= MAX_PARENT_TEXT_CHARS) return normalized;
+  return `${normalized.slice(0, MAX_PARENT_TEXT_CHARS)}\n\n... [truncated parent context]`;
+}
+
+function codeParentNodes(text, docId, filePath) {
+  const sourceFile = ts.createSourceFile(
+    filePath,
+    text,
+    ts.ScriptTarget.Latest,
+    true,
+    getSourceType(filePath).startsWith("ts")
+      ? ts.ScriptKind.TS
+      : filePath.endsWith(".tsx")
+        ? ts.ScriptKind.TSX
+        : filePath.endsWith(".jsx")
+          ? ts.ScriptKind.JSX
+          : ts.ScriptKind.JS,
+  );
+  const parents = [];
+
+  function addParent(node, name, depth) {
+    if (!name) return;
+    parents.push({
+      parentId: `${docId}:parent:${name}`,
+      parentLabel: name,
+      parentText: truncateParentText(node.getText(sourceFile)),
+      start: node.getStart(sourceFile),
+      end: node.getEnd(),
+      depth,
+    });
+  }
+
+  function visit(node, depth = 0) {
+    if (ts.isFunctionDeclaration(node) && node.name) {
+      addParent(node, node.name.text, depth);
+    } else if (ts.isClassDeclaration(node) && node.name) {
+      addParent(node, node.name.text, depth);
+    } else if (
+      ts.isMethodDeclaration(node) &&
+      node.name &&
+      ts.isIdentifier(node.name)
+    ) {
+      const classDecl = ts.findAncestor(node, (n) => ts.isClassDeclaration(n));
+      const name = classDecl?.name?.text
+        ? `${classDecl.name.text}.${node.name.text}`
+        : node.name.text;
+      addParent(node, name, depth);
+    } else if (
+      ts.isVariableDeclaration(node) &&
+      ts.isIdentifier(node.name) &&
+      node.initializer &&
+      (ts.isArrowFunction(node.initializer) ||
+        ts.isFunctionExpression(node.initializer))
+    ) {
+      addParent(node, node.name.text, depth);
+    }
+    ts.forEachChild(node, (child) => visit(child, depth + 1));
+  }
+
+  visit(sourceFile, 0);
+  return parents;
+}
+
+function markdownParentNodes(text, docId) {
+  const sections = [];
+  const headingRegex = /^(#{1,6})\s+(.*)$/gm;
+  let lastIndex = 0;
+  let lastHeading = "document";
+  let match;
+
+  while ((match = headingRegex.exec(text)) !== null) {
+    const index = match.index;
+    if (index > lastIndex) {
+      sections.push({
+        parentId: `${docId}:parent:section:${slugify(lastHeading)}`,
+        parentText: truncateParentText(text.slice(lastIndex, index)),
+        start: lastIndex,
+        end: index,
+        depth: 0,
+      });
+    }
+    lastHeading = match[2].trim() || "section";
+    lastIndex = index;
+  }
+
+  sections.push({
+    parentId: `${docId}:parent:section:${slugify(lastHeading)}`,
+    parentText: truncateParentText(text.slice(lastIndex)),
+    start: lastIndex,
+    end: text.length,
+    depth: 0,
+  });
+
+  return sections;
+}
+
+function findParentForOffset(parents, offset) {
+  let best = null;
+  for (const parent of parents) {
+    if (parent.start <= offset && offset < parent.end) {
+      if (!best || parent.depth > best.depth) {
+        best = parent;
+      }
+    }
+  }
+  return best;
+}
+
 function createChunksForFile({
   text,
   filePath,
@@ -152,30 +295,64 @@ function createChunksForFile({
   defaultFeatureArea,
 }) {
   if (text.length === 0) return [];
+  const absoluteFilePath = path.isAbsolute(filePath)
+    ? filePath
+    : path.join(absoluteBaseDir, filePath);
+  const relativePath = path.relative(absoluteBaseDir, absoluteFilePath);
   const featureArea =
-    defaultFeatureArea ?? parseFeatureArea(filePath) ?? "unknown";
-  const sourceType = getSourceType(filePath);
-  const relativePath = path.relative(absoluteBaseDir, filePath);
+    defaultFeatureArea ?? parseFeatureArea(relativePath) ?? "unknown";
+  const sourceType = getSourceType(relativePath);
   const docId = `repo:${relativePath.split(path.sep).join("/")}`;
   const createdAt = Date.now();
   const fileHash = computeFileHash(text);
-  return chunkText(text).map((content, index) => ({
-    chunkId: `${docId}:chunk:${index}`,
-    docId,
-    sourceType,
-    sprint: -1,
-    module: featureArea,
-    featureArea,
-    version: "latest",
-    path: relativePath,
-    section: "",
-    importance: 0.5,
-    hash: hashText(content),
-    createdAt,
-    text: content,
-    denseVector: [],
-    fileHash,
-  }));
+  const chunkWindows = chunkTextWithOffsets(text);
+
+  let parents = [
+    {
+      parentId: `${docId}:parent:document`,
+      parentText: truncateParentText(text),
+      start: 0,
+      end: text.length,
+      depth: 0,
+    },
+  ];
+
+  if (sourceType === "markdown") {
+    parents = markdownParentNodes(text, docId);
+  } else if (
+    sourceType === "javascript" ||
+    sourceType === "typescript" ||
+    sourceType === "jsx" ||
+    sourceType === "tsx"
+  ) {
+    const codeParents = codeParentNodes(text, docId, filePath);
+    if (codeParents.length > 0) {
+      parents = codeParents;
+    }
+  }
+
+  return chunkWindows.map((chunk, index) => {
+    const parent = findParentForOffset(parents, chunk.start) ?? parents[0];
+    return {
+      chunkId: `${docId}:chunk:${index}`,
+      docId,
+      sourceType,
+      sprint: -1,
+      module: featureArea,
+      featureArea,
+      version: "latest",
+      path: relativePath,
+      section: parent.parentId ?? "",
+      importance: 0.5,
+      hash: hashText(chunk.text),
+      createdAt,
+      text: chunk.text,
+      denseVector: [],
+      fileHash,
+      parentId: parent.parentId,
+      parentText: parent.parentText,
+    };
+  });
 }
 
 async function buildChunksForBatch(batch, absoluteBaseDir, defaultFeatureArea) {
@@ -224,10 +401,10 @@ async function attachVectors(chunks) {
   }
   if (safeChunks.length === 0) return;
   // v8 ignore end
-  const vectors = await embedTextBatch(safeChunks.map((chunk) => chunk.text));
+  const vectors = await embedChunksWithCache(safeChunks);
   if (vectors.length !== safeChunks.length) {
     throw new Error(
-      `[knowledge] embedTextBatch returned ${vectors.length} vectors for ${safeChunks.length} chunks`,
+      `[knowledge] embedChunksWithCache returned ${vectors.length} vectors for ${safeChunks.length} chunks`,
     );
   }
   for (let i = 0; i < safeChunks.length; i++) {
@@ -247,6 +424,8 @@ function chunkToQdrantPoint(chunk) {
     version: chunk.version ?? "",
     path: chunk.path ?? "",
     section: chunk.section ?? "",
+    parent_id: chunk.parentId ?? "",
+    parent_text: String(chunk.parentText ?? "").slice(0, 16_384),
     importance: chunk.importance,
     hash: chunk.hash,
     created_at: chunk.createdAt,
@@ -266,6 +445,21 @@ async function insertChunkBatch(_client, chunks) {
     const points = batch.map((chunk) => chunkToQdrantPoint(chunk));
 
     await upsertChunks(points);
+    upsertLexicalChunks(
+      batch.map((chunk) => ({
+        chunk_id: chunk.chunkId,
+        doc_id: chunk.docId,
+        path: chunk.path ?? "",
+        section: chunk.section ?? "",
+        parent_id: chunk.parentId ?? "",
+        parent_text: String(chunk.parentText ?? "").slice(0, 16_384),
+        feature_area: chunk.featureArea ?? "",
+        source_type: chunk.sourceType ?? "",
+        sprint: chunk.sprint ?? -1,
+        module: chunk.module ?? "",
+        content: String(chunk.text ?? "").slice(0, 16_384),
+      })),
+    );
 
     inserted += points.length;
 
@@ -321,6 +515,7 @@ async function processFileChunks(fileChunksMap, currentFiles, existingHashes) {
     if (existingHash) {
       console.log(`[knowledge] Updating changed file: ${docId}`);
       await deleteChunksByDocId(docId);
+      deleteLexicalChunksByDocId(docId);
     }
 
     console.log(`[knowledge] Processing ${docId}: ${chunks.length} chunks`);
@@ -394,6 +589,13 @@ export async function ingestRepository(options) {
     `[knowledge] Repository ingestion complete: ${totalChunks} chunks`,
   );
 }
+
+export {
+  createChunksForFile,
+  codeParentNodes,
+  markdownParentNodes,
+  findParentForOffset,
+};
 
 // v8 ignore start - CLI entry: VITEST-gated, not exported, env mutation risk
 async function main() {

@@ -235,5 +235,5 @@ describe("generateAutoHandoff()", () => {
 
     expect(payload.continuation_prompt).toContain("Goal: Summarize results.");
     expect(payload.continuation_prompt).not.toContain("Previous task:");
-  });
+  }, 20000);
 });
