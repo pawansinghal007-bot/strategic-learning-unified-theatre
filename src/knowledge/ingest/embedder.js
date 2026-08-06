@@ -23,6 +23,18 @@ const EMBEDDINGS_MODEL = process.env.EMBEDDINGS_MODEL ?? "qwen3-emb-4b";
 // and cap at 64 items per batch regardless of token count.
 const TOKEN_BUDGET_PER_REQUEST = 6000;
 const MAX_ITEMS_PER_BATCH = 64;
+const MAX_RETRY_ATTEMPTS = Number.parseInt(
+  process.env.EMBEDDING_MAX_RETRY_ATTEMPTS || "3",
+  10,
+);
+const RETRY_BASE_DELAY_MS = Number.parseInt(
+  process.env.EMBEDDING_RETRY_BASE_DELAY_MS || "250",
+  10,
+);
+const RETRY_MAX_DELAY_MS = Number.parseInt(
+  process.env.EMBEDDING_RETRY_MAX_DELAY_MS || "4000",
+  10,
+);
 
 // Extended timeouts to survive qwen3-emb-4b cold start (20 minutes).
 const HEADERS_TIMEOUT = Number.parseInt(
@@ -50,38 +62,81 @@ function textToCacheKey(text) {
   return createHash("sha256").update(normalizeText(text), "utf8").digest("hex");
 }
 
+function getRetryDelayMs(attempt) {
+  return Math.min(RETRY_BASE_DELAY_MS * 2 ** (attempt - 1), RETRY_MAX_DELAY_MS);
+}
+
+function isTransientEmbeddingFailure(error, status) {
+  if (typeof status === "number" && (status === 408 || status === 429 || status >= 500)) {
+    return true;
+  }
+
+  if (!error) return false;
+  if (error.name === "AbortError") return true;
+
+  const message = String(error.message || "").toLowerCase();
+  return /socket|timeout|econn|network|fetch|temporar|unavailable|reset|aborted/i.test(
+    message,
+  );
+}
+
+async function delay(ms) {
+  await new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function fetchEmbeddings(batch) {
-  const response = await fetch(EMBEDDINGS_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ input: batch, model: EMBEDDINGS_MODEL }),
-    dispatcher: embeddingsAgent,
-  });
+  let lastError;
 
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(
-      `embedTextBatch: embeddings service returned ${response.status}: ${body}`,
-    );
-  }
+  for (let attempt = 1; attempt <= MAX_RETRY_ATTEMPTS; attempt += 1) {
+    try {
+      const response = await fetch(EMBEDDINGS_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ input: batch, model: EMBEDDINGS_MODEL }),
+        dispatcher: embeddingsAgent,
+      });
 
-  const json = await response.json();
-  const batchData = json.data ?? [];
-  if (batchData.length !== batch.length) {
-    throw new TypeError(
-      `embedTextBatch: expected ${batch.length} embeddings but got ${batchData.length}`,
-    );
-  }
+      if (!response.ok) {
+        const body = await response.text();
+        const status = response.status;
+        if (isTransientEmbeddingFailure(null, status) && attempt < MAX_RETRY_ATTEMPTS) {
+          await delay(getRetryDelayMs(attempt));
+          continue;
+        }
 
-  return batchData.map((item) => {
-    const embedding = item.embedding;
-    if (!Array.isArray(embedding)) {
-      throw new TypeError(
-        "embedTextBatch: unexpected response shape — missing data[].embedding",
-      );
+        throw new Error(
+          `embedTextBatch: embeddings service returned ${status}: ${body}`,
+        );
+      }
+
+      const json = await response.json();
+      const batchData = json.data ?? [];
+      if (batchData.length !== batch.length) {
+        throw new TypeError(
+          `embedTextBatch: expected ${batch.length} embeddings but got ${batchData.length}`,
+        );
+      }
+
+      return batchData.map((item) => {
+        const embedding = item.embedding;
+        if (!Array.isArray(embedding)) {
+          throw new TypeError(
+            "embedTextBatch: unexpected response shape — missing data[].embedding",
+          );
+        }
+        return embedding;
+      });
+    } catch (error) {
+      lastError = error;
+      if (isTransientEmbeddingFailure(error) && attempt < MAX_RETRY_ATTEMPTS) {
+        await delay(getRetryDelayMs(attempt));
+        continue;
+      }
+      throw error;
     }
-    return embedding;
-  });
+  }
+
+  throw lastError;
 }
 
 async function embedWithCache(items, keyFn, textFn) {
@@ -140,6 +195,11 @@ async function embedWithCache(items, keyFn, textFn) {
   });
 
   return vectors;
+}
+
+export async function embedText(text) {
+  const [vector] = await embedTextBatch([text]);
+  return vector;
 }
 
 export async function embedTextBatch(texts) {
