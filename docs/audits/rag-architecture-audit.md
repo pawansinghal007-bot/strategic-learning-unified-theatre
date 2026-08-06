@@ -6,6 +6,19 @@
 **Method:** File reads, import tracing, call chain analysis, architectural review
 **Assumption:** Current implementation works unless proven otherwise. No speculation without evidence.
 
+## Resolution (2026-08-06 — post-remediation branch update)
+
+The current branch materially improves the RAG architecture compared with the pre-remediation state captured in this audit. The canonical path is now:
+
+- ingestion: `src/knowledge/ingest/ingest-repository.js` → `src/knowledge/ingest/embedder.js`
+- storage and retrieval: `src/llm/qdrant-client.js`
+- hybrid retrieval: `src/llm/hybrid-search.js` plus optional reranking in `src/llm/reranker.js`
+- context assembly: `src/shared/retrieval/context-assembler.js`
+
+The earlier split-path problem around embedding and retrieval is now addressed in practice: `src/shared/retrieval/vector-client.ts` is a thin delegate and no longer carries a second embedding/retrieval implementation. The implementation also adds persistent embedding caching, retry-aware embedding requests, hybrid vector+lexical retrieval, optional reranking, and token-budgeted context assembly.
+
+This does not change the historical findings below; those findings remain valuable as an audit trail of the pre-remediation architecture. The post-remediation status is better, but it is still not a claim of full production readiness: the remaining work is operational hardening, live evaluation, and explicit fallback policy rather than basic architecture consolidation.
+
 ---
 
 ## PART 1 — Architecture Review

@@ -20,6 +20,14 @@
 **SonarQube quality gate:** PASSED — 0 new violations (last scan 2026-08-01, Sprint 113 close-out). Project totals: bugs 0 / vulnerabilities 0 / code smells 0 / hotspots 0 / coverage 97.0% / duplication 1.4% / ncloc 28402.
 **GPU default:** -ngl 99 (RTX 5090 Laptop 24GB — prior -ngl 0 constraints obsolete)
 
+## RAG remediation branch status — 2026-08-06
+
+- Canonical RAG flow now runs through `src/knowledge/ingest/ingest-repository.js` → `src/knowledge/ingest/embedder.js` → `src/llm/qdrant-client.js`, with hybrid retrieval from `src/llm/hybrid-search.js` and optional reranking from `src/llm/reranker.js`.
+- `src/shared/retrieval/vector-client.ts` is intentionally a thin delegate and no longer carries a second embed/retrieval implementation.
+- Context assembly is budget-aware in `src/shared/retrieval/context-assembler.js`, which dedupes and filters candidates before they are injected into prompts.
+- Relevant config knobs for the current stack: `EMBEDDING_MAX_RETRY_ATTEMPTS`, `EMBEDDING_RETRY_BASE_DELAY_MS`, `EMBEDDING_RETRY_MAX_DELAY_MS`, `RERANK_ENABLED`, `RERANK_CANDIDATE_POOL`, `RERANK_TOP_K`, `RERANK_ALPHA`, `RERANK_TIMEOUT_MS`, `HYBRID_RRF_K`, `HYBRID_TOP_K`, `MAX_CONTEXT_TOKENS`, `CONTEXT_HEADROOM_TOKENS`, `PARENT_EXPANSION_ENABLED`, and `PARENT_EXPANSION_MAX_CHARS`.
+- Production-readiness is materially improved relative to the earlier audit, but the branch still represents an improvement over the prior architecture rather than a full deployment claim.
+
 ## Sprint 118 — Repo-Driven Training Corpus Generator — 2026-08-04
 
 **Goal:** Add a second, growing source of paired training examples derived
