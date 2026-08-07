@@ -59,6 +59,10 @@ diagnose*.cjs
 diagnose*.js
 fix-dashboard*.cjs
 
+# ── Ad-hoc audit output (regeneratable by scripts/rag-production-audit.mjs) ──
+production-audit-results.json
+*-audit-results.json
+
 # ── Unsloth compiled cache (generated at import time) ─────
 unsloth_compiled_cache/
 fix-dashboard*.js

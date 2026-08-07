@@ -67,6 +67,7 @@
     "index:symbols": "tsx src/storage/run-indexer.ts",
     "benchmark:qdrant": "node ./scripts/qdrant-benchmark.mjs",
     "mcp:server": "tsx src/mcp/server.ts",
+    "audit:rag": "tsx scripts/rag-production-audit.mjs",
     "db:up": "bash scripts/db-up.sh",
     "db:check": "bash scripts/db-check.sh"
   },
