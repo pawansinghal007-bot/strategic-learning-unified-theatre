@@ -19,13 +19,21 @@ const MAX_BUFFER = 128 * 1024 * 1024; // 128 MB — large commits can exceed the
  */
 function gitExec(args, cwd) {
   return new Promise((resolve, reject) => {
-    execFileRaw("git", args, { cwd, maxBuffer: MAX_BUFFER }, (err, stdout, stderr) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve({ stdout: String(stdout ?? ""), stderr: String(stderr ?? "") });
-      }
-    });
+    execFileRaw(
+      "git",
+      args,
+      { cwd, maxBuffer: MAX_BUFFER },
+      (err, stdout, stderr) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve({
+            stdout: String(stdout ?? ""),
+            stderr: String(stderr ?? ""),
+          });
+        }
+      },
+    );
   });
 }
 
@@ -33,6 +41,8 @@ const DEFAULT_BASE_DIR = path.join(os.homedir(), ".vscode-rotator");
 const DEFAULT_STATE_FILE = "repo-corpus-state.json";
 const DEFAULT_OUTPUT_FILE = "repo-corpus.jsonl";
 const SUPPORTED_EXTENSIONS = new Set([".js", ".ts", ".jsx", ".tsx"]);
+const FUNCTION_DECLARATION_PATTERN =
+  /^(?:export\s+(?:default\s+)?)?(?:async\s+)?function\s+([A-Za-z_$][\w$]*)\s*\(([^)]*)\)\s*\{/;
 
 function normalizeBaseDir(baseDir) {
   return baseDir ? path.resolve(baseDir) : DEFAULT_BASE_DIR;
@@ -57,6 +67,18 @@ async function readJsonFile(filePath) {
     const raw = await fs.readFile(filePath, "utf8");
     return JSON.parse(raw);
   } catch (err) {
+    if (
+      err?.code === "ENOENT" ||
+      err?.code === "EACCES" ||
+      err instanceof SyntaxError
+    ) {
+      return null;
+    }
+
+    console.error(
+      `[repo-corpus-exporter] Failed to read ${filePath}:`,
+      String(err),
+    );
     return null;
   }
 }
@@ -130,42 +152,10 @@ async function determineEffectiveSinceRef(sinceRef, storedRef, cwd) {
 }
 
 function extractDocComment(lines, functionIndex) {
-  let endIndex = functionIndex - 1;
+  const endIndex = functionIndex - 1;
   if (endIndex < 0) return null;
 
-  let foundEnd = false;
-  let startIndex = -1;
-  for (let index = endIndex; index >= 0; index -= 1) {
-    const trimmed = lines[index].trim();
-    if (!foundEnd) {
-      if (trimmed === "") {
-        return null;
-      }
-      if (trimmed.endsWith("*/")) {
-        foundEnd = true;
-        if (trimmed.includes("/**") && trimmed.indexOf("/**") <= trimmed.indexOf("*/")) {
-          startIndex = index;
-          break;
-        }
-        continue;
-      }
-      return null;
-    }
-
-    if (trimmed === "") {
-      return null;
-    }
-
-    if (trimmed.includes("/**")) {
-      startIndex = index;
-      break;
-    }
-
-    if (!trimmed.startsWith("*") && !trimmed.startsWith("*/")) {
-      return null;
-    }
-  }
-
+  const startIndex = findDocCommentStart(lines, endIndex);
   if (startIndex < 0) return null;
 
   const commentLines = lines.slice(startIndex, functionIndex);
@@ -216,34 +206,49 @@ function parseGitLogOutput(output) {
     .filter(Boolean);
 }
 
+function findDocCommentStart(lines, endIndex) {
+  if (endIndex < 0) return -1;
+
+  for (let index = endIndex; index >= 0; index -= 1) {
+    const trimmed = lines[index].trim();
+    if (trimmed === "") return -1;
+    if (trimmed.includes("/**")) return index;
+    if (!trimmed.startsWith("*") && !trimmed.startsWith("*/")) return -1;
+  }
+
+  return -1;
+}
+
 function extractRepoCorpusPairsFromAddedLines(filePath, addedLines, commitSha) {
   const pairs = [];
   for (let index = 0; index < addedLines.length; index += 1) {
-    const line = addedLines[index];
-    const text = line.trim();
-    const match = /^(?:export\s+)?(?:default\s+)?(?:async\s+)?function\s+([A-Za-z_$][\w$]*)(?:<[^>]*>)?\s*\(([^)]*)\)\s*\{/.exec(text);
-    if (!match) continue;
-
-    const docComment = extractDocComment(addedLines, index);
-    if (!docComment) continue;
-
-    const signature = `${match[1]}(${match[2].trim()})`;
-    const assistant = collectFunctionSource(addedLines, index);
-    pairs.push({
-      type: "repo-corpus",
-      platform: "git",
-      commit_sha: commitSha,
-      user: docComment,
-      assistant,
-      metadata: {
-        file: filePath,
-        function_name: match[1],
-        signature,
-        source: "git-diff",
-      },
-    });
+    const pair = tryExtractRepoCorpusPair(filePath, addedLines, index, commitSha);
+    if (pair) pairs.push(pair);
   }
   return pairs;
+}
+
+function tryExtractRepoCorpusPair(filePath, addedLines, index, commitSha) {
+  const text = addedLines[index].trim();
+  const match = FUNCTION_DECLARATION_PATTERN.exec(text);
+  if (!match) return null;
+
+  const docComment = extractDocComment(addedLines, index);
+  if (!docComment) return null;
+
+  return {
+    type: "repo-corpus",
+    platform: "git",
+    commit_sha: commitSha,
+    user: docComment,
+    assistant: collectFunctionSource(addedLines, index),
+    metadata: {
+      file: filePath,
+      function_name: match[1],
+      signature: `${match[1]}(${match[2].trim()})`,
+      source: "git-diff",
+    },
+  };
 }
 
 function parseGitShowOutput(output) {
@@ -303,12 +308,10 @@ export async function generateRepoCorpusPairs(
     ? [`${effectiveSinceRef}..HEAD`]
     : ["HEAD"];
 
-  const logResult = await gitExec([
-    "log",
-    "--format=%H",
-    "--reverse",
-    ...rangeArgs,
-  ], cwd);
+  const logResult = await gitExec(
+    ["log", "--format=%H", "--reverse", ...rangeArgs],
+    cwd,
+  );
 
   const commitShas = parseGitLogOutput(logResult.stdout);
   if (commitShas.length === 0) {
@@ -317,12 +320,10 @@ export async function generateRepoCorpusPairs(
 
   const pairs = [];
   for (const commitSha of commitShas) {
-    const showResult = await gitExec([
-      "show",
-      "--unified=0",
-      "--no-color",
-      commitSha,
-    ], cwd);
+    const showResult = await gitExec(
+      ["show", "--unified=0", "--no-color", commitSha],
+      cwd,
+    );
     const filePairs = parseGitShowOutput(showResult.stdout);
     for (const { file, addedLines } of filePairs) {
       if (!isJsFile(file)) continue;
@@ -335,7 +336,7 @@ export async function generateRepoCorpusPairs(
     }
   }
 
-  const newestSha = commitShas[commitShas.length - 1];
+  const newestSha = commitShas.at(-1);
   await writeJsonFile(statePath, { lastProcessedRef: newestSha });
   return pairs;
 }
@@ -347,7 +348,7 @@ export async function appendRepoCorpusPairs(
   const output = resolveOutputPath({ outputPath, baseDir });
   await fs.mkdir(path.dirname(output), { recursive: true, mode: 0o700 });
   if (pairs.length === 0) {
-    return output;
+    return null;
   }
   const lines = pairs.map((pair) => JSON.stringify(pair)).join("\n") + "\n";
   await fs.appendFile(output, lines, { encoding: "utf8", mode: 0o600 });

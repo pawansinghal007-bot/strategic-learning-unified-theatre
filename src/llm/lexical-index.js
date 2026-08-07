@@ -108,9 +108,14 @@ function getLexicalDb() {
   // When new columns are added we must also rebuild the FTS5 virtual table and
   // its triggers, since FTS5 virtual tables cannot be altered with ALTER TABLE.
   const existingColumns = new Set(
-    db.prepare("PRAGMA table_info(lexical_chunks)").all().map((r) => r.name),
+    db
+      .prepare("PRAGMA table_info(lexical_chunks)")
+      .all()
+      .map((r) => r.name),
   );
-  const missingColumns = MIGRATION_COLUMNS.filter(({ name }) => !existingColumns.has(name));
+  const missingColumns = MIGRATION_COLUMNS.filter(
+    ({ name }) => !existingColumns.has(name),
+  );
 
   if (missingColumns.length > 0) {
     db.transaction(() => {
@@ -183,7 +188,7 @@ function getLexicalDb() {
 
 function escapeFtsToken(token) {
   return String(token)
-    .replace(/[-"'`*:\^~<>\[\]\(\)\{\}]/g, " ")
+    .replace(/['"`*:^~<>(){}[\]-]/g, " ")
     .trim();
 }
 

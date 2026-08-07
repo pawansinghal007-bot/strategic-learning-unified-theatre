@@ -33,7 +33,8 @@ const DEFAULT_UNSLOTH_MODEL_PATHS = [
 const HUGGINGFACE_HUB_CACHE = path.join(os.homedir(), ".cache", "huggingface", "hub");
 
 function shellQuote(value) {
-  return `'${String(value).replace(/'/g, "'\\''")}'`;
+  const singleQuoteEscape = String.raw`'\''`;
+  return `'${String(value).replaceAll("'", singleQuoteEscape)}'`;
 }
 
 async function findFirstGgufInDir(modelDir) {
@@ -41,7 +42,7 @@ async function findFirstGgufInDir(modelDir) {
   const ggufFiles = entries
     .filter((entry) => entry.isFile() && entry.name.endsWith(".gguf"))
     .map((entry) => entry.name)
-    .sort();
+    .sort((a, b) => a.localeCompare(b));
 
   if (ggufFiles.length > 0) {
     return path.join(modelDir, ggufFiles[0]);
@@ -63,7 +64,7 @@ async function findFirstSafetensorsInHub(hubDir) {
         const safetensors = files
           .filter((f) => f.isFile() && f.name.endsWith(".safetensors"))
           .map((f) => f.name)
-          .sort();
+          .sort((a, b) => a.localeCompare(b));
         if (safetensors.length > 0) {
           return path.join(md, safetensors[0]);
         }
@@ -119,7 +120,7 @@ async function discoverLocalModelPath(modelPath) {
  */
 export async function triggerLoraTraining(datasetPath, { model, modelPath } = {}) {
   const localModelPath = await discoverLocalModelPath(modelPath);
-  const effectiveModel = localModelPath ? localModelPath : model ?? DEFAULT_UNSLOTH_MODEL;
+  const effectiveModel = localModelPath ?? model ?? DEFAULT_UNSLOTH_MODEL;
   const escapedDatasetPath = shellQuote(datasetPath);
   const modelArg = `--model ${shellQuote(effectiveModel)}`;
 
