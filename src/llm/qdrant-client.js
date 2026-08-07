@@ -116,17 +116,22 @@ function hasDesiredCollectionConfig(config) {
   if (!config) return false;
 
   const hnsw = config.hnsw_config ?? {};
-  const payloadSchema = config.payload_schema ?? {};
+  const vectors = config.params?.vectors ?? {};
 
+  // Only check structural parameters that are set at collection creation time:
+  // vector size, distance metric, and HNSW graph parameters.
+  //
+  // payload_schema is intentionally excluded: Qdrant only populates it after
+  // explicit payload-index creation calls (create_field_index), so it is
+  // always empty on a freshly created or empty collection.  Checking it caused
+  // a spurious recreation attempt on every startup, which Qdrant rejected with
+  // 409 "already exists" → ensureKnowledgeCollection threw instead of returning
+  // cleanly.  The payload indexes are created during upsertChunks when needed.
   return (
+    vectors.size === VECTOR_DIM &&
+    vectors.distance === "Cosine" &&
     hnsw.m === COLLECTION_TUNING.hnsw_config.m &&
-    hnsw.ef_construct === COLLECTION_TUNING.hnsw_config.ef_construct &&
-    payloadSchema.path?.data_type === COLLECTION_TUNING.payload_schema.path.data_type &&
-    payloadSchema.section?.data_type === COLLECTION_TUNING.payload_schema.section.data_type &&
-    payloadSchema.sprint?.data_type === COLLECTION_TUNING.payload_schema.sprint.data_type &&
-    payloadSchema.feature_area?.data_type === COLLECTION_TUNING.payload_schema.feature_area.data_type &&
-    payloadSchema.source_type?.data_type === COLLECTION_TUNING.payload_schema.source_type.data_type &&
-    payloadSchema.module?.data_type === COLLECTION_TUNING.payload_schema.module.data_type
+    hnsw.ef_construct === COLLECTION_TUNING.hnsw_config.ef_construct
   );
 }
 
@@ -228,7 +233,7 @@ function buildQdrantFilter(filters) {
       }
       continue;
     }
-    if (value === null || value === undefined) continue;
+    if (value == null) continue;
     must.push({ key, match: { value } });
   }
 
