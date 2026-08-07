@@ -15202,7 +15202,7 @@ __export(schemas_exports3, {
 function parseAppConfig(raw) {
   return AppConfigSchema.parse(raw);
 }
-var IsoDateString, VscodeLearnConfigSchema, CaptureScheduleSchema, AppConfigSchema, SprintAgentSchema, SprintStatusSchema, SprintTaskPriority, CompletedTaskSchema, PendingTaskSchema, BlockerSchema, TestFailureSchema, HandoffSprintSchema, IdeaStatusSchema, IdeaPrioritySchema, IdeaSchema, BrowserCapturePayloadSchema, HealthStatusSchema, RobotRunResultSchema, HandoffStatusSchema, PositiveIntSchema, BrowserPlatformSchema, BrowserTypeSchema, TimeoutMsSchema;
+var IsoDateString, VscodeLearnConfigSchema, CaptureScheduleSchema, AppConfigSchema, SprintAgentSchema, SprintStatusSchema, SprintTaskPriority, IdeaPrioritySchema, CompletedTaskSchema, PendingTaskSchema, BlockerSchema, TestFailureSchema, HandoffSprintSchema, IdeaStatusSchema, IdeaSchema, BrowserCapturePayloadSchema, HealthStatusSchema, RobotRunResultSchema, HandoffStatusSchema, PositiveIntSchema, BrowserPlatformSchema, BrowserTypeSchema, TimeoutMsSchema;
 var init_schemas3 = __esm({
   "src/domain/schemas.js"() {
     init_zod();
@@ -15276,6 +15276,7 @@ var init_schemas3 = __esm({
       external_exports.literal(2),
       external_exports.literal(3)
     ]);
+    IdeaPrioritySchema = SprintTaskPriority;
     CompletedTaskSchema = external_exports.object({
       id: external_exports.string().min(1),
       description: external_exports.string().min(1),
@@ -15313,11 +15314,6 @@ var init_schemas3 = __esm({
       resumePrompt: external_exports.string().default("")
     });
     IdeaStatusSchema = external_exports.enum(["inbox", "active", "parked", "done"]);
-    IdeaPrioritySchema = external_exports.union([
-      external_exports.literal(1),
-      external_exports.literal(2),
-      external_exports.literal(3)
-    ]);
     IdeaSchema = external_exports.object({
       id: external_exports.uuid(),
       created: IsoDateString,
@@ -15341,12 +15337,7 @@ var init_schemas3 = __esm({
       elapsed: external_exports.number().nonnegative().describe("milliseconds"),
       output: external_exports.string().default("")
     });
-    HandoffStatusSchema = external_exports.enum([
-      "active",
-      "paused",
-      "exhausted",
-      "complete"
-    ]);
+    HandoffStatusSchema = SprintStatusSchema;
     PositiveIntSchema = external_exports.number().int().positive();
     BrowserPlatformSchema = external_exports.enum(["chromium", "firefox", "webkit"]);
     BrowserTypeSchema = external_exports.enum([
