@@ -67,6 +67,7 @@
     "index:symbols": "tsx src/storage/run-indexer.ts",
     "benchmark:qdrant": "node ./scripts/qdrant-benchmark.mjs",
     "mcp:server": "tsx src/mcp/server.ts",
+    "audit:rag": "tsx scripts/rag-production-audit.mjs",
     "db:up": "bash scripts/db-up.sh",
     "db:check": "bash scripts/db-check.sh"
   },
@@ -158,6 +159,7 @@
     "@types/jest": "^30.0.0",
     "@vitejs/plugin-react": "^6.0.2",
     "@vitest/coverage-v8": "^4.1.9",
+    "@vitest/ui": "^4.1.9",
     "autoprefixer": "^10.5.0",
     "cross-env": "^10.1.0",
     "electron": "^42.2.0",

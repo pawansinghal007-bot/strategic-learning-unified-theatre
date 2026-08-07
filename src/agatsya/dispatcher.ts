@@ -1,4 +1,3 @@
-import { CapabilityRegistry } from "./registry.ts";
 import { SubtaskPacket } from "./types.ts";
 
 export class Dispatcher {

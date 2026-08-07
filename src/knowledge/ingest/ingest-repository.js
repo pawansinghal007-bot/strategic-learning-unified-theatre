@@ -14,6 +14,7 @@ import {
   upsertLexicalChunks,
 } from "../../llm/lexical-index.js";
 import { embedChunksWithCache } from "./embedder.js";
+import { hashText } from "./chunking.js";
 
 const SUPPORTED_EXTENSIONS = new Set([
   ".md",
@@ -110,15 +111,24 @@ function getSourceType(filePath) {
   return map[ext] || "text";
 }
 
+function getScriptKind(filePath) {
+  if (getSourceType(filePath).startsWith("ts")) {
+    return ts.ScriptKind.TS;
+  }
+  if (filePath.endsWith(".tsx")) {
+    return ts.ScriptKind.TSX;
+  }
+  if (filePath.endsWith(".jsx")) {
+    return ts.ScriptKind.JSX;
+  }
+  return ts.ScriptKind.JS;
+}
+
 function parseFeatureArea(filePath) {
   const relative = path.relative(process.cwd(), filePath);
   const parts = relative.split(path.sep);
   if (parts.length > 1) return parts[0];
   return undefined;
-}
-
-function hashText(value) {
-  return createHash("sha256").update(value, "utf8").digest("hex").slice(0, 16);
 }
 
 function getEffectiveMaxFileBytes(options = {}) {
@@ -190,13 +200,7 @@ function codeParentNodes(text, docId, filePath) {
     text,
     ts.ScriptTarget.Latest,
     true,
-    getSourceType(filePath).startsWith("ts")
-      ? ts.ScriptKind.TS
-      : filePath.endsWith(".tsx")
-        ? ts.ScriptKind.TSX
-        : filePath.endsWith(".jsx")
-          ? ts.ScriptKind.JSX
-          : ts.ScriptKind.JS,
+    getScriptKind(filePath),
   );
   const parents = [];
 

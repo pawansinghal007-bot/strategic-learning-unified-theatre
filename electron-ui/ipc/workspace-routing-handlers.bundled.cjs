@@ -1,8 +1,10 @@
 const __importMetaUrl = typeof __filename === 'string' ? require('url').pathToFileURL(__filename).href : globalThis.location?.href;
 "use strict";
+var __create = Object.create;
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __esm = (fn, res, err) => function __init() {
   if (err) throw err[0];
@@ -24,6 +26,14 @@ var __copyProps = (to, from, except, desc) => {
   }
   return to;
 };
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
 // src/shared/logging/logger.ts
@@ -61,7 +71,7 @@ function getAppDir() {
   return process.env.UNIFIED_AI_DATA_DIR ?? (0, import_node_path.join)((0, import_node_os.homedir)(), ".unified-ai-workspace");
 }
 function ensureDir(path) {
-  (0, import_node_fs.mkdirSync)((0, import_node_path.dirname)(path), { recursive: true });
+  nodeFs.mkdirSync((0, import_node_path.dirname)(path), { recursive: true });
 }
 function getStoragePath(fileName) {
   return (0, import_node_path.join)(getAppDir(), fileName);
@@ -69,10 +79,10 @@ function getStoragePath(fileName) {
 function readJsonFile(fileName, fallback) {
   const filePath = getStoragePath(fileName);
   try {
-    if (!(0, import_node_fs.existsSync)(filePath)) {
+    if (!nodeFs.existsSync(filePath)) {
       return fallback;
     }
-    const raw = (0, import_node_fs.readFileSync)(filePath, "utf-8");
+    const raw = nodeFs.readFileSync(filePath, "utf-8");
     return JSON.parse(raw);
   } catch (error) {
     logger.warn("storage.read.failed", {
@@ -86,7 +96,7 @@ function writeJsonFile(fileName, value) {
   const filePath = getStoragePath(fileName);
   try {
     ensureDir(filePath);
-    (0, import_node_fs.writeFileSync)(filePath, JSON.stringify(value, null, 2), "utf-8");
+    nodeFs.writeFileSync(filePath, JSON.stringify(value, null, 2), "utf-8");
   } catch (error) {
     logger.error("storage.write.failed", {
       fileName,
@@ -94,10 +104,10 @@ function writeJsonFile(fileName, value) {
     });
   }
 }
-var import_node_fs, import_node_path, import_node_os;
+var nodeFs, import_node_path, import_node_os;
 var init_storage = __esm({
   "src/llm/storage.ts"() {
-    import_node_fs = require("node:fs");
+    nodeFs = __toESM(require("node:fs"), 1);
     import_node_path = require("node:path");
     import_node_os = require("node:os");
     init_logger();

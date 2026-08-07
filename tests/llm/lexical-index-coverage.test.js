@@ -348,6 +348,94 @@ describe("lexical-index coverage — searchLexicalChunks with filters", () => {
     expect(results).toEqual([]);
   });
 
+  it("supports array filters in search queries", async () => {
+    const { upsertLexicalChunks, searchLexicalChunks } = await import(
+      "../../src/llm/lexical-index.js"
+    );
+
+    upsertLexicalChunks([
+      {
+        chunk_id: "chunk-1",
+        doc_id: "doc-a",
+        path: "src/a.js",
+        section: "s1",
+        parent_id: null,
+        parent_text: null,
+        feature_area: "src",
+        source_type: "javascript",
+        sprint: 1,
+        module: "src/a.js",
+        content: "apple content",
+      },
+      {
+        chunk_id: "chunk-2",
+        doc_id: "doc-b",
+        path: "src/b.js",
+        section: "s1",
+        parent_id: null,
+        parent_text: null,
+        feature_area: "src",
+        source_type: "javascript",
+        sprint: 1,
+        module: "src/b.js",
+        content: "apple content",
+      },
+    ]);
+
+    const results = searchLexicalChunks("apple", 10, { doc_id: ["doc-a", "doc-b"] });
+    expect(results.length).toBe(2);
+  });
+
+  it("ignores unsupported filter columns and still returns results", async () => {
+    const { upsertLexicalChunks, searchLexicalChunks } = await import(
+      "../../src/llm/lexical-index.js"
+    );
+
+    upsertLexicalChunks([
+      {
+        chunk_id: "chunk-unfiltered",
+        doc_id: "doc-1",
+        path: "src/keep.js",
+        section: "s1",
+        parent_id: null,
+        parent_text: null,
+        feature_area: "src",
+        source_type: "javascript",
+        sprint: 1,
+        module: "src/keep.js",
+        content: "keep this content",
+      },
+    ]);
+
+    const results = searchLexicalChunks("keep", 10, { unsupported: "value" });
+    expect(results).toHaveLength(1);
+  });
+
+  it("returns empty array when the search query is empty", async () => {
+    const { upsertLexicalChunks, searchLexicalChunks } = await import(
+      "../../src/llm/lexical-index.js"
+    );
+
+    upsertLexicalChunks([
+      {
+        chunk_id: "chunk-1",
+        doc_id: "doc-1",
+        path: "src/a.js",
+        section: "s1",
+        parent_id: null,
+        parent_text: null,
+        feature_area: "src",
+        source_type: "javascript",
+        sprint: 1,
+        module: "src/a.js",
+        content: "some content",
+      },
+    ]);
+
+    const results = searchLexicalChunks("", 10);
+    expect(results).toEqual([]);
+  });
+
   it("respects the limit parameter", async () => {
     const { upsertLexicalChunks, searchLexicalChunks } = await import(
       "../../src/llm/lexical-index.js"

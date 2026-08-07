@@ -304,6 +304,23 @@ describe("hwProbe coverage — detectGpusWindows via probeHardware", () => {
     expect(profile.gpus[0].vramMB).toBe(1024); // 1073741824 / 1024 / 1024
   });
 
+  it("falls back to PowerShell with a single GPU object", async () => {
+    mockPlatform.mockReturnValue("win32");
+    mockExecFileSync
+      .mockImplementationOnce(() => {
+        throw new Error("nvidia-smi not found");
+      })
+      .mockReturnValue(
+        JSON.stringify({ Name: "NVIDIA GeForce RTX 3080", AdapterRAM: 2147483648 }),
+      );
+
+    const profile = await probeHardware();
+
+    expect(profile.gpus.length).toBe(1);
+    expect(profile.gpus[0].name).toBe("NVIDIA GeForce RTX 3080");
+    expect(profile.gpus[0].vramMB).toBe(2048);
+  });
+
   it("returns empty GPU list when both methods fail", async () => {
     mockPlatform.mockReturnValue("win32");
     mockExecFileSync.mockImplementation(() => {

@@ -50,15 +50,10 @@ describe("ensureKnowledgeCollection", () => {
       okResponse({
         result: {
           config: {
-            hnsw_config: { m: 32, ef_construct: 200 },
-            payload_schema: {
-              path: { data_type: "keyword" },
-              section: { data_type: "keyword" },
-              sprint: { data_type: "integer" },
-              feature_area: { data_type: "keyword" },
-              source_type: { data_type: "keyword" },
-              module: { data_type: "keyword" },
+            params: {
+              vectors: { size: 2560, distance: "Cosine" },
             },
+            hnsw_config: { m: 32, ef_construct: 200 },
           },
         },
       }),

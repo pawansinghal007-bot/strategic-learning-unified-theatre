@@ -49,16 +49,18 @@ export async function vectorSearch(
   const vector = await embed(query);
   const hits = await searchChunks(vector, topK);
 
-  const results: VectorSearchResult[] = hits.map((hit) => ({
-    score: hit.score,
-    source:
-      hit.path?.trim() || hit.source?.trim()
-        ? hit.path?.trim() || hit.source?.trim() || ""
-        : hit.id !== undefined
-        ? String(hit.id)
-        : "",
-    text: hit.content,
-  }));
+  const results: VectorSearchResult[] = hits.map((hit) => {
+    let source = hit.path?.trim() || hit.source?.trim() || "";
+    if (!source && hit.id !== undefined) {
+      source = String(hit.id);
+    }
+
+    return {
+      score: hit.score,
+      source,
+      text: hit.content,
+    };
+  });
 
   logger.info("retrieval.vector-search", {
     query,

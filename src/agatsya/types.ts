@@ -42,4 +42,8 @@ export class SubtaskResponse {
   constructor(payload = {}) {
     Object.assign(this, payload);
   }
+
+  toJSON() {
+    return { ...this };
+  }
 }

@@ -7,7 +7,7 @@ function makeChunkId(docId, index) {
   return `${docId}:chunk:${index}`;
 }
 
-function hashText(text) {
+export function hashText(text) {
   return createHash("sha256").update(text, "utf8").digest("hex").slice(0, 16);
 }
 
