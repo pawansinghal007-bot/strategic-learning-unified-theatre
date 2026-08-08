@@ -199,6 +199,55 @@ describe("triggerLoraTraining — spawn invocation", () => {
     expect(args[7]).toContain(`--local-dataset '${datasetPath}'`);
     expect(args[7]).toContain("--format-type jsonl");
   });
+
+  it("escapes single quotes in dataset values", async () => {
+    const fakeProc = makeFakeProcess();
+    spawnMock.mockReturnValue(fakeProc);
+
+    const datasetPath = "/path/to/some'file/export.jsonl";
+
+    const promise = triggerLoraTraining(datasetPath);
+    await new Promise((resolve) => setImmediate(resolve));
+    fakeProc.emit("close", 0);
+    await promise;
+
+    const [, args] = spawnMock.mock.calls[0];
+    expect(args[7]).toContain("--local-dataset '/path/to/some'\\''file/export.jsonl'");
+    expect(args[7]).toContain("--model 'phi3'");
+  });
+
+  it("skips unreadable model directories and falls back to the default model", async () => {
+    const fakeProc = makeFakeProcess();
+    spawnMock.mockReturnValue(fakeProc);
+
+    const datasetPath = "/path/to/export.jsonl";
+
+    statMock.mockImplementation(async (filePath) => {
+      if (filePath === path.join(os.homedir(), ".cache", "huggingface", "hub")) {
+        throw new Error("hub unavailable");
+      }
+      if (filePath === "/mnt/d/ai/models") {
+        return { isFile: () => false, isDirectory: () => true };
+      }
+      throw new Error("not found");
+    });
+
+    readdirMock.mockImplementation(async (dir, opts) => {
+      if (dir === "/mnt/d/ai/models") {
+        throw new Error("unreadable directory");
+      }
+      throw new Error("not found");
+    });
+
+    const promise = triggerLoraTraining(datasetPath);
+    await new Promise((resolve) => setImmediate(resolve));
+    fakeProc.emit("close", 0);
+    await promise;
+
+    const [, args] = spawnMock.mock.calls[0];
+    expect(args[7]).toContain("--model 'phi3'");
+    expect(args[7]).toContain(`--local-dataset '${datasetPath}'`);
+  });
 });
 
 // ---------------------------------------------------------------------------
