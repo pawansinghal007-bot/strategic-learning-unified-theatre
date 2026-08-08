@@ -4971,6 +4971,8 @@ The ~4% uncovered regions are all edge-case branches:
 
 ## File: `src/llm/status.ts`
 
+**Status:** CLOSED — coverage improvement validated on branch `coverage/status-coverage-improvement`; targeted tests in `tests/llm/status-coverage.test.ts` and `tests/cli/llm-health.test.js` passed.
+
 **Statement Coverage:** 96.66%
 **Branch Coverage:** ~95%
 **Function Coverage:** ~97%
