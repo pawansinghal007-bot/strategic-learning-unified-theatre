@@ -110,6 +110,126 @@ describe("ingestRepository", () => {
     expect(mocks.upsertChunks).not.toHaveBeenCalled();
   });
 
+  it("parses TypeScript source code parents for functions, classes, methods, and arrows", async () => {
+    const { codeParentNodes } =
+      await import("../../../src/knowledge/ingest/ingest-repository.js");
+
+    const text = `function myFn() {}
+class MyClass {
+  myMethod() {}
+}
+const myArrow = () => {};
+`;
+    const parents = codeParentNodes(text, "repo:src/test.ts", "src/test.ts");
+
+    expect(parents).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ parentLabel: "myFn" }),
+        expect.objectContaining({ parentLabel: "MyClass" }),
+        expect.objectContaining({ parentLabel: "MyClass.myMethod" }),
+        expect.objectContaining({ parentLabel: "myArrow" }),
+      ]),
+    );
+  });
+
+  it("parses JSX source code parents with JSX script kind", async () => {
+    const { codeParentNodes } =
+      await import("../../../src/knowledge/ingest/ingest-repository.js");
+
+    const text = `const MyComp = () => <div />;`;
+    const parents = codeParentNodes(text, "repo/src/comp.jsx", "src/comp.jsx");
+
+    expect(parents).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ parentLabel: "MyComp" }),
+      ]),
+    );
+  });
+
+  it("parses TSX source code parents with TSX script kind", async () => {
+    const { codeParentNodes } =
+      await import("../../../src/knowledge/ingest/ingest-repository.js");
+
+    const text = `const MyComp = () => <div />;`;
+    const parents = codeParentNodes(text, "repo/src/comp.tsx", "src/comp.tsx");
+
+    expect(parents).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ parentLabel: "MyComp" }),
+      ]),
+    );
+  });
+
+  it("parses JavaScript source code parents with JS script kind", async () => {
+    const { codeParentNodes } =
+      await import("../../../src/knowledge/ingest/ingest-repository.js");
+
+    const text = `function jsFn() {}`;
+    const parents = codeParentNodes(
+      text,
+      "repo/src/js-file.js",
+      "src/js-file.js",
+    );
+
+    expect(parents).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ parentLabel: "jsFn" }),
+      ]),
+    );
+  });
+
+  it("creates markdown parent sections and maps offsets to the correct heading", async () => {
+    const { markdownParentNodes, findParentForOffset } =
+      await import("../../../src/knowledge/ingest/ingest-repository.js");
+
+    const text = `# Heading 1\n\nIntro text.\n## Heading 2\n\nMore details.`;
+    const parents = markdownParentNodes(text, "repo:doc");
+
+    expect(parents.length).toBeGreaterThan(1);
+    expect(parents[0].parentId).toContain("heading-1");
+    expect(parents[1].parentId).toContain("heading-2");
+    expect(findParentForOffset(parents, text.indexOf("Intro text."))).toBe(
+      parents[0],
+    );
+    expect(findParentForOffset(parents, text.indexOf("More details."))).toBe(
+      parents[1],
+    );
+  });
+
+  it("truncates large parent text for markdown chunks", async () => {
+    const { createChunksForFile } =
+      await import("../../../src/knowledge/ingest/ingest-repository.js");
+
+    const longText = `# Heading\n${"a".repeat(9000)}`;
+    const chunks = createChunksForFile({
+      text: longText,
+      filePath: path.join(tempDir, "big.md"),
+      absoluteBaseDir: tempDir,
+      defaultFeatureArea: "big-area",
+    });
+
+    expect(chunks.length).toBeGreaterThan(0);
+    expect(chunks[0].parentText).toContain("... [truncated parent context]");
+    expect(chunks[0].featureArea).toBe("big-area");
+  });
+
+  it("uses code parent nodes when present in TypeScript file chunk creation", async () => {
+    const { createChunksForFile } =
+      await import("../../../src/knowledge/ingest/ingest-repository.js");
+
+    const text = `function x() {}\nconst y = () => {};\n`;
+    const chunks = createChunksForFile({
+      text,
+      filePath: path.join(tempDir, "src", "code.ts"),
+      absoluteBaseDir: tempDir,
+      defaultFeatureArea: "code-area",
+    });
+
+    expect(chunks.length).toBeGreaterThan(0);
+    expect(chunks[0].parentId).toContain("repo:src/code.ts:parent:");
+    expect(chunks[0].featureArea).toBe("code-area");
+  });
+
   it("skips excluded directories", async () => {
     const { ingestRepository } =
       await import("../../../src/knowledge/ingest/ingest-repository.js");
