@@ -64,9 +64,8 @@ describe("graph-state", () => {
     fs.mkdirSync(srcDir, { recursive: true });
 
     // Patch PROJECT_ROOT to point at our temp dir
-    (
-      await import("../../../src/shared/config/paths.js")
-    ).PROJECT_ROOT = tmpDir as any;
+    (await import("../../../src/shared/config/paths.js")).PROJECT_ROOT =
+      tmpDir as any;
 
     mockBuildGraph.mockReturnValue(makeStubGraph("initial"));
   });
@@ -168,7 +167,10 @@ describe("graph-state", () => {
       expect(mockBuildGraph).toHaveBeenCalledTimes(1);
 
       // Add a new .ts file to invalidate the hash
-      fs.writeFileSync(path.join(srcDir, "new-module.ts"), "export const x = 1;\n");
+      fs.writeFileSync(
+        path.join(srcDir, "new-module.ts"),
+        "export const x = 1;\n",
+      );
 
       // Second call — file set changed → must rebuild
       mockBuildGraph.mockReturnValue(makeStubGraph("rebuilt"));
@@ -243,11 +245,17 @@ describe("graph-state", () => {
       for (const dir of excludedDirs) {
         const excludedPath = path.join(srcDir, dir);
         fs.mkdirSync(excludedPath, { recursive: true });
-        fs.writeFileSync(path.join(excludedPath, "should-be-excluded.ts"), "// excluded\n");
+        fs.writeFileSync(
+          path.join(excludedPath, "should-be-excluded.ts"),
+          "// excluded\n",
+        );
       }
 
       // Create a real file that should be included
-      fs.writeFileSync(path.join(srcDir, "included.ts"), "export const x = 1;\n");
+      fs.writeFileSync(
+        path.join(srcDir, "included.ts"),
+        "export const x = 1;\n",
+      );
 
       clearGraphCache();
       mockBuildGraph.mockReturnValue({ nodes: [], edges: [] });

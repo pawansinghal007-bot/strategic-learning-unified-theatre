@@ -23,7 +23,7 @@ import {
   computeManifest,
   detectChanges,
   computeGraphDiff,
-} from "../../../src/shared/retrieval/graph-incremental.js";
+} from "../../../src/experimental/graph-incremental.js";
 import { buildGraph } from "../../../src/shared/retrieval/graph-builder.js";
 import type {
   SymbolGraph,
