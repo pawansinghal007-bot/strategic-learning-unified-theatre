@@ -3859,6 +3859,8 @@ If this code is removed:
 
 ## File: `src/commands/llm.js`
 
+**Status:** CLOSED — coverage validation completed on branch `coverage/llm-command-coverage-improvement`; targeted tests in `tests/commands/llm.coverage-additions.test.js` passed.
+
 **Statement Coverage:** 94.52%
 **Branch Coverage:** 90.85%
 **Function Coverage:** 95.23%
