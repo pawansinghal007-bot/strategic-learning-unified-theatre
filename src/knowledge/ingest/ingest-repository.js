@@ -51,6 +51,21 @@ const EXCLUDED_DIRS = new Set([
   "release",
   "test-results",
   "playwright-report",
+  // Generated Playwright report directories (UI and human-run variants)
+  "playwright-report-ui",
+  "playwright-report-human",
+  // Scratch coverage directories left over from parallel coverage runs
+  "coverage-tmp",
+  "coverage-tmp2",
+  "coverage-tmp3",
+  // Generated audit/output/dump artifact directories
+  "audit_chunks",
+  "output",
+  "dumps",
+  // HTML coverage report output
+  "html",
+  // Robot Framework results
+  "robot-results",
 ]);
 
 const DEFAULT_MAX_FILE_BYTES = 512 * 2560;
