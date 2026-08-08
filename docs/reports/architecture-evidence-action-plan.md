@@ -8397,7 +8397,7 @@ The following contradictions were identified and resolved in this reconciliation
 
  - A3 (`router.ts`): CLOSED — Evidence recorded 2026-08-08
   - PR: https://github.com/pawansinghal007-bot/strategic-learning-unified-theatre/pull/13
-  - Commit: `55bae0a8` (coverage/router-coverage-improvement)
+  - Commit: `67f92ef1` (coverage/router-coverage-improvement)
   - Notes: Added `tests/shared/retrieval/router.test.ts` covering `chooseStrategy()` heuristics and `retrieve()` dispatch paths. Local targeted run reports `router.ts` file-level coverage ~95% but global repo thresholds require CI verification; PR CI pending.
 
 ## Risk Reduction Summary
