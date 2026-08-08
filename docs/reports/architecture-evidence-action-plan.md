@@ -2728,6 +2728,8 @@ graph-incremental.ts solves the architectural problem of **incremental graph reb
 
 **Phase:** Phase 3 of Sprint 110e. The feature was implemented but never wired into production.
 
+**Status:** CLOSED — moved to `src/experimental/graph-incremental.ts` in PR #15 (commit `a046c928`). Tests updated to reference experimental location. See PR: https://github.com/pawansinghal007-bot/strategic-learning-unified-theatre/pull/15
+
 ---
 
 ### 2. Complete Call Graph
