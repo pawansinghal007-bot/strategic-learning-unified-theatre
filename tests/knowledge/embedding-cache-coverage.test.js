@@ -42,6 +42,61 @@ describe("embedding-cache coverage — getStats when db is null", () => {
   });
 });
 
+describe("embedding-cache coverage — init() and close()", () => {
+  it("returns the same instance when init() is called twice", async () => {
+    const { EmbeddingCache } = await import("../../src/knowledge/ingest/embedding-cache.js");
+
+    const cache = new EmbeddingCache({ baseDir: tmpDir });
+    const firstInit = await cache.init();
+    const secondInit = await cache.init();
+
+    expect(secondInit).toBe(cache);
+    expect(firstInit).toBe(cache);
+    expect(cache.db).not.toBeNull();
+  });
+
+  it("closes the database and is idempotent", async () => {
+    const { EmbeddingCache } = await import("../../src/knowledge/ingest/embedding-cache.js");
+
+    const cache = new EmbeddingCache({ baseDir: tmpDir });
+    await cache.init();
+
+    expect(cache.db).not.toBeNull();
+
+    cache.close();
+    expect(cache.db).toBeNull();
+    expect(() => cache.close()).not.toThrow();
+  });
+});
+
+describe("embedding-cache coverage — constructor baseDir branch", () => {
+  it("resolves an explicit baseDir and uses it for dbPath", async () => {
+    const { EmbeddingCache } = await import("../../src/knowledge/ingest/embedding-cache.js");
+
+    const explicitDir = path.join(tmpDir, "explicit-cache");
+    const cache = new EmbeddingCache({ baseDir: explicitDir });
+
+    expect(cache.baseDir).toBe(path.resolve(explicitDir));
+    expect(cache.dbPath).toBe(path.join(path.resolve(explicitDir), "embedding-cache.db"));
+  });
+});
+
+describe("embedding-cache coverage — _pruneIfNeeded when maxEntries is 0", () => {
+  it("does not prune when maxEntries is zero", async () => {
+    const { EmbeddingCache } = await import("../../src/knowledge/ingest/embedding-cache.js");
+
+    const cache = new EmbeddingCache({ baseDir: tmpDir, maxEntries: 0 });
+    await cache.init();
+
+    for (let i = 0; i < 20; i++) {
+      await cache.setVector(`key-${i}`, [i, i + 1]);
+    }
+
+    const stats = cache.getStats();
+    expect(stats.size).toBe(20);
+  });
+});
+
 describe("embedding-cache coverage — getVector hit", () => {
   it("returns cached vector when key exists", async () => {
     const { EmbeddingCache } = await import("../../src/knowledge/ingest/embedding-cache.js");
