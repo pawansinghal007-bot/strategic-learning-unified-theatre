@@ -3235,6 +3235,10 @@ If this code is removed:
 **Line Coverage:** 98.82%
 **Uncovered Lines:** BRDA:39,5,1,0 — `return "unknown"` fallback in `mapCategory()` (line 39)
 
+**Decision:** CLOSED — KEEP (defensive fallback; tests comprehensive)
+
+**Evidence:** PR: https://github.com/pawansinghal007-bot/strategic-learning-unified-theatre/pull/17 (coverage/gitleaks-runner-coverage-improvement) — commit `5fba0562`
+
 ---
 
 ### 1. Architectural Purpose

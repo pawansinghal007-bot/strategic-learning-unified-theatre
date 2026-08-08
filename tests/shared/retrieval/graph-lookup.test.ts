@@ -33,7 +33,7 @@ const RETRIEVAL_DIR = path.join(REPO_ROOT, "src/shared/retrieval");
 const REAL_FILES = [
   path.join(RETRIEVAL_DIR, "graph-builder.ts"),
   path.join(RETRIEVAL_DIR, "graph-schema.ts"),
-  path.join(RETRIEVAL_DIR, "graph-incremental.ts"),
+  path.join(REPO_ROOT, "src/experimental/graph-incremental.ts"),
   path.join(RETRIEVAL_DIR, "graph-lookup.ts"),
   path.join(RETRIEVAL_DIR, "symbol-search.ts"),
   path.join(RETRIEVAL_DIR, "router.ts"),
@@ -359,8 +359,6 @@ describe("card size benchmark", () => {
   });
 });
 
-
-
 // ─── parseSymbolQuery advanced patterns (lines 31-33, 39) ────────────────────
 
 describe("lookupSymbol with advanced query patterns", () => {
@@ -372,8 +370,9 @@ describe("lookupSymbol with advanced query patterns", () => {
     // Query format: "src/shared/retrieval/graph-builder.ts#buildGraph"
     // parseSymbolQuery extracts fileId and symbolName
     // nodeMatches checks exact node.id === `${fileId}#${symbolName}`
-    const buildGraphNodeId = graph.nodes.find((n) =>
-      n.id.endsWith("#buildGraph") && n.file.includes("graph-builder.ts")
+    const buildGraphNodeId = graph.nodes.find(
+      (n) =>
+        n.id.endsWith("#buildGraph") && n.file.includes("graph-builder.ts"),
     )?.id;
     expect(buildGraphNodeId).toBeDefined();
 
