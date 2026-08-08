@@ -1,10 +1,8 @@
 /**
- * src/shared/retrieval/graph-incremental.ts
+ * src/experimental/graph-incremental.ts
  *
- * Incremental graph builder: tracks SHA256 file hashes and only re-parses
- * changed files on update. Re-links only edges touching changed files.
- *
- * Phase 3 of Sprint 110e — avoids full re-parse on every change.
+ * Incremental graph builder moved to experimental to indicate this feature
+ * is not wired into production. Preserves implementation for future work.
  */
 
 import * as ts from "typescript";
@@ -16,8 +14,8 @@ import {
   SymbolGraph,
   GraphManifest,
   GraphUpdateResult,
-} from "./graph-schema.js";
-import { buildGraph } from "./graph-builder.js";
+} from "../shared/retrieval/graph-schema.js";
+import { buildGraph } from "../shared/retrieval/graph-builder.js";
 
 // ─── SHA256 helpers ───────────────────────────────────────────────────────────
 
@@ -187,7 +185,7 @@ function findAffectedFiles(
   return affected;
 }
 
-// ─── graph diff ───────────────────────────────────────────────────────────────
+// ─── graph diff ──────────────────────────────────────────────────────────────
 
 /**
  * Computes the diff between two graphs.

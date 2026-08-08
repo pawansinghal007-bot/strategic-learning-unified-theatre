@@ -2728,6 +2728,8 @@ graph-incremental.ts solves the architectural problem of **incremental graph reb
 
 **Phase:** Phase 3 of Sprint 110e. The feature was implemented but never wired into production.
 
+**Status:** CLOSED — moved to `src/experimental/graph-incremental.ts` in PR #15 (commit `a046c928`). Tests updated to reference experimental location. See PR: https://github.com/pawansinghal007-bot/strategic-learning-unified-theatre/pull/15
+
 ---
 
 ### 2. Complete Call Graph
@@ -8401,9 +8403,9 @@ The following contradictions were identified and resolved in this reconciliation
 - Notes: Added `tests/shared/retrieval/router.test.ts` covering `chooseStrategy()` heuristics and `retrieve()` dispatch paths. Local targeted run reports `router.ts` file-level coverage ~95% but global repo thresholds require CI verification; PR CI pending.
 
 - A4 (`graph-state.ts`): CLOSED — Evidence recorded 2026-08-08
- - PR: https://github.com/pawansinghal007-bot/strategic-learning-unified-theatre/pull/14
- - Commit: `2a4ea03e` (coverage/graph-state-coverage-improvement)
- - Notes: Added `tests/shared/retrieval/graph-state.test.ts` covering `collectSourceFiles()`, `computeFileHash()`, caching, force rebuild, and exclusion rules. Local targeted run passed; CI will validate repo-wide coverage.
+- PR: https://github.com/pawansinghal007-bot/strategic-learning-unified-theatre/pull/14
+- Commit: `2a4ea03e` (coverage/graph-state-coverage-improvement)
+- Notes: Added `tests/shared/retrieval/graph-state.test.ts` covering `collectSourceFiles()`, `computeFileHash()`, caching, force rebuild, and exclusion rules. Local targeted run passed; CI will validate repo-wide coverage.
 
 ## Risk Reduction Summary
 
