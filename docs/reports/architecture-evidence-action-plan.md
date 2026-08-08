@@ -2946,6 +2946,8 @@ If this code is removed:
 **Line Coverage:** 95.86%
 **Uncovered Lines:** ~5 lines (defensive error paths in try/catch blocks — lines 66, 72, 129, 240, 264)
 
+**Status:** CLOSED — `KEEP` per recommendation; defensive error paths are low-risk and intentionally left uncovered. No code changes required. PR #16 created to record this doc update (commit `1d59abd2`). PR: https://github.com/pawansinghal007-bot/strategic-learning-unified-theatre/pull/16
+
 ---
 
 ### 1. Architectural Purpose
