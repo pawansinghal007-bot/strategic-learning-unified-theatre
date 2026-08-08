@@ -4350,6 +4350,8 @@ If this code is removed:
 
 ## File: `src/security/security-overview/ai-explain.ts`
 
+**Status:** CLOSED — coverage improvement validated on branch `coverage/ai-explain-coverage-improvement`; targeted tests in `tests/security-overview-ai-explain-coverage.test.ts`, `tests/security-overview-ai-explain.test.js`, and `tests/security-overview-coverage.test.ts` passed.
+
 **Statement Coverage:** 96.72%
 **Branch Coverage:** ~95%
 **Function Coverage:** 100%
