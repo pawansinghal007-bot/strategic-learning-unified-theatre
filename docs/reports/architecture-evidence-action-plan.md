@@ -8390,6 +8390,15 @@ The following contradictions were identified and resolved in this reconciliation
 
 ## Risk Reduction Summary
 
+## Action Evidence Updates
+
+- A15 (`ingest-repository.js`): CLOSED — Evidence recorded 2026-08-08
+  - PR: https://github.com/pawansinghal007-bot/strategic-learning-unified-theatre/pull/11
+  - Commit: `a1e11a58` (coverage/ingest-repository-coverage-improvement)
+  - Local file-level coverage (post-change): Statements 97.43%, Functions 100%, Branches 87.71%
+  - Notes: unit tests added in `tests/knowledge/ingest/ingest-repository.test.ts`; CI run pending on PR creation.  
+
+
 | File                   | Risk Before | Risk After | Risk Transition                                                                  |
 | ---------------------- | ----------- | ---------- | -------------------------------------------------------------------------------- |
 | `hwProbe.ts`           | HIGH        | MEDIUM     | Formal exclusion reduces audit and CI risk for platform-specific detection paths |
