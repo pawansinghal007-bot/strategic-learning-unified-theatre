@@ -5645,6 +5645,7 @@ If this code is removed:
 **Function Coverage:** 100.00%
 **Line Coverage:** 98.68%
 **Uncovered Lines:** ~2 of ~550 lines (error handling in `download()` non-200 path, `setupModel()` SHA256 mismatch unlink)
+**Status:** CLOSED — coverage improvement validated on branch `coverage/local-llm-coverage-improvement`; targeted tests in `tests/llm/local-llm.coverage-additions.test.js`, `tests/llm/local-llm-branches.test.js`, and `tests/llm/local-llm-switch.test.js` passed.
 
 ---
 
