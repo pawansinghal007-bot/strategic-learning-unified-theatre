@@ -34,6 +34,7 @@ vi.mock("../../../src/knowledge/ingest/embedding-cache.js", () => ({
 }));
 
 import { embedTextBatch } from "../../../src/knowledge/ingest/embedder.js";
+import { embeddingCache } from "../../../src/knowledge/ingest/embedding-cache.js";
 
 // ─── setup ────────────────────────────────────────────────────────────────────
 
@@ -41,6 +42,16 @@ beforeEach(() => {
   vi.clearAllMocks();
   mockFetch.mockReset(); // Clear mockResolvedValueOnce queue to prevent leakage between tests
   (globalThis as any).fetch = mockFetch;
+
+  (embeddingCache.init as ReturnType<typeof vi.fn>).mockResolvedValue(
+    undefined,
+  );
+  (embeddingCache.getVector as ReturnType<typeof vi.fn>).mockReturnValue(null);
+  (embeddingCache.getStats as ReturnType<typeof vi.fn>).mockReturnValue({
+    hits: 0,
+    misses: 0,
+    size: 0,
+  });
 });
 
 afterEach(() => {
@@ -184,6 +195,31 @@ describe("embedTextBatch", () => {
       .mockRejectedValueOnce(networkErr);
 
     await expect(embedTextBatch(["test"])).rejects.toThrow("ECONNREFUSED");
+  });
+
+  it("throws immediately on non-transient HTTP errors", async () => {
+    mockFetch.mockResolvedValueOnce(makeErrorResponse(400, "Bad Request"));
+
+    await expect(embedTextBatch(["test"])).rejects.toThrow(
+      /embeddings service returned 400/,
+    );
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns cached vectors without calling the embeddings service when all entries are cached", async () => {
+    const cachedVector = Array.from({ length: 2560 }, () => 0.5);
+    const { embeddingCache } =
+      await import("../../../src/knowledge/ingest/embedding-cache.js");
+
+    (embeddingCache.getVector as ReturnType<typeof vi.fn>).mockReturnValue(
+      cachedVector,
+    );
+
+    const result = await embedTextBatch(["test"]);
+
+    expect(result).toEqual([cachedVector]);
+    expect(mockFetch).not.toHaveBeenCalled();
+    expect(embeddingCache.setVector).not.toHaveBeenCalled();
   });
 
   it("handles empty input array gracefully", async () => {
