@@ -23,6 +23,7 @@ import {
   vi,
 } from "vitest";
 import pg from "pg";
+import { runMigrations } from "../../src/storage/run-migrations.js";
 
 const { Pool } = pg;
 
@@ -62,8 +63,10 @@ describe(
   () => {
     let pool: pg.Pool;
 
-    beforeAll(() => {
+    beforeAll(async () => {
       pool = new Pool({ connectionString: process.env.DATABASE_URL! });
+      // Ensure the symbols table exists — idempotent, safe on already-migrated DBs.
+      await runMigrations(process.env.DATABASE_URL!);
     });
 
     beforeEach(async () => {
