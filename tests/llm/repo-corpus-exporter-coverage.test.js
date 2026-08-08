@@ -117,6 +117,50 @@ describe("repo-corpus-exporter coverage — generateRepoCorpusPairs", () => {
     expect(result).toEqual([]);
   });
 
+  it("treats a missing state file as first-run state", async () => {
+    const { execFile } = await import("../../src/llm/_child-process.js");
+    execFile.mockImplementation((cmd, args, opts, cb) => {
+      if (args[0] === "rev-parse") {
+        cb(null, "abc123def456\n", "");
+      } else if (args[0] === "log") {
+        cb(null, "", "");
+      }
+    });
+
+    const stateFile = path.join(tmpDir, "missing-state.json");
+    const { generateRepoCorpusPairs } =
+      await import("../../src/llm/repo-corpus-exporter.js");
+    const result = await generateRepoCorpusPairs("main", {
+      baseDir: tmpDir,
+      cwd: tmpDir,
+      stateFile,
+    });
+
+    expect(result).toEqual([]);
+  });
+
+  it("rejects when resolveGitRef returns a git error for sinceRef", async () => {
+    const { execFile } = await import("../../src/llm/_child-process.js");
+    execFile.mockImplementation((cmd, args, opts, cb) => {
+      if (args[0] === "rev-parse") {
+        const err = new Error("fatal: ambiguous argument 'invalid': unknown revision or path");
+        err.code = 128;
+        cb(err, "", "");
+      } else if (args[0] === "log") {
+        cb(null, "", "");
+      }
+    });
+
+    const { generateRepoCorpusPairs } =
+      await import("../../src/llm/repo-corpus-exporter.js");
+    await expect(
+      generateRepoCorpusPairs("invalid", {
+        baseDir: tmpDir,
+        cwd: tmpDir,
+      }),
+    ).rejects.toThrow("fatal: ambiguous argument");
+  });
+
   it("returns null when appending an empty pair list", async () => {
     const outputFile = path.join(tmpDir, "empty-output.jsonl");
     const { appendRepoCorpusPairs } =
