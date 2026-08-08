@@ -8395,9 +8395,9 @@ The following contradictions were identified and resolved in this reconciliation
   - Commit: `2e8f2e62` (coverage/tool-handlers-coverage-improvement)
   - Notes: Added `tests/mcp/tool-handlers.test.ts` exercising success and error paths for ask-local, code-review, list-tools, vector-search, search-code, and retrieve. Local targeted test run encountered transform/mocking issues in this environment; CI run pending on PR.
 
-- A3 (`router.ts`): CLOSED — Evidence recorded 2026-08-08
+ - A3 (`router.ts`): CLOSED — Evidence recorded 2026-08-08
   - PR: https://github.com/pawansinghal007-bot/strategic-learning-unified-theatre/pull/13
-  - Commit: `TBD` (coverage/router-coverage-improvement)
+  - Commit: `55bae0a8` (coverage/router-coverage-improvement)
   - Notes: Added `tests/shared/retrieval/router.test.ts` covering `chooseStrategy()` heuristics and `retrieve()` dispatch paths. Local targeted run reports `router.ts` file-level coverage ~95% but global repo thresholds require CI verification; PR CI pending.
 
 ## Risk Reduction Summary
