@@ -45,7 +45,19 @@ function notFoundResponse(
 describe("ensureKnowledgeCollection", () => {
   afterEach(() => vi.restoreAllMocks());
 
-  it("does nothing when the collection already exists with the desired config", async () => {
+  // Helper: count fetch calls by URL pattern
+  function indexCalls(spy: ReturnType<typeof mockFetch>) {
+    return spy.mock.calls.filter(([url]) =>
+      String(url).includes("/index"),
+    ).length;
+  }
+  function nonIndexCalls(spy: ReturnType<typeof mockFetch>) {
+    return spy.mock.calls.filter(([url]) =>
+      !String(url).includes("/index"),
+    );
+  }
+
+  it("calls ensurePayloadIndexes (6 index PUTs) when collection already has desired config", async () => {
     const spy = mockFetch(async () =>
       okResponse({
         result: {
@@ -59,43 +71,71 @@ describe("ensureKnowledgeCollection", () => {
       }),
     );
     await ensureKnowledgeCollection();
-    // Only one GET request; no PUT
-    expect(spy).toHaveBeenCalledTimes(1);
-    expect(spy.mock.calls[0][1]).toBeUndefined(); // GET has no body/method override
+    // 1 GET (collection check) + 6 index PUTs = 7 total
+    expect(spy).toHaveBeenCalledTimes(7);
+    expect(indexCalls(spy)).toBe(6);
+    // GET has no method override
+    expect(nonIndexCalls(spy)[0][1]).toBeUndefined();
   });
 
-  it("updates an existing collection when the tuning config is missing", async () => {
+  it("emits logger.warn with actual vs expected when config mismatches, then attempts recreate (2 non-index calls + 6 index PUTs)", async () => {
+    const warnSpy = vi.spyOn(
+      (await import("../../src/shared/logging/logger.js")).logger,
+      "warn",
+    );
+
     const spy = mockFetch(async (url, init) => {
-      if (!init || !init.method || init.method === "GET") {
-        return okResponse({ result: { config: { hnsw_config: {}, payload_schema: {} } } });
+      if (!init?.method || init.method === "GET") {
+        return okResponse({
+          result: {
+            config: {
+              params: { vectors: { size: 2560, distance: "Cosine" } },
+              hnsw_config: { m: 16, ef_construct: 100 },
+            },
+          },
+        });
       }
-      return okResponse({ result: true });
+      if (String(url).includes("/index")) return okResponse({ result: true });
+      return okResponse({ result: true }); // PUT collection
     });
 
     await ensureKnowledgeCollection();
 
-    expect(spy).toHaveBeenCalledTimes(2);
-    const putCall = spy.mock.calls.find(([, init]) => init?.method === "PUT");
-    expect(putCall).toBeDefined();
+    // logger.warn called with collection_config_mismatch
+    const mismatchCall = warnSpy.mock.calls.find(
+      ([event]) => event === "qdrant.collection_config_mismatch",
+    );
+    expect(mismatchCall).toBeDefined();
+    const payload = mismatchCall![1] as Record<string, unknown>;
+    expect((payload.actual as Record<string, unknown>).m).toBe(16);
+    expect((payload.actual as Record<string, unknown>).ef_construct).toBe(100);
+    expect((payload.expected as Record<string, unknown>).m).toBe(32);
+    expect((payload.expected as Record<string, unknown>).ef_construct).toBe(200);
+
+    // 1 GET + 1 PUT (collection recreate attempt) + 6 index PUTs = 8 total
+    expect(spy).toHaveBeenCalledTimes(8);
+    expect(indexCalls(spy)).toBe(6);
   });
 
-  it("creates collection via PUT when GET returns 404", async () => {
+  it("creates collection via PUT when GET returns 404, then creates 6 indexes", async () => {
     const spy = mockFetch(async (url, init) => {
-      if (!init || !init.method || init.method === "GET") {
+      if (!init?.method || init.method === "GET") {
         return notFoundResponse();
       }
-      // PUT — collection creation
       return okResponse({ result: true });
     });
 
     await ensureKnowledgeCollection();
 
-    expect(spy).toHaveBeenCalledTimes(2);
-    const putCall = spy.mock.calls.find(([, init]) => init?.method === "PUT");
-    expect(putCall).toBeDefined();
-    expect(putCall![0]).toContain(KNOWLEDGE_COLLECTION);
+    // 1 GET + 1 PUT (collection) + 6 index PUTs = 8 total
+    expect(spy).toHaveBeenCalledTimes(8);
+    expect(indexCalls(spy)).toBe(6);
 
-    const putBody = JSON.parse(putCall![1]!.body as string);
+    const collectionPut = nonIndexCalls(spy).find(([, init]) => init?.method === "PUT");
+    expect(collectionPut).toBeDefined();
+    expect(collectionPut![0]).toContain(KNOWLEDGE_COLLECTION);
+
+    const putBody = JSON.parse(collectionPut![1]!.body as string);
     expect(putBody.vectors).toMatchObject({ size: 2560, distance: "Cosine" });
     expect(putBody.hnsw_config).toMatchObject({
       m: expect.any(Number),
@@ -112,7 +152,6 @@ describe("ensureKnowledgeCollection", () => {
   });
 
   it("does NOT create collection when GET fails with non-404 and no 'doesn't exist' error", async () => {
-    // Returns not-ok but the error text does NOT include "doesn't exist"
     const spy = mockFetch(
       async () =>
         ({
@@ -123,12 +162,11 @@ describe("ensureKnowledgeCollection", () => {
     );
 
     await ensureKnowledgeCollection();
-    // Only 1 call (the GET); PUT should not be issued because condition short-circuits
+    // Only 1 call (the GET); short-circuits before any PUT
     expect(spy).toHaveBeenCalledTimes(1);
   });
 
   it("creates collection when error text includes 'doesn't exist' and status is non-404", async () => {
-    // Some Qdrant versions may return 400 with "doesn't exist" in the body
     const spy = mockFetch(async (url, init) => {
       if (!init?.method || init.method === "GET") {
         return {
@@ -141,11 +179,13 @@ describe("ensureKnowledgeCollection", () => {
     });
 
     await ensureKnowledgeCollection();
-    const putCall = spy.mock.calls.find(([, init]) => init?.method === "PUT");
-    expect(putCall).toBeDefined();
+    const collectionPut = nonIndexCalls(spy).find(([, init]) => init?.method === "PUT");
+    expect(collectionPut).toBeDefined();
+    // 1 GET + 1 PUT collection + 6 index PUTs = 8
+    expect(spy).toHaveBeenCalledTimes(8);
   });
 
-  it("throws Error when collection creation PUT returns non-ok (lines 52-58)", async () => {
+  it("throws Error when collection creation PUT returns non-ok", async () => {
     const spy = mockFetch(async (url, init) => {
       if (!init?.method || init.method === "GET") {
         return notFoundResponse();
@@ -162,18 +202,51 @@ describe("ensureKnowledgeCollection", () => {
       "Collection creation failed",
     );
 
-    expect(spy).toHaveBeenCalledTimes(2);
+    // 1 GET + 1 PUT (failed) = 2; no index calls because throw happens first
+    expect(nonIndexCalls(spy)).toHaveLength(2);
+    expect(indexCalls(spy)).toBe(0);
   });
 
-  it("uses .catch() fallback when res.json() throws during error response (line 29)", async () => {
-    // GET returns non-ok, then res.json() throws — .catch() returns {}
-    // With body={}, the condition at line 33 short-circuits to false for
-    // the first clause (undefined === false is false), so we proceed to PUT
+  it("logs warn for each index PUT that returns non-ok, but does not throw", async () => {
+    const warnSpy = vi.spyOn(
+      (await import("../../src/shared/logging/logger.js")).logger,
+      "warn",
+    );
+
+    mockFetch(async (url, init) => {
+      if (!init?.method || init.method === "GET") {
+        return okResponse({
+          result: {
+            config: {
+              params: { vectors: { size: 2560, distance: "Cosine" } },
+              hnsw_config: { m: 32, ef_construct: 200 },
+            },
+          },
+        });
+      }
+      // All index PUTs fail
+      return {
+        ok: false,
+        status: 503,
+        text: async () => "unavailable",
+      } as unknown as Response;
+    });
+
+    // Should not throw even when all index creates fail
+    await expect(ensureKnowledgeCollection()).resolves.toBeUndefined();
+
+    const indexFailCalls = warnSpy.mock.calls.filter(
+      ([event]) => event === "qdrant.index_create_failed",
+    );
+    // 5 keyword + 1 integer = 6 failed index calls
+    expect(indexFailCalls).toHaveLength(6);
+  });
+
+  it("uses .catch() fallback when res.json() throws during error response", async () => {
     let callCount = 0;
-    const spy = mockFetch(async (url, init) => {
+    mockFetch(async (url, init) => {
       callCount++;
       if (!init?.method || init.method === "GET") {
-        // First call: GET — json() throws, triggering .catch(() => ({}))
         return {
           ok: false,
           status: 502,
@@ -182,13 +255,12 @@ describe("ensureKnowledgeCollection", () => {
           },
         } as unknown as Response;
       }
-      // Second call: PUT — collection creation succeeds
       return okResponse({ result: true });
     });
 
     await ensureKnowledgeCollection();
-    // 2 calls: GET (json throws, catch fallback), then PUT (succeeds)
-    expect(spy).toHaveBeenCalledTimes(2);
+    // GET (json throws → catch fallback), then PUT collection + 6 index PUTs = 8
+    expect(callCount).toBe(8);
   });
 });
 

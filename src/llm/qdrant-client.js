@@ -135,14 +135,89 @@ function hasDesiredCollectionConfig(config) {
   );
 }
 
+/**
+ * Creates or verifies all six payload indexes for the knowledge collection.
+ * Called from ensureKnowledgeCollection() on every startup so indexes are
+ * never silently absent after a collection wipe or fresh creation.
+ * Qdrant's create_field_index is idempotent — re-creating an existing index
+ * returns 200 with no error, so this is safe to call unconditionally.
+ */
+async function ensurePayloadIndexes() {
+  const base = `${QDRANT_URL}/collections/${KNOWLEDGE_COLLECTION}/index`;
+  const keywordFields = [
+    "path",
+    "section",
+    "feature_area",
+    "source_type",
+    "module",
+  ];
+  const integerFields = ["sprint"];
+
+  for (const field of keywordFields) {
+    const r = await fetch(base, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ field_name: field, field_schema: "keyword" }),
+    });
+    if (!r.ok) {
+      logger.warn("qdrant.index_create_failed", {
+        field,
+        schema: "keyword",
+        status: r.status,
+      });
+    }
+  }
+
+  for (const field of integerFields) {
+    const r = await fetch(base, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ field_name: field, field_schema: "integer" }),
+    });
+    if (!r.ok) {
+      logger.warn("qdrant.index_create_failed", {
+        field,
+        schema: "integer",
+        status: r.status,
+      });
+    }
+  }
+}
+
 export async function ensureKnowledgeCollection() {
   const res = await fetch(`${QDRANT_URL}/collections/${KNOWLEDGE_COLLECTION}`);
 
   if (res.ok) {
     const body = await res.json().catch(() => ({}));
     if (hasDesiredCollectionConfig(body?.result?.config)) {
+      // Collection exists with the correct structural config.
+      // Still ensure payload indexes exist — idempotent, safe every startup.
+      await ensurePayloadIndexes();
       return;
     }
+
+    // Collection exists but HNSW config does not match code expectations.
+    // Log the mismatch so drift is visible; fall through to attempt recreation.
+    const actual = body?.result?.config;
+    const actualHnsw = actual?.hnsw_config ?? {};
+    const actualVectors = actual?.params?.vectors ?? {};
+    logger.warn("qdrant.collection_config_mismatch", {
+      collection: KNOWLEDGE_COLLECTION,
+      actual: {
+        m: actualHnsw.m,
+        ef_construct: actualHnsw.ef_construct,
+        vector_size: actualVectors.size,
+        distance: actualVectors.distance,
+      },
+      expected: {
+        m: COLLECTION_TUNING.hnsw_config.m,
+        ef_construct: COLLECTION_TUNING.hnsw_config.ef_construct,
+        vector_size: VECTOR_DIM,
+        distance: "Cosine",
+      },
+    });
+    // The PUT below will return 409 if the collection still exists.
+    // Callers that need to rebuild must delete the collection first.
   } else {
     const body = await res.json().catch(() => ({}));
     if (
@@ -176,6 +251,9 @@ export async function ensureKnowledgeCollection() {
     );
     throw new Error("Collection creation failed");
   }
+
+  // Fresh collection created — install payload indexes immediately.
+  await ensurePayloadIndexes();
 }
 
 export async function upsertChunks(chunks) {
