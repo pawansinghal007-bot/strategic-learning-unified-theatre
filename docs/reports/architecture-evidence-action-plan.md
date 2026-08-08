@@ -4702,6 +4702,8 @@ ai-explain.ts solves the architectural problem of **AI-powered security finding 
 
 ## File: `src/llm/prompt-generator.js`
 
+**Status:** CLOSED — coverage improvement validated on branch `coverage/prompt-generator-coverage-improvement`; targeted tests in `tests/llm/prompt-generator-coverage.test.js` and `tests/llm/llm.test.js` passed.
+
 **Statement Coverage:** 96.1%
 **Branch Coverage:** ~95%
 **Function Coverage:** ~96%
