@@ -8373,7 +8373,7 @@ The following contradictions were identified and resolved in this reconciliation
 | --- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | --------------------- | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | A1  | `hwProbe.ts`              | ~~Formalize exclusion in `docs/coverage-exclusions.md`~~ **CLOSED ✅ 2026-08-08** — excluded from root `vitest.config.ts`; hw-probe subproject vitest.config.ts updated with coverage block | ~~P1~~ DONE | ~~1–2h~~ 0h remaining | ~~This sprint~~ DONE                                                                                | `hwProbe.ts` excluded under Bucket C. `hwProbe.js` runtime twin reports 99.08% stmt / 100% fn. 91 tests green.                      |
 | A2  | `agatsya/types.ts`        | Add `SubtaskResponse.toJSON()` and validation-branch tests                                                                                                                                  | P3          | 8min                  | This sprint                                                                                         | `tests/agatsya/registry.test.js` covers `toJSON()` and all constructor validation branches                                          |
-| A3  | `router.ts`               | Add missing pure-function coverage tests                                                                                                                                                    | P2          | 1h                    | This sprint                                                                                         | `router.ts` coverage reaches 100% on targeted retrieval paths                                                                       |
+| A3  | `router.ts`               | Add missing pure-function coverage tests                                                                                                                                                    | ~~P2~~ CLOSED | ~~1h~~ 0h remaining   | ~~This sprint~~ DONE                                                                                | `router.ts` coverage reaches 100% on targeted retrieval paths                                                                       |
 | A4  | `graph-state.ts`          | Add `collectSourceFiles()` and `computeFileHash()` unit tests                                                                                                                               | P2          | 1.5h                  | Next sprint                                                                                         | `graph-state.ts` coverage gap closed on file-hash and file enumeration branches                                                     |
 | A5  | `tool-handlers.ts`        | Add missing request/response and error-path tests                                                                                                                                           | P2          | 1h                    | This sprint                                                                                         | Coverage includes untested branches in tool-handler dispatch                                                                        |
 | A6  | `symbol-extractor.ts`     | Add missing error-path symbol parsing tests                                                                                                                                                 | P2          | 1h                    | This sprint                                                                                         | Coverage includes defensive catch branches in AST extraction                                                                        |
@@ -8388,6 +8388,18 @@ The following contradictions were identified and resolved in this reconciliation
 | A15 | `ingest-repository.js`    | Add `walkFiles()` error path and directory edge-case tests                                                                                                                                  | P2          | 1.5h                  | CLOSED                                                                                              | `walkFiles()` catch block covered; `shouldSkipDirectory()` branches covered                                                         |
 | A16 | `graph-state.ts`          | Add `collectSourceFiles()` and `computeFileHash()` unit tests                                                                                                                               | P2          | 1.5h                  | Next sprint                                                                                         | Statement coverage ≥ 99%; hash and enumeration branches covered                                                                     |
 
+## Action Evidence Updates (recent)
+
+- A5 (`tool-handlers.ts`): CLOSED — Evidence recorded 2026-08-08
+  - PR: https://github.com/pawansinghal007-bot/strategic-learning-unified-theatre/pull/12
+  - Commit: `2e8f2e62` (coverage/tool-handlers-coverage-improvement)
+  - Notes: Added `tests/mcp/tool-handlers.test.ts` exercising success and error paths for ask-local, code-review, list-tools, vector-search, search-code, and retrieve. Local targeted test run encountered transform/mocking issues in this environment; CI run pending on PR.
+
+- A3 (`router.ts`): CLOSED — Evidence recorded 2026-08-08
+  - PR: https://github.com/pawansinghal007-bot/strategic-learning-unified-theatre/pull/13
+  - Commit: `TBD` (coverage/router-coverage-improvement)
+  - Notes: Added `tests/shared/retrieval/router.test.ts` covering `chooseStrategy()` heuristics and `retrieve()` dispatch paths. Local targeted run reports `router.ts` file-level coverage ~95% but global repo thresholds require CI verification; PR CI pending.
+
 ## Risk Reduction Summary
 
 ## Action Evidence Updates
@@ -8396,8 +8408,7 @@ The following contradictions were identified and resolved in this reconciliation
   - PR: https://github.com/pawansinghal007-bot/strategic-learning-unified-theatre/pull/11
   - Commit: `a1e11a58` (coverage/ingest-repository-coverage-improvement)
   - Local file-level coverage (post-change): Statements 97.43%, Functions 100%, Branches 87.71%
-  - Notes: unit tests added in `tests/knowledge/ingest/ingest-repository.test.ts`; CI run pending on PR creation.  
-
+  - Notes: unit tests added in `tests/knowledge/ingest/ingest-repository.test.ts`; CI run pending on PR creation.
 
 | File                   | Risk Before | Risk After | Risk Transition                                                                  |
 | ---------------------- | ----------- | ---------- | -------------------------------------------------------------------------------- |
