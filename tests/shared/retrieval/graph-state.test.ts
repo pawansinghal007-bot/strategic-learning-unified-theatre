@@ -1,18 +1,3 @@
-/**
- * tests/shared/retrieval/graph-state.test.ts
- *
- * Unit tests for src/shared/retrieval/graph-state.ts
- *
- * Covers:
- *   - getGraph: builds graph lazily on first access (lines 78–103)
- *   - getGraph: returns cached graph when file set unchanged (lines 83–88)
- *   - getGraph: rebuilds when files have changed (lines 89–92)
- *   - getGraph: forceRebuild clears cache and rebuilds (lines 74–77)
- *   - clearGraphCache: resets both cachedGraph and cachedFileHash (lines 107–110)
- *   - hasGraphCache: returns false before first call, true after (lines 115–117)
- *   - collectSourceFiles: returns [] when src/ dir doesn't exist (lines 37–39)
- */
-
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import path from "node:path";
 import fs from "node:fs";
@@ -62,7 +47,7 @@ function makeStubGraph(id = "stub") {
   };
 }
 
-// ─── tests ────────────────────────────────────────────────────────────────────
+// ─── tests ───────────────────────────────────────────────────────────────────
 
 describe("graph-state", () => {
   // Point PROJECT_ROOT at a temp directory so collectSourceFiles reads real FS
@@ -81,7 +66,6 @@ describe("graph-state", () => {
     // Patch PROJECT_ROOT to point at our temp dir
     (
       await import("../../../src/shared/config/paths.js")
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ).PROJECT_ROOT = tmpDir as any;
 
     mockBuildGraph.mockReturnValue(makeStubGraph("initial"));
