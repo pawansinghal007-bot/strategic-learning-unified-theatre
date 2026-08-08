@@ -5279,6 +5279,8 @@ The ~3.34% uncovered regions are all edge-case branches in pure functions:
 
 ## File: `src/llm/mistake-tracker.js`
 
+**Status:** CLOSED — coverage improvement validated on branch `coverage/mistake-tracker-coverage-improvement`; targeted tests in `tests/llm/mistake-tracker-coverage.test.js` and `tests/llm/llm.test.js` passed.
+
 **Statement Coverage:** 96.87%
 **Branch Coverage:** ~95%
 **Function Coverage:** ~97%
