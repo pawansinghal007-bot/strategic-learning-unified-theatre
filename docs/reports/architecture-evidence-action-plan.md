@@ -2946,6 +2946,8 @@ If this code is removed:
 **Line Coverage:** 95.86%
 **Uncovered Lines:** ~5 lines (defensive error paths in try/catch blocks — lines 66, 72, 129, 240, 264)
 
+**Status:** CLOSED — `KEEP` per recommendation; defensive error paths are low-risk and intentionally left uncovered. No code changes required. PR pending: TBA
+
 ---
 
 ### 1. Architectural Purpose
