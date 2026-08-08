@@ -3535,6 +3535,8 @@ it("mapCategory returns 'unknown' for ruleId with no known keywords", async () =
 
 ## File: `src/commands/browser.js`
 
+**Status:** CLOSED — coverage validation completed on branch `coverage/browser-command-coverage-improvement` with targeted tests in `tests/commands/browser.coverage-additions.test.js` passing.
+
 **Statement Coverage:** 96.87%
 **Branch Coverage:** 97.24%
 **Function Coverage:** 96.77%
